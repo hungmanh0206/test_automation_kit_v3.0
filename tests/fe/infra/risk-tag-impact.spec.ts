@@ -229,3 +229,89 @@ test.describe('@infra chạy THẬT: bug mang tag chiều thì Impact nhảy the
     } finally { fs.rmSync(out, { recursive: true, force: true }); }
   });
 });
+
+test.describe('@infra §B6 — Bước 0 phá thế bí "tagWeights chưa nổ"', () => {
+  /*
+   * Ở v2.5.0 tôi đo ra và ghi thẳng: `impact.modules` bị gỡ (toàn tên dự án trước), nên Impact chỉ còn
+   * trông vào `tagWeights` — mà `impactOf()` lấy tag từ BẢN GHI BUG, và `knowledge/bugs` có 0 bản ghi.
+   * Kết quả: 30 module, 0 High, MỌI module lấy `default`. Lúc đó không có đường nào chữa mà không chờ
+   * bug tích luỹ.
+   *
+   * Bước 0 cho tín hiệu KHÔNG CẦN CHỜ BUG: bề mặt dùng chung (hỏng một chỗ là hỏng nhiều màn) và điểm
+   * nhập injection ưu tiên cao. Hai ràng buộc giữ nó khỏi thành một `impact.modules` phantom kiểu mới:
+   * chỉ NÂNG chứ không hạ, và `impactSource` ghi rõ con số đến từ một QUAN SÁT.
+   */
+  const RS = path.join(REPO, 'scripts/qa/risk_score.js');
+
+  function taskTam(o: { shared?: unknown[]; beMat?: unknown[] }) {
+    const d = fs.mkdtempSync(path.join(os.tmpdir(), 'b6-'));
+    const req = path.join(d, 'tasks', 'T1', 'requirements');
+    fs.mkdirSync(req, { recursive: true });
+    if (o.shared) fs.writeFileSync(path.join(req, 'api_inventory.json'), JSON.stringify({ shared_surface_ung_vien: o.shared }), 'utf8');
+    if (o.beMat) fs.writeFileSync(path.join(req, 'injection_surface.json'), JSON.stringify({ be_mat: o.beMat }), 'utf8');
+    return d;
+  }
+
+  function cham(pod: string) {
+    const out = fs.mkdtempSync(path.join(os.tmpdir(), 'b6out-'));
+    const r = spawnSync(process.execPath, [RS, '--out', out], {
+      cwd: REPO, encoding: 'utf8', env: { ...gateEnv(), PROJECT_OUTPUT_DIR: pod, TASK_KEY: 'T1' },
+    });
+    const reg = JSON.parse(fs.readFileSync(path.join(out, 'risk-register.json'), 'utf8'));
+    fs.rmSync(out, { recursive: true, force: true });
+    return { out: `${r.stdout}${r.stderr}`, modules: reg.modules as { module: string; impact: number; drivers: { impactSource: string } }[] };
+  }
+
+  test('bề mặt DÙNG CHUNG ⇒ Impact 4, nguồn ghi là `discovery.shared`', () => {
+    const d = taskTam({ shared: [{ endpoint: 'GET /api/x', so_man_goi: 3, goi_tu: ['ZZ Màn dùng chung'] }] });
+    const r = cham(d);
+    const m = r.modules.find((x) => x.module === 'ZZ Màn dùng chung');
+    expect(m, 'module phải vào bảng dù chưa có bug nào').toBeTruthy();
+    expect(m!.impact).toBe(4);
+    expect(m!.drivers.impactSource).toMatch(/discovery\.shared/);
+    expect(m!.drivers.impactSource, 'phải nói rõ mấy màn gọi').toMatch(/3 màn gọi/);
+    fs.rmSync(d, { recursive: true, force: true });
+  });
+
+  test('điểm nhập injection `critical` ⇒ Impact 5; `high` ⇒ 4', () => {
+    const d = taskTam({
+      beMat: [
+        { nhom: 'sort', o: 'ZZ Màn sort', uu_tien: 'critical', muc_bang_chung: 'observed' },
+        { nhom: 'filter', o: 'ZZ Màn lọc', uu_tien: 'high', muc_bang_chung: 'observed' },
+      ],
+    });
+    const r = cham(d);
+    expect(r.modules.find((x) => x.module === 'ZZ Màn sort')!.impact).toBe(5);
+    expect(r.modules.find((x) => x.module === 'ZZ Màn lọc')!.impact).toBe(4);
+    fs.rmSync(d, { recursive: true, force: true });
+  });
+
+  test('bề mặt `inferred` KHÔNG nâng Impact — chặn phỏng đoán thành con số', () => {
+    /* Cùng luật với gate phủ injection: suy diễn thành câu hỏi, không thành yêu cầu hay điểm số. */
+    const d = taskTam({ beMat: [{ nhom: 'second_order', o: 'ZZ Màn suy', uu_tien: 'high', muc_bang_chung: 'inferred' }] });
+    const r = cham(d);
+    expect(r.modules.find((x) => x.module === 'ZZ Màn suy'), 'không được tạo dòng từ một suy diễn').toBeFalsy();
+    fs.rmSync(d, { recursive: true, force: true });
+  });
+
+  test('chỉ NÂNG, không hạ: tín hiệu thấp hơn thì giữ nguyên nguồn cũ', () => {
+    /*
+     * Một bề mặt `high` (4) KHÔNG được kéo tụt một module vốn có tag `security` (5). Lời khai đã chốt
+     * thắng, trừ khi quan sát nói nó còn nặng hơn.
+     */
+    const d = taskTam({ beMat: [{ nhom: 'filter', o: 'ZZ Màn lọc', uu_tien: 'high', muc_bang_chung: 'observed' }] });
+    const r = cham(d);
+    const m = r.modules.find((x) => x.module === 'ZZ Màn lọc')!;
+    expect(m.impact).toBeGreaterThanOrEqual(4);
+    fs.rmSync(d, { recursive: true, force: true });
+  });
+
+  test('KHÔNG có artifact Bước 0 ⇒ hành vi y như trước, không đổi gì', () => {
+    const d = taskTam({});
+    const r = cham(d);
+    for (const m of r.modules) {
+      expect(m.drivers.impactSource, 'không được bịa nguồn discovery khi không có artifact').not.toMatch(/discovery\./);
+    }
+    fs.rmSync(d, { recursive: true, force: true });
+  });
+});

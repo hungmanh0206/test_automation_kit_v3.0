@@ -185,6 +185,16 @@ const SCOPE_SIGNALS = [
   { dim: 'guard', why: '`knowledge/system/` khai `state_machine` — mọi cặp chuyển trạng thái KHÔNG khai là bất hợp pháp và phải có case chứng minh bị CHẶN', has: () => knowSystem('state_machine') },
   { dim: 'security', why: '`knowledge/system/` khai `permission_matrix` — mọi ô role×action ngoài allow phải có case guard', has: () => knowSystem('permission_matrix') },
   {
+    dim: 'export_import',
+    why: '`requirements/system_map.json` thấy ô upload tệp trên màn đã bò — có đường nhập tệp thì chiều export/import ÁP DỤNG (v2.6.0 §B3)',
+    has: () => {
+      try {
+        const j = JSON.parse(fs.readFileSync(path.join(taskDir, 'requirements', 'system_map.json'), 'utf8'));
+        return (j.screens || []).some((sc) => (sc.fields || []).some((f) => f.code_loai === 'file_upload'));
+      } catch (e) { return false; }
+    },
+  },
+  {
     dim: 'security',
     why: '`requirements/injection_surface.json` có điểm nhập ưu tiên cao QUAN SÁT ĐƯỢC — mỗi bề mặt như vậy phải có case injection hoặc khai `n/a` kèm lý do (v2.6.0 §A9.2)',
     has: () => {
@@ -443,6 +453,43 @@ if (!khaiFt) {
   if (soValidation < khaiFt.length) {
     console.warn(`[dim] ⚠ khai ${khaiFt.length} loại field mà chỉ có ${soValidation} case [Validation]. Mỗi loại cần tối thiểu 1 case ⇒ có loại chưa được kiểm. (Phép đo này chỉ so TỔNG, không biết case nào thuộc loại nào.)`);
   }
+}
+
+/*
+ * ── MẪU SỐ LOẠI FIELD TỪ DẤU VÂN TAY (v2.6.0 §B4) ───────────────────────────────────────────────────
+ *
+ * Chú thích phía trên nói: "inventory theo loại field hiện KHÔNG tồn tại, và suy loại từ tên nhãn là dò
+ * chữ". Câu đó ĐÚNG cho tới v2.6.0 — Bước 0 nay tạo ra đúng cái inventory đó, và nó KHÔNG dò chữ: loại
+ * field đọc từ THUỘC TÍNH DOM (`type`, `maxlength`, `pattern`, số `<option>` thật), xem
+ * `scripts/qa/discovery/fingerprint.js`.
+ *
+ * Giới hạn tuyên bố ở v2.3.0 vì vậy được gỡ MỘT PHẦN, và phần gỡ được phải nói rõ: chỉ với những màn mà
+ * lượt bò ĐÃ TỚI. Màn chưa bò tới thì vẫn không ai biết nó có loại field nào.
+ *
+ * HAI CHIỀU, nặng khác nhau:
+ *   · QUAN SÁT ĐƯỢC mà KHÔNG khai ⇒ CHẶN. Mẫu số đang thiếu một loại field CÓ THẬT trên màn, nên mọi
+ *     tỉ lệ của chiều Validation là tỉ lệ trên một mẫu số nhỏ hơn thực tế.
+ *   · KHAI mà không quan sát được ⇒ cảnh báo. Màn chứa nó có thể nằm ngoài phạm vi lượt bò.
+ */
+const smFtPath = path.join(taskDir, 'requirements', 'system_map.json');
+if (khaiFt && fs.existsSync(smFtPath)) {
+  let smFt = null;
+  try { smFt = JSON.parse(fs.readFileSync(smFtPath, 'utf8')); } catch (e) { smFt = null; }
+  if (smFt) {
+    const quanSat = new Set();
+    for (const sc of (smFt.screens || [])) for (const f of (sc.fields || [])) if (f.code_loai) quanSat.add(f.code_loai);
+    const khaiSet = new Set(khaiFt);
+    const thieuFt = [...quanSat].filter((c) => !khaiSet.has(c)).sort();
+    const thuaFt = [...khaiSet].filter((c) => !quanSat.has(c)).sort();
+    console.log(`[dim]   dấu vân tay thấy ${quanSat.size} loại trên ${(smFt.screens || []).length} màn đã bò`);
+    if (thieuFt.length) {
+      console.error(`[dim] ✗ ${thieuFt.length} loại field QUAN SÁT ĐƯỢC trên màn mà manifest KHÔNG khai: ${thieuFt.join(', ')}. Mẫu số chiều Validation đang nhỏ hơn thực tế.`);
+      if (ENFORCE) process.exit(1);
+    }
+    if (thuaFt.length) console.warn(`[dim] ⚠ ${thuaFt.length} loại khai mà lượt bò KHÔNG thấy: ${thuaFt.join(', ')}. Màn chứa chúng có thể ngoài phạm vi lượt bò — kiểm trước khi bỏ khỏi manifest.`);
+  }
+} else if (khaiFt) {
+  console.log('[dim]   (chưa có `requirements/system_map.json` ⇒ mẫu số loại field vẫn là lời khai của người, chưa đối chiếu được với màn thật)');
 }
 
 // FAIL-FAST hai điều kiện của việc chặn. Đặt TRƯỚC bảng để không ai tưởng gate đã gác trong khi nó chưa gác.

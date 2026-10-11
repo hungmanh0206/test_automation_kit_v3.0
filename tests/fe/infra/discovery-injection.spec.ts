@@ -413,3 +413,100 @@ test.describe('@infra gate phủ injection (A9.2) — thay regex đếm chữ', 
     expect(src, 'và ghi rõ vì sao không thêm cột').toMatch(/không thêm cột vào bảng testcase/);
   });
 });
+
+test.describe('@infra §B3 + §B4 — dấu vân tay nuôi hai gate khác', () => {
+  const DC = path.join(REPO, 'scripts/qa/dimension_coverage.js');
+
+  function taskTam(o: { screens?: unknown[]; dims?: Record<string, string>; ft?: string[]; lyDo?: Record<string, string> }) {
+    const d = fs.mkdtempSync(path.join(os.tmpdir(), 'b34-'));
+    const task = path.join(d, 'tasks', 'T1');
+    fs.mkdirSync(path.join(task, 'requirements'), { recursive: true });
+    fs.mkdirSync(path.join(task, 'test-cases'), { recursive: true });
+    fs.writeFileSync(path.join(task, 'test-cases', 'bo.md'), [
+      '| TC ID | Module | Trường hợp kiểm thử | Tag | Các bước | Kết quả mong đợi |',
+      '|---|---|---|---|---|---|',
+      '| T_001 | A / B | [Validation] Kiểm ô bắt buộc | [Validation] | 1. Mở | 1. Báo lỗi |',
+      '| T_002 | A / B | [Positive] Xem | [Positive] | 1. Mở | 1. Hiện |',
+    ].join('\n'), 'utf8');
+    if (o.screens) {
+      fs.writeFileSync(path.join(task, 'requirements', 'system_map.json'),
+        JSON.stringify({ screens: o.screens }), 'utf8');
+    }
+    const man: Record<string, unknown> = { dimensions: o.dims || {} };
+    if (o.ft) man.field_types = o.ft;
+    if (o.lyDo) man.na_reasons = o.lyDo;
+    fs.writeFileSync(path.join(task, 'requirements', 'dimension_manifest.json'), JSON.stringify(man), 'utf8');
+    return d;
+  }
+
+  function chay(pod: string) {
+    const r = spawnSync(process.execPath, [DC, '--enforce'], {
+      cwd: REPO, encoding: 'utf8', env: { ...gateEnv(), PROJECT_OUTPUT_DIR: pod, TASK_KEY: 'T1' },
+    });
+    return { code: r.status, out: `${r.stdout || ''}${r.stderr || ''}` };
+  }
+
+  const MAN_UPLOAD = [{ route: '/them', fields: [{ nhan: 'Tệp', code_loai: 'file_upload' }, { nhan: 'Tên', code_loai: 'text' }] }];
+
+  test('§B3: thấy ô upload trên màn mà khai export/import `n/a` ⇒ XUNG ĐỘT, chặn', () => {
+    const d = taskTam({
+      screens: MAN_UPLOAD,
+      dims: { export_import: 'n/a' },
+      lyDo: { export_import: 'task này không có xuất nhập' },
+    });
+    const r = chay(d);
+    expect(r.code).not.toBe(0);
+    expect(r.out).toMatch(/XUNG ĐỘT: chiều "Export\/Import/);
+    expect(r.out, 'phải nêu đúng artifact').toMatch(/ô upload tệp trên màn đã bò/);
+    fs.rmSync(d, { recursive: true, force: true });
+  });
+
+  test('§B3 ÂM BẢN: màn KHÔNG có upload ⇒ khai `n/a` là hợp lệ', () => {
+    const d = taskTam({
+      screens: [{ route: '/xem', fields: [{ nhan: 'Tên', code_loai: 'text' }] }],
+      dims: { export_import: 'n/a' },
+      lyDo: { export_import: 'màn chỉ đọc, không có đường nhập tệp' },
+    });
+    expect(chay(d).out).not.toMatch(/XUNG ĐỘT: chiều "Export\/Import/);
+    fs.rmSync(d, { recursive: true, force: true });
+  });
+
+  test('§B4: loại field QUAN SÁT ĐƯỢC mà manifest không khai ⇒ CHẶN', () => {
+    /*
+     * Mẫu số thiếu một loại field CÓ THẬT trên màn thì mọi tỉ lệ của chiều Validation là tỉ lệ trên một
+     * mẫu số nhỏ hơn thực tế. Đây là chỗ Bước 0 gỡ được giới hạn tuyên bố ở v2.3.0 — và nó gỡ bằng
+     * THUỘC TÍNH DOM, không bằng dò chữ trên nhãn.
+     */
+    const d = taskTam({
+      screens: [{ route: '/f', fields: [{ code_loai: 'text' }, { code_loai: 'email' }, { code_loai: 'file_upload' }] }],
+      dims: { field_validation: 'required', export_import: 'required' },
+      ft: ['text'],
+    });
+    const r = chay(d);
+    expect(r.code).not.toBe(0);
+    expect(r.out).toMatch(/loại field QUAN SÁT ĐƯỢC trên màn mà manifest KHÔNG khai/);
+    expect(r.out).toMatch(/email/);
+    expect(r.out, 'hệ quả phải nói ra').toMatch(/nhỏ hơn thực tế/);
+    fs.rmSync(d, { recursive: true, force: true });
+  });
+
+  test('§B4: khai mà lượt bò không thấy ⇒ CẢNH BÁO, không chặn', () => {
+    /* Màn chứa loại đó có thể nằm ngoài phạm vi lượt bò — không kết luận. */
+    const d = taskTam({
+      screens: [{ route: '/f', fields: [{ code_loai: 'text' }] }],
+      dims: { field_validation: 'required' },
+      ft: ['text', 'otp', 'slider'],
+    });
+    const r = chay(d);
+    expect(r.out).toMatch(/loại khai mà lượt bò KHÔNG thấy/);
+    expect(r.out).toMatch(/ngoài phạm vi lượt bò/);
+    expect(r.out, 'KHÔNG được chặn vì chuyện này').not.toMatch(/QUAN SÁT ĐƯỢC trên màn mà manifest KHÔNG khai/);
+    fs.rmSync(d, { recursive: true, force: true });
+  });
+
+  test('§B4 hai tầng: chưa có `system_map.json` ⇒ nói rõ chưa đối chiếu được', () => {
+    const d = taskTam({ dims: { field_validation: 'required' }, ft: ['text'] });
+    expect(chay(d).out).toMatch(/chưa đối chiếu được với màn thật/);
+    fs.rmSync(d, { recursive: true, force: true });
+  });
+});
