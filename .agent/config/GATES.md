@@ -7,7 +7,7 @@
 > **T1** chỉ chặn ở cửa ra, lúc đang làm thì cảnh báo và ghi `reports/gate-debt.json` · **T2** không
 > bao giờ chặn. T0 khai tay trong `.agent/config/gate_tiers.json`; không khai thì mặc định T1.
 
-Tổng **99** máy — **70 CHẶN** · 19 SINH (ghi artifact) · 10 BÁO CÁO (chỉ in).
+Tổng **100** máy — **71 CHẶN** · 19 SINH (ghi artifact) · 10 BÁO CÁO (chỉ in).
 
 SINH/BÁO CÁO **không phải gate bị nới** — chúng không kiểm vi phạm. Ví dụ `bugs:checklist` in brief bug
 lịch sử, còn việc CHẶN nằm ở `dim:coverage` (chiều `bug_history` §20).
@@ -16,7 +16,7 @@ lịch sử, còn việc CHẶN nằm ở `dim:coverage` (chiều `bug_history` 
 |---|---|---|---|---|---|
 | T1 | CHẶN | `library:build` | ghép src/ thành docs/library/index.html (một file duy nhất, self-contained). | `docs/library/build.js` | README.md |
 | T1 | CHẶN | `merge:execution-status` | ghi kết quả execute (testcase-status.json) NGƯỢC vào cột `Result` của file | `scripts/convert_excel/merge_execution_status.js` | RULE_GLOBAL.md · USER_GUIDE.md · tests/fe/infra |
-| T1 | CHẶN | `backlog:bug-report`, `backlog:bug-report:dry-run` | Create Backlog Sub-bug issues for failed Playwright test cases. | `scripts/integrations/backlog/bug_reporter.js` | README.md · .github/workflows · .agent/skills · prompt_templates |
+| T1 | CHẶN | `backlog:bug-report`, `backlog:bug-report:dry-run` | Create Backlog Sub-bug issues for failed Playwright test cases. | `scripts/integrations/backlog/bug_reporter.js` | README.md · .github/workflows · .agent/skills · prompt_templates · tests/fe/infra |
 | T1 | CHẶN | `integration:check`, `integration:check:live` | const axios = require('axios'); | `scripts/integrations/backlog/check_connection.js` | .gitlab-ci.yml · README.md · USER_GUIDE.md · QUICKSTART.md · .github/workflows · .agent/skills · tests/fe/infra |
 | T1 | CHẶN | `gdoc:read` | Đọc nội dung từ Google Docs | `scripts/integrations/google_doc/doc_reader.js` | prompt_templates |
 | T1 | CHẶN | `audit:ci` | npm audit cho CI, phân biệt rõ 2 tình huống: | `scripts/qa/audit_ci.js` | .gitlab-ci.yml · README.md · .github/workflows |
@@ -27,6 +27,7 @@ lịch sử, còn việc CHẶN nằm ở `dim:coverage` (chiều `bug_history` 
 | T1 | CHẶN | `deps:check` | MỖI DEPENDENCY PHẢI CÓ NƠI DÙNG, HOẶC CÓ MỘT DÒNG GIẢI THÍCH. | `scripts/qa/deps_check.js` | .github/workflows · tests/fe/infra |
 | T1 | CHẶN | `design:gate` | round-3) — Gate CHẤT LƯỢNG THIẾT KẾ testcase (Phase 1), THỰC THI. | `scripts/qa/design_gate.js` | RULE_GLOBAL.md · README.md · USER_GUIDE.md · scripts/qa/README.md · .agent/workflows · .agent/skills · prompt_templates · partial-rerun · .claude/commands · tests/fe/infra |
 | T0 | CHẶN | `discover` | KHÁM PHÁ HỆ THỐNG (v2.6.0 §A1). Một lệnh, ba chế độ. | `scripts/qa/discover.js` | RULE_GLOBAL.md · README.md · USER_GUIDE.md · .agent/workflows · .agent/skills · prompt_templates · .claude/commands · tests/fe/infra |
+| T1 | CHẶN | `exit:gate` | BA CỬA RA (v2.7.0 §A2). | `scripts/qa/exit_gate.js` | tests/fe/infra |
 | T1 | CHẶN | `expansion:audit` | ĐO ĐỘ PHỦ 5 TRỤC trên MỌI task đã execute, để quyết định siết gate bằng SỐ. | `scripts/qa/expansion_audit.js` | RULE_GLOBAL.md · .claude/commands · tests/fe/infra |
 | T0 | CHẶN | `expected:check`, `expected:snapshot` | CHẶN "đổi expected để case xanh" (non-negotiable §6, tầng T0). | `scripts/qa/expected_ledger.js` | RULE_GLOBAL.md · prompt_templates · tests/fe/infra |
 | T1 | CHẶN | `json:check` | kiểm MỌI file .json ĐANG ĐƯỢC TRACK có parse được không. | `scripts/qa/json_check.js` | .gitlab-ci.yml · .github/workflows |

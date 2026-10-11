@@ -4,7 +4,7 @@ description: Cửa vào cho người mới — hỏi đúng 5 điều, tạo pro
 
 Task: **$ARGUMENTS**
 
-Kit có 99 gate và 25 skill. Người mới không cần biết hết — cần **5 điều**. Hỏi đủ 5 câu dưới, **gom thành
+Kit có 100 gate và 25 skill. Người mới không cần biết hết — cần **5 điều**. Hỏi đủ 5 câu dưới, **gom thành
 MỘT lần hỏi**, rồi làm tiếp. Đừng hỏi lắt nhắt.
 
 | # | Hỏi gì | Vì sao phải biết TRƯỚC |

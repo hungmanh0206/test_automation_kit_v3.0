@@ -114,6 +114,12 @@ const KEEP_FILES = [
    * cách im lặng. Lớp GENERIC, không mang mã task hay host.
    */
   '.agent/config/gate_tiers.json',
+  /*
+   * `exit_gates.json` (v2.7.0 §A2): bản đồ BA CỬA RA. Thiếu nó trong gói thì `exit:gate` không
+   * chạy được, và mọi vi phạm T1 đã hoãn ở §A1 không còn chỗ nào quay lại — tức người nhận kit
+   * được một bản đã nới 57 máy gác. Lớp GENERIC: chỉ tên lệnh và lý do, không mang host hay mã task.
+   */
+  '.agent/config/exit_gates.json',
   '.agent/config/checklist_types.json',
   '.agent/config/gate_codes.json',
   '.agent/config/na_reasons_rejected.json',
