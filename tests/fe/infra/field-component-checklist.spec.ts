@@ -104,7 +104,17 @@ test.describe('@infra loại field + component — danh mục đọc từ config
 
   test('config khai đủ thứ gate cần, và tuyên bố rõ giới hạn của chính nó', () => {
     expect(CFG.field_types.length, '10 loại kit vốn có HỢP 15 loại gói nguồn, trùng 7').toBe(18);
-    expect(CFG.components.length).toBe(6);
+    /*
+     * GHIM số lượng là CÓ CHỦ ĐÍCH, dù con số này được phép tăng. Đây là một DANH MỤC — thêm một mục vào
+     * nó là đổi thứ gate đem ra đối chiếu, nên nó phải là một lần sửa test thấy được trong diff, không
+     * phải một dòng lặng lẽ trong config. Khác hẳn loại số "đếm nợ rồi mong nó giảm" (thứ đã từng làm
+     * test trừng phạt tiến bộ ở v2.5.0 G2.1): số này không có hướng mong đợi nào cả.
+     *
+     * 6 → 9 ngày 11/10/2026 (v2.6.0 C3): thêm `pagination` · `filter` · `tab`. Vì sao tới giờ mới có —
+     * sáu component cũ đều suy được từ TÀI LIỆU, ba cái này chỉ biết khi MỞ MÀN RA XEM, mà trước Bước 0
+     * thì kit không có bước nào mở màn ở cấp hệ thống.
+     */
+    expect(CFG.components.length).toBe(9);
     const codes = new Set(CFG.field_types.map((f: { code: string }) => f.code));
     expect(codes.size, 'mã loại field không được trùng nhau').toBe(18);
     for (const c of CFG.components) {
@@ -114,7 +124,26 @@ test.describe('@infra loại field + component — danh mục đọc từ config
     }
     expect(CFG._gioi_han_da_do, 'giới hạn phải ghi trong config, không chỉ trong đầu người viết').toMatch(/KHÔNG đếm được/);
     const coSignal = CFG.components.filter((c: { artifact_signal?: string }) => c.artifact_signal);
-    expect(coSignal.length, 'chỉ permission_matrix và state_machine có artifact ⇒ chỉ 2 chỗ chặn được').toBe(2);
+    /*
+     * 2 → 5: `pagination`/`filter`/`tab` có artifact signal là **dấu vân tay màn của discovery**, nên
+     * chúng chặn được chứ không chỉ cảnh báo. Đây là chỗ Bước 0 đổi thật năng lực của gate: trước đó chỉ
+     * hai component có artifact (`permission_matrix`, `state_machine` trong `knowledge/system/`), tức
+     * 4/6 component chỉ gác được mức cảnh báo. Nay là 5/9 chặn được.
+     *
+     * ĐỔI LẠI phải hai tầng: task CHƯA có discovery thì ba cái mới KHÔNG gác gì và phải in "chưa được
+     * gác" — không in ĐẠT. Chặn ngay là làm đỏ mọi bộ testcase đã publish.
+     */
+    expect(coSignal.length, 'permission_matrix · state_machine (knowledge/system) + 3 component dò được từ dấu vân tay discovery').toBe(5);
+    /*
+     * Kiểm `artifact_signal` TRỎ VÀO ĐÂU, không đo độ dài. Bản đầu của phép kiểm này đòi >20 ký tự và
+     * làm đỏ `permission` (khai `permission_matrix`, 17 ký tự) — tức áp một luật mới lên dữ liệu có sẵn
+     * rồi gọi dữ liệu đó là sai. Độ dài là proxy cho "có nói rõ không", và là proxy tệ: một chuỗi dài vô
+     * nghĩa vẫn qua, còn một khoá artifact đúng và ngắn thì đỏ.
+     */
+    for (const c of coSignal) {
+      expect(String(c.artifact_signal), `${c.code}: artifact_signal phải trỏ vào một artifact đọc được (khoá knowledge/system, hoặc "discovery: …")`)
+        .toMatch(/knowledge\/|discovery:|permission_matrix|state_machine/);
+    }
   });
 
   test('② TẦNG 1 — manifest CHƯA có khối components: KHÔNG chặn, nhưng phải KÊU và đưa khung', () => {

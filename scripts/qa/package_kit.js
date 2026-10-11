@@ -101,6 +101,13 @@ const KEEP_FILES = [
    */
   '.agent/config/design_techniques.json',
   '.agent/config/ui_components.json',
+  /*
+   * `discovery.json` (v2.6.0): danh sách nút cấm bấm, dấu hiệu prod, giới hạn lượt bò, từ điển dấu hiệu
+   * lỗi SQL. Thiếu nó trong gói thì `write_firewall.napCfg()` NÉM và Bước 0 không chạy được — đúng chủ
+   * đích: cấu hình khuyết thì KHÔNG CHẤY, chứ không chạy với một lớp phòng vệ biến mất im lặng.
+   * Không chứa host, bảng DB, credential hay PII: chỉ là danh sách nhãn và ngưỡng.
+   */
+  '.agent/config/discovery.json',
   '.agent/config/checklist_types.json',
   '.agent/config/gate_codes.json',
   '.agent/config/na_reasons_rejected.json',
@@ -110,6 +117,11 @@ const KEEP_FILES = [
   '.agent/config/tc_review.json',
   '.agent/config/gitlab_strip.json',
   '.agent/config/deps_allow.json',
+  '.agent/config/rule_parity.json',
+  '.agent/config/auto_review.json',
+  '.agent/config/run_analysis.json',
+  '.agent/config/manual_run.json',
+  '.agent/config/skills_lint.json',
 ];
 
 /*

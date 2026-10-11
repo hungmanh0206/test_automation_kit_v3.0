@@ -45,7 +45,7 @@ const TERMS_GATE3 = [
   src:'scripts/qa/scope_anchor.js', rel:['g-dimension_coverage','c-canonical','g-preflight_gate'] },
 { id:'g-gate_index', t:'gates:index', cat:'gate',
   def:'Sinh DANH MỤC GATE của kit từ chính source. Trả lời được "kit có bao nhiêu gate, mỗi cái CHẶN gì, gọi ở đâu".',
-  detail:'Quét source rồi suy mức từ code: exit 1 là CHẶN · ghi artifact là SINH · chỉ in là BÁO CÁO. Bảng hiện tại: 88 máy — 61 CHẶN, 17 SINH, 10 BÁO CÁO. Bản --check chặn khi bảng lệch source.',
+  detail:'Quét source rồi suy mức từ code: exit 1 là CHẶN · ghi artifact là SINH · chỉ in là BÁO CÁO. Bảng hiện tại: 96 máy — 68 CHẶN, 18 SINH, 10 BÁO CÁO. Bản --check chặn khi bảng lệch source.',
   why:'Kit có hơn 30 npm script dạng gate và gần 60 file trong scripts/qa/, nhưng không chỗ nào trả lời được câu trên. Hệ quả không phải bất tiện: luận đề của kit là "luật cần MÁY", mà máy không LIỆT KÊ ĐƯỢC thì không kiểm toán được. Không ai biết một gate đã âm thầm tụt thành cảnh báo, hay đã mất nơi gọi.',
   how:['npm run gates:index để sinh lại bảng.','npm run gates:index:check để chặn khi bảng lệch source.'],
   cmd:'npm run gates:index   ·   npm run gates:index:check',
@@ -117,5 +117,71 @@ const TERMS_GATE3 = [
   cmd:'npm run release:verify',
   ex:'Bài học đi kèm: gate nào dùng git phải chịu được trường hợp KHÔNG có .git. Ba gate nay dùng chung một helper thay vì vá lần thứ ba.',
   src:'scripts/qa/verify_release.js', rel:['g-package_kit','g-version_check','c-gate-real-content','f-kit-layers'] }
+,
+
+/* ── Máy thêm ở v2.5.0 và v2.6.0 ──────────────────────────────────────────
+   Rà 11/10/2026: 6 máy của v2.5.0 có trong GATES.md mà CHƯA có mục ở đây.
+   Thiếu mục nghĩa là người đọc tra không ra, và một máy tra không ra thì coi
+   như không có — đúng lý do nhóm 2e ra đời hồi 29/09. */
+
+{ id:'g-matrix_coverage', t:'matrix:coverage', cat:'gate',
+  def:'Ma trận tổ hợp phải phủ theo LỚP KẾT QUẢ, không phủ theo số dòng.',
+  detail:'Đọc khối "Lớp kết quả" khai trong tài liệu thiết kế rồi đối chiếu với bảng ma trận: lớp nào khai mà không dòng nào cho ra nó thì nêu tên. Không khai lớp nào thì gate nói "CHƯA ĐƯỢC GÁC", KHÔNG in ĐẠT.',
+  why:'Pairwise phủ CẶP GIÁ TRỊ, và một bộ phủ đủ cặp vẫn có thể bỏ sót cả một lớp kết quả — ví dụ nhánh "từ chối vì quá hạn" không xuất hiện ở dòng nào. Đếm dòng thì thấy đủ; đếm lớp kết quả mới thấy thiếu.',
+  how:['Khai lớp kết quả TRƯỚC khi dựng ma trận, không khai sau cho khớp.','Gate không tự suy lớp kết quả từ văn bản: suy bằng từ khoá đã sinh dương tính giả nhiều lần.'],
+  cmd:'npm run matrix:coverage -- --task <KEY>',
+  ex:'Bản đầu của chính gate này đọc khối khai bằng regex có `\\b` sau chữ có dấu, nên nó báo "không có khối khai" cho một file hoàn chỉnh.',
+  trap:'Không khai lớp kết quả thì đừng đọc "không có cảnh báo" thành "đã phủ đủ".',
+  src:'scripts/qa/matrix_coverage.js', rel:['c-oracle','g-dimension_coverage'] },
+
+{ id:'g-run_analysis', t:'run:analysis', cat:'gate',
+  def:'Lượt chạy này có đủ MẪU SỐ để kết luận chất lượng sản phẩm không.',
+  detail:'Chia BLOCKED theo dải 5% và 20%, tách nợ test (SKIP vì thiếu môi trường) khỏi lỗi sản phẩm, và chỉ so xu hướng khi dấu vân tay bộ TC (sha256 của danh sách tcId đã sắp) KHỚP lượt trước.',
+  why:'Một lượt chạy 300 case với 80 case BLOCKED không nói được gì về chất lượng, nhưng báo cáo của nó trông y hệt một lượt sạch. Và so xu hướng giữa hai bộ TC khác nhau là so hai thứ khác nhau.',
+  how:['BLOCKED trên 20% thì kết luận chất lượng là BLOCKED, không phải FAIL hay PASS.','Dấu vân tay lệch thì KHÔNG vẽ xu hướng, nói rõ là bộ đã đổi.'],
+  cmd:'npm run run:analysis -- --task <KEY>',
+  ex:'Là bước 6 của `phase2:check`.',
+  trap:'SKIP vì thiếu tài khoản là NỢ TEST, không phải sản phẩm tốt.',
+  src:'scripts/qa/run_analysis.js', rel:['c-observation','g-dimension_coverage'] },
+
+{ id:'g-release_summary', t:'release:summary', cat:'gate',
+  def:'Khuyến nghị go/no-go có căn cứ, và KHÔNG tự quyết thay người.',
+  detail:'Bảy tiêu chí, mỗi tiêu chí kèm cột `nguồn` trỏ tới artifact sinh ra nó. Từ chối chạy khi chưa có `exit_criteria.json`, và từ chối khi `mtime` của tiêu chí MỚI HƠN kết quả chạy — tiêu chí sửa sau khi đã biết kết quả thì nó không còn là tiêu chí.',
+  why:'Một bản tóm tắt phát hành không có nguồn thì nó là ý kiến. Và `--enforce` KHÔNG BAO GIỜ chặn khi kết luận là NO-GO: quyết định phát hành là của người, máy chỉ đưa căn cứ.',
+  how:['Khai `exit_criteria.json` TRƯỚC khi chạy bộ test.','Đọc cột `nguồn` trước khi tin một dòng.'],
+  cmd:'npm run release:summary -- --task <KEY>   ·   npm run release:summary:init',
+  ex:'Tiêu chí sửa sau kết quả thì gate từ chối chạy, kèm chênh lệch mtime.',
+  trap:'`--enforce` không chặn NO-GO. Đừng đọc "exit 0" thành "được phát hành".',
+  src:'scripts/qa/release_summary.js', rel:['c-observation','g-self_review'] },
+
+{ id:'g-auto_review', t:'auto:review', cat:'gate',
+  def:'Bảy luật cho automation VIẾT THEO TASK, thứ trước đây không máy nào soi.',
+  detail:'Soi spec trong `outputs/**/automation/`: hard sleep, test không assert, locator theo spec, và bốn luật khác. Phần locator giao cho `lint:locator` chứ không viết lại. Nợ hard sleep khai theo SỐ LƯỢNG trong config: nhiều hơn là chặn, ít hơn là nhắc hạ con số.',
+  why:'Kit có gate cho testcase và cho tài liệu, nhưng automation do agent viết trong `outputs/` thì không ai soi. Một test không có assertion vẫn xanh.',
+  how:['Quét trên bản mã đã XOÁ RUỘT chuỗi và chú thích, để một fixture chứa `sleep(` không bị tính là vi phạm.','Hạ số nợ trong config khi trả được nợ, đừng nới nó.'],
+  cmd:'npm run auto:review   ·   npm run auto:review:enforce',
+  ex:'Luật `no-assert` dùng lookbehind để không bắt nhầm `requestTest(`.',
+  trap:'Cây không có `.git` được coi là tầng CHẶN — đó đúng là bản kit đã đóng gói.',
+  src:'scripts/qa/automation_review.js', rel:['g-locator_lint','c-gate-real-content'] },
+
+{ id:'g-skills_lint', t:'skills:lint', cat:'gate',
+  def:'Mô tả của một skill có đủ thông tin để CHỌN nó hay chưa.',
+  detail:'Kiểm mô tả có nói "dùng khi nào" và "không dùng khi nào", và mọi đường dẫn trong skill phải tồn tại. Phần kiểm đường dẫn chỉ soi thư mục gốc của repo, KHÔNG soi `knowledge/**` (gitignore) hay đường dẫn tương đối theo task.',
+  why:'25 skill không auto-load: agent phải tự chọn. Một mô tả không nói "khi nào" thì nó không giúp chọn, và skill đó coi như không tồn tại.',
+  how:['Mô tả nêu điều kiện kích hoạt, không nêu tính năng.','Đường dẫn trong skill phải là đường dẫn thật.'],
+  cmd:'npm run skills:lint   ·   npm run skills:lint -- --enforce',
+  ex:'Bản đầu soi cả `knowledge/**` nên xanh ở máy local mà chặn 5 chỗ trên cây sạch.',
+  trap:'Nợ mô tả khai theo số lượng: nhiều hơn là chặn, ít hơn là nhắc hạ con số.',
+  src:'scripts/qa/skills_lint.js', rel:['f-kit-layers'] },
+
+{ id:'g-knowledge_bootstrap', t:'knowledge:bootstrap', cat:'gate',
+  def:'Dựng KHUNG `knowledge/domain` ở trạng thái `draft`, để kho không ở lại rỗng.',
+  detail:'Sinh bản ghi `status: draft` từ bộ testcase canonical. `--apply` từ chối chạy nếu không có `--top <n>` hoặc `--module "<tên>"`: sinh hàng loạt không giới hạn là cách tạo ra một kho đầy khung rỗng.',
+  why:'Trước v2.5.0 không có cách ghi một bản ghi "chưa ai xác nhận": `confirmed_by` bắt buộc và `status` không nhận `draft`. Dự án mới có `knowledge/` rỗng thì nó ở lại rỗng, vì bước đầu tiên đã bị chặn.',
+  how:['`draft` KHÔNG phải oracle: case trỏ vào một rule còn draft thì `domain:check` chặn.','Chốt rule bằng `confirmed_by` rồi mới đổi sang `active`.'],
+  cmd:'npm run knowledge:bootstrap -- --module "<tên>" --apply',
+  ex:'Lỗ này làm cả hạng mục bất khả thi trước đó, không phải chuyện thiếu tiện ích.',
+  trap:'Khung draft nhiều mà không ai chốt thì kho vẫn rỗng về nghĩa.',
+  src:'scripts/qa/knowledge_bootstrap.js', rel:['g-domain_rules','c-oracle'] },
 
 ];

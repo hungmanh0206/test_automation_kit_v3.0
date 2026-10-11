@@ -12,6 +12,10 @@
       ],
       "co_dieu_kien": [
         {
+          "file": ".agent/workflows/phase1_000_system_discovery.md",
+          "khi": "Bước 0, CHỈ khi task chưa có `knowledge/system/discovery/<build>/system_map.json` cho build hiện tại. Có rồi thì đọc `summary.txt` của lượt trước, KHÔNG nạp lại file này."
+        },
+        {
           "file": "prompt_templates/phase1/02b_output_format.md",
           "khi": "Cuối lượt, lúc viết Summary Report và xuất Excel. KHÔNG nạp ở đầu lượt."
         },
@@ -102,6 +106,21 @@
         {
           "file": "prompt_templates/phase2/08_log_bug_backlog.md",
           "khi": "Lượt rerun phát hiện bug mới, hoặc cần cập nhật bug cũ."
+        }
+      ]
+    },
+    "start": {
+      "_vi_sao": "Cửa vào cho người mới (v2.5.0 G3.5). Luồng RIÊNG, cố ý không đụng phase1/phase2:  chỉ hỏi 5 điều rồi chỉ sang lệnh có sẵn, nên nó không được làm phình phần nạp của hai luồng chính.",
+      "diem_vao": ".claude/commands/start.md",
+      "bat_buoc": [],
+      "co_dieu_kien": [
+        {
+          "file": "prompt_templates/run_phase1_template.md",
+          "khi": "Người dùng trả lời câu 3 là Phase 1 — lúc đó mới nạp, và nạp thì chuyển hẳn sang luồng phase1."
+        },
+        {
+          "file": "prompt_templates/run_phase2_template.md",
+          "khi": "Người dùng trả lời câu 3 là Phase 2 — tương tự, chuyển hẳn sang luồng phase2."
         }
       ]
     }

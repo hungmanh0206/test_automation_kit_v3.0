@@ -38,17 +38,23 @@ Trước đây nhánh GitLab cố ý bị gỡ 2 file so với GitHub. Hai file 
 hai cây **hết phân kỳ**. Cơ chế strip vẫn giữ: lần sau có đường dẫn nào chỉ được nằm ở một nhánh thì khai
 vào file đó, đừng gỡ tay.
 
-Đo ngày 29/09/2026:
+Đo ngày 11/10/2026 (sau v2.6.0 §A1) trên **worktree sạch ở HEAD** (`git worktree add --detach`), không đo trên cây làm việc:
+cây làm việc có file chưa track và chúng đẩy số test lên (đo cùng lúc: 1.222 trên cây làm việc, 1.207 trên cây sạch).
 
 | | GitHub | GitLab |
 |---|---|---|
-| file được track | 536 | 536 |
-| `npx playwright test tests/fe/infra` | **846 test · 0 đỏ** | **846 test · 0 đỏ** |
-| `npm run ci:scope` đếm | 74 spec | 74 spec |
+| file được track | 595 | 595 |
+| `npx playwright test tests/fe/infra` | **1.207 test · 0 đỏ** (1.198 chạy · 9 bỏ qua) | **1.207 test · 0 đỏ** |
+| `npm run ci:scope` đếm | 100 spec | 100 spec |
+
+> 9 test bỏ qua trên cây sạch là đúng: chúng cần dữ liệu ở `knowledge/**` hoặc `outputs/**` — hai lớp PROJECT
+> bị gitignore. Mỗi test tự in lý do khi bỏ qua.
 
 **Số của bạn khác bảng này là có gì đó sai** — đừng bỏ qua. Test bỏ qua đều tự khai lý do khi chạy.
 
-Một ngoại lệ hợp lệ: **tổng luôn là 664**, nhưng phần bỏ qua đổi theo dữ liệu bạn có.
+Một ngoại lệ hợp lệ: **tổng luôn đúng bằng con số ở bảng trên**, nhưng phần bỏ qua đổi theo dữ liệu bạn có.
+(Trước 10/10/2026 câu này chép lại con số — `664` — và nó đã trôi khỏi bảng ngay phía trên, lệch 189 test.
+Một trang nói hai con số thì người đọc tin con số sai. Nên nay nó là con trỏ, không phải bản chép.)
 Clone mới thì `knowledge/` rỗng nên vài test tự bỏ qua; khôi phục bundle `knowledge:backup` xong thì
 chúng chạy thật. Đó là ĐÚNG, không phải lệch.
 

@@ -8,11 +8,24 @@ Test Automation Kit hỗ trợ quy trình kiểm thử end-to-end cho nhiều pr
 
 Tài liệu này là landing page của toàn bộ kit. Team QA nên đọc cùng [USER_GUIDE.md](USER_GUIDE.md) và [QUICKSTART.md](QUICKSTART.md) trước khi chạy Phase 1 hoặc Phase 2.
 
+### Giới hạn — đọc trước khi chọn kit này
+
+Nói thẳng ở đây rẻ hơn nhiều so với để bạn phát hiện sau khi đã dựng xong profile và viết xong một nửa bộ case:
+
+- **Chỉ Playwright.** Không có Selenium, không có Appium, không có lớp mobile-native. Mobile chỉ tới mức **mobile-web** (device emulation trong cùng một browser, `npm run test:mobile-web`). Dự án cần mobile-native thì cần một kit khác.
+- **Test management là Google Sheet**, công cụ duy nhất. Bug đi Backlog. Không có tầng tích hợp nào khác.
+- **DB chỉ đọc**, và chỉ qua client riêng của kit. Precondition không được dựng bằng DB.
+- **Captcha không tự giải được.** Màn login của app hiện tại có captcha sinh lại mỗi postback, nên **CI không người trông KHÔNG tự đăng nhập được** — phải nạp sẵn session hoặc có người/agent đọc captcha.
+
+Quy ước chi tiết cho Playwright: [`.agent/rules/playwright_fe.md`](.agent/rules/playwright_fe.md).
+
 ## Architecture
 
 ```mermaid
 flowchart TD
     Kit(["Test Automation Kit"])
+    Kit --> B0["Bước 0<br/>khám phá hệ thống"]
+    B0 --> P1
     Kit --> P1["Phase 1<br/>sinh testcase + Excel"]
     Kit --> P2["Phase 2<br/>execute automation"]
     Kit --> RR["Rerun<br/>verify bug đã fix"]
@@ -23,6 +36,7 @@ flowchart TD
 
 | Layer | Purpose |
 |---|---|
+| Bước 0 (Khám phá hệ thống) | Chạy TRƯỚC Phase 1. `npm run discover` bò app bằng script tất định rồi trả bản đồ màn, danh mục API, bản đồ phủ tài liệu và bản đồ điểm nhập injection. Mẫu số coverage của Phase 1 lấy từ đây, nên màn không có trong tài liệu vẫn vào phạm vi. Mọi bản ghi là `observed`, không phải oracle. |
 | Phase 1 | Đọc requirement/design/API và sinh testcase Markdown + Excel + coverage report + `### Setup Readiness` (mỗi cell `Tiền điều kiện` mang tag `[<method>]`); Excel là source of truth **khi gen/publish** và là input cho step publish sau QA confirmation (Phase 2 execute luôn tải bản Google Sheet mới nhất). |
 | Testcase Publish (Google Sheet) | Step riêng trong phạm vi Phase 1: sau khi QA xác nhận Excel, agent publish qua Google Drive MCP (`search_files` → `create_file`/`update_file`) — file `.xlsx` chính là nội dung Sheet, không ánh xạ field riêng. Nhóm chức năng thành **sheet riêng** trong workbook, TC ID ở cột `ID_TC`, tiền điều kiện trong cột `Tiền điều kiện`. Review nội dung local trước khi ghi đè Sheet thật. |
 | Testcase Re-publish | Khi Excel thay đổi sau publish (kể cả từ nhánh phụ `partial-rerun`): re-publish là ghi đè lại toàn workbook — không cần lifecycle/Deprecate riêng như trước, case bị bỏ khỏi Excel tự động biến mất khỏi Sheet ở lần ghi đè kế tiếp. |

@@ -118,10 +118,61 @@ function main() {
   for (const h of hist) for (const [mod, v] of Object.entries(h.modules || {})) { const e = ensure(mod); e.fail += Number(v.fail || 0); e.total += Number(v.total || 0); }
   for (const m of impactModulesTouched) ensure(m);
 
+  /*
+   * ── TÍN HIỆU TỪ BƯỚC 0 (v2.6.0 §B6) ────────────────────────────────────────────────────────────────
+   *
+   * ĐÂY LÀ LỜI GIẢI CHO CHỖ ĐÃ ĐO HỤT Ở v2.5.0. Lúc đó `impact.modules` bị gỡ vì toàn tên của dự án
+   * trước, và Impact chỉ còn trông vào `impact.tagWeights` — nhưng `impactOf()` lấy tag từ BẢN GHI BUG,
+   * mà `knowledge/bugs` có 0 bản ghi. Kết quả đo được: 30 module, 0 High, MỌI module lấy `default`. Tôi
+   * đã ghi thẳng lúc đó là "tagWeights chưa nổ", và không có đường nào chữa mà không chờ bug tích luỹ.
+   *
+   * Bước 0 phá được thế bí đó: nó cho tín hiệu KHÔNG CẦN CHỜ BUG.
+   *   · `shared_surface_ung_vien` — endpoint từ 2 màn trở lên gọi. Một bề mặt dùng chung hỏng thì hỏng
+   *     nhiều chỗ cùng lúc, nên nó nâng IMPACT.
+   *   · `injection_surface` ưu tiên critical/high — điểm nhập đi tới truy vấn dữ liệu, cũng nâng Impact.
+   *
+   * HAI RÀNG BUỘC, để tín hiệu này không thành một `impact.modules` phantom kiểu mới:
+   *   ① chỉ NÂNG, không hạ. Module đã có Impact cao từ tag hoặc config thì giữ nguyên.
+   *   ② ghi `impactSource` riêng (`discovery.shared` / `discovery.injection`) để người đọc register biết
+   *      con số đến từ một QUAN SÁT, không phải từ một lời khai đã được ai đó chốt.
+   */
+  const tinHieuDiscovery = new Map();   // module -> {diem, nguon}
+  if (tod) {
+    const nangCho = (ten, diem, nguon) => {
+      if (!ten) return;
+      const cu = tinHieuDiscovery.get(ten);
+      if (!cu || diem > cu.diem) tinHieuDiscovery.set(ten, { diem, nguon });
+      ensure(ten);
+    };
+    const docJson = (f) => { try { return JSON.parse(fs.readFileSync(path.join(tod, 'requirements', f), 'utf8')); } catch (e) { return null; } };
+    const api = docJson('api_inventory.json');
+    for (const s of ((api || {}).shared_surface_ung_vien || [])) {
+      for (const man of (s.goi_tu || [])) nangCho(man, 4, `discovery.shared (${s.so_man_goi} màn gọi ${s.endpoint})`);
+    }
+    const isf = docJson('injection_surface.json');
+    for (const b of ((isf || {}).be_mat || [])) {
+      if (b.muc_bang_chung !== 'observed') continue;
+      if (b.uu_tien === 'critical') nangCho(b.o, 5, `discovery.injection (${b.nhom}, critical)`);
+      else if (b.uu_tien === 'high') nangCho(b.o, 4, `discovery.injection (${b.nhom}, high)`);
+    }
+  }
+
   const impactOf = (e) => {
-    if (model.impact.modules && model.impact.modules[e.module] != null) return { v: model.impact.modules[e.module], known: true, src: 'config.module' };
+    const dis = tinHieuDiscovery.get(e.module) || null;
+    if (model.impact.modules && model.impact.modules[e.module] != null) {
+      const v = model.impact.modules[e.module];
+      // Chỉ NÂNG: lời khai của người thắng, trừ khi quan sát nói nó còn nặng hơn.
+      return (dis && dis.diem > v)
+        ? { v: dis.diem, known: true, src: dis.nguon }
+        : { v, known: true, src: 'config.module' };
+    }
     let tw = 0; for (const t of e.tags) if (model.impact.tagWeights[t] != null) tw = Math.max(tw, model.impact.tagWeights[t]);
-    if (tw > 0) return { v: tw, known: true, src: 'config.tag' };
+    if (tw > 0) {
+      return (dis && dis.diem > tw)
+        ? { v: dis.diem, known: true, src: dis.nguon }
+        : { v: tw, known: true, src: 'config.tag' };
+    }
+    if (dis) return { v: dis.diem, known: true, src: dis.nguon };
     return { v: model.impact.default, known: false, src: 'default' };
   };
 
@@ -200,7 +251,28 @@ function main() {
       'Hệ quả: dòng đầu bảng là phantom (Impact cao, 0 bug) còn module thật bị chặn trần band — `executeOrder` chỉ sai chỗ.', '',
       `Tên khai nhưng không có dữ liệu: ${phantom.map((m) => `\`${m}\``).join(', ')}`, '',
       `Module có dữ liệu mà thiếu Impact: ${orphanData.map((m) => `\`${m}\``).join(', ')}`, '',
-      'Sửa: khai `impact.modules` theo ĐÚNG tên cột `Module` của bộ testcase canonical (hoặc dùng `impact.tagWeights` nếu muốn chấm theo tag).');
+      'Sửa: khai `impact.modules` theo ĐÚNG tên cột `Module` của bộ testcase canonical, hoặc chấm theo tag — xem mục `tagWeights` ngay dưới để biết đường tag có đang sống hay không.');
+  }
+  /*
+   * `tagWeights` KHAI MÀ KHÔNG NỔ.
+   *
+   * Đây là nửa còn lại của chuyện trên, và nó im lặng hơn nhiều: khi `impact.modules` rỗng (đúng cách
+   * khuyến nghị), toàn bộ Impact trông cậy vào `tagWeights`. Nhưng `impactOf()` đọc tag từ BẢN GHI BUG,
+   * không đọc từ bộ testcase. Nên nếu `knowledge/bugs` trống — mặc định ở dự án mới — thì một khối 23
+   * trọng số vẫn ra y hệt như khi không khai gì, và bảng chấm toàn `default` trông vẫn "bình thường".
+   *
+   * Đo 11/10/2026: 0 bản ghi bug ⇒ 0/30 module nhận được tag ⇒ 23 trọng số là đồ trang trí. Tệ hơn,
+   * trước hôm đó `learn_bugs` ghi `tags` bằng đúng một slug tên module (`them-moi-lop-hoc`) nên dù có
+   * bug thì cũng KHÔNG tag nào khớp tên chiều. Phần ghi tag đã sửa; phần này để nó không im lần nữa.
+   */
+  const soTag = rows.filter((r) => r.drivers.impactSource === 'config.tag').length;
+  const tagKhai = Object.keys(model.impact.tagWeights || {}).filter((k) => !k.startsWith('_'));
+  if (tagKhai.length && soTag === 0) {
+    L.push('', '## ⚠ `impact.tagWeights` khai nhưng chưa nổ', '',
+      `Khai **${tagKhai.length} trọng số tag**, nhưng **0/${rows.length} module** lấy Impact từ tag — tất cả đang là \`default (${model.impact.default})\`.`,
+      `Nguyên nhân: Impact theo tag đọc tag của **bản ghi bug** (\`knowledge/bugs\`, hiện có **${bugs.length}**), không đọc ô \`Tag\` của bộ testcase.`, '',
+      'Đây **KHÔNG phải lỗi config** nếu dự án chưa log bug nào — nó đúng là trạng thái cold-start. Nhưng phải nói ra, vì một bảng toàn `default` trông y như một bảng đã được chấm.',
+      'Hệ quả cần biết: `executeOrder` lúc này xếp theo Likelihood (failRate từ snapshot) chứ không theo mức độ nghiêm trọng.');
   }
   if (overrides.length) {
     L.push('', '## QA override đã lưu dài hạn (`knowledge/decisions/`)', '',
@@ -219,6 +291,7 @@ function main() {
   console.log(`[risk] Đã tạo: ${path.join(OUT, 'risk-register.md')}`);
   if (unmapped && unmapped.bugCount) console.log(`[risk] ⚠ ${unmapped.bugCount} bug chưa map được module (thiếu label tcId) → KHÔNG vào bảng; Likelihood các module thật đang thiếu đúng số đó. Xem cuối register.`);
   if (phantom.length && orphanData.length) console.log(`[risk] ⚠ LỆCH TÊN MODULE: ${phantom.length}/${declared.length} tên trong impact.modules không có dữ liệu, còn ${orphanData.length} module CÓ dữ liệu đang lấy Impact=default → band bị chặn trần. Xem cuối register.`);
+  if (tagKhai.length && soTag === 0) console.log(`[risk] ⚠ tagWeights CHƯA NỔ: khai ${tagKhai.length} trọng số tag nhưng 0/${rows.length} module lấy Impact từ tag — Impact theo tag đọc từ knowledge/bugs (${bugs.length} bản ghi), không đọc ô Tag của bộ testcase. Xem cuối register.`);
   if (overrides.length) console.log(`[risk] ${overrides.length} QA override đã lưu (knowledge/decisions/) — nhắc lại ở cuối register, KHÔNG tự áp.`);
   console.log(`[risk] ${rows.length} module · ${high} High · ${unk} UNKNOWN (${bugs.length} bug, ${hist.length} snapshot làm dữ liệu)`);
   if (!bugs.length && !hist.length) console.log('[risk] Cold-start: chưa có learning data → band từ Impact/config. QA xác nhận band trước khi bật gate --enforce.');

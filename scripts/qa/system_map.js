@@ -46,7 +46,14 @@ const TYPES = ['state_machine', 'permission_matrix', 'shared_surface', 'data_mod
 const PREFIX = { state_machine: 'SM', permission_matrix: 'PM', shared_surface: 'SS', data_model: 'DM', ui_contract: 'UI' };
 const KINDS = ['api', 'component', 'table', 'job', 'config', 'library'];
 const ID_RE = /^(SM|PM|SS|DM|UI)-[A-Z0-9]+-\d{3}$/;
-const STATUSES = ['active', 'superseded', 'deprecated'];
+/*
+ * `draft` thêm 10/10/2026 (v2.5.0 G2.3), cùng lý do như ở `domain_rules.js`: trước đó không có cách nào
+ * ghi một bản ghi CHƯA ai xác nhận, nên một bản đồ hệ thống mới dựng không thể tồn tại trong kho.
+ *
+ * Đây cũng là nền mà v2.6.0 và v2.8.0 cần: cả hai nói "ứng viên `SM-*`/`PM-*`/`SS-*` ở dạng `draft`, chỉ
+ * thành `active` khi có `confirmed_by`".
+ */
+const STATUSES = ['draft', 'active', 'superseded', 'deprecated'];
 const CONFIRMERS = ['BA', 'Dev', 'QA-Lead', 'PO'];
 const EMAIL_RE = /[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}/;
 const PHONE_RE = /\b0\d{8,10}\b/;
@@ -64,6 +71,20 @@ const pairKey = (a, b) => `${a} → ${b}`;
 
 /** Governance chung cho cả 3 type (giống `domain/` để chỉ có 1 mô hình trong đầu). */
 function validateCommon(d, at, problems, warnings) {
+  /*
+   * Bản ghi `draft` — CHƯA PHẢI ORACLE. Miễn `confirmed_by`/`confirmed_at` (theo định nghĩa chưa có),
+   * nhưng đổi lại bị CHẶN mọi đường dùng làm căn cứ: `covered_by` phải rỗng, và phải có `todo` nói rõ
+   * phải hỏi ai cái gì. Cùng khuôn với `domain_rules.js` để chỉ có MỘT mô hình trong đầu.
+   */
+  if (d.status === 'draft') {
+    if (!TYPES.includes(String(d.type || ''))) problems.push(at(`\`type\` phải ∈ ${TYPES.join('|')}`));
+    if (!Array.isArray(d.modules) || !d.modules.length) problems.push(at('draft vẫn phải có `modules`'));
+    if (!String(d.todo || '').trim()) problems.push(at('`status: draft` PHẢI có `todo` — phải hỏi AI cái GÌ để chốt.'));
+    const cb = d.covered_by;
+    const nCb = Array.isArray(cb) ? cb.length : Object.keys(cb || {}).length;
+    if (nCb) problems.push(at(`\`status: draft\` mà \`covered_by\` có ${nCb} mục — bản đồ CHƯA ai chốt thì KHÔNG được làm oracle.`));
+    return;
+  }
   if (!TYPES.includes(String(d.type || ''))) problems.push(at(`\`type\` phải ∈ ${TYPES.join('|')}`));
   else if (!ID_RE.test(String(d.id || '')) || String(d.id).split('-')[0] !== PREFIX[d.type]) {
     problems.push(at(`\`id\` "${d.id}" sai format — cần ${PREFIX[d.type]}-<SLUG>-<NNN> (vd ${PREFIX[d.type]}-ORDER-001) khớp với type`));
@@ -93,6 +114,12 @@ function validate(r) {
   const at = (m) => `${path.basename(r.file)}: ${m}`;
   if (d.__err) return { problems: [at(`JSON lỗi — ${d.__err}`)], warnings };
   validateCommon(d, at, problems, warnings);
+  /*
+   * `draft` dừng ở đây: nhánh theo TYPE bên dưới đòi đủ `roles`/`actions`/`allow`/`deny_expected` —
+   * những thứ một khung CHƯA hỏi BA chưa thể có. Bản đầu tôi chỉ chặn trong `validateCommon` nên nhánh
+   * type vẫn chạy và draft bị đòi 4 trường, tức `draft` vẫn bất khả thi đúng như trước khi có nó.
+   */
+  if (d.status === 'draft') return { problems, warnings };
 
   if (d.type === 'state_machine') {
     const states = Array.isArray(d.states) ? d.states.map(String) : [];
@@ -125,16 +152,89 @@ function validate(r) {
     const actions = Array.isArray(d.actions) ? d.actions.map(String) : [];
     if (!roles.length) problems.push(at('thiếu `roles`'));
     if (!actions.length) problems.push(at('thiếu `actions`'));
-    if (!d.allow || typeof d.allow !== 'object' || Array.isArray(d.allow)) problems.push(at('`allow` phải là object {role: [action,…]} — ô KHÔNG khai = deny (phải bị chặn)'));
+    /*
+     * Thông điệp này SỬA 10/10/2026: bản cũ ghi "ô KHÔNG khai = deny (phải bị chặn)" — đúng câu encode
+     * lỗ thiết kế mà G1.3 đã bỏ. Ô không khai nay là `unknown`, KHÔNG phải deny.
+     */
+    if (!d.allow || typeof d.allow !== 'object' || Array.isArray(d.allow)) problems.push(at('`allow` phải là object {role: [action,…]} — ô không khai ở đâu cả là mức `unknown`, KHÔNG phải deny; muốn khai deny thì dùng `deny_verified`/`deny_inferred`'));
     else {
       for (const [role, acts] of Object.entries(d.allow)) {
         if (!roles.includes(role)) problems.push(at(`\`allow\` có role "${role}" không khai trong \`roles\``));
         if (!Array.isArray(acts)) { problems.push(at(`\`allow["${role}"]\` phải là mảng action`)); continue; }
         acts.filter((a) => !actions.includes(String(a))).forEach((a) => problems.push(at(`\`allow["${role}"]\` có action "${a}" không khai trong \`actions\``)));
       }
-      roles.filter((r2) => d.allow[r2] === undefined).forEach((r2) => warnings.push(at(`role "${r2}" không có khoá trong \`allow\` — hiểu là DENY TẤT CẢ; khai \`"${r2}": []\` cho rõ ý`)));
+      roles.filter((r2) => d.allow[r2] === undefined).forEach((r2) => warnings.push(at(`role "${r2}" không có khoá trong \`allow\` — khai \`"${r2}": []\` cho rõ ý`)));
     }
     if (!concreteExpected(d.deny_expected, [])) problems.push(at('`deny_expected` phải kiểm được (vd "403 + dữ liệu không đổi") — đây là oracle của mọi case guard'));
+
+    /*
+     * BA MỨC BẰNG CHỨNG (v2.5.0 G1.3, nhận của A) — và đây là chỗ vá một LỖ THIẾT KẾ CỦA CHÍNH B.
+     *
+     * Schema cũ nói: "`allow` là whitelist, ô role×action không có trong `allow` = DENY → phải có case
+     * guard với oracle `deny_expected`". Câu đó gộp HAI thứ khác hẳn nhau vào một:
+     *   ① ô BA đã nói là cấm      ⇒ deny LÀ oracle, case 403 là đúng;
+     *   ② ô chưa ai hỏi tới       ⇒ KHÔNG có oracle nào. Khẳng định 403 ở đó là tự bịa ra một yêu cầu, và
+     *                               nếu app cho phép thì log bug là log một bug BỊA.
+     *
+     * Đúng thứ `feedback_tien_de_mot_nua_la_ket_luan_sai` đã trả giá: suýt log một bug sản phẩm dựng ra
+     * từ tình huống không tồn tại.
+     *
+     * Nên nay có BA mức: `allow` (được phép) · `deny_verified` (đã xác nhận là cấm) · còn lại =
+     * **`unknown`**, KHÔNG phải deny. Thêm `deny_inferred` cho mức giữa của A: suy từ màn cấu hình quyền,
+     * dùng được nhưng phải khai là suy.
+     *
+     * HAI TẦNG: repo có 0 record `PM-*` nên luật này không làm đỏ gì hôm nay; nhưng record nào có
+     * `deny_verified`/`deny_inferred` thì bị kiểm chặt ngay.
+     */
+    const oCell = (k) => {
+      const v = d[k];
+      if (v === undefined) return [];
+      if (typeof v !== 'object' || Array.isArray(v)) { problems.push(at(`\`${k}\` phải là object {role: [action,…]}`)); return []; }
+      const ra = [];
+      for (const [role, acts] of Object.entries(v)) {
+        if (!roles.includes(role)) problems.push(at(`\`${k}\` có role "${role}" không khai trong \`roles\``));
+        if (!Array.isArray(acts)) { problems.push(at(`\`${k}["${role}"]\` phải là mảng action`)); continue; }
+        acts.forEach((a) => {
+          if (!actions.includes(String(a))) problems.push(at(`\`${k}["${role}"]\` có action "${a}" không khai trong \`actions\``));
+          ra.push(`${role}:${a}`);
+        });
+      }
+      return ra;
+    };
+    const oAllow = oCell('allow');
+    const oDenyV = oCell('deny_verified');
+    const oDenyI = oCell('deny_inferred');
+
+    /* Một ô không được vừa cho phép vừa bị cấm — đó là hai lời khai ngược nhau, không phải một mức giữa. */
+    for (const k of oDenyV.concat(oDenyI)) {
+      if (oAllow.includes(k)) problems.push(at(`ô \`${k}\` khai ở CẢ \`allow\` và \`deny_*\` — hai lời khai ngược nhau. Nguồn nào thắng thì ghi nguồn đó vào \`source\` rồi bỏ lời khai kia.`));
+    }
+    for (const k of oDenyV) {
+      if (oDenyI.includes(k)) problems.push(at(`ô \`${k}\` khai ở cả \`deny_verified\` và \`deny_inferred\` — chọn MỘT mức bằng chứng.`));
+    }
+
+    /*
+     * Ô CHƯA PHÂN LOẠI = `unknown`, và phải nói ra. KHÔNG được im lặng coi là deny: một case 403 dựng trên
+     * ô `unknown` là khẳng định một yêu cầu chưa ai chốt.
+     */
+    const daPhanLoai = new Set(oAllow.concat(oDenyV, oDenyI));
+    const chuaRo = [];
+    for (const r2 of roles) for (const a of actions) if (!daPhanLoai.has(`${r2}:${a}`)) chuaRo.push(`${r2}:${a}`);
+    if (chuaRo.length && (d.deny_verified !== undefined || d.deny_inferred !== undefined)) {
+      warnings.push(at(`${chuaRo.length}/${roles.length * actions.length} ô CHƯA phân loại ⇒ mức \`unknown\`, KHÔNG phải deny. Case guard chỉ được dựng trên \`deny_verified\` (oracle thật) hoặc \`deny_inferred\` (ghi rõ là suy). Ô \`unknown\` thì đưa vào câu hỏi Ambiguity Gate: ${chuaRo.slice(0, 6).join(' · ')}${chuaRo.length > 6 ? ` … +${chuaRo.length - 6}` : ''}`));
+    }
+
+    /* Ô suy từ màn cấu hình phải nói SUY TỪ ĐÂU — không thì nó không khác gì đoán. */
+    if (d.deny_inferred !== undefined && !String(d.inferred_from || '').trim()) {
+      problems.push(at('`deny_inferred` phải kèm `inferred_from` — suy từ ĐÂU (màn cấu hình quyền nào, bản ghi nào). Suy mà không nói nguồn thì không khác đoán, và nó sẽ được đọc như đã xác nhận.'));
+    }
+
+    /* `covered_by` chỉ được trỏ vào ô ĐÃ phân loại. Trỏ vào ô `unknown` là khai một case guard không oracle. */
+    for (const k of Object.keys(d.covered_by || {})) {
+      if (/^[^:]+:[^:]+$/.test(k) && chuaRo.includes(k) && (d.deny_verified !== undefined || d.deny_inferred !== undefined)) {
+        problems.push(at(`\`covered_by\` trỏ ô \`${k}\` đang ở mức \`unknown\` — case đó đang dùng một oracle KHÔNG TỒN TẠI. Chốt ô này thành \`allow\`/\`deny_verified\` trước, hoặc bỏ case khỏi \`covered_by\`.`));
+      }
+    }
     if (d.covered_by && (typeof d.covered_by !== 'object' || Array.isArray(d.covered_by))) problems.push(at('`covered_by` của permission_matrix là object {"role:action": [TC…]}'));
     Object.keys(d.covered_by || {}).filter((k) => !/^[^:]+:[^:]+$/.test(k)).forEach((k) => problems.push(at(`\`covered_by\` khoá "${k}" sai format, cần "role:action"`)));
   } else if (d.type === 'shared_surface') {

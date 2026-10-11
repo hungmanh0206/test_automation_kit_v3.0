@@ -1,44 +1,111 @@
 {
   "_doc": "Danh mục LOẠI FIELD và COMPONENT phải rà khi scope có form/màn. NGUỒN DUY NHẤT của hai danh mục đó — prompt chiều, dimension_coverage.js và gate đọc file này. Checklist chi tiết của từng mục nằm trong file chiều (cột `o`), KHÔNG chép vào đây: chép hai nơi là hai nơi lệch nhau.",
-
   "_vi_sao": "Form input chỉ là một phần của app. Đo trên bộ TC thật: case bám sát từng field thì vẫn bỏ sót cả một lớp hành vi quanh lưới dữ liệu, quanh modal và quanh vòng đời CRUD — vì không có gì LIỆT KÊ ra là màn này có những thành phần nào. Không có danh mục thì 'đã rà đủ' chỉ có nghĩa 'agent thấy đủ', đúng cái bệnh mẫu-số-tự-khai mà scope_anchor.js nói tới.",
-
   "_khong_lang_le_bo_qua": "Component không có trong module thì PHẢI khai `n/a` kèm lý do trong `requirements/dimension_manifest.json`, không được im lặng bỏ qua. Im lặng thì 'không áp dụng' và 'quên rà' trông giống hệt nhau trên báo cáo coverage.",
-
   "_hai_tang": "Manifest chưa có khối `components` ⇒ gate TỰ TỪ CHỐI CHẶN nhưng phải in rõ 'bộ này chưa được gác theo component'. Có khối rồi ⇒ component thiếu khai = cảnh báo, và khai `n/a` trái với artifact có thật = CHẶN. Cùng khuôn hai tầng của case_types.json và design_techniques.json.",
-
   "_gioi_han_da_do": "Gate KHÔNG đếm được 'component X có mấy case' vì component không phải tag — nó là một nhóm hành vi rải trên nhiều chiều. Nên máy chỉ gác được XUẤT XỨ của lời khai (có khai chưa · khai n/a có lý do chưa · lời khai có trái artifact không). Muốn đếm thật thì phải thêm tag component vào cột Tag, và việc đó làm nổ số tag trên mỗi case — đã cân nhắc và loại.",
-
   "field_types": [
-    { "code": "text", "ten": "Text (string)", "neo": "Text (string)" },
-    { "code": "email", "ten": "Email", "neo": "**Email**" },
-    { "code": "phone", "ten": "Phone / số điện thoại", "neo": "Phone / số điện thoại" },
-    { "code": "password", "ten": "Password", "neo": "**Password**" },
-    { "code": "number", "ten": "Number", "neo": "**Number**" },
-    { "code": "dropdown", "ten": "Dropdown/Enum/Filter", "neo": "Dropdown/Enum/Filter" },
-    { "code": "checkbox_radio", "ten": "Checkbox / Radio", "neo": "Checkbox / Radio" },
-    { "code": "date", "ten": "Date", "neo": "**Date**" },
-    { "code": "date_month_filter", "ten": "Date/Month filter", "neo": "Date/Month filter" },
-    { "code": "time", "ten": "Time (HH:mm)", "neo": "Time (HH:mm)" },
-    { "code": "date_range", "ten": "Date range / Time picker", "neo": "Date range / Time picker" },
-    { "code": "textarea", "ten": "Textarea", "neo": "**Textarea**" },
-    { "code": "file_upload", "ten": "File upload", "neo": "File upload" },
-    { "code": "otp", "ten": "OTP / MFA code", "neo": "OTP / MFA code" },
-    { "code": "richtext", "ten": "Rich text (WYSIWYG)", "neo": "Rich text (WYSIWYG)" },
-    { "code": "multiselect", "ten": "Multi-select / Tag input", "neo": "Multi-select / Tag input" },
-    { "code": "slider", "ten": "Range slider / Stepper", "neo": "Range slider / Stepper" },
-    { "code": "computed", "ten": "Computed/derived field", "neo": "Computed/derived field" }
+    {
+      "code": "text",
+      "ten": "Text (string)",
+      "neo": "Text (string)"
+    },
+    {
+      "code": "email",
+      "ten": "Email",
+      "neo": "**Email**"
+    },
+    {
+      "code": "phone",
+      "ten": "Phone / số điện thoại",
+      "neo": "Phone / số điện thoại"
+    },
+    {
+      "code": "password",
+      "ten": "Password",
+      "neo": "**Password**"
+    },
+    {
+      "code": "number",
+      "ten": "Number",
+      "neo": "**Number**"
+    },
+    {
+      "code": "dropdown",
+      "ten": "Dropdown/Enum/Filter",
+      "neo": "Dropdown/Enum/Filter"
+    },
+    {
+      "code": "checkbox_radio",
+      "ten": "Checkbox / Radio",
+      "neo": "Checkbox / Radio"
+    },
+    {
+      "code": "date",
+      "ten": "Date",
+      "neo": "**Date**"
+    },
+    {
+      "code": "date_month_filter",
+      "ten": "Date/Month filter",
+      "neo": "Date/Month filter"
+    },
+    {
+      "code": "time",
+      "ten": "Time (HH:mm)",
+      "neo": "Time (HH:mm)"
+    },
+    {
+      "code": "date_range",
+      "ten": "Date range / Time picker",
+      "neo": "Date range / Time picker"
+    },
+    {
+      "code": "textarea",
+      "ten": "Textarea",
+      "neo": "**Textarea**"
+    },
+    {
+      "code": "file_upload",
+      "ten": "File upload",
+      "neo": "File upload"
+    },
+    {
+      "code": "otp",
+      "ten": "OTP / MFA code",
+      "neo": "OTP / MFA code"
+    },
+    {
+      "code": "richtext",
+      "ten": "Rich text (WYSIWYG)",
+      "neo": "Rich text (WYSIWYG)"
+    },
+    {
+      "code": "multiselect",
+      "ten": "Multi-select / Tag input",
+      "neo": "Multi-select / Tag input"
+    },
+    {
+      "code": "slider",
+      "ten": "Range slider / Stepper",
+      "neo": "Range slider / Stepper"
+    },
+    {
+      "code": "computed",
+      "ten": "Computed/derived field",
+      "neo": "Computed/derived field"
+    }
   ],
-
   "_field_types_ghi_chu": "18 loại = 10 loại kit vốn có HỢP 15 loại của gói nguồn, trùng 7. Ba loại chỉ kit có (Date/Month filter · Time HH:mm · Computed/derived) giữ nguyên vì chúng đến từ bug thật đã gặp. Cột `neo` là chuỗi phải có mặt trong file chiều — gate drift so hai bên để danh mục và tài liệu không lệch nhau.",
-
   "components": [
     {
       "code": "data_table",
       "ten": "Data Table / List",
       "o": "04_ui.md",
       "neo": "Data Table / List",
-      "chieu": ["ui_display"],
+      "chieu": [
+        "ui_display"
+      ],
       "kich_hoat": "Màn có lưới hoặc danh sách bản ghi."
     },
     {
@@ -46,7 +113,10 @@
       "ten": "CRUD lifecycle",
       "o": "13_business_logic.md",
       "neo": "CRUD lifecycle",
-      "chieu": ["business_logic", "db_persistence"],
+      "chieu": [
+        "business_logic",
+        "db_persistence"
+      ],
       "kich_hoat": "Scope có tạo, sửa hoặc xoá bản ghi."
     },
     {
@@ -54,7 +124,10 @@
       "ten": "Permission / Role",
       "o": "10_guard.md",
       "neo": "Permission / Role",
-      "chieu": ["guard", "security"],
+      "chieu": [
+        "guard",
+        "security"
+      ],
       "kich_hoat": "Có từ hai vai trở lên, hoặc có hành động bị khoá theo vai.",
       "artifact_signal": "permission_matrix"
     },
@@ -63,7 +136,9 @@
       "ten": "Modal / Dialog",
       "o": "04_ui.md",
       "neo": "Modal / Dialog",
-      "chieu": ["ui_display"],
+      "chieu": [
+        "ui_display"
+      ],
       "kich_hoat": "Màn mở hộp thoại, kể cả hộp xác nhận xoá."
     },
     {
@@ -71,7 +146,10 @@
       "ten": "Notification / Toast",
       "o": "04_ui.md",
       "neo": "Notification / Toast",
-      "chieu": ["ui_display", "display_conformance"],
+      "chieu": [
+        "ui_display",
+        "display_conformance"
+      ],
       "kich_hoat": "Hành động có phản hồi dạng toast, banner hoặc thông báo trong trang."
     },
     {
@@ -79,11 +157,50 @@
       "ten": "Status flow",
       "o": "12_display.md",
       "neo": "Status flow",
-      "chieu": ["display_conformance", "guard"],
+      "chieu": [
+        "display_conformance",
+        "guard"
+      ],
       "kich_hoat": "Thực thể có từ ba trạng thái trở lên, hoặc có luồng duyệt.",
       "artifact_signal": "state_machine"
+    },
+    {
+      "code": "pagination",
+      "ten": "Pagination (phân trang)",
+      "o": "04_ui.md",
+      "neo": "Pagination (phân trang)",
+      "chieu": [
+        "ui_display",
+        "ordering"
+      ],
+      "kich_hoat": "Lưới có bộ điều khiển trang (số trang, trước/sau, chọn số dòng mỗi trang).",
+      "artifact_signal": "discovery: screens[].components chứa \"pagination\""
+    },
+    {
+      "code": "filter",
+      "ten": "Filter (bộ lọc)",
+      "o": "04_ui.md",
+      "neo": "Filter (bộ lọc)",
+      "chieu": [
+        "ui_display",
+        "field_validation"
+      ],
+      "kich_hoat": "Màn có ô lọc hoặc form tìm kiếm tác động lên lưới.",
+      "artifact_signal": "discovery: screens[].components chứa \"filter\""
+    },
+    {
+      "code": "tab",
+      "ten": "Tab (nhóm tab)",
+      "o": "04_ui.md",
+      "neo": "Tab (nhóm tab)",
+      "chieu": [
+        "ui_display"
+      ],
+      "kich_hoat": "Màn có từ 2 tab trở lên (role=tab hoặc nhóm nav-tabs).",
+      "artifact_signal": "discovery: screens[].components chứa \"tab\""
     }
   ],
-
-  "_components_ghi_chu": "Hai component có `artifact_signal` đã được gác bằng artifact thật từ trước: `knowledge/system/` khai permission_matrix hoặc state_machine thì khai `n/a` là XUNG ĐỘT, chặn ngay. Bốn component còn lại chỉ gác được mức cảnh báo — nói rõ ra để không ai tưởng cả sáu đều có máy chặn."
+  "_components_ghi_chu": "Hai component có `artifact_signal` đã được gác bằng artifact thật từ trước: `knowledge/system/` khai permission_matrix hoặc state_machine thì khai `n/a` là XUNG ĐỘT, chặn ngay. Bốn component còn lại chỉ gác được mức cảnh báo — nói rõ ra để không ai tưởng cả sáu đều có máy chặn.",
+  "_components_them_v260": "Ba component `pagination` · `filter` · `tab` thêm 11/10/2026 (v2.6.0 C3). Vì sao thiếu tới giờ: sáu component cũ đều suy được từ TÀI LIỆU, còn ba cái này chỉ biết khi MỞ MÀN RA XEM — mà trước Bước 0 thì kit không có bước nào mở màn ở cấp hệ thống. Chúng có `artifact_signal` trỏ vào dấu vân tay của discovery, nên gác được bằng artifact THẬT (khai `n/a` mà màn có thật = CHẶN), không chỉ cảnh báo như bốn component kia.",
+  "_components_them_v260_hai_tang": "Task CHƯA có discovery thì ba component này KHÔNG gác gì và phải in \"chưa được gác\" — không in ĐẠT. Thêm chúng vào đây mà chặn ngay là làm đỏ mọi bộ testcase đã publish, đúng lớp lỗi \"gate báo oan thì người ta tắt nó\"."
 }

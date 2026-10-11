@@ -53,7 +53,30 @@ nó chỉ làm được một việc: **buộc người xem lại**. Ba cơ ch�
 | `status: invalid` + `invalidated_reason` + `invalidated_at` | Rule **SAI TỪ ĐẦU** (khác `superseded`: rule đúng nhưng nghiệp vụ đổi). Gate liệt kê TC trong `covered_by` phải **REVIEW LẠI expected**, không chỉ chạy lại — chạy lại theo oracle sai thì vẫn sai | CHẶN nếu thiếu lý do/ngày |
 | `npm run domain:check -- --seal` → `content_sha` | Sửa nội dung **tại chỗ** mà không bump `confirmed_at`. Đây là lỗ của `--stale` (nó so `confirmed_at` với lần execute cuối, nên sửa mà không bump thì không gì bắt) | CHẶN khi lệch hash |
 
+| `domain/CHANGELOG.md` (thêm 10/10/2026) | Rule có `version` ≥ 2 mà **không có dòng nhật ký** cho version đó. `version` nói rule đã đổi; `covered_by` nói TC nào ĐANG phủ. Không cái nào nói **đổi GÌ** và **TC nào bị lệch vì lần đổi này** | CẢNH BÁO (đo 10/10/2026: 32/118 rule đang ở version ≥ 2 và chưa có nhật ký — chặn ngay là làm đỏ 32 rule rồi gate bị tắt) |
+
 Rule chưa `--seal` thì **không** bị chặn — seal là tiến hoá dần, không phải rào chặn kho cũ.
+
+### `domain/CHANGELOG.md` — nhật ký đổi rule
+
+Mỗi lần đổi một rule là **một dòng bảng**. Cố ý KHÔNG thêm hệ mã `REQ-*` thứ hai: kit đã truy vết bằng
+`oracle_ref`, và hai hệ mã song song là hai nguồn sẽ lệch nhau.
+
+```markdown
+| Ngày | Rule | Version | Loại đổi | Nguồn | TC cần xử lý |
+|---|---|---|---|---|---|
+| 2026-10-10 | BR-HOCSINH-002 | 1→2 | siết điều kiện | FSD v3 §4.2, BA xác nhận | CSDL_HS_TC_088, CSDL_HS_TC_092 |
+| 2026-10-10 | BR-HSLOP-017 | 1→2 | mở rộng phạm vi | Backlog CSDL-3544 | CSDL_LOP_TC_011 |
+```
+
+- **Version** ghi dạng `cũ→mới`. Máy khớp theo `id` + version ĐÍCH, nên mỗi dòng phải nói rõ nó ghi cho
+  lần đổi nào.
+- **Loại đổi** để lần sau đọc được hệ quả mà không phải mở cả hai bản: siết điều kiện · mở rộng phạm vi ·
+  sửa phát biểu sai · đổi ví dụ.
+- **TC cần xử lý** là mắt xích mà `covered_by` không thay được: `covered_by` nói TC nào đang phủ rule,
+  không nói TC nào có expected đã lệch vì lần đổi này.
+- **Rule bỏ thì đổi `status`, KHÔNG xoá** (`invalid` nếu sai từ đầu, `superseded` nếu nghiệp vụ đổi) — luật
+  này đã có máy gác từ trước, nhật ký chỉ ghi thêm lý do và TC bị ảnh hưởng.
 
 > Việc còn lại **không** máy nào làm thay: nhịp **tái xác nhận với BA**. `--stale-months` (mặc định 9) chỉ
 > nhắc rule đã cũ; nó không biết rule còn đúng hay không. Bỏ nhịp đó thì sau 1–2 năm kho tích rule lạc hậu
@@ -70,6 +93,31 @@ npm run knowledge:backup -- --restore <bundle.json>    # CHỈ ghi file còn THI
 - `--restore` **không bao giờ đè**: file trên đĩa có thể mới hơn bundle; khác nội dung thì chỉ BÁO để người quyết định.
 - Bundle là **dữ liệu nội bộ** (business rule + kết luận nội bộ) — giữ ở nơi riêng tư, đừng đưa lên repo public.
 - Nghiệm thu 14/08/2026: backup 15 file → verify KHỚP → xoá 2 file (rule + `bug_tc_map`) → verify **exit 1 và nêu đúng tên** → restore → verify KHỚP, nội dung **giống từng byte**; sửa file trên đĩa rồi restore → **không bị đè**.
+
+## `status: draft` — CHƯA PHẢI ORACLE (thêm 10/10/2026, v2.5.0 G2.3)
+
+Trước đợt này **không có cách nào ghi một bản ghi chưa ai xác nhận**: `status` chỉ nhận
+`active|superseded|deprecated|invalid`, và `confirmed_by` thì bắt buộc ∈ `BA|Dev|QA-Lead|PO|Van-ban-phap-quy`. Nghĩa là một
+khung mới dựng — thứ chưa hỏi BA — không thể tồn tại trong kho. Hệ quả: dự án mới có `knowledge/` rỗng thì
+nó **ở lại rỗng**, vì bước đầu tiên đã bị chặn.
+
+`draft` được **miễn** `confirmed_by`/`confirmed_at` và (với `domain/`) miễn cả `rule` — theo định nghĩa nó
+chưa có. Đổi lại nó bị chặn mọi đường trở thành căn cứ kết luận:
+
+| Luật | Mức |
+|---|---|
+| `covered_by` phải RỖNG | **CHẶN** — có TC trỏ vào rule chưa ai chốt là case đó dùng oracle chưa tồn tại |
+| phải có `todo` (hỏi AI cái GÌ để chốt) | **CHẶN** — khung không có câu hỏi thì chỉ là rác chiếm chỗ |
+| một case khai `oracle_ref` trỏ rule `draft` | **CHẶN** — tệ hơn "oracle ma": rule CÓ THẬT trong kho, chỉ chưa ai chốt, nên case sẽ đọc như đã có neo |
+| `draft` không được seal `content_sha` | **CHẶN** — seal là để khoá bản đã chốt |
+
+Dựng khung: `npm run knowledge:bootstrap -- --task <K>` (dry-run in **danh sách việc**; ghi thật phải kèm
+`--top <n>` hoặc `--module "<tên>"`). Nó **không sinh nội dung rule** — sinh câu rule từ text Backlog hay
+từ app là chế oracle, đúng thứ `domain:check` đã chặn. Nó chỉ dựng khung rỗng kèm câu hỏi.
+
+> Vì sao `--apply` đòi chọn phạm vi: đo trên CSDL-9003 có **44 module chưa có rule**. Dồn hết vào tầng
+> oracle là tạo 44 file rỗng phải bảo trì và một `domain:index` đầy ô trắng — chưa chắc tốt hơn kho rỗng.
+> Phần giá trị của bộ này là **danh sách việc**, còn file khung chỉ nên dựng cho phần sắp làm.
 
 ## Nguyên tắc
 
@@ -214,7 +262,7 @@ tautology bị cấm). `domain/` là chỗ lưu **sự thật nghiệp vụ đã
 | `applies_when` |  | Điều kiện áp dụng / ngoại lệ (rất hay là nguồn bug bị bỏ sót). |
 | `examples` | ✓ | ≥1 cặp `{input, expected}` **cụ thể bằng số/giá trị** — đây là thứ biến rule thành oracle dùng được. |
 | `source` | ✓ | Trích dẫn nguồn (tài liệu + mục, hoặc "BA confirm <ngày>"). **Rỗng = không được ghi** (chống rule tự bịa). |
-| `confirmed_by` | ✓ | `BA` \| `Dev` \| `QA-Lead` \| `PO` — ai chốt. |
+| `confirmed_by` | ✓ | `BA` \| `Dev` \| `QA-Lead` \| `PO` — ai chốt — hoạc `Van-ban-phap-quy` khi neo là văn bản còn hiệu lực chứ không phải người. **Giá của giá trị này:** `source` phải nêu SỐ HIỆU (`TT32/2018`, `Thông tư 12/2022/TT-BGDĐT`), nên có cả điều/khoản — không có số hiệu thì **CHẶN**. Đừng dùng nó thay cho việc hỏi BA: chỉ dùng khi văn bản LÀ neo, còn BA xác nhận thì ghi `BA` và đẩy văn bản xuống `source`. |
 | `confirmed_at` | ✓ | ISO date. Dùng để phát hiện TC đã execute TRƯỚC khi rule đổi → cần re-verify. |
 | `version` | ✓ | Bắt đầu `1`; **tăng khi nội dung rule đổi** (không tăng khi chỉ sửa chính tả). |
 | `supersedes` |  | `<id>@v<n>` khi bump version. |
@@ -284,8 +332,34 @@ chứng minh hệ thống chặn. `system_map.js` in ma trận + liệt kê cặ
 }
 ```
 
-`allow` là **whitelist**: ô role×action không có trong `allow` = **deny** → phải có case guard với oracle
-`deny_expected`. `covered_by` khoá dạng `"role:action"`.
+#### Ba mức bằng chứng — sửa 10/10/2026 (v2.5.0 G1.3)
+
+Bản trước ghi: *"`allow` là whitelist: ô role×action không có trong `allow` = **deny** → phải có case guard
+với oracle `deny_expected`"*. **Câu đó gộp hai thứ khác hẳn nhau vào một**, và đó là một lỗ thiết kế:
+
+| Ô | Thực chất | Hệ quả nếu gộp |
+|---|---|---|
+| BA đã nói là **cấm** | `deny` LÀ oracle → case 403 là đúng | — |
+| **Chưa ai hỏi tới** | KHÔNG có oracle nào | Case 403 ở đó là **tự bịa ra một yêu cầu**; app cho phép thì log bug là log một bug BỊA |
+
+Nên nay có **ba mức**, đúng mô hình của `qig-qa-automation`:
+
+| Trường | Mức | Dùng làm oracle? |
+|---|---|---|
+| `allow` | đã xác nhận **được phép** | có |
+| `deny_verified` | đã xác nhận **bị cấm** (tài liệu / BA / dev) | có — `deny_expected` là oracle |
+| `deny_inferred` | **suy từ màn cấu hình quyền**, kèm `inferred_from` bắt buộc | có, nhưng phải ghi rõ là suy |
+| *(không khai)* | **`unknown`** — chưa có căn cứ | **KHÔNG.** Đưa vào câu hỏi Ambiguity Gate |
+
+⚙️ `npm run system:check` **CHẶN** khi: một ô khai ở cả `allow` và `deny_*` · `deny_inferred` thiếu
+`inferred_from` · `covered_by` trỏ vào một ô đang ở mức `unknown` (case đó đang dùng oracle KHÔNG TỒN TẠI).
+**CẢNH BÁO** và liệt kê khi còn ô `unknown`.
+
+> Vì sao luật này đáng tiền: đã có lần suýt log một bug sản phẩm **dựng ra từ tình huống không tồn tại**
+> (`feedback_tien_de_mot_nua_la_ket_luan_sai`). "Chưa có căn cứ" làm tròn thành "không có quyền" là đúng
+> con đường dẫn tới đó.
+
+`covered_by` khoá dạng `"role:action"`.
 
 ### `type: "shared_surface"` — id `SS-<SLUG>-<NNN>`
 

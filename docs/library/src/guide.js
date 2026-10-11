@@ -83,7 +83,7 @@ const SETUP_CARDS = [
     items:['TASK_KEY','PROJECT_OUTPUT_DIR','link tài liệu nguồn'],
     note:'Thiếu một trong ba thì output đổ nhầm chỗ hoặc chạy trên nền sai.' },
   { icon:'⌘', title:'Slash command — điểm vào gõ được',
-    items:['/phase1 · /phase2 · /rerun · /partial-rerun','/publish · /preflight · /gates','/explore · /ui-debug · /manual-run'],
+    items:['/start · /discover · /phase1 · /phase2','/rerun · /partial-rerun · /publish','/preflight · /gates · /explore · /ui-debug · /manual-run'],
     note:'Mỗi lệnh nạp đúng thứ tự file phải đọc và gate phải chạy — không phải tự nhớ. Không thay thế gate, chỉ dẫn đúng đường.' }
 ];
 
@@ -148,7 +148,7 @@ const TREE = [
   [0,'.agent/','cấu hình, workflow, skill, rule của agent','dir'],
   [1,'config/','project_context · risk_model · verdict_taxonomy · kit-layers · impact-map','dir'],
   [1,'workflows/','entry + step của phase1 (01–04), phase2 (01–04), rerun (01–03)','dir'],
-  [1,'skills/','23 skill theo phase1 / phase2 / shared','dir'],
+  [1,'skills/','25 skill theo phase1 / phase2 / shared','dir'],
   [1,'rules/','core_rules · qa_instincts · locator_strategy · playwright_fe/api','dir'],
   [0,'prompt_templates/','prompt chạy từng phase','dir'],
   [1,'phase1/dimensions/','15 chương chiều coverage — mở đúng chiều task cần, không nạp cả 15','dir'],
@@ -253,7 +253,7 @@ const CMD_GROUPS = [
     ['npm run merge:execution-status -- --task <KEY>','Ghép kết quả execute vào bộ canonical']
   ]},
   { g:'Kit: tự kiểm toán & phát hành', items:[
-    ['npm run gates:index  ·  npm run gates:index:check','Danh mục gate tự sinh — 88 máy, 61 CHẶN; :check chặn khi bảng lệch source'],
+    ['npm run gates:index  ·  npm run gates:index:check','Danh mục gate tự sinh — 96 máy, 68 CHẶN; :check chặn khi bảng lệch source'],
     ['npm run rule -- <mục>  ·  npm run rule:toc','Tra RULE_GLOBAL theo mục (287 token) thay vì đọc cả file (12,8k)'],
     ['npm run version:check','Chặn phát hành thiếu số phiên bản; kiểm khớp tag'],
     ['npm run package:kit','Đóng gói dist/ CHỈ lớp GENERIC — không để lọt secret hay oracle của dự án khác'],

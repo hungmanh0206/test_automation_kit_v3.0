@@ -1,4 +1,4 @@
-/* NHÓM 3 — 23 skill (nguồn: .agent/skills/INDEX.md + từng SKILL.md) */
+/* NHÓM 3 — 25 skill (nguồn: .agent/skills/INDEX.md + từng SKILL.md) */
 const TERMS_SKILL = [
 
 /* ── Phase 1 ── */
@@ -175,5 +175,23 @@ const TERMS_SKILL = [
   ex:'Đo trên repo: getByTestId xuất hiện 0 lần dùng thật (2 chỗ khớp đều nằm trong comment giải thích chính chuyện này), và tests/** không có data-testid nào.',
   trap:'App là ant-design cộng Metronic nên KHÔNG phát test id, tầng 5 của chiến lược locator là tầng chết. Locator bền chỉ lấy được bằng cách đọc DOM thật.',
   src:'.agent/skills/phase2/ui_debug_agent/SKILL.md', rel:['s-script_error','g-locator_lint','c-locator-healing','sk-locator_healing_agent','f-slash-commands'] }
+,
+
+/* ── Thêm ở v2.5.0 ── */
+{ id:'sk-ui_mocking', t:'ui_mocking', cat:'skill', phase:'Phase 2',
+  def:'Ba luật chống MOCK LỆCH: mock để dựng trạng thái khó, không để làm case xanh.',
+  detail:'Mock chỉ dùng cho trạng thái mà UI, API hay factory không dựng nổi trong thời gian hợp lý. Case có gắn mock phải mang nhãn [Mock], và loại case API hay Database thì KHÔNG được mock — ở đó mock biến phép đo thành phép tự nói chuyện với chính mình.',
+  why:'Một mock đặt sai chỗ làm case xanh mà không chứng minh gì về sản phẩm. Tệ hơn: nó xanh ổn định, nên không ai nghi.',
+  ex:'Gate chặn ở chỗ SINH case chứ không chỉ ở chỗ chạy, vì output_gate không nhìn thấy cột Loại case.',
+  trap:'Mock rồi kết luận "đã lưu vào DB" là tautology. Có máy bắt đúng câu đó.',
+  src:'.agent/skills/phase2/ui_mocking/SKILL.md', rel:['c-tautology','c-oracle','f-phase2'] },
+
+{ id:'sk-release_summary', t:'release_summary', cat:'skill', phase:'Shared',
+  def:'Dựng bản tóm tắt go/no-go cho một đợt phát hành, có nguồn cho từng tiêu chí.',
+  detail:'Bảy tiêu chí, mỗi dòng kèm cột nguồn trỏ tới artifact sinh ra nó. Skill này mô tả cách đọc và cách điền; máy tương ứng là release:summary.',
+  why:'Một khuyến nghị phát hành không có nguồn thì nó là ý kiến, và ý kiến thì không tra lại được khi có sự cố.',
+  ex:'Tiêu chí sửa SAU khi đã biết kết quả thì máy từ chối chạy.',
+  trap:'Khuyến nghị NO-GO không chặn ai cả. Quyết định phát hành là của người.',
+  src:'.agent/skills/shared/release_summary/SKILL.md', rel:['g-release_summary','c-suggest-only'] },
 
 ];

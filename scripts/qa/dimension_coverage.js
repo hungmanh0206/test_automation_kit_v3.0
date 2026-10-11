@@ -184,6 +184,41 @@ const SCOPE_SIGNALS = [
   { dim: 'change_impact', why: 'có `requirements/git-impact.md` hoặc `knowledge/system/` khai `shared_surface`', has: () => exists('requirements/git-impact.md') || knowSystem('shared_surface') },
   { dim: 'guard', why: '`knowledge/system/` khai `state_machine` — mọi cặp chuyển trạng thái KHÔNG khai là bất hợp pháp và phải có case chứng minh bị CHẶN', has: () => knowSystem('state_machine') },
   { dim: 'security', why: '`knowledge/system/` khai `permission_matrix` — mọi ô role×action ngoài allow phải có case guard', has: () => knowSystem('permission_matrix') },
+  {
+    dim: 'security',
+    why: '`requirements/system_map.json` khai từ 2 VAI TRÒ trở lên — có nhiều vai trò thì ranh giới quyền là thứ phải đo, không được khai `n/a` (v2.6.0 §B3)',
+    has: () => {
+      try {
+        const j = JSON.parse(fs.readFileSync(path.join(taskDir, 'requirements', 'system_map.json'), 'utf8'));
+        /*
+         * Đếm vai trò CÓ TÀI KHOẢN. Vai trò chỉ khai tên mà chưa có session thì mọi ô của nó là
+         * `unknown`, và `unknown` KHÔNG phải bằng chứng về quyền — đếm nó vào đây là bắt người ta viết
+         * case phân quyền cho một vai trò chưa ai đăng nhập thử được.
+         */
+        return (j.roles || []).filter((r) => r.co_tai_khoan !== false).length >= 2;
+      } catch (e) { return false; }
+    },
+  },
+  {
+    dim: 'export_import',
+    why: '`requirements/system_map.json` thấy ô upload tệp trên màn đã bò — có đường nhập tệp thì chiều export/import ÁP DỤNG (v2.6.0 §B3)',
+    has: () => {
+      try {
+        const j = JSON.parse(fs.readFileSync(path.join(taskDir, 'requirements', 'system_map.json'), 'utf8'));
+        return (j.screens || []).some((sc) => (sc.fields || []).some((f) => f.code_loai === 'file_upload'));
+      } catch (e) { return false; }
+    },
+  },
+  {
+    dim: 'security',
+    why: '`requirements/injection_surface.json` có điểm nhập ưu tiên cao QUAN SÁT ĐƯỢC — mỗi bề mặt như vậy phải có case injection hoặc khai `n/a` kèm lý do (v2.6.0 §A9.2)',
+    has: () => {
+      try {
+        const j = JSON.parse(fs.readFileSync(path.join(taskDir, 'requirements', 'injection_surface.json'), 'utf8'));
+        return (j.be_mat || []).some((b) => b.muc_bang_chung === 'observed' && (b.uu_tien === 'critical' || b.uu_tien === 'high'));
+      } catch (e) { return false; }
+    },
+  },
 ];
 
 const scopeConflict = [];
@@ -203,6 +238,86 @@ for (const c of scopeUndeclared) console.warn(`[dim] ⚠ chiều "${c.dim.label}
 if (scopeConflict.length && ENFORCE) {
   console.error(`[dim] ✗ ${scopeConflict.length} chiều khai n/a trái với artifact có thật — sửa manifest thành "required" rồi mở đúng file trong dimensions/.`);
   process.exit(1);
+}
+
+/*
+ * ── PHỦ INJECTION THEO BẢN ĐỒ (v2.6.0 §A9.2) ────────────────────────────────────────────────────────
+ *
+ * TRƯỚC ĐÂY chiều security chấm bằng REGEX TRÊN VĂN BẢN (xem `DIMS`, mục `security`): một case chỉ cần
+ * CHỨA CHỮ "injection" là chiều đó tính như đã phủ. Nghĩa là một bộ 300 case có đúng một case tên
+ * "[Security] Kiểm injection ô tìm kiếm" thì gate im lặng, trong khi 5 đường vào khác không ai thử.
+ *
+ * NAY đối chiếu với `requirements/injection_surface.json` do Bước 0 sinh ra. Mỗi **bề mặt** ưu tiên
+ * `critical`/`high` và `observed` phải được khai trong manifest, giá trị là TC ID hoặc `n/a` kèm lý do.
+ *
+ * BA QUYẾT ĐỊNH, mỗi cái đều để gate không bị tắt:
+ *
+ * ① ĐẾM BỀ MẶT, KHÔNG ĐẾM TỪNG Ô. Đo trên app fixture 6 màn: 11 điểm nhập, trong đó 10 ưu tiên cao. Một
+ *    app thật 342 module thì con số đó lên hàng trăm, và một gate đòi mỗi Ô một case sẽ chặn mọi bộ
+ *    testcase. Ba ô lọc trên cùng một lưới dùng CÙNG đường tới truy vấn ⇒ gộp thành một bề mặt
+ *    (`nhóm@màn`), một case cho đường đó là đủ để nói đường ấy có được tham số hoá hay không. Fixture:
+ *    11 điểm nhập ⇒ 9 bề mặt ⇒ **6 bề mặt cần case**.
+ *
+ * ② CHỈ `observed` MỚI BẮT BUỘC. Nhóm `api_body` không quan sát được payload (tường lửa chặn đường ghi),
+ *    `export_filter` suy từ tên route, `second_order` suy từ việc trùng tên trường. Bắt buộc có case cho
+ *    một phỏng đoán là chặn dựa trên phỏng đoán. Chúng thành CÂU HỎI, không thành yêu cầu.
+ *
+ * ③ KHOÁ LÀ `nhóm@màn`, KHÔNG phải `BM-001`. Mã đánh số sinh lại mỗi lượt bò nên nó trôi, và một lời khai
+ *    neo vào mã trôi thì lượt sau trỏ sai bề mặt. `sort@/api/truong` thì bền. Và khai trong MANIFEST chứ
+ *    không thêm cột vào bảng testcase: thêm cột là đổi template dùng chung, còn một hệ mã thứ hai cạnh
+ *    `oracle_ref` thì sớm muộn lệch nhau — đúng lý do đã loại `REQ-*` ở v2.5.0.
+ */
+const DUONG_BE_MAT = path.join(taskDir, 'requirements', 'injection_surface.json');
+let beMatCanCase = null;
+if (fs.existsSync(DUONG_BE_MAT)) {
+  try {
+    const j = JSON.parse(fs.readFileSync(DUONG_BE_MAT, 'utf8'));
+    beMatCanCase = (j.be_mat || [])
+      .filter((b) => b.muc_bang_chung === 'observed' && (b.uu_tien === 'critical' || b.uu_tien === 'high'))
+      .map((b) => ({ khoa: `${b.nhom}@${b.o}`, ...b }));
+  } catch (e) {
+    console.error(`[dim] ${DUONG_BE_MAT} không parse được: ${e.message}`);
+    process.exit(2);
+  }
+}
+
+if (!beMatCanCase) {
+  /*
+   * HAI TẦNG. Task chưa chạy Bước 0 thì KHÔNG có gì để gác — và phải nói ra, không in ĐẠT. Đây là cùng
+   * khuôn đã dùng cho `matrix:coverage`: "không phán được" không thành "đạt".
+   */
+  console.warn('[dim] ⚠ CHƯA ĐƯỢC GÁC theo bản đồ injection: không có `requirements/injection_surface.json` (chạy `discover` để sinh). Chiều security hiện chỉ được chấm bằng regex trên văn bản, tức một case CHỨA CHỮ "injection" là đủ qua.');
+} else if (!beMatCanCase.length) {
+  console.log('[dim] ✓ bản đồ injection: 0 bề mặt ưu tiên cao quan sát được ⇒ không có gì phải phủ.');
+} else {
+  const khaiBeMat = (manifest && manifest.injection_surfaces) || null;
+  const lyDo = (manifest && manifest.na_reasons) || {};
+  if (!khaiBeMat) {
+    console.error(`[dim] ✗ bản đồ injection có ${beMatCanCase.length} bề mặt ưu tiên cao QUAN SÁT ĐƯỢC mà manifest chưa có khối \`injection_surfaces\`.`);
+    console.error('      Khuôn: { "injection_surfaces": { "sort@/api/truong": "CSDL_TC_041", "filter@/bao-cao": "n/a" }, "na_reasons": { "filter@/bao-cao": "cột lọc là enum cố định phía server, không nhận chuỗi tự do" } }');
+    for (const b of beMatCanCase) console.error(`      - ${b.khoa}  (${b.uu_tien}, gộp ${b.so_diem_nhap} điểm nhập: ${b.diem_nhap_id.join(', ')})`);
+    if (ENFORCE) process.exit(1);
+  } else {
+    const thieu = [];
+    const naKhongLyDo = [];
+    const tcLa = [];
+    for (const b of beMatCanCase) {
+      const v = String(khaiBeMat[b.khoa] || '').trim();
+      if (!v) { thieu.push(b); continue; }
+      if (v === 'n/a') {
+        if (!String(lyDo[b.khoa] || '').trim()) naKhongLyDo.push(b);
+        continue;
+      }
+      // Khai TC ID thì TC đó phải CÓ THẬT trong bộ canonical — khai một mã không tồn tại là lời khai rỗng.
+      if (!tests.some((t) => t.tcId === v)) tcLa.push({ ...b, khai: v });
+    }
+    for (const b of thieu) console.error(`[dim] ✗ bề mặt injection \`${b.khoa}\` (${b.uu_tien}) chưa khai trong \`injection_surfaces\` — gộp ${b.so_diem_nhap} điểm nhập (${b.diem_nhap_id.join(', ')}).`);
+    for (const b of naKhongLyDo) console.error(`[dim] ✗ bề mặt \`${b.khoa}\` khai n/a mà \`na_reasons["${b.khoa}"]\` trống — n/a không lý do là thu hẹp phạm vi mà không ai chịu trách nhiệm.`);
+    for (const b of tcLa) console.error(`[dim] ✗ bề mặt \`${b.khoa}\` khai TC \`${b.khai}\` nhưng mã đó KHÔNG có trong bộ testcase canonical.`);
+    const loi = thieu.length + naKhongLyDo.length + tcLa.length;
+    if (!loi) console.log(`[dim] ✓ bản đồ injection: ${beMatCanCase.length}/${beMatCanCase.length} bề mặt ưu tiên cao đã khai.`);
+    else if (ENFORCE) process.exit(1);
+  }
 }
 
 /*
@@ -353,6 +468,43 @@ if (!khaiFt) {
   if (soValidation < khaiFt.length) {
     console.warn(`[dim] ⚠ khai ${khaiFt.length} loại field mà chỉ có ${soValidation} case [Validation]. Mỗi loại cần tối thiểu 1 case ⇒ có loại chưa được kiểm. (Phép đo này chỉ so TỔNG, không biết case nào thuộc loại nào.)`);
   }
+}
+
+/*
+ * ── MẪU SỐ LOẠI FIELD TỪ DẤU VÂN TAY (v2.6.0 §B4) ───────────────────────────────────────────────────
+ *
+ * Chú thích phía trên nói: "inventory theo loại field hiện KHÔNG tồn tại, và suy loại từ tên nhãn là dò
+ * chữ". Câu đó ĐÚNG cho tới v2.6.0 — Bước 0 nay tạo ra đúng cái inventory đó, và nó KHÔNG dò chữ: loại
+ * field đọc từ THUỘC TÍNH DOM (`type`, `maxlength`, `pattern`, số `<option>` thật), xem
+ * `scripts/qa/discovery/fingerprint.js`.
+ *
+ * Giới hạn tuyên bố ở v2.3.0 vì vậy được gỡ MỘT PHẦN, và phần gỡ được phải nói rõ: chỉ với những màn mà
+ * lượt bò ĐÃ TỚI. Màn chưa bò tới thì vẫn không ai biết nó có loại field nào.
+ *
+ * HAI CHIỀU, nặng khác nhau:
+ *   · QUAN SÁT ĐƯỢC mà KHÔNG khai ⇒ CHẶN. Mẫu số đang thiếu một loại field CÓ THẬT trên màn, nên mọi
+ *     tỉ lệ của chiều Validation là tỉ lệ trên một mẫu số nhỏ hơn thực tế.
+ *   · KHAI mà không quan sát được ⇒ cảnh báo. Màn chứa nó có thể nằm ngoài phạm vi lượt bò.
+ */
+const smFtPath = path.join(taskDir, 'requirements', 'system_map.json');
+if (khaiFt && fs.existsSync(smFtPath)) {
+  let smFt = null;
+  try { smFt = JSON.parse(fs.readFileSync(smFtPath, 'utf8')); } catch (e) { smFt = null; }
+  if (smFt) {
+    const quanSat = new Set();
+    for (const sc of (smFt.screens || [])) for (const f of (sc.fields || [])) if (f.code_loai) quanSat.add(f.code_loai);
+    const khaiSet = new Set(khaiFt);
+    const thieuFt = [...quanSat].filter((c) => !khaiSet.has(c)).sort();
+    const thuaFt = [...khaiSet].filter((c) => !quanSat.has(c)).sort();
+    console.log(`[dim]   dấu vân tay thấy ${quanSat.size} loại trên ${(smFt.screens || []).length} màn đã bò`);
+    if (thieuFt.length) {
+      console.error(`[dim] ✗ ${thieuFt.length} loại field QUAN SÁT ĐƯỢC trên màn mà manifest KHÔNG khai: ${thieuFt.join(', ')}. Mẫu số chiều Validation đang nhỏ hơn thực tế.`);
+      if (ENFORCE) process.exit(1);
+    }
+    if (thuaFt.length) console.warn(`[dim] ⚠ ${thuaFt.length} loại khai mà lượt bò KHÔNG thấy: ${thuaFt.join(', ')}. Màn chứa chúng có thể ngoài phạm vi lượt bò — kiểm trước khi bỏ khỏi manifest.`);
+  }
+} else if (khaiFt) {
+  console.log('[dim]   (chưa có `requirements/system_map.json` ⇒ mẫu số loại field vẫn là lời khai của người, chưa đối chiếu được với màn thật)');
 }
 
 // FAIL-FAST hai điều kiện của việc chặn. Đặt TRƯỚC bảng để không ai tưởng gate đã gác trong khi nó chưa gác.

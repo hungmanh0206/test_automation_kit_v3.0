@@ -42,8 +42,39 @@ const ID_RE = /^BR-[A-Z0-9]+-\d{3}$/;
  *               phải bị REVIEW LẠI — không phải chỉ chạy lại: chạy lại theo oracle sai thì vẫn sai.
  * Trước đó chỉ sửa được bằng tay (đổi status hoặc xoá file) ⇒ không có vết ai gỡ và vì sao.
  */
-const STATUSES = ['active', 'superseded', 'deprecated', 'invalid'];
-const CONFIRMERS = ['BA', 'Dev', 'QA-Lead', 'PO'];
+/*
+ * `draft` thêm 10/10/2026 (v2.5.0 G2.3) — và nó lấp một lỗ làm cả hạng mục này bất khả thi trước đó.
+ *
+ * Trước đây KHÔNG có cách nào ghi một bản ghi "chưa ai xác nhận": `status` chỉ nhận
+ * `active|superseded|deprecated|invalid`, và `confirmed_by` thì BẮT BUỘC ∈ `BA|Dev|QA-Lead|PO` (tu 11/10/2026 them `Van-ban-phap-quy`). Nghĩa là
+ * một khung mới dựng — thứ chưa hỏi BA — không thể tồn tại trong kho. Hệ quả: dự án mới có `knowledge/`
+ * rỗng thì nó ở lại rỗng, vì bước đầu tiên đã bị chặn.
+ *
+ * `draft` là trạng thái CHƯA PHẢI ORACLE. Nó được phép thiếu `confirmed_by` và thiếu `rule`, nhưng ĐỔI
+ * LẠI nó bị cấm mọi đường trở thành căn cứ kết luận (xem `kiemDraft`). Đây cũng là nền mà v2.6.0 và
+ * v2.8.0 cần: cả hai đều nói "bản ghi ở `draft`, có `confirmed_by` mới thành `active`".
+ */
+const STATUSES = ['draft', 'active', 'superseded', 'deprecated', 'invalid'];
+/*
+ * `Van-ban-phap-quy` thêm 11/10/2026 — và nó sửa một chỗ chính bộ luật này tự mâu thuẫn.
+ *
+ * Đo được: 6 rule trong `knowledge/domain` làm `domain:check --enforce` đỏ vì `confirmed_by` ghi
+ * `"Van ban phap quy"` / `"Van ban goc TT28/2020 va TT52/2020"` / `"BA + van ban goc TT28/2020"`. Cách
+ * "sửa" nhanh là đổi cả 6 thành `BA`. ĐỪNG. Bốn trong sáu rule đó KHÔNG có ai phê duyệt: chúng neo vào
+ * Thông tư còn hiệu lực (TT32/2018 · TT12/2022 · TT13/2022 · TT28/2020 · TT52/2020), và ghi `BA` lên đó
+ * là bịa ra một lượt xác nhận không hề xảy ra — đúng thứ CLAUDE.md §3 gọi là neo giả.
+ *
+ * Mà chính file này, ở `coNeo` phía dưới, ĐÃ nhận "văn bản pháp quy" là neo độc lập hợp lệ. Nên lỗ hổng
+ * không nằm ở 6 bản ghi, nó nằm ở danh sách này: nó chỉ có chỗ cho NGƯỜI. Một Thông tư còn hiệu lực là
+ * neo MẠNH HƠN lời một người, vì nó kiểm chứng lại được mà không cần hỏi ai.
+ *
+ * ĐỔI LẠI: giá trị này đắt hơn bốn giá trị kia. `source` phải nêu ĐÚNG số hiệu văn bản (và nên có cả
+ * điều/khoản), vì "theo quy định" mà không có số hiệu thì mơ hồ hơn cả lời một người có tên.
+ */
+const CONFIRMERS = ['BA', 'Dev', 'QA-Lead', 'PO', 'Van-ban-phap-quy'];
+const VBPQ = 'Van-ban-phap-quy';
+/** Số hiệu văn bản pháp quy VN: `TT32/2018`, `Thông tư 12/2022/TT-BGDĐT`, `NĐ 99/2019`, `QĐ 16/2006`. */
+const SO_HIEU_RE = /(?:TT|NĐ|ND|QĐ|QD|Th[ôo]ng t[ưu]|Nghị đ[ịi]nh|Quy[ếe]t đ[ịi]nh|Lu[ậa]t)\s*\.?\s*\d+\s*\/\s*\d{4}|\b\d+\/\d{4}\/(?:TT|NĐ|ND|QĐ|QD)\b/i;
 const EMAIL_RE = /[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}/;
 
 // Dấu hiệu expected CÓ thứ để đối chiếu: số, chuỗi nguyên văn trong ngoặc, tên field/property, hoặc khẳng
@@ -140,6 +171,47 @@ function findConflicts(list) {
   return out;
 }
 
+/*
+ * NHẬT KÝ ĐỔI RULE — `knowledge/domain/CHANGELOG.md`, một dòng bảng cho mỗi lần đổi:
+ *
+ *   | 2026-10-10 | BR-HOCSINH-002 | 1→2 | siết | FSD v3 §4.2 | CSDL_HS_TC_088, CSDL_HS_TC_092 |
+ *     ngày        rule id           ver   loại   nguồn         TC cần xử lý
+ *
+ * Đọc MỘT LẦN rồi cache: `validate()` chạy cho từng rule trong 118 file, nên đọc file ở trong đó là 118
+ * lượt đọc đĩa cho cùng một nội dung.
+ *
+ * Khớp theo `id` + version ĐÍCH, không khớp theo chữ: một dòng nhật ký phải nói rõ nó ghi cho lần đổi nào.
+ */
+let _nhatKy = null;
+function napNhatKy() {
+  if (_nhatKy) return _nhatKy;
+  _nhatKy = new Set();
+  try {
+    const raw = fs.readFileSync(path.join(DIR, 'CHANGELOG.md'), 'utf8');
+    for (const d of raw.replace(/\r\n?/g, '\n').split('\n')) {
+      if (!d.trim().startsWith('|')) continue;
+      const o = d.split('|').map((x) => x.trim());
+      const id = o.find((x) => ID_RE.test(x));
+      if (!id) continue;
+      /*
+       * Cột version: `1→2`, `1->2`, hoặc chỉ `2`. Phải neo vào HÌNH DẠNG CẢ Ô, không lấy "số cuối của ô
+       * nào cũng được" — bản đầu làm vậy và nó đọc cột NGÀY `2026-10-10` thành version 10, nên một dòng
+       * ghi cho v3 bị đăng ký thành v10 và rule v3 vẫn báo thiếu nhật ký.
+       */
+      const ver = o.map((x) => {
+        const m = x.match(/^\d+\s*(?:→|->|–>|—>)\s*(\d+)$/) || x.match(/^v?(\d+)$/i);
+        return m ? m[1] : null;
+      }).find((x) => x && Number(x) >= 2);
+      if (ver) _nhatKy.add(`${id}@${Number(ver)}`);
+    }
+  } catch { /* chưa có nhật ký ⇒ tập rỗng, và mọi rule version >= 2 sẽ được cảnh báo */ }
+  return _nhatKy;
+}
+const coDongNhatKy = (id, ver) => napNhatKy().has(`${id}@${ver}`);
+
+/** Rule có version >= 2 mà thiếu dòng nhật ký — gom để in MỘT dòng. */
+const THIEU_NHAT_KY = [];
+
 /** Validate 1 rule → mảng lỗi (chặn) + cảnh báo. */
 function validate(r) {
   const problems = []; const warnings = [];
@@ -147,12 +219,76 @@ function validate(r) {
   const at = (m) => `${path.basename(r.file)}: ${m}`;
   if (d.__err) return { problems: [at(`JSON lỗi — ${d.__err}`)], warnings };
 
+  /*
+   * BẢN GHI `draft` — CHƯA PHẢI ORACLE, và phải không bao giờ trở thành căn cứ kết luận.
+   *
+   * Nó được MIỄN hai thứ (vì theo định nghĩa nó chưa có): `confirmed_by` và `rule`. Đổi lại nó bị CHẶN
+   * mọi đường dùng làm oracle:
+   *   · `covered_by` phải RỖNG — có TC trỏ vào một rule chưa ai chốt là case đó đang dùng oracle chưa
+   *     tồn tại, đúng lớp lỗi mà `PM-*` mức `unknown` vừa vá ở G1.3;
+   *   · phải có `todo` — nói RÕ phải hỏi ai cái gì. Một khung không có câu hỏi thì nó chỉ là rác chiếm
+   *     chỗ, và lần sau không ai biết nó đang chờ gì.
+   * Trả về sớm: không bắt draft đủ trường của một rule đã chốt — bắt vậy thì không ai dựng khung nữa, và
+   * ta quay lại đúng chỗ cũ là kho rỗng mãi.
+   */
+  if (d.status === 'draft') {
+    if (!ID_RE.test(String(d.id || ''))) problems.push(at(`\`id\` "${d.id}" sai format (cần BR-<MODULE>-<NNN>)`));
+    if (!String(d.module || '').trim()) problems.push(at('draft vẫn phải có `module` — không có nó thì khung này không thuộc về đâu'));
+    if (!String(d.todo || '').trim()) problems.push(at('`status: draft` PHẢI có `todo` — phải hỏi AI cái GÌ để chốt. Khung không có câu hỏi thì chỉ là rác chiếm chỗ.'));
+    if (Array.isArray(d.covered_by) && d.covered_by.length) {
+      problems.push(at(`\`status: draft\` mà \`covered_by\` có ${d.covered_by.length} TC — rule CHƯA ai chốt thì KHÔNG được làm oracle. Case đó đang dùng một oracle chưa tồn tại. Chốt rule (đặt \`confirmed_by\` + \`status: active\`) trước, hoặc bỏ TC khỏi \`covered_by\`.`));
+    }
+    if (String(d.content_sha || '').trim()) problems.push(at('`draft` KHÔNG được seal `content_sha` — seal là để khoá một bản ghi đã chốt, còn draft thì còn phải sửa.'));
+    return { problems, warnings };
+  }
+
   if (!ID_RE.test(String(d.id || ''))) problems.push(at(`\`id\` "${d.id}" sai format (cần BR-<MODULE>-<NNN>, vd BR-PAYMENT-004)`));
   if (!String(d.module || '').trim()) problems.push(at('thiếu `module` (phải khớp cột Module của testcase để tra cứu/risk gom đúng)'));
   if (!String(d.rule || '').trim()) problems.push(at('thiếu `rule` (phát biểu rule kiểm được)'));
   // `source` rỗng = rule không truy nguyên được → chính là cửa cho rule tự bịa.
   if (!String(d.source || '').trim()) problems.push(at('thiếu `source` — rule KHÔNG truy nguyên được thì không được ghi vào knowledge (chống rule tự bịa)'));
-  if (!CONFIRMERS.includes(String(d.confirmed_by || ''))) problems.push(at(`\`confirmed_by\` phải ∈ ${CONFIRMERS.join('|')} (ai CHỐT rule này)`));
+
+  /*
+   * "UI THỰC TẾ" KHÔNG ĐƯỢC LÀM ORACLE (v2.5.0 G1.3 — chỗ B CHỈNH bản chất so với A).
+   *
+   * A cho phép requirement lấy từ "UI thực tế" đi thẳng vào test case. Với B thì không: app không bao giờ
+   * là chuẩn đúng-sai của chính nó. Kit đã CẤM chuyện này bằng chữ ở nhiều nơi, nhưng đo 10/10/2026 thì
+   * `domain:check` CHỈ đòi `source` khác rỗng — một rule khai `source: "quan sát trên app"` đi qua sạch,
+   * rồi từ đó mọi case trỏ tới nó đều là tautology mà không gate nào biết.
+   *
+   * CHẶN, không hai tầng: đo 118 rule thật thì **0 rule** lấy app làm nguồn (toàn Vault, bộ testcase
+   * chuẩn, TT32/2018, văn bản gốc, BA xác nhận). Luật này xanh ngay, nên không có nợ cũ để nương.
+   */
+  const src = String(d.source || '');
+  const hitApp = /\b(quan sát (?:trên|từ) (?:app|ứng dụng|build|màn)|theo (?:app|ứng dụng|build) hiện tại|lấy từ (?:app|ứng dụng|build|UI)|UI thực tế|như app đang (?:làm|chạy|hiển thị)|observed (?:on|from) (?:app|build))/i.exec(src);
+  if (hitApp) {
+    problems.push(at(`\`source\` lấy APP làm nguồn ("${hitApp[0]}") — app KHÔNG bao giờ là chuẩn đúng-sai của chính nó. Mọi case trỏ tới rule này sẽ là tautology (so app với app). Quan sát trên app là SỰ THẬT QUAN SÁT: ghi nó thành câu hỏi cho Ambiguity Gate, chờ BA/tài liệu chốt, rồi mới thành rule.`));
+  }
+
+  /*
+   * "KHÔNG ĐỀ CẬP" KHÁC "KHÔNG ÁP DỤNG" (G1.3). Một rule khai thẳng là đặc tả KHÔNG nói gì về chuyện này
+   * thì nó vẫn hợp lệ — nhưng chỉ khi nêu được một NEO ĐỘC LẬP. Dừng ở "đặc tả không đề cập" là chưa có
+   * neo nào, và lúc đó rule chỉ còn là suy đoán hoặc quan sát từ app.
+   *
+   * DANH SÁCH DẤU HIỆU NEO LẤY TỪ DỮ LIỆU THẬT, không tự nghĩ: 4 rule trong repo khai "KHÔNG có trong đặc
+   * tả" và cả 4 đều nêu neo — "thuộc tính toàn vẹn PHỔ QUÁT, độc lập với ứng dụng" (br-hslop-029/030),
+   * "đối chiếu bộ testcase hệ thống" (028), "BA XÁC NHẬN 08/10/2026 … văn bản gốc TT28/2020" (031). Bốn
+   * rule đó là MẪU ĐÚNG của luật này, nên luật được dựng để chúng đi qua.
+   *
+   * CẢNH BÁO chứ không chặn: nhận neo bằng cách đọc chữ thì cách viết khác đi là báo oan, và thông điệp
+   * nói rõ phải thêm gì.
+   */
+  const specIm = /\bKH[ÔO]NG (?:c[óo] trong|l[ấa]y t[ừu]|n[ằa]m trong) (?:đ[ặa]c t[ảa]|FSD|t[àa]i li[ệe]u)|đ[ặa]c t[ảa] (?:kh[ôo]ng (?:khai|n[óo]i|đ[ềe] c[ậa]p)|im l[ặa]ng)/i.test(src);
+  const coNeo = /BA X[ÁA]C NH[ẬA]N|v[ăa]n b[ảa]n g[ốo]c|\bTT\s?\d+\/?\d*|ph[ổo] qu[áa]t|đ[ộo]c l[ậa]p v[ớo]i [ứu]ng d[ụu]ng|b[ộo] testcase (?:h[ệe] th[ốo]ng|chu[ẩa]n)|dev x[áa]c nh[ậa]n/i.test(src);
+  if (specIm && !coNeo) {
+    warnings.push(at('`source` khai đặc tả KHÔNG đề cập, nhưng không nêu NEO ĐỘC LẬP nào. "Không đề cập" KHÁC "không áp dụng": dừng ở đó thì rule chỉ còn là suy đoán hoặc quan sát từ app. Nêu rõ neo — thuộc tính toàn vẹn phổ quát, văn bản pháp quy, BA/dev xác nhận, hoặc bộ testcase chuẩn của hệ thống.'));
+  }
+  if (!CONFIRMERS.includes(String(d.confirmed_by || ''))) problems.push(at(`\`confirmed_by\` phải ∈ ${CONFIRMERS.join('|')} (ai CHỐT rule này — hoặc \`${VBPQ}\` nếu neo là văn bản pháp quy, KHÔNG phải người)`));
+  // Giá của `Van-ban-phap-quy`: phải nêu số hiệu. "Theo quy định" không có số hiệu thì không tra lại được,
+  // tức mơ hồ hơn cả lời một người có tên — mà lại mang vẻ khách quan hơn. Đó là một neo tệ đi giả dạng.
+  if (String(d.confirmed_by || '') === VBPQ && !SO_HIEU_RE.test(src)) {
+    problems.push(at(`\`confirmed_by: ${VBPQ}\` thì \`source\` PHẢI nêu số hiệu văn bản (vd \`TT32/2018\`, \`Thông tư 12/2022/TT-BGDĐT\`) — nên có cả điều/khoản. Không có số hiệu thì không ai tra lại được, và một neo không tra được thì không phải neo.`));
+  }
   if (!DATE_RE.test(String(d.confirmed_at || ''))) problems.push(at('`confirmed_at` phải là ISO date YYYY-MM-DD (dùng để phát hiện TC stale)'));
   if (!Number.isInteger(d.version) || d.version < 1) problems.push(at('`version` phải là số nguyên ≥ 1'));
   if (!STATUSES.includes(String(d.status || ''))) problems.push(at(`\`status\` phải ∈ ${STATUSES.join('|')}`));
@@ -164,6 +300,27 @@ function validate(r) {
       problems.push(at(`nội dung ĐÃ ĐỔI sau lần seal (\`content_sha\` ${d.content_sha} ≠ ${now}) mà không seal lại. Nếu đổi có chủ đích: bump \`confirmed_at\` rồi chạy \`npm run domain:check -- --seal\` (để \`--stale\` đánh dấu TC phải chạy lại). Nếu không cố ý đổi: hoàn nguyên nội dung.`));
     }
   }
+  /*
+   * NHẬT KÝ ĐỔI RULE (v2.5.0 G1.3b, nhận ý của A — CHỈNH lại: KHÔNG thêm hệ mã `REQ-*` thứ hai, B đã
+   * truy vết bằng `oracle_ref`).
+   *
+   * Kit ĐÃ có `version`, `status` + `invalidated_reason` (gỡ rule phải đổi trạng thái, không xoá), và
+   * seal `content_sha`. Thiếu đúng một thứ: **đổi rule thì đổi CÁI GÌ, và TC nào phải xử lý**. Số đo
+   * 10/10/2026: 118 rule, trong đó **32 rule đã ở version ≥ 2** (30 ở v2, 1 ở v3, 1 ở v5) — tức rule đã
+   * đổi ít nhất 32 lần mà không có một dòng nào ghi lại đổi gì.
+   *
+   * CẢNH BÁO chứ không chặn: 32 rule đang ở version ≥ 2 và chưa có nhật ký, nên chặn ngay là làm đỏ 32
+   * rule rồi gate bị tắt. Đây là hai tầng quen thuộc của kit.
+   */
+  if (Number.isInteger(d.version) && d.version >= 2 && !coDongNhatKy(d.id, d.version)) {
+    /*
+     * GOM lại, in MỘT dòng ở cuối. Bản đầu push từng rule và ra 32 dòng gần như y nhau trên repo thật —
+     * cùng lỗi đã gặp ở `bug_claim` (23 dòng cảnh báo thiếu `build`). Cảnh báo lặp 32 lần thì người đọc
+     * cuộn qua, tức nó không còn là cảnh báo.
+     */
+    THIEU_NHAT_KY.push(`${d.id} v${d.version}`);
+  }
+
   if (d.status === 'invalid') {
     // Go mot oracle la quyet dinh nang — phai de lai vet doc duoc, khong duoc go im lang.
     if (!String(d.invalidated_reason || '').trim()) problems.push(at('`status: invalid` PHAI co `invalidated_reason` — vi sao rule nay SAI TU DAU (doc nham tai lieu? BA noi lai? suy tu app?)'));
@@ -277,6 +434,9 @@ if (!rules.length) {
 
 let problems = []; let warnings = [];
 for (const r of rules) { const v = validate(r); problems = problems.concat(v.problems); warnings = warnings.concat(v.warnings); }
+if (THIEU_NHAT_KY.length) {
+  warnings.push(`${THIEU_NHAT_KY.length} rule có \`version\` >= 2 mà \`knowledge/domain/CHANGELOG.md\` KHÔNG có dòng tương ứng: ${THIEU_NHAT_KY.slice(0, 6).join(' · ')}${THIEU_NHAT_KY.length > 6 ? ` … +${THIEU_NHAT_KY.length - 6}` : ''}. Không có dòng đó thì lần sau không ai biết đổi GÌ và TC nào phải chạy lại — \`covered_by\` chỉ nói TC nào ĐANG phủ, không nói TC nào bị lệch vì lần đổi này. Khuôn một dòng: \`| ngày | BR-… | 1→2 | loại đổi | nguồn | TC cần xử lý |\`.`);
+}
 
 // trùng id@version
 const seen = new Map();
@@ -375,6 +535,15 @@ if (flag('trace-back')) {
     for (const t of withRef) {
       for (const ref of t.oracleRefs) {
         if (ref.startsWith('BR-') && !byId.has(ref)) warnings.push(`${t.tcId}: trỏ \`${ref}\` nhưng knowledge/domain KHÔNG có rule id này (oracle ma).`);
+        /*
+         * Trỏ vào một rule `draft` TỆ HƠN oracle ma, nên nó CHẶN chứ không cảnh báo: oracle ma thì người
+         * viết biết ngay là thiếu, còn draft thì rule CÓ THẬT trong kho — nó chỉ chưa ai chốt. Case đó sẽ
+         * đọc như đã có neo, và verdict từ nó sẽ được tin.
+         */
+        const r0 = byId.get(ref);
+        if (r0 && (r0.data || r0).status === 'draft') {
+          problems.push(`${t.tcId}: trỏ \`${ref}\` đang ở \`status: draft\` — rule CHƯA ai chốt thì KHÔNG phải oracle. Chốt nó (\`confirmed_by\` + \`status: active\`) trước khi dùng, hoặc đổi \`oracle_ref\` sang neo khác.`);
+        }
       }
     }
 

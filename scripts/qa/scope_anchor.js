@@ -186,6 +186,67 @@ function gateScopeAnchor(taskDir) {
     .map((f) => path.join(reqDir, f)).find((p) => fs.existsSync(p));
   const inv = invPath ? parseInventory(readText(invPath)) : null;
 
+
+  /*
+   * ── MẪU SỐ PHẢI PHỦ MỌI ROUTE TRONG PHẠM VI (v2.6.0 §B2) ─────────────────────────────────────────
+   *
+   * ĐÂY LÀ TUYÊN BỐ CỐT LÕI CỦA v2.6.0. Trước Bước 0, danh mục phạm vi là thứ AGENT TỰ LIỆT KÊ từ tài
+   * liệu, nên màn nào tài liệu không nhắc thì không vào mẫu số, không ai test, và không gate nào biết.
+   *
+   * BẢN ĐẦU KHỚP THEO CHUỖI ROUTE TRONG DANH MỤC, VÀ NÓ SAI. Đo trên task thật `CSDL-9003` với lượt bò
+   * UAT 11/10: 40 màn quan sát được, danh mục 55 dòng `INV-` do người viết — **khớp được 1, trượt 39**.
+   * Hai lý do, cả hai đều là lỗi thiết kế chứ không phải lỗi của danh mục:
+   *
+   *   ① SAI ĐƠN VỊ. Danh mục mô tả theo MÃ CHỨC NĂNG (`HS-01.1 Xem danh sách HS theo phân hiệu…`), và
+   *      một MÀN chứa NHIỀU mục phạm vi (xem danh sách, thêm, xoá, xuất Excel đều trên một màn). Đòi
+   *      khớp 1-1 giữa màn và mục là so hai thứ khác đơn vị.
+   *   ② KHÔNG CÓ PHẠM VI. `--mode task` không tự thu hẹp, nên lượt bò đi cả app: phần lớn 39 màn kia là
+   *      thời khoá biểu, phân hiệu, điểm trường — vốn NGOÀI phạm vi task "Quản lý học sinh". Báo chúng
+   *      là "bỏ sót" vừa sai, vừa đúng kiểu làm người ta tắt gate.
+   *
+   * NAY: khai TƯỜNG MINH trong manifest, khoá là ROUTE, và CHỈ hỏi về route NẰM TRONG phạm vi đã khai
+   * của lượt bò. Cùng khuôn đã chạy tốt ở A9.2 — một lời khai thấy được trong diff, thay cho một phép
+   * khớp mờ đoán hộ con người.
+   */
+  const smPath = path.join(reqDir, 'system_map.json');
+  if (!fs.existsSync(smPath)) {
+    warnings.push('Chưa có `requirements/system_map.json` (copy từ `npm run discover`) ⇒ **CHƯA GÁC ĐƯỢC** việc mẫu số có phủ hết màn quan sát được. Danh mục hiện vẫn là thứ agent tự liệt kê từ tài liệu: màn nào tài liệu không nhắc thì không vào mẫu số, và không máy nào biết.');
+  } else {
+    let sm = null;
+    try { sm = JSON.parse(readText(smPath)); } catch (e) { problems.push(`\`requirements/system_map.json\` không parse được: ${e.message}`); }
+    if (sm) {
+      const cc = sm.crawl_completeness || {};
+      if (!sm.pham_vi) {
+        /*
+         * KHÔNG CÓ PHẠM VI thì KHÔNG GÁC. Đây là hai tầng, và nó quan trọng: gác một lượt bò cả app bằng
+         * danh mục của một task là cách chắc chắn nhất để sinh ra hàng chục dòng chặn oan.
+         */
+        warnings.push(`Lượt bò KHÔNG khai phạm vi (\`pham_vi\` rỗng) ⇒ **CHƯA GÁC ĐƯỢC** mẫu số theo route. Lượt bò đó đi cả app (${(sm.screens || []).length} màn), nên phần lớn route của nó nằm ngoài phạm vi task — đối chiếu với danh mục của task sẽ ra hàng chục dòng "bỏ sót" oan. Chạy lại \`discover\` với \`--pham-vi\`.`);
+      } else {
+        const re = new RegExp(sm.pham_vi);
+        const trongPhamVi = (sm.screens || []).map((s) => String(s.route || '')).filter((r) => r && re.test(r));
+        const khai = (man && man.routes_quan_sat_duoc) || null;
+        const lyDoNa = (man && man.na_reasons) || {};
+        if (!trongPhamVi.length) {
+          warnings.push(`Phạm vi \`${sm.pham_vi}\` không khớp route nào trong ${(sm.screens || []).length} màn đã bò — kiểm lại khuôn regex, hoặc lượt bò chưa tới module của task.`);
+        } else if (!khai) {
+          problems.push(`${trongPhamVi.length} route TRONG PHẠM VI quan sát được mà manifest chưa có khối \`routes_quan_sat_duoc\`. Mỗi route phải trỏ tới mục danh mục phủ nó, hoặc khai \`n/a\` kèm lý do. Khuôn: { "routes_quan_sat_duoc": { "${trongPhamVi[0]}": "INV-001" } }. Route: ${trongPhamVi.slice(0, 10).join(' · ')}${trongPhamVi.length > 10 ? ` … +${trongPhamVi.length - 10}` : ''}`);
+        } else {
+          const thieu = trongPhamVi.filter((r) => !String(khai[r] || '').trim());
+          const naTrong = trongPhamVi.filter((r) => String(khai[r] || '').trim() === 'n/a' && !String(lyDoNa[r] || '').trim());
+          if (thieu.length) problems.push(`${thieu.length} route trong phạm vi CHƯA khai trong \`routes_quan_sat_duoc\`: ${thieu.slice(0, 10).join(' · ')}. Mỗi route không khai là một màn có thật mà mẫu số không biết tới.`);
+          if (naTrong.length) problems.push(`${naTrong.length} route khai \`n/a\` mà \`na_reasons\` trống: ${naTrong.join(' · ')}. n/a không lý do là thu hẹp phạm vi mà không ai chịu trách nhiệm.`);
+          if (!thieu.length && !naTrong.length) warnings.push(`Mẫu số đã phủ ${trongPhamVi.length}/${trongPhamVi.length} route trong phạm vi.`);
+        }
+      }
+      if (cc.canh_bao) {
+        warnings.push(`Mẫu số neo theo một lượt bò CHƯA đầy đủ: ${cc.canh_bao} ⇒ "đã phủ hết thứ quan sát được" KHÔNG đồng nghĩa "đã phủ hết hệ thống".`);
+      }
+      if (cc.canh_bao_session) warnings.push(`Lượt bò nền cho mẫu số này có dấu hiệu BẤT THƯỜNG: ${cc.canh_bao_session}`);
+    }
+  }
+
+
   if (denom == null && sumMd) {
     warnings.push('`phase1-summary.md` không có dòng "Tổng requirement in-scope" → không đọc được mẫu số coverage.');
   }

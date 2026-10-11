@@ -36,7 +36,7 @@ Luôn truyền `TASK_ENV=profiles/<TASK_KEY>/task.env`.
 | Khi log bug | `node scripts/qa/output_gate.js --mode bug --preview <bugs.json>` | Repro phải trích từ lần chạy thật; cấm suy đoán trong description; cảnh báo gán tầng FE/BE mà thiếu dấu vết API |
 | **Sau execute, TRƯỚC finalize** | `npm run expansion:plan -- --task <TASK_KEY>` | Kế hoạch mở rộng 5 trục theo risk band + **chi phí ước lượng** (lượt tải trang · phút · MB) để CHỐT phạm vi. Chỉ đọc Excel, vài giây. Task có case band **high** mà thiếu `reports/expansion-plan.md` thì self-review CHẶN |
 | **Task có case Create/Update/Delete** | `INFRA_VERIFY=1 … npx playwright test tests/support/setup/db/readonly.verify.spec.ts --project=infra-verify` rồi dùng `dbVerify` trong spec (chiều §23, tag `[DbPersist]`) | Kiểm CẢ bản ghi dưới DB, không chỉ UI/API: response thường ECHO lại request và FE format lại giá trị ⇒ 7 lớp lỗi (đổi kiểu số · lệch múi giờ · cắt varchar · xoá mềm hỏng · bảng liên quan không đổi · double-submit · rollback sai) đều "UI thấy đúng". DB là oracle PHỤ (khoanh tầng UI×DB ⇒ `failureLayer`), CHỈ dùng cột đã neo ở `fieldMap.anchored`, và DB KHÔNG phải evidence. Bắt buộc role CHỈ ĐỌC. Spec nghiệm thu ở cột bên cạnh chặn nếu user có quyền ghi |
-| **Ngay sau khi sinh/sửa spec, TRƯỚC khi execute** | `npm run lint:locator` → `npm run lint:locator:enforce` | Gate chất lượng CODE automation (khâu duy nhất trước đây không có gate): click toạ độ · `force:true` · regex trên `body.innerText` · `querySelectorAll('*')` · `.first()`/`.nth()` cấp trang · hard-wait ≥5s · XPath · assertion yếu (`toBeTruthy()` trên giá trị đọc từ app pass với mọi chuỗi khác rỗng). Code brittle không chặn ở đây thì lộ ra lúc chạy dưới dạng "FAIL" trông như bug sản phẩm. Bỏ qua phải ghi lý do: `// locator-lint-disable-next-line <lý do>` |
+| **Ngay sau khi sinh/sửa spec, TRƯỚC khi execute** | `npm run lint:locator` → `npm run lint:locator:enforce` | Gate chất lượng code: click toạ độ · `force:true` · regex `body.innerText` · `querySelectorAll('*')` · `.first()`/`.nth()` cấp trang · hard-wait ≥5s · XPath · assertion yếu. Không chặn ở đây thì code brittle lộ ra lúc chạy dưới dạng "FAIL" như bug sản phẩm. Bỏ qua phải ghi lý do (`// locator-lint-disable-next-line <lý do>`). Rồi `npm run auto:review:enforce`: **test không assertion** · ngủ cứng 1–5s · `toHaveURL(/./)` · đếm `> 0` · `console.log` · credential |
 | **Sau execute, TRƯỚC finalize** | `npm run expansion:plan -- --audit --enforce` | CHẶN nếu có finding mở rộng ghi PASS/FAIL mà **không có `oracle_ref`** — nhất quán KHÔNG phải bằng chứng của đúng. `merge_execution_status.js` cũng chặn ở `plan_guard`, chạy sớm ở đây thì biết trước một bước |
 | **Cuối phase** | `npm run phase2:check -- --task <TASK_KEY>` | Bó 5 gate trên, một lượt |
 | Có case đỏ | `npm run rerun:failed` | Chạy lại ĐÚNG case đỏ, không chạy cả suite. Thiếu TC ID thì nó từ chối |
@@ -66,14 +66,14 @@ Luôn truyền `TASK_ENV=profiles/<TASK_KEY>/task.env`.
 Chạy Phase 2 cho module/task sau: generate/update automation scripts nếu cần, execute testcases thật, auto-heal lỗi automation/setup, tổng hợp report và chỉ log bug Backlog khi đã đủ điều kiện xác nhận.
 
 Project:
-- Project là toàn bộ LMS + Operations automation workspace.
+- Project là **toàn bộ hệ thống đang test**, không phải một module.
 - Phạm vi hiện tại là module/task/feature được cung cấp bên dưới.
 - Backlog key hoặc module name chỉ là task/feature scope, không phải tên project.
 
 Phạm vi:
 - Module/Feature: [MODULE_FEATURE]
 - Task key/scope folder: [TASK_KEY]
-- Site liên quan: [LMS / Operations / LMS + Operations]
+- Site/ứng dụng liên quan: [TEN_SITE hoặc N/A]
 - Nguồn testcase: Google Sheet (agent tải bản mới nhất về `test-cases/from-sheet/*.xlsx` qua Drive MCP trước execute)
 - Đồng bộ kết quả lên Sheet sau execute: [PUSH_EXECUTION = confirm (mặc định, QA duyệt preview rồi mới ghi đè Sheet) | auto | 0]
 
@@ -82,10 +82,8 @@ Input links: (lấy từ profile của task — profiles/[TASK_KEY].env; chỉ �
 - Backlog Story/Task: [BACKLOG_STORY_URL]
 - tài liệu nguồn Requirement: [REQUIREMENT_DOC]
 - Figma: [FIGMA_FILE_URL]
-- LMS URL: [LMS_BASE_URL]
-- Operations URL: [OPS_BASE_URL]
-- LMS Swagger URL: [LMS_SWAGGER_URL]
-- Operations Swagger URL: [OPS_SWAGGER_URL]
+- App 1 (chính) URL: [OPS_BASE_URL] · Swagger: [OPS_SWAGGER_URL]
+- App 2 (phụ) URL: [LMS_BASE_URL] · Swagger: [LMS_SWAGGER_URL]
 - Other docs/files: [OTHER_DOCS hoặc N/A]
 
 Run profile (chạy song song an toàn):
@@ -224,15 +222,14 @@ Trước khi execute, phải rà soát prompt/template/executor hiện tại và
    - Fail/skip đến từ product bug, automation/harness, test data, setup/environment, dependency, mock/stub, timeout, flaky hay prompt chưa rõ.
 9. Nếu FAIL/SKIP do setup, dữ liệu test, mock, timeout, dependency, auth, locator, cleanup hoặc execute flow, phải sửa và rerun.
 10. Nếu FAIL còn lại là product/API contract issue, phải rerun testcase fail ít nhất 2-3 lần hoặc đủ để loại trừ flaky/setup trước khi kết luận.
-10b. **Bug Claim Gate — kiểm chứng đi TRƯỚC lời nói** (RULE_GLOBAL §Bug Claim Gate). Trước khi dùng
-    chữ "bug" trong hội thoại, viết claim rồi cho máy kiểm:
+10b. **Bug Claim Gate — kiểm chứng đi TRƯỚC lời nói** (RULE_GLOBAL §Bug Claim Gate). Trước khi nói chữ "bug", viết claim rồi cho máy kiểm:
     `npm run bug:claim:new -- --new <TC_ID>` tạo nháp → điền đủ → `npm run bug:claim`.
-    Claim phải có oracle độc lập kèm trích nguyên văn, expected và actual là giá trị, rerun ổn định,
-    tầng FE hay BE kèm phép đo, và ba phản chứng: tài liệu cũ hơn build, dụng cụ đọc sai, fixture
-    dựng không tự nhiên. Mỗi phản chứng phải dẫn một phép đo.
+    Claim cần oracle độc lập có trích nguyên văn, expected/actual là GIÁ TRỊ, rerun ổn định, tầng kèm phép
+    đo, ba phản chứng mỗi cái dẫn một phép đo — gate tự gọi tên trường thiếu.
     Chưa qua máy thì gọi là **quan sát bất thường**, và câu hỏi cho user là "có log không", không
-    phải "có phải bug không". Rút claim thì ghi `status: withdrawn` kèm `withdrawn_by_check` và hạ
-    verdict trong `testcase-status.json` cho khớp. Đếm bằng `npm run bug:claim:report`.
+    phải "có phải bug không". Rút claim: `status: withdrawn` + `withdrawn_by_check`, và hạ verdict trong
+    `testcase-status.json` cho khớp. Đếm bằng `npm run bug:claim:report`.
+    **Retest bug cũ:** ghi `retest[]`, lượt đầu `npm run bug:claim:chot`; `CANNOT_VERIFY` KHÔNG đóng bug.
 11. Lưu Playwright JSON/HTML/evidence dưới:
     `<PROJECT_OUTPUT_DIR>/tasks/[TASK_KEY]/test-results/`
 11b. **Cổng review hiển thị/visual (BẮT BUỘC nếu scope có UI)**: sau khi có screenshot, với MỖI màn đối chiếu (a) DOM-extract toàn bộ tên cột/label/format và (b) ảnh full-page vs `requirements/ui_catalog.md` + Figma/FS; liệt kê **MỌI deviation** (tên cột sai, format sai, thiếu/thừa/sai thứ tự cột, thiếu field, spacing/màu/radius/font lệch). Chụp full-page/scroll ngang để không sót cột. **KHÔNG tự lọc "lỗi nhỏ"**; mỗi deviation là 1 finding ứng viên, map về TC Conformance/Design tương ứng và ghi FAIL nếu lệch spec. Text-step automation không "nhìn" được toàn cảnh — nếu có vision-model/visual-diff thì dùng; nếu không, review ảnh có cấu trúc theo từng dòng của catalog (không bỏ dòng nào).

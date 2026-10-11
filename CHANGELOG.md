@@ -7,6 +7,122 @@
 > `.agent/**`, `tests/support/**` đều là **shared change** (xem `RULE_GLOBAL.md` §Shared Change Gate) —
 > ảnh hưởng mọi story đang chạy. Mỗi mục ghi **vấn đề → cách chữa**, không chỉ liệt kê tính năng.
 
+## v2.6.0 — 2026-10-11 — Bước 0: lấy mẫu số từ thứ QUAN SÁT ĐƯỢC, không chỉ từ tài liệu
+
+**Vấn đề.** Trước bản này kit chỉ khám phá ở mức một task hoặc một màn, và luôn đi từ tài liệu. Hệ quả đo
+được: mẫu số coverage chỉ gồm những gì **tài liệu nhắc tới**. Màn hoặc API không có trong tài liệu thì
+không ai test, và không gate nào biết.
+
+**Cách chữa.** Thêm Bước 0 chạy trước `phase1_00`: một lệnh `npm run discover` bò app bằng script tất
+định, rồi trả về bản đồ màn, danh mục API, bản đồ phủ tài liệu và bản đồ điểm nhập injection. Agent chỉ
+đọc bản tóm tắt (trần 2k token cho chế độ `task`).
+
+### Mười điểm vượt kit QIG QA (A)
+
+| # | A | v2.6.0 | Bằng chứng |
+|---|---|---|---|
+| 1 | agent tự bò qua MCP, mỗi lượt một kết quả | script tất định, agent đọc tóm tắt ≤2k | 2 test đo hai lượt cho cùng danh sách màn, kể cả lượt bị cắt ngân sách |
+| 2 | chỉ thấy phần một tài khoản thấy | ma trận `vai trò × route`, 3 mức bằng chứng | đo trên fixture: 14 verified · 1 config · 17 unknown |
+| 3 | API chỉ ghi thụ động | danh mục API, đối chiếu hai chiều với OpenAPI | 18 test, gồm ca endpoint ghi bị tường lửa chặn |
+| 4 | chỉ so tài liệu dạng văn bản | gộp UI, network, tài liệu và `knowledge/` | bản đồ bốn ô, 9 vùng trên fixture |
+| 5 | không có danh mục loại field | dấu vân tay đọc từ thuộc tính DOM | 18/18 loại field trên một màn form |
+| 6 | không so được giữa các build | chế độ `delta` | trần token riêng 1k |
+| 7 | không nối vào gate nào | 8/11 điểm nối đã làm | `scope_anchor` · `dim:coverage` (3 tín hiệu) · `risk_score` · `preflight` |
+| 8 | an toàn dựa vào lời dặn | tường lửa ghi ở tầng network | 19 test, 3 đường ghi, 0 request lọt |
+| 9 | không biết bò được bao nhiêu | độ đầy đủ kèm 5 nhóm lý do | mẫu số và tử số CÙNG đơn vị route |
+| 10 | đầu ra là Markdown cho người | JSON có schema, bản `.md` sinh từ JSON | 4 file JSON, `questions.md`, `summary.txt` |
+
+Ba thứ của A giữ nguyên: ba mức bằng chứng phân quyền (ô `unknown` KHÔNG được làm tròn thành "không có
+quyền") · cấm gọi API trực tiếp (có test quét mã nguồn) · dừng xin duyệt trước khi ghi `knowledge/`.
+
+### Lượt chạy thật trên UAT, và năm lỗ chỉ nó mới phơi ra
+
+Chạy `CSDL-9003` trên UAT, vai trò masteradmin THPT, chỉ GET. **Lượt một** ra `6 màn · 292 route báo
+captcha · 0 request ghi lọt`. Con số "292 route bắt captcha" đọc như một đặc điểm của QEMIS. Nó không
+phải: trong danh sách đó có `/Logout.aspx` — crawler đi theo link Đăng xuất và **tự huỷ session của chính
+nó**, nên 292 trang sau đó đều là màn đăng nhập. Không có gì đỏ, không exception, và nó sinh ra một phát
+hiện giả rất thuyết phục về sản phẩm từ một lỗi của chính kit.
+
+**Lượt hai**, sau khi vá: `40 màn · captcha 0 · 43 request ghi bị chặn · 0 lọt`.
+
+| # | Lỗ | Vì sao fixture offline không bắt được |
+|---|---|---|
+| 1 | lệnh không có đường nạp session | fixture không có login |
+| 2 | `.auth/` là bản bọc, Playwright im lặng trả context rỗng | không có session cache |
+| 3 | ảnh chụp màn không che PII | fixture không có dữ liệu người |
+| 4 | crawler đi theo link Đăng xuất | fixture không có link đó |
+| 5 | trần thời gian chỉ kiểm ở ĐẦU vòng lặp | không có trang nào đủ chậm |
+
+Lỗ 2 đáng nói riêng: Playwright **không ném** khi `storageState` thiếu `cookies`. Nó trả về context rỗng,
+và triệu chứng (`captcha 1 · 0 màn`) **trông y hệt một session hết hạn**. Tôi đã chẩn đoán nhầm đúng theo
+hướng đó, đăng nhập lại, rồi lượt sau vẫn hỏng y nguyên với session mới một phút tuổi.
+
+### Hai phép đo bác lại chính thiết kế của bản này
+
+**§B2 so sai đơn vị.** Bản đầu đòi mỗi màn quan sát được phải xuất hiện trong `scope_inventory.md`, khớp
+theo chuỗi route. Đối chiếu 40 màn với danh mục THẬT của `CSDL-9003` (55 dòng `INV-` người viết ngày
+30/09): **khớp 1, trượt 39**. Danh mục mô tả theo mã chức năng, và một màn chứa nhiều mục phạm vi, nên
+đòi khớp một-một là so hai thứ khác đơn vị. Thêm nữa `--mode task` không hề thu hẹp phạm vi, nên lượt bò
+đi cả app. Nay khai tường minh theo route, và chỉ hỏi về route NẰM TRONG phạm vi đã khai.
+
+**Một timer quên huỷ làm lệnh chậm 17 lần.** `discover` mất 96 giây trên fixture 7 màn. Đoán sai hai lần
+(tranh chấp worker, rồi vòng lặp mở khối) rồi mới đo từng pha: 90,7 giây cho MỘT trang và 95,8 giây cho
+BẢY trang. Chính con số không đổi theo số trang mới chỉ ra đây là timer: `Promise.race` tạo `setTimeout`
+mà không `clearTimeout`. Huỷ timer thì 96 giây còn 5,7 giây.
+
+### Thay đổi khác
+
+- `A9` bản đồ điểm nhập injection. Chiều security của `dim:coverage` trước đây chấm bằng **regex trên văn
+  bản**: một case chỉ cần chứa chữ "injection" là chiều đó tính như đã phủ. Nay đối chiếu với
+  `injection_surface.json`, và đếm theo BỀ MẶT (`nhóm@màn`) chứ không theo từng ô. Fixture 6 màn đã ra 10
+  điểm nhập ưu tiên cao; app thật 342 module thì lên hàng trăm, và một gate đòi mỗi ô một case sẽ bị tắt.
+- Oracle injection chấm theo bốn dấu hiệu quan sát được. Chỉ có dấu hiệu THỤ ĐỘNG (không 500, không lộ
+  lỗi) thì ra `OBSERVATION`, KHÔNG thành PASS.
+- `risk_score` nhận tín hiệu Impact từ Bước 0. Đây là lời giải cho chỗ đo hụt ở v2.5.0: `tagWeights` lấy
+  tag từ bản ghi bug, mà `knowledge/bugs` có 0 bản ghi nên mọi module lấy `default`.
+- `ui_components.json` thêm ba component (`pagination`, `filter`, `tab`). Số component CHẶN được tăng từ
+  2/6 lên 5/9.
+- Che PII trong ảnh bằng `page.screenshot({ mask })`: tô đè ngay lúc chụp, không phải chụp xong rồi bôi.
+
+### Giới hạn còn lại, nói thẳng
+
+- **Ba điểm nối §B chưa làm**: gộp `questions.md` bằng máy · `system_mapper` sinh ứng viên `PM`, `SM`,
+  `SS` · `precondition_setup_planner` · `partial-rerun` từ `delta`.
+- Lượt chạy thật **chưa đo được mẫu số đổi bao nhiêu**. Cần một lượt bò có `--pham-vi` đúng module học sinh.
+- Trên app ASP.NET postback, `moCacKhoi` bấm vào nút gây postback và bị chính tường lửa chặn, nên việc mở
+  khối gần như không có tác dụng. Chưa có cách chữa.
+- Mọi màn QEMIS dùng chung một `<title>` của master page, nên tên hiển thị trong bảng tóm tắt vô dụng
+  trên app đó. Danh tính màn không bị ảnh hưởng vì nó dùng chữ ký cấu trúc.
+
+---
+
+## v2.5.0 — 2026-10-10 — Mười sáu hạng mục, và sáu hạng mục bị phép đo thu hẹp
+
+Mục này viết bù: v2.5.0 chạy xong 44 commit nhưng chưa từng được ghi CHANGELOG hay bump version.
+
+**Số đo.** 771 thành 1.067 test · 89 thành 95 gate · 23 thành 25 skill · `core_rules.md` giảm 1.540 token
+mỗi phiên · phần nạp bắt buộc của `/phase1` giảm 4 token và `/phase2` giảm 2 token so với mốc.
+
+**Phép đo bác tiền đề bốn lần.** `spec_extract` đọc OpenAPI: không. Mười sáu tham chiếu dự án cũ: sai
+cách đặt vấn đề. `tests/api/` không tồn tại: sai, nó có `.gitkeep`. Risk register dùng được: 10/10 module
+band High đều là **tên của dự án trước**. Sáu hạng mục bị thu hẹp sau khi đo ra đầu vào bằng 0: bộ sinh
+OpenAPI (0 file swagger) · gộp case trùng giữa task (0/391 tiêu đề trùng) · tín hiệu lịch sử bug
+(`knowledge/bugs` rỗng).
+
+**Hạng mục chính.** `matrix:coverage` phủ theo lớp kết quả · `run:analysis` đo lượt chạy có đủ mẫu số để
+kết luận chất lượng không · `release:summary` go/no-go có căn cứ và KHÔNG tự quyết · `auto:review` bảy
+luật cho automation của task · thẻ API thành ẢNH (luật 4 không đổi, chỉ đổi cách tạo ảnh) · `status:
+draft` cho `knowledge/domain` · `skills:lint` · `/start` cho người mới · nhật ký đổi rule · ba mức bằng
+chứng cho `PM-*`.
+
+**Hai chỗ sửa sau cùng.** `risk_model.json` gỡ 20 tên module phantom. A/B trên cùng dữ liệu cho `50 module
+{High 10 · Medium 10 · Low 30}` thành `30 module {Medium 1 · Low 29}`, và **0 module THẬT đổi band**. Con
+số "0 High" là con số đúng của một kho `knowledge/bugs` còn trống, không phải một cải thiện. Và
+`confirmed_by` thêm giá trị `Van-ban-phap-quy`: bốn rule neo vào Thông tư còn hiệu lực, ghi `BA` lên đó là
+bịa ra một lượt xác nhận không hề xảy ra.
+
+---
+
 ## v2.4.1 — 2026-10-10 — Ba lỗi của bản phát hành, và lỗi thứ tư nằm trong cách đo
 
 Một lượt rà độc lập trên bản zip sạch tìm ra ba lỗi. Đo lại từng cái thì hai trong ba có tiền đề sai,

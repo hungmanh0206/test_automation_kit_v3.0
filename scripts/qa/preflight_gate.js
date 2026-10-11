@@ -151,6 +151,40 @@ function runPreflight({ mode = 'generic', task = '', extraRequire = [], allowMis
   for (const p of cfg.recommend || []) {
     if (!fs.existsSync(abs(p))) warnings.push(`nên có (không chặn): ${p}`);
   }
+  /*
+   * 3b) BƯỚC 0 — KHÁM PHÁ HỆ THỐNG (v2.6.0 §B11). CẢNH BÁO, không chặn.
+   *
+   * Vì sao chỉ cảnh báo: task hiện có đều chưa chạy Bước 0, nên chặn ngay là làm đỏ mọi task đang chạy —
+   * đúng lớp lỗi "gate báo oan thì người ta tắt nó". Dự án muốn siết thì đặt `DISCOVERY_REQUIRED=1`.
+   *
+   * Vì sao vẫn phải kêu: không có `system_map.json` thì mẫu số coverage quay về thứ agent tự liệt kê từ
+   * tài liệu, và `scope_anchor` chỉ nói được "CHƯA GÁC ĐƯỢC". Một lượt Phase 1 im lặng bỏ Bước 0 trông y
+   * như một lượt đã làm đủ.
+   */
+  if (mode === 'phase1' && task && projectOutputDir) {
+    const reqDir = abs(path.join(projectOutputDir, 'tasks', task, 'requirements'));
+    const sm = path.join(reqDir, 'system_map.json');
+    const batBuoc = process.env.DISCOVERY_REQUIRED === '1';
+    if (!fs.existsSync(sm)) {
+      const msg = 'phase1: chưa có `requirements/system_map.json` (Bước 0 — `npm run discover`). Thiếu nó thì mẫu số coverage là danh mục agent tự liệt kê từ tài liệu, và màn/API không có trong tài liệu sẽ không ai test.';
+      if (batBuoc) problems.push(`DISCOVERY_REQUIRED=1 ⇒ ${msg}`);
+      else warnings.push(msg);
+    } else {
+      /*
+       * SNAPSHOT CŨ cũng là một vấn đề, và nó im lặng hơn: bản đồ của build trước vẫn parse được, vẫn có
+       * đủ màn, chỉ là nó mô tả một app khác. Ngưỡng 14 ngày đặt rộng tay vì nhịp build mỗi dự án mỗi khác.
+       */
+      const ngay = Math.floor((Date.now() - fs.statSync(sm).mtimeMs) / 86400000);
+      const nguong = Number(process.env.DISCOVERY_MAX_AGE_DAYS || 14);
+      if (ngay > nguong) {
+        warnings.push(`phase1: \`requirements/system_map.json\` đã ${ngay} ngày (ngưỡng ${nguong}). Bản đồ của build trước vẫn parse được và vẫn đủ màn — nó chỉ mô tả một app KHÁC. Chạy \`npm run discover -- --mode delta\` để biết đã đổi gì.`);
+      }
+      const isf = path.join(reqDir, 'injection_surface.json');
+      if (!fs.existsSync(isf)) {
+        warnings.push('phase1: có `system_map.json` mà thiếu `requirements/injection_surface.json` ⇒ `dim:coverage` không gác được phủ injection, chiều security quay về chấm bằng regex trên văn bản.');
+      }
+    }
+  }
   // 4) phase2 + task: testcase canonical LOCAL phải có trước execute.
   if (cfg.taskTestcase && task) {
     if (!projectOutputDir) {
