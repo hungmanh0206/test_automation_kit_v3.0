@@ -288,6 +288,49 @@ if (require.main === module) {
       console.error('  Bảng dựng từ chính phép quét này, nên thiếu source là hai phía cùng co lại và vẫn "khớp".');
       process.exit(1);
     }
+    /*
+     * MÃ LỖI PHẢI NÓI ĐƯỢC CÁCH SỬA (v2.7.0 §A5).
+     *
+     * Một mã chỉ có `y` ("nó là gì") là một NHÃN: người đọc biết tên vấn đề rồi vẫn phải tự đi tìm cách
+     * sửa, và `--explain` của `check` trả về nửa câu — tệ hơn không có, vì họ tưởng đã đọc hết hướng dẫn
+     * rồi dừng.
+     *
+     * HAI TẦNG theo §A5: mã nào còn nợ thì khai vào `_no_ma_cu` và chỉ bị CẢNH BÁO trong một release.
+     * Danh sách đó hiện RỖNG — cả 21 mã đã điền đủ — và một test đòi nó phải rỗng, để không ai lặng lẽ
+     * thêm vào đó thay vì viết hướng dẫn.
+     */
+    const CODES = path.join(REPO, '.agent', 'config', 'gate_codes.json');
+    const rawCodes = readSafe(CODES);
+    if (rawCodes) {
+      let cfgCodes;
+      try { cfgCodes = JSON.parse(rawCodes); } catch (e) {
+        console.error(`[gate-index] CHẶN: gate_codes.json HỎNG JSON: ${e.message}`);
+        process.exit(1);
+      }
+      const dsCodes = Array.isArray(cfgCodes) ? cfgCodes : (cfgCodes.codes || []);
+      const noCu = new Set(cfgCodes._no_ma_cu || []);
+      const thieuMa = [];
+      const noConLai = [];
+      for (const m of dsCodes) {
+        const thieu = ['vi_sao', 'sua', 'vi_du', 'tang'].filter((k) => !m[k]);
+        if (!thieu.length) continue;
+        (noCu.has(m.code) ? noConLai : thieuMa).push(`${m.code} (thiếu ${thieu.join(', ')})`);
+      }
+      if (noConLai.length) {
+        console.error(`[gate-index] ⚠ ${noConLai.length} mã còn NỢ hướng dẫn, khai trong \`_no_ma_cu\` nên chỉ cảnh báo:`);
+        noConLai.forEach((x) => console.error(`  ~ ${x}`));
+        console.error('  Nợ này chỉ được miễn MỘT release. Viết hướng dẫn rồi rút khỏi `_no_ma_cu`.');
+      }
+      if (thieuMa.length) {
+        console.error(`[gate-index] CHẶN: ${thieuMa.length} mã lỗi chưa nói được cách sửa (§A5):`);
+        thieuMa.forEach((x) => console.error(`  - ${x}`));
+        console.error('  Mỗi mã cần `vi_sao` · `sua` · `vi_du` (sai → đúng) · `tang`. Một mã chỉ có tên là một');
+        console.error('  NHÃN: người đọc biết tên vấn đề rồi vẫn phải tự đi tìm cách sửa.');
+        console.error('  Chưa viết kịp thì khai mã đó vào `_no_ma_cu` — nhưng đó là nợ, chỉ miễn một release.');
+        process.exit(1);
+      }
+    }
+
     const cur = readSafe(OUT);
     if (!cur) {
       console.error('[gate-index] CHẶN: thiếu .agent/config/GATES.md — chạy `npm run gates:index`.');

@@ -64,7 +64,13 @@ function giaiThich(ma) {
     console.error(`[check] không có mã "${ma}". Có: ${ds.map((x) => x.code).join(' · ')}`);
     process.exit(2);
   }
-  console.log(`${m.code} — ${m.y}`);
+  /*
+   * TẦNG đứng ngay dòng đầu, vì nó quyết định người đọc phải sửa NGAY hay sửa trước cửa ra. Thiếu nó
+   * thì mọi mã trông cùng mức khẩn, và cái khẩn thật bị trộn vào đám còn lại.
+   */
+  console.log(`${m.code} [${m.tang || 'chưa xếp tầng'}] — ${m.y}`);
+  if (m.tang === 'T0') console.log('  T0: chặn ở MỌI ngữ cảnh, không có cờ bỏ qua.');
+  if (m.tang === 'T1') console.log('  T1: lúc đang làm thì chỉ cảnh báo và vào sổ nợ; CỬA RA sẽ chặn.');
   if (m.vi_sao) console.log(`\nVÌ SAO: ${m.vi_sao}`);
   if (m.sua) console.log(`\nSỬA: ${m.sua}`);
   if (m.vi_du) console.log(`\nVÍ DỤ sai → đúng: ${m.vi_du}`);
