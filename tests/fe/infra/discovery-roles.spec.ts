@@ -1,6 +1,9 @@
 import { test, expect } from '@playwright/test';
 import fs from 'fs';
+import os from 'os';
 import path from 'path';
+import { spawnSync } from 'child_process';
+import { gateEnv } from './_gate_env';
 import { chromium, Browser, Page } from '@playwright/test';
 
 /*
@@ -287,5 +290,60 @@ test.describe('@infra an toàn — chỉ GET, không ghi, không đọc credenti
       baseUrl: 'https://qemis.example.vn/', coCo: true,
       vaiTro: [{ ten: 'x', dangNhap: async () => {} }],
     })).rejects.toThrow(/TỪ CHỐI/);
+  });
+});
+
+test.describe('@infra §A4 nối vào lệnh `discover` — thôi là code chết', () => {
+  /*
+   * `roles.js` viết xong từ hạng mục ④ nhưng KHÔNG được lệnh nào gọi, nên nó là code chết: 17 test xanh
+   * mà không lượt chạy thật nào đi qua nó. Nay `discover` nhận `--storage-state-roles "ten=file,…"`.
+   *
+   * Vì sao nhận SESSION chứ không nhận credential: QEMIS có captcha ở MỖI lượt đăng nhập, nên một lệnh
+   * không thể tự đăng nhập hai lần. Và kit không bao giờ đọc mật khẩu trong lệnh khám phá.
+   */
+  const CLI = path.resolve(__dirname, '..', '..', '..', 'scripts/qa/discover.js');
+
+  function chayCli(args: string[]) {
+    const r = spawnSync(process.execPath, [CLI, ...args], { cwd: path.resolve(__dirname, '..', '..', '..'), encoding: 'utf8', env: gateEnv() });
+    return { code: r.status, out: `${r.stdout || ''}${r.stderr || ''}` };
+  }
+
+  test('`--storage-state-roles` sai khuôn ⇒ từ chối, nêu đúng khuôn', () => {
+    const r = chayCli(['--base-url', srv.url, '--confirm-nonprod', '--storage-state-roles', 'thieu-dau-bang']);
+    expect(r.code).toBe(2);
+    expect(r.out).toMatch(/sai khuôn/);
+    expect(r.out).toMatch(/ten=duong\/dan\.json/);
+  });
+
+  test('file session KHÔNG có cookie ⇒ từ chối, và nói đúng hậu quả', () => {
+    /*
+     * Một context rỗng không ném: nó chỉ làm MỌI ô của vai trò đó thành "bị chặn" — tức một ma trận
+     * phân quyền sai toàn bộ, trông như một phát hiện lớn. Chặn ở đây thay vì để nó hiện ra ở chỗ khác.
+     */
+    const d = fs.mkdtempSync(path.join(os.tmpdir(), 'ss-'));
+    const f = path.join(d, 'rong.json');
+    fs.writeFileSync(f, JSON.stringify({ savedAt: 1, storageState: { cookies: [], origins: [] } }), 'utf8');
+    try {
+      const r = chayCli(['--base-url', srv.url, '--confirm-nonprod', '--storage-state-roles', `admin=${f}`]);
+      expect(r.code).toBe(2);
+      expect(r.out).toMatch(/KHÔNG có cookie nào/);
+      expect(r.out).toMatch(/"bị chặn" một cách sai/);
+    } finally { fs.rmSync(d, { recursive: true, force: true }); }
+  });
+
+  test('bản bọc `{savedAt, storageState}` của kit đọc được, không cần bóc tay', () => {
+    const src = fs.readFileSync(CLI, 'utf8');
+    expect(src).toMatch(/function docStorageState/);
+    expect(src, 'phải ghi vì sao bóc bản bọc').toMatch(/Playwright KHÔNG ném/);
+  });
+
+  test('vai trò chưa có tài khoản KHÔNG đếm vào tín hiệu "≥2 vai trò"', () => {
+    /*
+     * Ô của vai trò chưa có tài khoản là `unknown`, và `unknown` KHÔNG phải bằng chứng về quyền. Đếm nó
+     * là bắt người ta viết case phân quyền cho một vai trò chưa ai đăng nhập thử được.
+     */
+    const dc = fs.readFileSync(path.resolve(__dirname, '..', '..', '..', 'scripts/qa/dimension_coverage.js'), 'utf8');
+    expect(dc).toMatch(/co_tai_khoan !== false/);
+    expect(dc).toMatch(/`unknown` KHÔNG phải bằng chứng về quyền/);
   });
 });

@@ -185,6 +185,21 @@ const SCOPE_SIGNALS = [
   { dim: 'guard', why: '`knowledge/system/` khai `state_machine` — mọi cặp chuyển trạng thái KHÔNG khai là bất hợp pháp và phải có case chứng minh bị CHẶN', has: () => knowSystem('state_machine') },
   { dim: 'security', why: '`knowledge/system/` khai `permission_matrix` — mọi ô role×action ngoài allow phải có case guard', has: () => knowSystem('permission_matrix') },
   {
+    dim: 'security',
+    why: '`requirements/system_map.json` khai từ 2 VAI TRÒ trở lên — có nhiều vai trò thì ranh giới quyền là thứ phải đo, không được khai `n/a` (v2.6.0 §B3)',
+    has: () => {
+      try {
+        const j = JSON.parse(fs.readFileSync(path.join(taskDir, 'requirements', 'system_map.json'), 'utf8'));
+        /*
+         * Đếm vai trò CÓ TÀI KHOẢN. Vai trò chỉ khai tên mà chưa có session thì mọi ô của nó là
+         * `unknown`, và `unknown` KHÔNG phải bằng chứng về quyền — đếm nó vào đây là bắt người ta viết
+         * case phân quyền cho một vai trò chưa ai đăng nhập thử được.
+         */
+        return (j.roles || []).filter((r) => r.co_tai_khoan !== false).length >= 2;
+      } catch (e) { return false; }
+    },
+  },
+  {
     dim: 'export_import',
     why: '`requirements/system_map.json` thấy ô upload tệp trên màn đã bò — có đường nhập tệp thì chiều export/import ÁP DỤNG (v2.6.0 §B3)',
     has: () => {

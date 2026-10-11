@@ -29,6 +29,7 @@ const cr = require(path.join(__dirname, 'discovery', 'crawl.js'));
 const ai = require(path.join(__dirname, 'discovery', 'api_inventory.js'));
 const fu = require(path.join(__dirname, 'discovery', 'fuse.js'));
 const isf = require(path.join(__dirname, 'discovery', 'injection_surface.js'));
+const rl = require(path.join(__dirname, 'discovery', 'roles.js'));
 
 const CHARS_PER_TOK = 3.2;
 const TRAN = { task: 2000, delta: 1000, system: 4000 };
@@ -39,6 +40,18 @@ const arg = (n, d) => {
 };
 const co = (n) => process.argv.includes(`--${n}`);
 const tok = (s) => Math.round(String(s).replace(/\r\n/g, '\n').length / CHARS_PER_TOK);
+
+/**
+ * Đọc một file session, BÓC bản bọc nếu có.
+ *
+ * `session_cache` của kit ghi `{ savedAt, storageState }`, còn Playwright đợi `cookies`/`origins` ở gốc.
+ * Truyền thẳng đường dẫn thì Playwright KHÔNG ném — nó trả về một context rỗng, và lượt bò bị đẩy về màn
+ * đăng nhập. Đo thật trên UAT: triệu chứng `captcha 1 · 0 màn` trông y hệt một session hết hạn.
+ */
+function docStorageState(duongDan) {
+  const j = JSON.parse(fs.readFileSync(duongDan, 'utf8'));
+  return j && j.storageState ? j.storageState : j;
+}
 
 /** `build_id` = hash của (host + phạm vi + ngày). Cùng build và cùng phạm vi ⇒ dùng lại snapshot. */
 function buildId(host, mode, phamVi) {
@@ -81,6 +94,14 @@ function dungTomTat(d, mode) {
   for (const b of bm) batBuoc.push(`- ${b.nhom}@${b.o} (${b.uu_tien}, gộp ${b.so_diem_nhap} điểm nhập)`);
   if (!bm.length) batBuoc.push('- (không có)');
   batBuoc.push('');
+
+  // PHÁT HIỆN từ ma trận vai trò — không cắt. Đây là thứ duy nhất trong bản tóm tắt nói app TỰ MÂU THUẪN.
+  const ef = ((d.rolesOut || {}).expansion_findings) || [];
+  if (ef.length) {
+    batBuoc.push(`## EXPANSION_FINDING từ ma trận vai trò: ${ef.length}`);
+    for (const f of ef) batBuoc.push(`- ${String(f.vi_sao).slice(0, 200)}`);
+    batBuoc.push('');
+  }
 
   // CÂU HỎI Critical/High — không cắt.
   const hoi = [...(d.fuse.cau_hoi_ambiguity || []), ...(d.injection.cau_hoi_ambiguity || []), ...((d.rolesOut || {}).cau_hoi_ambiguity || [])]
@@ -179,10 +200,7 @@ async function main() {
      * Đo thật: lượt §E đầu tiên trên UAT báo đúng như vậy, và session khi đó MỚI 1 phút tuổi.
      */
     let st = null;
-    try {
-      const j = JSON.parse(fs.readFileSync(ss, 'utf8'));
-      st = j && j.storageState ? j.storageState : j;
-    } catch (e) {
+    try { st = docStorageState(ss); } catch (e) {
       console.error(`[discover] ✗ không đọc được --storage-state ${ss}: ${e.message}`);
       process.exit(2);
     }
@@ -224,18 +242,56 @@ async function main() {
 
   const api = ai.tongHop(rec, { openapiPath: arg('openapi', '') || undefined });
   const taiLieu = (arg('tai-lieu', '') || '').split(',').map((x) => x.trim()).filter(Boolean);
+  /*
+   * MA TRẬN VAI TRÒ (§A4), chạy khi có `--storage-state-roles "ten=file,ten2=file2"`.
+   *
+   * Vì sao nhận SESSION chứ không nhận credential: QEMIS có captcha ở MỖI lượt đăng nhập, nên một lệnh
+   * không thể tự đăng nhập hai lần. Mỗi vai trò nạp sẵn một file `.auth` từ ngoài — và kit không bao giờ
+   * đọc mật khẩu trong lệnh này.
+   *
+   * Vai trò KHAI TÊN mà không có session đi vào `vaiTroKhongCoTaiKhoan`: mỗi cái sinh một câu hỏi
+   * Critical, và mọi ô của nó là `unknown` — KHÔNG được làm tròn thành "không có quyền".
+   */
+  const khaiVai = arg('storage-state-roles', '');
+  const vaiKhongCo = (arg('vai-tro-chua-co-tai-khoan', '') || '').split(',').map((x) => x.trim()).filter(Boolean);
+  let rolesOut = null;
+  if (khaiVai || vaiKhongCo.length) {
+    const browser2 = await chromium.launch();
+    try {
+      const vaiTro = [];
+      for (const cap of khaiVai.split(',').map((x) => x.trim()).filter(Boolean)) {
+        const [ten, tep] = cap.split('=').map((x) => (x || '').trim());
+        if (!ten || !tep) { console.error(`[discover] ✗ --storage-state-roles sai khuôn ở "${cap}" — đúng khuôn: ten=duong/dan.json`); process.exit(2); }
+        let st;
+        try { st = docStorageState(tep); } catch (e) { console.error(`[discover] ✗ vai trò "${ten}": không đọc được ${tep}: ${e.message}`); process.exit(2); }
+        if (!((st || {}).cookies || []).length) { console.error(`[discover] ✗ vai trò "${ten}": ${tep} KHÔNG có cookie nào — một context rỗng sẽ làm mọi ô của vai trò này thành "bị chặn" một cách sai.`); process.exit(2); }
+        vaiTro.push({ ten, nguon: path.basename(tep), context: await browser2.newContext({ storageState: st }) });
+      }
+      if (vaiTro.length) {
+        rolesOut = await rl.lapMaTran(browser2, {
+          baseUrl, coCo, cfg, vaiTro, vaiTroKhongCoTaiKhoan: vaiKhongCo,
+          routeCanDo: crawl.screens.map((s) => s.route),
+          doTre: arg('do-tre', '') === '' ? undefined : Number(arg('do-tre', '')),
+        });
+      } else if (vaiKhongCo.length) {
+        console.warn(`[discover] ⚠ khai ${vaiKhongCo.length} vai trò CHƯA CÓ tài khoản mà không có vai trò nào có session ⇒ không lập được ma trận. Cần ít nhất một vai trò đăng nhập được để biết route nào tồn tại.`);
+      }
+    } finally { await browser2.close(); }
+  }
+
   const fuse = fu.gop({ crawl, api, taiLieu });
   const injection = isf.lietKe({ crawl, api, cfg });
 
   const outRel = path.relative(rc.REPO_ROOT, OUT).replace(/\\/g, '/');
-  const goiDu = { build_id: bid, mode, crawl, api, fuse, injection, outRel };
+  const goiDu = { build_id: bid, mode, crawl, api, fuse, injection, rolesOut, roles: (rolesOut || {}).roles, outRel };
 
-  fs.writeFileSync(path.join(OUT, 'system_map.json'), JSON.stringify({ build_id: bid, mode, target: crawl.target, screens: crawl.screens, apis: api.apis, doc_coverage: fuse.doc_coverage, crawl_completeness: crawl.crawl_completeness, status: 'observed' }, null, 2), 'utf8');
+  fs.writeFileSync(path.join(OUT, 'system_map.json'), JSON.stringify({ build_id: bid, mode, target: crawl.target, screens: crawl.screens, apis: api.apis, doc_coverage: fuse.doc_coverage, crawl_completeness: crawl.crawl_completeness, pham_vi: crawl.pham_vi, roles: (rolesOut || {}).roles || [], role_route_matrix: (rolesOut || {}).role_route_matrix || [], status: 'observed' }, null, 2), 'utf8');
   fs.writeFileSync(path.join(OUT, 'injection_surface.json'), JSON.stringify({ build_id: bid, ...injection }, null, 2), 'utf8');
   fs.writeFileSync(path.join(OUT, 'api_inventory.json'), JSON.stringify({ build_id: bid, ...api }, null, 2), 'utf8');
   fs.writeFileSync(path.join(OUT, 'doc_coverage.json'), JSON.stringify({ build_id: bid, ...fuse }, null, 2), 'utf8');
+  if (rolesOut) fs.writeFileSync(path.join(OUT, 'roles.json'), JSON.stringify({ build_id: bid, ...rolesOut }, null, 2), 'utf8');
 
-  const hoiTatCa = [...(fuse.cau_hoi_ambiguity || []), ...(injection.cau_hoi_ambiguity || [])];
+  const hoiTatCa = [...(fuse.cau_hoi_ambiguity || []), ...(injection.cau_hoi_ambiguity || []), ...((rolesOut || {}).cau_hoi_ambiguity || [])];
   fs.writeFileSync(path.join(OUT, 'questions.md'), [
     '# Câu hỏi tự sinh từ Bước 0 — Khám phá hệ thống', '',
     `> ${bid} · chế độ ${mode}. Gộp vào \`requirements/phase1-clarifications.md\` rồi hỏi user MỘT lần.`,

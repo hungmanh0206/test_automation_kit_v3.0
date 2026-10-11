@@ -87,7 +87,13 @@ async function thuMoTrucTiep(page, baseUrl, route) {
  * Lập ma trận `vai trò × route`.
  *
  * @param {import('playwright').Browser} browser
- * @param {{baseUrl:string, vaiTro:{ten:string, dangNhap:(page:any)=>Promise<void>}[],
+ * MỘT VAI TRÒ KHAI BẰNG MỘT TRONG HAI CÁCH, và cách thứ hai là cách dùng được từ dòng lệnh:
+ *   · `dangNhap(page)` — hàm đăng nhập do bên gọi truyền vào (dùng trong test);
+ *   · `context`        — một `BrowserContext` đã nạp sẵn session của vai trò đó. Đây là cách `discover`
+ *     dùng: mỗi vai trò một file `.auth`, vì QEMIS có captcha ở MỖI lượt đăng nhập nên không thể đăng
+ *     nhập tự động nhiều lần trong một lệnh.
+ *
+ * @param {{baseUrl:string, vaiTro:{ten:string, dangNhap?:(page:any)=>Promise<void>, context?:any}[],
  *          routeCanDo?:string[], cfg?:any, coCo?:boolean, doTre?:number}} o
  */
 async function lapMaTran(browser, o) {
@@ -106,10 +112,10 @@ async function lapMaTran(browser, o) {
   const tuongLua = [];
 
   for (const v of o.vaiTro) {
-    const page = await browser.newPage();
+    const page = await ((v.context) || browser).newPage();
     const bb = await fw.install(page, { cfg, domainChoPhep: [new URL(o.baseUrl).host] });
     await page.goto(o.baseUrl, { waitUntil: 'domcontentloaded' });
-    await v.dangNhap(page);
+    if (v.dangNhap) await v.dangNhap(page);
     await page.goto(o.baseUrl, { waitUntil: 'domcontentloaded' });
     menuTheoVai.set(v.ten, await docMenu(page));
     tuongLua.push({ vai_tro: v.ten, ...bb.tomTat() });
@@ -125,10 +131,10 @@ async function lapMaTran(browser, o) {
 
   const oMaTran = [];
   for (const v of o.vaiTro) {
-    const page = await browser.newPage();
+    const page = await ((v.context) || browser).newPage();
     const bb = await fw.install(page, { cfg, domainChoPhep: [new URL(o.baseUrl).host] });
     await page.goto(o.baseUrl, { waitUntil: 'domcontentloaded' });
-    await v.dangNhap(page);
+    if (v.dangNhap) await v.dangNhap(page);
 
     const menu = menuTheoVai.get(v.ten) || [];
     for (const route of [...tapRoute].sort()) {
