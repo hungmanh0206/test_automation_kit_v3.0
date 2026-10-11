@@ -99,7 +99,7 @@ Các bước thực hiện:
    - Link Google Sheet.
 
 Quy tắc bắt buộc:
-- **Chụp mốc expected trước publish**: `npm run expected:snapshot`. Sau đó đổi `Kết quả mong đợi` phải khai lý do (`expected:check`).
+- **Qua cửa rồi mới xuất**: `npm run exit:gate -- --cua publish`, rồi xuất kèm `--for-publish` (nhánh đó đòi dấu vết cửa).
 - Nội dung case sửa ở **Markdown** rồi xuất lại và re-upload. KHÔNG sửa cấu trúc case
   (thêm/xoá cột, đổi tên sheet) trực tiếp trên Sheets rồi mong Phase 1 sau đọc lại đúng — QA có thể tự sửa
   GIÁ TRỊ (Result, ghi chú) trên Sheets, nhưng thay đổi CẤU TRÚC phải đi qua Phase 1 re-gen.

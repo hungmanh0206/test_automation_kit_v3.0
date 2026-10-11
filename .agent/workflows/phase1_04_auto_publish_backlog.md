@@ -35,7 +35,10 @@ Bước convert Markdown sang Excel trước khi publish giao `excel-convert` (�
    - Nếu prompt/user không ghi rõ `QA confirmation: APPROVED`, dừng chờ xác nhận, chưa ghi lên Sheet.
    - Không tự suy diễn approval từ việc Excel tồn tại.
 3. Đọc bản xuất Excel (sinh từ Markdown canonical):
-   - `<TASK_OUTPUT_DIR>/test-cases/*.xlsx` (output của `md_to_xlsx.js`, đã có dashboard + 1 sheet/nhóm chức năng).
+   - `<TASK_OUTPUT_DIR>/test-cases/*.xlsx` — xuất bằng
+     `node scripts/convert_excel/md_to_xlsx.js <md> <xlsx> --for-publish`. Nhánh `--for-publish` ĐÒI dấu
+     vết cửa `publish` còn hiệu lực, vì bước upload qua Drive MCP không có chỗ nào chèn kiểm cửa được:
+     điểm chặn chuyển từ hành động sang ARTIFACT. Lượt xuất để tự xem thì bỏ cờ đó.
 4. Tìm file Sheet đã publish trước đó (tránh tạo trùng):
    - Có `GOOGLE_SHEET_URL` trong `profiles/<TASK_KEY>/task.env` → `mcp__claude_ai_Google_Drive__search_files` xác nhận file còn tồn tại.
    - Chưa có → `search_files` theo tên chuẩn hoá từ `TASK_KEY` trong folder task trên Drive.

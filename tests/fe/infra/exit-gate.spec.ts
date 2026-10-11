@@ -245,6 +245,40 @@ test.describe('@infra không có đường NÉ cửa ra (§B.3)', () => {
     expect(src).toContain('`--dry-run` KHÔNG kiểm');
   });
 
+  test('`md_to_xlsx --for-publish` ĐÒI dấu vết cửa publish — chặn ở ARTIFACT', () => {
+    /*
+     * Publish là agent gọi Drive MCP trực tiếp, không qua script nào của kit, nên không chèn kiểm cửa
+     * vào chính bước publish được. Cách bịt: chuyển điểm chặn từ HÀNH ĐỘNG sang ARTIFACT — bản .xlsx
+     * đem publish chỉ sinh được sau khi qua cửa.
+     */
+    const src = fs.readFileSync(path.join(REPO, 'scripts/convert_excel/md_to_xlsx.js'), 'utf8');
+    expect(src).toContain('--for-publish');
+    expect(src).toContain('kiemDauVet(taskDir, "publish")');
+    expect(src, 'và phải nói rõ kẽ còn lại: upload một .xlsx cũ').toMatch(/upload một `?\.xlsx`? CŨ|upload một \.xlsx CŨ/);
+  });
+
+  test('lượt xuất THƯỜNG không cần qua cửa — gate không được cắt đường xem trước', () => {
+    /*
+     * Xuất .xlsx để tự xem là việc làm suốt Phase 1. Bắt mọi lượt xuất qua cửa thì người ta mất đường
+     * xem trước, và một gate làm mất đường xem trước là gate tự tạo động cơ để bị né.
+     */
+    const src = fs.readFileSync(path.join(REPO, 'scripts/convert_excel/md_to_xlsx.js'), 'utf8');
+    const i = src.indexOf('--for-publish');
+    expect(src.slice(i - 1200, i + 2000)).toMatch(/KHÔNG áp cho lượt xuất thường/);
+    expect(src).toMatch(/if \(args\.includes\("--for-publish"\)\)/);
+  });
+
+  test('kẽ còn lại được khai trong `_con_ho`, không bị xoá khi đã bịt một phần', () => {
+    /*
+     * Bịt được một lớp không có nghĩa là chỗ đó đã kín. Xoá dòng `_con_ho` sau khi thêm lớp chặn là
+     * cách để lần sau không ai biết kẽ nào vẫn còn.
+     */
+    const cfg = JSON.parse(fs.readFileSync(path.join(REPO, '.agent/config/exit_gates.json'), 'utf8'));
+    const ho = String(cfg._con_ho['publish qua Drive MCP']);
+    expect(ho).toContain('--for-publish');
+    expect(ho, 'kẽ upload bản cũ phải còn được khai').toContain('KẼ CÒN LẠI');
+  });
+
   test('mọi script ĐẨY RA NGOÀI đều đã có kiểm cửa, hoặc được khai là còn hở', () => {
     /*
      * Phép kiểm này là mẫu số của §B.3: nó liệt kê các script thật sự gọi ra ngoài rồi đòi mỗi cái

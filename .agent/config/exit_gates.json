@@ -43,6 +43,6 @@
     }
   },
   "_con_ho": {
-    "publish qua Drive MCP": "KHÔNG chặn được bằng code. Publish là agent gọi Google Drive MCP, không qua script nào của kit, nên không có chỗ nào chèn kiểm cửa. Hiện chặn bằng prompt cộng dấu vết `exit-gate-publish.json`; đó là lớp yếu hơn code. Xem mục Điều kiện DỪNG của §B.3."
+    "publish qua Drive MCP": "Bước publish KHÔNG chèn kiểm cửa được: nó là agent gọi Google Drive MCP, không qua script nào của kit. Đã chuyển điểm chặn từ HÀNH ĐỘNG sang ARTIFACT — `md_to_xlsx.js --for-publish` đòi dấu vết cửa `publish` còn hiệu lực, nên bản .xlsx đem publish chỉ sinh được sau khi qua cửa. KẼ CÒN LẠI: upload một .xlsx CŨ. Lớp này không đóng được kẽ đó; nó làm cho việc publish một bộ chưa qua cửa phải là hành động CỐ Ý (đi tìm file cũ), chứ không còn là chuyện xảy ra vì không ai nhớ chạy cửa."
   }
 }
