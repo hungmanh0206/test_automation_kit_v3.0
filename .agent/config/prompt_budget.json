@@ -48,5 +48,12 @@
   "_the_chay_hien_tai": "Đo 10/10/2026: run_phase1 8,6k · run_phase2 13,4k · re-run 5,4k · 02_gen_testcases 13,9k · 04_execute_fe 11,6k · 08_log_bug 8,1k · 05_execute_api 6,5k · core_rules 4,5k.",
   "_khong_noi_nguong": "Vượt ngưỡng thì CẮT NỘI DUNG, hoặc chuyển phần 'vì sao' sang `docs/rationale/`. KHÔNG nới số trong file này. Nới ngưỡng để cho xanh là đúng cái prompt gốc mục 0.3 cấm, và nó biến gate thành đồ trang trí.",
   "_moc_do_tu_dau": "Số đo trên WORKTREE SẠCH ở HEAD (`git worktree add --detach`), không đo trên cây làm việc. Bản ghi đầu (phase1 29763, phase2 30519, publish 8074, rerun 10753) đo trên cây làm việc khi `tok()` CÒN ĐẾM CẢ KÝ TỰ CRLF. Cùng một commit đo ra hai số lệch 175 token, vì `git worktree` trên Windows checkout ra CRLF còn vài file trong cây làm việc là LF. Một mốc như vậy chặn oan người checkout mới, và KHÔNG chặn người thực sự thêm chữ. Đã vá `tok()`: chuẩn hoá `\\r\\n` trước khi đếm, cùng cách `writing_lint.js` đã làm từ 28/09/2026.",
-  "_moc_ha_khi_nao": "HẠ mốc khi cắt thật, để khoá thành quả lại. Hạ 10/10/2026 sau khi rút `core_rules.md` ở v2.5.0 G4.3: phase1 29589→28074 · phase2 30519→29006 · publish 8074→6561 · rerun 10753→9240. Rút gọn đã chứng minh không mất luật bằng `npm run rule:parity -- --enforce` (35/35 luật, mọi con trỏ giải được)."
+  "_moc_ha_khi_nao": "HẠ mốc khi cắt thật, để khoá thành quả lại. Hạ 10/10/2026 sau khi rút `core_rules.md` ở v2.5.0 G4.3: phase1 29589→28074 · phase2 30519→29006 · publish 8074→6561 · rerun 10753→9240. Rút gọn đã chứng minh không mất luật bằng `npm run rule:parity -- --enforce` (35/35 luật, mọi con trỏ giải được).",
+  "tran_tom_tat_discover": {
+    "task": 2000,
+    "delta": 1000,
+    "system": 4000
+  },
+  "_tran_tom_tat_discover": "Trần token của BẢN TÓM TẮT mà `npm run discover` in ra — thứ DUY NHẤT agent đọc từ Bước 0 (v2.6.0 §T.3). Script tự rút gọn cho vừa trần, và cắt theo thứ tự ưu tiên: bảng màn cắt trước, còn vùng mù / bề mặt injection / câu hỏi thì KHÔNG BAO GIỜ cắt — đó là thứ duy nhất agent buộc phải hành động theo. Khai ở đây vì file này là NGUỒN DUY NHẤT của mọi ngưỡng token trong kit; đóng cứng trong code thì sớm muộn hai chỗ lệch nhau.",
+  "_tran_do_o_dau": "Kiểm bằng `tests/fe/infra/discovery-cli.spec.ts` trên fixture 120 màn (đúng `so_trang_toi_da` mặc định), KHÔNG chỉ trên fixture 7 màn — một trần chỉ đo trên dữ liệu nhỏ thì nó chưa được gác."
 }

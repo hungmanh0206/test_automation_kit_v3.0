@@ -12,6 +12,10 @@
       ],
       "co_dieu_kien": [
         {
+          "file": ".agent/workflows/phase1_000_system_discovery.md",
+          "khi": "Bước 0, CHỈ khi task chưa có `knowledge/system/discovery/<build>/system_map.json` cho build hiện tại. Có rồi thì đọc `summary.txt` của lượt trước, KHÔNG nạp lại file này."
+        },
+        {
           "file": "prompt_templates/phase1/02b_output_format.md",
           "khi": "Cuối lượt, lúc viết Summary Report và xuất Excel. KHÔNG nạp ở đầu lượt."
         },

@@ -4,6 +4,7 @@
   "_how": "Mỗi máy khai `applies`: danh sách nhánh BẮT BUỘC phải nhắc tới nó. Không áp dụng cho nhánh nào thì ghi vào `waived` KÈM lý do — miễn trừ phải viết ra, không được im lặng.",
   "branches": {
     "phase1": [
+      ".agent/workflows/phase1_000_system_discovery.md",
       "prompt_templates/run_phase1_template.md",
       "prompt_templates/phase1",
       ".agent/workflows/phase1_01_analyze_requirements.md",
@@ -34,6 +35,11 @@
     "manual-run": [
       "manual-run/run_manual_execution.md",
       "manual-run/reference.md"
+    ],
+    "discover": [
+      ".claude/commands/discover.md",
+      ".agent/workflows/phase1_000_system_discovery.md",
+      "scripts/qa/discover.js"
     ]
   },
   "machines": {

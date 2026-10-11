@@ -186,6 +186,63 @@ function gateScopeAnchor(taskDir) {
     .map((f) => path.join(reqDir, f)).find((p) => fs.existsSync(p));
   const inv = invPath ? parseInventory(readText(invPath)) : null;
 
+  /*
+   * ── MẪU SỐ PHẢI PHỦ MỌI THỨ QUAN SÁT ĐƯỢC (v2.6.0 §B2) ───────────────────────────────────────────
+   *
+   * ĐÂY LÀ TUYÊN BỐ CỐT LÕI CỦA v2.6.0. Trước Bước 0, danh mục phạm vi là thứ AGENT TỰ LIỆT KÊ từ tài
+   * liệu — nên màn nào tài liệu không nhắc thì không vào mẫu số, không ai test, và không gate nào biết.
+   * Mọi tỉ lệ coverage sau đó là % của một mẫu số do chính người tính nó đặt ra.
+   *
+   * Nay nếu task có `requirements/system_map.json` (copy từ lượt `discover`), mọi màn và endpoint QUAN
+   * SÁT ĐƯỢC phải xuất hiện trong danh mục. Bỏ ra thì phải có LÝ DO ghi ngay trên dòng đó.
+   *
+   * CÁCH KHỚP: route là chuỗi đặc trưng (`/C2/HoSoTruong`), nên khớp theo việc dòng danh mục CÓ CHỨA
+   * chuỗi route. Không dùng khớp mờ theo tên màn: tên màn trên UI và tên mục trong tài liệu hay khác
+   * nhau, và một phép khớp mờ sẽ báo "đã phủ" cho dòng không liên quan — tức tự tạo ra một mẫu số sai
+   * theo chiều ngược lại.
+   *
+   * HAI TẦNG: không có `system_map.json` thì KHÔNG gác được, và phải nói ra chứ không in ĐẠT.
+   */
+  const smPath = path.join(reqDir, 'system_map.json');
+  if (!fs.existsSync(smPath)) {
+    warnings.push('Chưa có `requirements/system_map.json` (copy từ `npm run discover`) ⇒ **CHƯA GÁC ĐƯỢC** việc mẫu số có phủ hết màn/API quan sát được. Danh mục hiện vẫn là thứ agent tự liệt kê từ tài liệu: màn nào tài liệu không nhắc thì không vào mẫu số, và không máy nào biết.');
+  } else if (inv && inv.hasTable) {
+    let sm = null;
+    try { sm = JSON.parse(readText(smPath)); } catch (e) { problems.push(`\`requirements/system_map.json\` không parse được: ${e.message}`); }
+    if (sm) {
+      const thanDong = inv.rows.map((r) => `${r.id} ${r.item} ${r.source}`);
+      const coLyDoBoRa = (route) => thanDong
+        .filter((d) => d.includes(route))
+        .some((d) => /ngo[àa]i ph[ạa]m vi|kh[ôo]ng test|lo[ạa]i tr[ừu]|n\/a/i.test(d));
+      const chuaPhu = [];
+      for (const s of (sm.screens || [])) {
+        const r = String(s.route || '');
+        if (!r) continue;
+        if (thanDong.some((d) => d.includes(r))) continue;
+        chuaPhu.push({ loai: 'màn', ten: r, title: s.title_observed || '' });
+      }
+      for (const a of (sm.apis || [])) {
+        const k = `${a.method} ${a.path_chuan}`;
+        if (thanDong.some((d) => d.includes(a.path_chuan))) continue;
+        chuaPhu.push({ loai: 'API', ten: k, title: '' });
+      }
+      if (chuaPhu.length) {
+        problems.push(`Mẫu số BỎ SÓT ${chuaPhu.length} thứ QUAN SÁT ĐƯỢC trên app mà danh mục không có dòng nào nhắc tới: ${chuaPhu.slice(0, 8).map((x) => `${x.loai} \`${x.ten}\``).join(' · ')}${chuaPhu.length > 8 ? ` … và ${chuaPhu.length - 8} thứ nữa` : ''}. Mỗi thứ bỏ sót là một vùng không ai test mà coverage vẫn báo đủ. Bổ sung dòng vào \`scope_inventory.md\`, hoặc nếu CỐ Ý loại thì ghi lý do trên chính dòng đó (chứa "ngoài phạm vi" / "không test" / "loại trừ").`);
+      } else {
+        const boRa = (sm.screens || []).map((s) => String(s.route || '')).filter((r) => r && coLyDoBoRa(r));
+        if (boRa.length) warnings.push(`${boRa.length} màn quan sát được bị loại khỏi phạm vi CÓ lý do: ${boRa.join(' · ')}. Lý do đó là một lời khai — người review nên đọc lại.`);
+      }
+      const cc = sm.crawl_completeness || {};
+      if (cc.canh_bao) {
+        /*
+         * Lượt bò chưa đầy đủ thì "mẫu số đã phủ hết thứ quan sát được" KHÔNG đồng nghĩa "đã phủ hết hệ
+         * thống". Không nói ra thì một lượt bò 40% sinh ra một mẫu số trông như đầy đủ.
+         */
+        warnings.push(`Mẫu số neo theo một lượt bò CHƯA đầy đủ: ${cc.canh_bao} ⇒ "đã phủ hết thứ quan sát được" KHÔNG đồng nghĩa "đã phủ hết hệ thống".`);
+      }
+    }
+  }
+
   if (denom == null && sumMd) {
     warnings.push('`phase1-summary.md` không có dòng "Tổng requirement in-scope" → không đọc được mẫu số coverage.');
   }

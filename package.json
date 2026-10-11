@@ -66,6 +66,7 @@
     "bug:claim:new": "node scripts/qa/bug_claim.js",
     "bug:claim:report": "node scripts/qa/bug_claim.js --report",
     "bug:claim:chot": "node scripts/qa/bug_claim.js --chot",
+    "discover": "node scripts/qa/discover.js",
     "dim:coverage": "node scripts/qa/dimension_coverage.js",
     "spec:extract": "node scripts/qa/spec_extract.js",
     "spec:gap": "node scripts/qa/spec_gap_report.js",

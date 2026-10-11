@@ -113,7 +113,8 @@ async function gomLink(page, origin) {
 async function boApp(browser, o) {
   const cfg = o.cfg || fw.napCfg();
   const gh = cfg.gioi_han_luot_bo;
-  const maxTrang = o.maxTrang || gh.so_trang_toi_da;
+  // `== null` chứ không `||`: `maxTrang: 0` là một yêu cầu hợp lệ (dùng để đo nhánh "bò được 0 màn").
+  const maxTrang = o.maxTrang == null ? gh.so_trang_toi_da : o.maxTrang;
   const doSau = o.doSau == null ? gh.do_sau_toi_da : o.doSau;
   const hanPhut = gh.thoi_gian_toi_da_phut || 20;
   /*
