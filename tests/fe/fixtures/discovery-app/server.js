@@ -360,10 +360,36 @@ function start() {
         + '<img id="captchaImage" alt="captcha" src="data:image/gif;base64,R0lGODlhAQABAAAAACw=">'
         + '</body></html>');
     }
+    /*
+     * `/trang-cham`: trang làm cho một lượt xử lý VƯỢT trần mỗi trang, để kiểm chính cái trần đó.
+     *
+     * Trang này trả `khoi=N` khối mở được. Bên test điều khiển độ chậm bằng `doTre`, vì `moCacKhoi` chờ
+     * `doTre` sau MỖI khối: `N × doTre` là thời gian xử lý, tất định, do `page.waitForTimeout` của
+     * Playwright đếm.
+     *
+     * HAI CÁCH LÀM CHẬM TRƯỚC ĐÓ ĐỀU SAI, và cả hai đều xanh khi chạy một mình:
+     *
+     *   1. `setInterval` 60ms, mỗi nhịp chiếm luồng 300ms, trong 4 giây. Khối chặn neo vào đồng hồ
+     *      tường TỪ LÚC TẢI TRANG, còn trần mỗi trang chỉ bấm giờ SAU `page.goto`.
+     *   2. Vẫn `setInterval` nhưng chặn KHÔNG giới hạn, để bỏ cái lệch đồng hồ ở trên.
+     *
+     * Cách 2 vẫn đỏ, và đo ra lý do: `screens=["/trang-cham"]`, tức trang XỬ LÝ XONG trong dưới 1 giây
+     * dù JS "đang bị chặn". Chromium HÃM `setInterval` ở trang đang ẩn, mà chạy 8 file spec song song
+     * thì trang nào cũng ẩn. Nhịp giãn ra, luồng rảnh phần lớn thời gian, `page.evaluate` chen vào được.
+     *
+     * Bài học ghi lại ở đây để không ai thử lại: TIMER TRONG TRANG KHÔNG PHẢI ĐÒN BẨY ĐO ĐƯỢC. Trình
+     * duyệt được phép hãm nó, và nó hãm đúng lúc chạy song song. Muốn một lượt xử lý chậm có kiểm soát
+     * thì chậm ở phía điều khiển, đừng chậm ở phía trang.
+     *
+     * Trang này KHÔNG nằm trong menu, nên chỉ tới được khi khai thẳng làm `baseUrl`.
+     */
     if (p === '/trang-cham') {
-      const ms = Number(q.get('ms') || 3000);
-      return html(CHROME(vaiTro, 'Trang cham', '<p>Trang nay chan luong JS mot luc.</p>' +
-        '<script>var dung=Date.now()+' + ms + ';setInterval(function(){if(Date.now()>dung)return;var h=Date.now()+300;while(Date.now()<h){}},60)<\/script>'));
+      const soKhoi = Math.max(1, Math.min(12, Number(q.get('khoi') || 3)));
+      let than = '<p>Trang nay co nhieu khoi mo ra duoc.</p>';
+      for (let i = 1; i <= soKhoi; i += 1) {
+        than += '<details><summary>Xem them muc ' + i + '</summary><p>Noi dung muc ' + i + '.</p></details>';
+      }
+      return html(CHROME(vaiTro, 'Trang cham', than));
     }
     /*
      * `/bao-cao-emis`: menu KHOÁ mục này (aria-disabled) nhưng server VẪN trả 200. Đây là lỗ thứ hai,

@@ -366,13 +366,23 @@ test.describe('@infra trần MỖI TRANG — trần tổng một mình không đ
    * ghi, bị chính tường lửa của ta abort, để lại trang ở trạng thái điều hướng dở.
    */
   test('một trang chặn luồng JS ⇒ bỏ qua trang đó, lượt bò ĐI TIẾP', async () => {
+    /*
+     * Làm chậm bằng `doTre` × số khối, KHÔNG bằng khối chặn JS trong trang. Đây là một lần sửa flaky
+     * của chính test này, và lý do đầy đủ nằm ở `/trang-cham` trong fixture: hai bản trước chặn luồng
+     * JS bằng `setInterval`, xanh khi chạy một mình và đỏ khi chạy cùng 8 file spec khác, vì Chromium
+     * hãm timer ở trang đang ẩn nên "đang bị chặn" mà luồng vẫn rảnh.
+     *
+     * 4 khối × 500ms là 2 giây xử lý, đo bằng `page.waitForTimeout` phía điều khiển, trên trần 1 giây.
+     */
     const cfg = fw.napCfg();
     cfg.gioi_han_luot_bo = { ...cfg.gioi_han_luot_bo, thoi_gian_moi_trang_giay: 1 };
     const r = await cr.boApp(br, {
-      baseUrl: `${srv.url}/trang-cham?ms=4000`, coCo: true, cfg, doTre: 0, keoSnapshot: false, doSau: 0,
+      baseUrl: `${srv.url}/trang-cham?khoi=4`, coCo: true, cfg, doTre: 500, keoSnapshot: false, doSau: 0,
     });
     const loi = r.crawl_completeness.chi_tiet_khong_toi_duoc.error;
-    expect(loi.length, 'trang chậm phải vào danh sách không tới được').toBeGreaterThan(0);
+    /* Thông điệp nêu lượt bò thấy GÌ: "0 > 0" một mình không nói được trang đó đã rơi vào đâu. */
+    const noiRa = `khong_toi_duoc=${JSON.stringify(r.crawl_completeness.chi_tiet_khong_toi_duoc)} · screens=${JSON.stringify(r.screens.map((s: { route: string }) => s.route))}`;
+    expect(loi.length, `trang chậm phải vào danh sách không tới được — ${noiRa}`).toBeGreaterThan(0);
     expect(String(loi[0].vi_sao)).toMatch(/quá 1s cho một trang/);
     expect(r.screens.length, 'và KHÔNG được tính là một màn đã bò').toBe(0);
   });

@@ -7,6 +7,70 @@
 > `.agent/**`, `tests/support/**` đều là **shared change** (xem `RULE_GLOBAL.md` §Shared Change Gate) —
 > ảnh hưởng mọi story đang chạy. Mỗi mục ghi **vấn đề → cách chữa**, không chỉ liệt kê tính năng.
 
+## v2.6.1 — 2026-10-11 — Trả lại một tính năng đã khai mà chưa cài
+
+**Vấn đề.** Mục `v2.6.0` ngay dưới đây có một bảng tên *"Mười điểm vượt kit QIG QA"*. Điểm số 6 ghi:
+
+> | 6 | không so được giữa các build | chế độ `delta` | trần token riêng 1k |
+
+Cột bằng chứng điền một **trần token**. Một con số trần không nói gì về việc tính năng có chạy hay
+không, và lần này nó không chạy: mã chỉ đặt `TRAN.delta = 1000` rồi thôi. Chạy `--mode delta` làm đúng y
+như `--mode task` — không đọc snapshot nào, không so gì cả.
+
+Rộng hơn: `mode` chỉ đổi hành vi ở **đúng một chỗ** (cảnh báo khi `task` thiếu `--pham-vi`). Nên "ba chế
+độ chạy" thực ra là **một chế độ với ba trần token**, và `--mode task` không hề bò "module của task cộng
+lân cận một bước" như §A1 hứa.
+
+Mục `v2.6.0` đã được tag, merge và push trước khi chuyện này lộ ra. Nó là đúng lớp lỗi mà cả v2.5.0 lẫn
+v2.6.0 đi sửa ở chỗ khác: **một con số nghe như bằng chứng mà không đo gì**.
+
+**Cách chữa.** Cài thật, không sửa tài liệu cho khớp mã.
+
+### `delta` so hai bản đồ
+
+`scripts/qa/discovery/delta.js` so **hình dạng**, không so dữ liệu:
+
+| So cái gì | Vì sao đúng thứ này |
+|---|---|
+| màn thêm, màn mất | thay đổi lớn nhất, và `scope_anchor` phải biết ngay |
+| field thêm, mất, **đổi ràng buộc** | `maxlength` từ 120 xuống 60 là một case `[BVA]` phải chạy lại, mà nhìn màn thì không thấy gì khác |
+| component thêm, mất | lưới mọc thêm phân trang là một lớp case mới |
+| API thêm, mất | endpoint mới là bề mặt chưa ai test |
+
+**KHÔNG so giá trị dữ liệu.** Giá trị trên UAT đổi mỗi ngày; so nó thì lượt nào cũng "có khác biệt",
+người đọc thôi đọc mục đó, và một thay đổi thật chìm theo.
+
+Hai điều kiện để một snapshot được đem ra so: **cùng host** và **cùng phạm vi**. Đặt một lượt bò cả app
+cạnh một lượt bò một module thì mọi màn ngoài module hiện ra như đã biến mất, và bản báo cáo ấy không
+nói được gì.
+
+Và một phân biệt đáng giá: **"chưa có gì để so" KHÁC "0 khác biệt"**. Hai câu cho cùng con số 0 mà nghĩa
+ngược nhau. Gộp chúng là cách chắc chắn nhất để một build đổi hoàn toàn đi qua êm ru.
+
+### Ba chế độ nay thật sự khác nhau
+
+`--mode task` có `--pham-vi` thì bò trong phạm vi **cộng lân cận một bước**. Màn ngoài phạm vi mà module
+của task link tới là chỗ dữ liệu đi ra hoặc đi vào, tức đúng nơi lỗi xuyên module sống. Trang lân cận
+được thăm rồi **dừng**, không gom link tiếp — thiếu chặn đó thì "lân cận một bước" biến thành bò cả app
+sau vài vòng, và cái tên `task` lại hứa một thứ mã không giữ.
+
+### §B10 — đề xuất chạy lại, lấy từ delta
+
+Điểm nối thứ 9 của §B. Màn mới và field đổi ràng buộc ra mức **cao**; component mới ra **trung bình**.
+
+**CHỈ đề xuất, không tự chạy** — cùng luật với `reliability --promote`. Máy biết *cái gì* đổi nhưng không
+biết thay đổi đó có đáng chạy lại hay không: một đổi nhãn hiển thị và một đổi `maxlength` trông giống
+nhau trong diff mà hệ quả khác hẳn.
+
+### Bảng 10 điểm của v2.6.0, đọc lại cho đúng
+
+Điểm 6 của mục dưới **chỉ đúng từ bản này trở đi**. Cột bằng chứng của nó nay là: 16 test, gồm ca field
+đổi `maxlength`, ca khác phạm vi thì không so, và ca phân biệt "chưa có gì để so" với "0 khác biệt".
+
+Chín điểm còn lại của v2.6.0 không bị ảnh hưởng — chúng đều có test và số đo thật từ lúc đó.
+
+---
+
 ## v2.6.0 — 2026-10-11 — Bước 0: lấy mẫu số từ thứ QUAN SÁT ĐƯỢC, không chỉ từ tài liệu
 
 **Vấn đề.** Trước bản này kit chỉ khám phá ở mức một task hoặc một màn, và luôn đi từ tài liệu. Hệ quả đo
@@ -26,7 +90,7 @@ không ai test, và không gate nào biết.
 | 3 | API chỉ ghi thụ động | danh mục API, đối chiếu hai chiều với OpenAPI | 18 test, gồm ca endpoint ghi bị tường lửa chặn |
 | 4 | chỉ so tài liệu dạng văn bản | gộp UI, network, tài liệu và `knowledge/` | bản đồ bốn ô, 9 vùng trên fixture |
 | 5 | không có danh mục loại field | dấu vân tay đọc từ thuộc tính DOM | 18/18 loại field trên một màn form |
-| 6 | không so được giữa các build | chế độ `delta` | trần token riêng 1k |
+| 6 | không so được giữa các build | chế độ `delta` | ⚠ **KHAI QUÁ Ở BẢN NÀY** — lúc đó chỉ có trần token, chưa có so sánh nào. Cài thật ở v2.6.1 |
 | 7 | không nối vào gate nào | 8/11 điểm nối đã làm | `scope_anchor` · `dim:coverage` (3 tín hiệu) · `risk_score` · `preflight` |
 | 8 | an toàn dựa vào lời dặn | tường lửa ghi ở tầng network | 19 test, 3 đường ghi, 0 request lọt |
 | 9 | không biết bò được bao nhiêu | độ đầy đủ kèm 5 nhóm lý do | mẫu số và tử số CÙNG đơn vị route |

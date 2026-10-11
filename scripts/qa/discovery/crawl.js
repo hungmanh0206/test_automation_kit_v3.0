@@ -255,7 +255,7 @@ async function boApp(browser, o) {
    */
   const apiRec = o.apiRec || null;
 
-  const hangDoi = [{ url: o.baseUrl, sau: 0 }];
+  const hangDoi = [{ url: o.baseUrl, sau: 0 }];   // mục có `lanCan: true` là trang NGOÀI phạm vi, thăm rồi dừng
   const daThay = new Set([o.baseUrl]);
   const daThamDanhTinh = new Set();
   const routeDaTham = new Set();
@@ -269,7 +269,7 @@ async function boApp(browser, o) {
     if (screens.length >= maxTrang) { khongToiDuoc.budget.push(...hangDoi.map((h) => h.url)); break; }
     if ((Date.now() - batDau) / 60000 > hanPhut) { khongToiDuoc.budget.push(...hangDoi.map((h) => h.url)); break; }
 
-    const { url, sau } = hangDoi.shift();
+    const { url, sau, lanCan: laLanCan } = hangDoi.shift();
     if (apiRec) apiRec.datRoute(chuanHoaRoute(url));
     let resp = null;
     try {
@@ -344,7 +344,7 @@ async function boApp(browser, o) {
         await page.screenshot({ path: duong, fullPage: true, mask: await oCanChe(page), maskColor: '#111' });
         anh = path.posix.join('screens', ten);
       }
-      screens.push({ ...dvt, _dt: dt, url_mau: url, do_sau: sau, khoi_da_mo: moDuoc, evidence: anh, so_ban_ghi_da_xem: 1 });
+      screens.push({ ...dvt, _dt: dt, url_mau: url, do_sau: sau, lan_can: laLanCan === true, khoi_da_mo: moDuoc, evidence: anh, so_ban_ghi_da_xem: 1 });
     } else {
       /*
        * Màn trùng: KHÔNG thêm dòng mới. Ghi `so_ban_ghi_da_xem` để biết màn chi tiết này đã mở trên mấy
@@ -367,7 +367,24 @@ async function boApp(browser, o) {
     }
     for (const l of lk.giu) {
       if (daThay.has(l)) continue;
-      if (o.phamVi && !o.phamVi.test(new URL(l).pathname)) continue;
+      /*
+       * LÂN CẬN MỘT BƯỚC. §A1 hứa `--mode task` bò "module của task CỘNG lân cận 1 bước", nhưng bản
+       * v2.6.0 lọc cứng theo `phamVi` nên lân cận không bao giờ vào hàng đợi — ba chế độ chạy giống hệt
+       * nhau và chỉ khác trần token. Đó là một lời hứa trong tên gọi mà mã không giữ.
+       *
+       * Lân cận có giá trị thật: màn ngoài phạm vi mà module của task LINK TỚI là chỗ dữ liệu đi ra hoặc
+       * đi vào, tức đúng nơi lỗi xuyên module sống. Nhưng nó KHÔNG được nở ra: trang lân cận được thăm
+       * rồi dừng, không gom link tiếp. Thiếu chặn đó thì "lân cận 1 bước" biến thành bò cả app sau vài
+       * vòng.
+       */
+      const trongPhamVi = !o.phamVi || o.phamVi.test(new URL(l).pathname);
+      if (!trongPhamVi) {
+        if (!o.lanCan || laLanCan) continue;          // không bật lân cận, hoặc đang Ở một trang lân cận
+        daThay.add(l);
+        routePhatHien.add(chuanHoaRoute(l));
+        hangDoi.push({ url: l, sau: sau + 1, lanCan: true });
+        continue;
+      }
       daThay.add(l);
       routePhatHien.add(chuanHoaRoute(l));
       hangDoi.push({ url: l, sau: sau + 1 });
