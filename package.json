@@ -156,7 +156,9 @@
     "typecheck:task:enforce": "node scripts/qa/typecheck_task.js --enforce",
     "canonical:drift": "node scripts/qa/canonical_drift.js",
     "canonical:drift:enforce": "node scripts/qa/canonical_drift.js --enforce",
-    "gate:audit": "node scripts/qa/gate_audit.js"
+    "gate:audit": "node scripts/qa/gate_audit.js",
+    "expected:check": "node scripts/qa/expected_ledger.js",
+    "expected:snapshot": "node scripts/qa/expected_ledger.js --snapshot"
   },
   "dependencies": {
     "axe-core": "^4.12.1",

@@ -1,5 +1,5 @@
 {
-  "_trang_thai": "NHÁP — CHỜ NGƯỜI DUYỆT. `gate_engine` chỉ được đọc file này sau khi trạng thái đổi thành \"đã duyệt\".",
+  "_trang_thai": "ĐÃ DUYỆT — chủ repo duyệt cả 12 dòng T0 ngày 11/10/2026, gồm `canonical:drift`. `gate_engine` được đọc file này.",
   "_vi_sao_khai_tay_chu_khong_suy": "Đã thử suy tầng bằng từ khoá, HAI LẦN, và cả hai đều không dùng được. Suy từ MỘT DÒNG mô tả: 66/98 máy ra 'không dấu hiệu nào khớp', và `prompt:budget` bị xếp T0 'lộ secret' vì chữ *token* trong mô tả nó nghĩa là token của prompt. Suy từ CẢ KHỐI HEADER: T0 phình lên 40 máy, với `ci:scope` và `auto:review` gán 'lộ secret' và `decisions:check` gán 'lộ PII' — header dài 60 dòng nhắc những chữ đó TRONG KHI GIẢI THÍCH, nên khớp ở đâu cũng khớp. Một bảng phân tầng sai 40% sẽ được dùng để quyết định hạ tầng một gate, tức nó biến thành một lỗ thật trong bộ kiểm. Nên T0 là danh sách KHAI TAY, và từ khoá chỉ còn là cột gợi ý trong `gate:audit`.",
   "_khong_duoc_ghi_de": "Khối `T0` dưới đây là NGƯỜI viết. `gate:audit --write-tiers` phải TỪ CHỐI ghi đè file này; nó chỉ được dựng khung khi file chưa tồn tại. Lý do cụ thể: lượt đầu của cờ đó đã ghi đè và xoá sạch khối T0, tức một cờ tiện tay xoá mất nguồn sự thật do người viết — không có gì báo, và nếu không ai kiểm lại thì bảng phân tầng mất cả 12 dòng T0.",
   "_luat": {
@@ -76,16 +76,22 @@
       "vi_sao": "Chặn thiếu TASK_KEY, thiếu PROJECT_OUTPUT_DIR, config hỏng, testcase canonical chưa có — TRƯỚC khi workflow chạy. Chạy trên nền sai thì mọi thứ sau đó vô nghĩa, nên đây là chỗ phải chặn ngay chứ không phải ở cửa ra.",
       "do_tin": "cao"
     },
+    "expected:check": {
+      "non_negotiable": 6,
+      "vi_sao": "Chặn \"đổi `Kết quả mong đợi` để case xanh\" — cách gian lận RẺ NHẤT trong cả kit: một ô, không cần sửa code, case đỏ thành xanh. So với mốc đã chụp (không dùng git diff được vì testcase nằm trong `outputs/**` đã gitignore). Luật không cấm đổi: đổi vì spec đổi là bình thường. Thứ bị chặn là đổi mà KHÔNG AI BIẾT, nên hợp đồng là khai một dòng lý do có nghĩa.",
+      "do_tin": "cao",
+      "_duong_ne": "Sửa expected rồi chụp lại mốc thì máy không ngăn được — mốc là file trong `outputs/`, người chạy có toàn quyền. Máy nói rõ chuyện đó ở cả lúc chụp và lúc báo lỗi, nhưng đây là giới hạn thật, không phải chỗ đã kín."
+    },
     "canonical:drift": {
       "non_negotiable": 3,
       "vi_sao": "Phase 2 đọc Markdown canonical cho rẻ token. Markdown đã trôi mà vẫn đọc thì lượt đó chạy bộ CŨ, và mọi verdict của nó nói về một bộ case không còn tồn tại.",
-      "do_tin": "thap",
-      "_can_nguoi_chot": "Máy này mới có từ v2.7.0 và đường chặn của nó hẹp (chỉ chặn khi bản xuất đi TRƯỚC Markdown). Xếp T0 theo luật \"phân vân thì xếp tầng cao hơn\", nhưng T1 cũng là lựa chọn hợp lý vì nó chỉ chặn ở cửa trước execute."
+      "do_tin": "cao",
+      "_nguoi_chot": "Chủ repo duyệt T0 ngày 11/10/2026, sau khi được nêu rõ T1 cũng là lựa chọn hợp lý (đường chặn của nó hẹp: chỉ chặn khi bản xuất đi TRƯỚC Markdown)."
     }
   },
   "_non_negotiable_con_ho": {
     "_vi_sao_phai_ghi": "§B.4 chỉ đòi mỗi non-negotiable có ÍT NHẤT MỘT gate T0. Đạt điều kiện đó không có nghĩa là luật đã kín. Chỗ còn hở phải ghi ra, nếu không thì bảng \"6/6 non-negotiable đều có gate\" sẽ được đọc thành \"6/6 đã kín\".",
-    "§6 đổi expected để pass": "KHÔNG CÓ MÁY. Không gì so expected với bản trước, nên sửa expected rồi chạy lại thì không ai biết. Muốn gác thì cần một gate dựa trên git diff của cột `Kết quả mong đợi`, và nó phải phân biệt được \"sửa vì spec đổi\" với \"sửa cho case xanh\" — tức cần một lý do khai kèm, không chỉ cần phát hiện thay đổi.",
+    "§6 đổi expected để pass": "ĐÃ BỊT ở v2.7.0 bằng `expected:check` (T0). Ghi lại lý do chọn cách làm: `git diff` KHÔNG dùng được vì testcase nằm trong `outputs/**` đã gitignore, nên máy chụp mốc băm rồi so — cùng khuôn `result_ledger`. Và nó đòi KHAI LÝ DO chứ không cấm đổi, vì cấm đổi thì người ta tắt gate, và tắt gate thì mất luôn phần gác đúng.",
     "§6 hardcode data task-specific vào template chung": "GÁC MỘT PHẦN, và ở sai chỗ. `package:kit` cảnh báo khi gói phát hành mang tên bảng hoặc host của dự án, nhưng đó là cửa phát hành — lúc đang sửa template thì không gì báo.",
     "§2 DB read-only": "Gác bằng `uatDbClient.ts` (chỉ SELECT) và `db_verify_preflight`, nhưng cả hai nằm ở tầng thư viện, không phải một npm script để xếp tầng. `ci:scope` và `discover` phủ phần \"không tự chạm UAT\" và \"không ghi lên UAT\"."
   },

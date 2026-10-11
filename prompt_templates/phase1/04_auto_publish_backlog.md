@@ -11,7 +11,7 @@ Dùng prompt này như một step riêng trong phạm vi Phase 1, chỉ sau khi 
 > **Công cụ lưu testcase là Google Sheet**, thay cho app Backlog Marketplace vốn không tương thích Backlog.
 >
 > Khác biệt lớn nhất so với công cụ cũ: **không có folder, tag hay custom-field riêng**. Sheet CHÍNH LÀ file
-> bản xuất Excel, gồm dashboard và 1 sheet cho mỗi nhóm chức năng, xem `scripts/convert_excel/md_to_xlsx.js`.
+> bản xuất Excel, gồm dashboard và 1 sheet mỗi nhóm chức năng, xem `scripts/convert_excel/md_to_xlsx.js`.
 > Nên "publish" chỉ là UPLOAD FILE, không phải map từng field sang một schema khác.
 
 ```text
@@ -99,11 +99,11 @@ Các bước thực hiện:
    - Link Google Sheet.
 
 Quy tắc bắt buộc:
-- Nội dung case sửa ở **Markdown**, xuất lại `.xlsx` rồi re-upload. KHÔNG sửa cấu trúc case
+- **Chụp mốc expected trước publish**: `npm run expected:snapshot`. Sau đó đổi `Kết quả mong đợi` phải khai lý do (`expected:check`).
+- Nội dung case sửa ở **Markdown** rồi xuất lại và re-upload. KHÔNG sửa cấu trúc case
   (thêm/xoá cột, đổi tên sheet) trực tiếp trên Sheets rồi mong Phase 1 sau đọc lại đúng — QA có thể tự sửa
   GIÁ TRỊ (Result, ghi chú) trên Sheets, nhưng thay đổi CẤU TRÚC phải đi qua Phase 1 re-gen.
-- Phase 2 execute đọc `test-cases/*.md`; tải Sheet về `from-sheet/*.xlsx` khi `canonical:drift` báo trôi, trước khi
-  chạy — không có khái niệm mirror cũ/mới như công cụ cũ (bước verify riêng), vì luôn tải lại từ đầu. Đồng bộ
+- Phase 2 execute đọc `test-cases/*.md`; tải Sheet về khi `canonical:drift` báo trôi. Đồng bộ
   kết quả execute NGƯỢC lại Sheet dùng `node scripts/convert_excel/merge_execution_status.js` (xem
   `prompt_templates/phase2/04_execute_fe_playwright.md`) rồi `update_file` đè lên Drive.
 - Không publish thật khi QA chưa xác nhận `APPROVED`.

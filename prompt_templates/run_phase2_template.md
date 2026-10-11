@@ -30,6 +30,7 @@ Luôn truyền `TASK_ENV=profiles/<TASK_KEY>/task.env`.
 | Khi nào | Lệnh | Nó chặn/sinh ra gì |
 |---|---|---|
 | **Bước 0 — trước MỌI thứ** | `node scripts/qa/preflight_gate.js --mode phase2 --task <TASK_KEY>` | **G1** CHẶN khi thiếu input/config hỏng/testcase canonical chưa có. Chạy trước để không execute trên nền sai |
+| **Bước 0 — trước khi đọc testcase** | `npm run expected:check` | **T0 §6** CHẶN khi cột `Kết quả mong đợi` đổi so với mốc chụp lúc chốt bộ case mà KHÔNG khai lý do. Execute trên một bộ có expected vừa bị sửa lặng lẽ thì mọi verdict của lượt đó nói về một kỳ vọng khác với bộ đã duyệt |
 | **Bước 0 — trước khi đọc testcase** | `npm run canonical:drift:enforce` | CHẶN khi bản xuất `.xlsx` đã đi TRƯỚC Markdown canonical (QA sửa tay trên Sheet, hoặc có case chỉ tồn tại ở bản xuất). Phase 2 đọc `*.md` cho rẻ token, nên Markdown trôi nghĩa là lượt này chạy bộ CŨ. Hướng ngược lại (Markdown mới hơn, chưa xuất lại) chỉ cảnh báo |
 | Sau khi có kết quả execute | `npm run unit:stamp` | Mọi verdict ĐÃ CHẠY phải khai ĐƠN VỊ đã đo. Một task trải trên nhiều đơn vị thì kỳ vọng của đơn vị này không chấm được case của đơn vị khác |
 | Sau khi có kết quả execute | `npm run gate:output` | **G2** CHẶN output sai chuẩn: FAIL thiếu tầng lỗi, oracle rỗng/tautology, evidence không phải ảnh/video, kết luận mapping ở mức "có dữ liệu" |
