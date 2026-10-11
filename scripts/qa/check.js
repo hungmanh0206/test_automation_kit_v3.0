@@ -247,6 +247,68 @@ function chaySpawn(phase, taskKey) {
   return ra;
 }
 
+/* ── `--fix`: TỰ SỬA ĐỊNH DẠNG (§A4) ────────────────────────────────────────────────────────────────
+ *
+ * Chạy TRƯỚC khi kiểm, vì sửa xong thì phần vi phạm định dạng không còn để báo nữa — đó là cả mục đích.
+ *
+ * Mỗi lượt sửa ghi DIFF vào `reports/autofix.log`, không chỉ đếm số dòng. Một máy tự sửa testcase mà
+ * không để lại dấu vết từng ô là một máy không ai rà lại được, và thứ nó chạm là bộ case quyết định
+ * đúng/sai của cả task.
+ *
+ * `--dry-run` xem trước, không ghi gì. Có nó thì người ta dám chạy `--fix`; không có nó thì họ sẽ không
+ * chạy, và luật này thành chữ chết.
+ */
+function chayFix(taskOutputDir, { dryRun = false } = {}) {
+  /* eslint-disable-next-line global-require */
+  const autofix = require(path.join(__dirname, 'autofix.js'));
+  const tcDir = path.join(taskOutputDir, 'test-cases');
+  if (!fs.existsSync(tcDir)) return { doi: [], file: 0 };
+  const files = fs.readdirSync(tcDir).filter((f) => f.endsWith('.md') && !f.startsWith('~$'));
+  const moiDoi = [];
+  let soFileDoi = 0;
+  for (const f of files) {
+    const duong = path.join(tcDir, f);
+    const cu = fs.readFileSync(duong, 'utf8');
+    const kq = autofix.suaVanBan(cu);
+    if (!kq.doi.length) continue;
+    soFileDoi += 1;
+    for (const d of kq.doi) moiDoi.push({ ...d, file: f });
+    if (!dryRun) fs.writeFileSync(duong, kq.txt, 'utf8');
+  }
+  if (moiDoi.length && !dryRun) {
+    const log = path.join(taskOutputDir, 'reports', 'autofix.log');
+    fs.mkdirSync(path.dirname(log), { recursive: true });
+    const khoi = [
+      `=== ${new Date().toISOString()} · ${moiDoi.length} ô sửa ở ${soFileDoi} file`,
+      ...moiDoi.map((d) => [
+        `  ${d.file}:${d.dong} · ${d.tcId} · ${d.ma} · cột "${d.cot}"`,
+        `    - ${d.cu}`,
+        `    + ${d.moi}`,
+      ].join('\n')),
+      '',
+    ].join('\n');
+    fs.appendFileSync(log, `${khoi}\n`, 'utf8');
+  }
+  return { doi: moiDoi, file: soFileDoi, dryRun };
+}
+
+function inFix(kq) {
+  if (!kq.doi.length) {
+    console.log('[fix] không có gì để sửa — mọi ô đã đúng định dạng.');
+    return;
+  }
+  const theoMa = {};
+  for (const d of kq.doi) theoMa[d.ma] = (theoMa[d.ma] || 0) + 1;
+  console.log(`[fix]${kq.dryRun ? ' (DRY-RUN, không ghi gì)' : ''} ${kq.doi.length} ô ở ${kq.file} file:`);
+  for (const [ma, n] of Object.entries(theoMa)) console.log(`      ${n}× ${ma}`);
+  for (const d of kq.doi.slice(0, 6)) {
+    console.log(`      ${d.tcId} · ${d.ma} · "${String(d.cu).slice(0, 48)}" → "${String(d.moi).slice(0, 48)}"`);
+  }
+  if (kq.doi.length > 6) console.log(`      … (+${kq.doi.length - 6})`);
+  if (!kq.dryRun) console.log('      diff đầy đủ: `reports/autofix.log`');
+  console.log('      KHÔNG chạm: Kết quả mong đợi (trừ tiền tố số) · Dữ liệu Test · Loại case · Tiền điều kiện.');
+}
+
 function main() {
   const maGt = val('explain');
   if (maGt) { giaiThich(maGt); return; }
@@ -268,6 +330,14 @@ function main() {
     console.log('        Không mặc định Phase 1: làm thế với một task đã execute là bỏ qua toàn bộ gate về');
     console.log('        evidence và verdict, mà đó đúng là nhóm T0. Sinh case hoặc execute rồi chạy lại.');
     process.exit(2);
+  }
+
+  if (process.argv.includes('--fix') || process.argv.includes('--dry-run')) {
+    const kq = chayFix(taskOutputDir, { dryRun: process.argv.includes('--dry-run') });
+    inFix(kq);
+    /* `--dry-run` chỉ xem trước rồi dừng; `--fix` thì chạy tiếp để báo phần CÒN LẠI sau khi sửa. */
+    if (process.argv.includes('--dry-run')) return;
+    console.log('');
   }
 
   const t0 = Date.now();
@@ -346,4 +416,4 @@ function main() {
 
 if (require.main === module) main();
 
-module.exports = { nhanPhase, gateTrongTienTrinh, chaySpawn, PHAI_SPAWN, giaiThich };
+module.exports = { nhanPhase, gateTrongTienTrinh, chaySpawn, PHAI_SPAWN, giaiThich, chayFix };
