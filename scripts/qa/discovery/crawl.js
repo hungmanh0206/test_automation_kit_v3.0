@@ -78,15 +78,36 @@ async function moCacKhoi(page, bienBan, cfg, doTre) {
    * CHỈ bấm thứ để MỞ RA. `details > summary`, `[aria-expanded=false]`, `[role=tab]` — ba thứ này không
    * gửi gì đi. Mọi nhãn vẫn qua `duocBam()` trước, vì một app có thể đặt `role=tab` lên một nút Lưu.
    */
+  /*
+   * CHI PHÍ PHẢI BỊ CHẶN TRÊN, và bản đầu không chặn. Đo được: MỘT lượt CLI trên fixture 7 màn mất **98
+   * giây** dù đã đặt độ trễ 0 — vượt timeout 90s của test. Nguyên nhân không phải mạng hay tranh chấp
+   * worker (tôi đoán nhầm cả hai), mà là chính vòng lặp này: mỗi lần bấm làm DOM đổi, nên những phần tử
+   * sau đã biến mất, và mỗi phần tử biến mất vẫn ngốn trọn `innerText` 800ms cộng `click` 1200ms trước
+   * khi ném. 7 màn × 3 selector × 12 phần tử × 2s là hàng trăm giây chờ thuần tuý.
+   *
+   * Ba chỗ siết, không đổi hành vi:
+   *   · timeout ngắn lại (250ms / 400ms) — phần tử CÓ THẬT thì không cần tới 800ms;
+   *   · dừng một selector sau 2 lần hỏng LIÊN TIẾP: DOM đã đổi thì những phần tử còn lại cũng hỏng theo;
+   *   · chốt tổng thời gian cho cả hàm, vì ba selector cộng lại vẫn có thể dài.
+   */
+  const batDauMo = Date.now();
+  const TRAN_MO_MS = 8000;
   for (const sel of ['details:not([open]) > summary', '[aria-expanded="false"]', '[role="tab"]']) {
+    if (Date.now() - batDauMo > TRAN_MO_MS) break;
     const n = await page.locator(sel).count();
+    let hongLienTiep = 0;
     for (let i = 0; i < Math.min(n, 12); i += 1) {
+      if (hongLienTiep >= 2 || Date.now() - batDauMo > TRAN_MO_MS) break;
       const el = page.locator(sel).nth(i);
       let nhan = '';
-      try { nhan = (await el.innerText({ timeout: 800 })) || (await el.getAttribute('aria-label')) || ''; } catch (e) { continue; }
+      try { nhan = (await el.innerText({ timeout: 250 })) || (await el.getAttribute('aria-label')) || ''; } catch (e) { hongLienTiep += 1; continue; }
       if (!bienBan.duocBam(nhan)) continue;
       bienBan.datNutDangBam(nhan);
-      try { await el.click({ timeout: 1200, noWaitAfter: true }); moDuoc.push(nhan.trim()); } catch (e) { /* phần tử biến mất sau lượt bấm trước — bỏ qua, không chặn lượt bò */ }
+      try {
+        await el.click({ timeout: 400, noWaitAfter: true });
+        moDuoc.push(nhan.trim());
+        hongLienTiep = 0;
+      } catch (e) { hongLienTiep += 1; }
       if (doTre > 0) await page.waitForTimeout(doTre);
     }
   }
@@ -288,10 +309,22 @@ async function boApp(browser, o) {
       const dvt = await fp.docDauVanTay(page, { route, keoSnapshot: o.keoSnapshot !== false });
       return { moDuoc, route, dvt };
     })();
+    /*
+     * PHẢI HUỶ TIMER. Bản đầu viết `Promise.race([xuLy, new Promise(res => setTimeout(res, tran))])` và
+     * KHÔNG clear — timer vẫn treo sau khi trang xong, và Node không thoát khi còn timer đang chờ. Hậu
+     * quả đo được: lệnh `discover` mất **90,7 giây cho MỘT trang** và 95,8s cho bảy trang, tức một chi
+     * phí CỐ ĐỊNH bằng đúng trần 90s, không phụ thuộc số trang.
+     *
+     * Nó ngụy trang rất khéo: lệnh vẫn exit 0, kết quả vẫn đúng, chỉ là chậm. Tôi đã đoán sai hai lần
+     * (tranh chấp worker, rồi vòng lặp mở khối) trước khi đo từng pha và thấy chi phí không đổi theo số
+     * trang — chính con số "không đổi" đó mới chỉ ra đây là timer, không phải việc làm thật.
+     */
+    let dongHo = null;
     const kq = await Promise.race([
       xuLyTrang,
-      new Promise((res) => { setTimeout(() => res(hetGio), tranTrang); }),
+      new Promise((res) => { dongHo = setTimeout(() => res(hetGio), tranTrang); }),
     ]).catch((e) => ({ _loi: String(e.message).slice(0, 120) }));
+    if (dongHo) clearTimeout(dongHo);
     if (kq === hetGio) {
       khongToiDuoc.error.push({ url, vi_sao: `quá ${tranTrang / 1000}s cho một trang — bỏ qua, đi tiếp` });
       continue;
@@ -361,6 +394,13 @@ async function boApp(browser, o) {
   const soToiDuoc = routeDaTham.size;
   return {
     target: { host: kt.host, is_nonprod_confirmed: true },
+    /*
+     * PHẠM VI phải đi theo kết quả. `scope_anchor` chỉ được hỏi về những route NẰM TRONG phạm vi của
+     * task; không biết phạm vi thì nó không gác được gì có nghĩa. Đo trên UAT: lượt `--mode task` KHÔNG
+     * truyền phạm vi đã bò cả app (40 màn, phần lớn là thời khoá biểu và phân hiệu) trong khi task là
+     * "Quản lý học sinh" — và gate sẽ báo 39/40 "bỏ sót" cho những màn vốn ngoài phạm vi.
+     */
+    pham_vi: o.phamVi ? String(o.phamVi.source) : null,
     screens,
     crawl_completeness: {
       route_phat_hien: soPhatHien,

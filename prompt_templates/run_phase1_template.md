@@ -1,7 +1,7 @@
 # Prompt chạy Phase 1 - Sinh testcase
 
-> Chạy: `Đọc file này và chạy với TASK_KEY=<TASK_KEY>`. Rule non-negotiables ở `CLAUDE.md`, đã auto-load. Digest ở `.agent/rules/core_rules.md`.
-> Chỉ mở `RULE_GLOBAL.md` **ở đúng mục cần**, vì mỗi gạch đầu dòng của digest đã ghi sẵn `§`. Đừng nạp cả file.
+> Chạy: `Đọc file này và chạy với TASK_KEY=<TASK_KEY>`. Non-negotiables ở `CLAUDE.md` (auto-load), digest ở
+> `.agent/rules/core_rules.md`. Mở `RULE_GLOBAL.md` **đúng mục `§` digest chỉ ra**, đừng nạp cả file.
 
 Dùng prompt này để collect context và sinh hoặc cập nhật testcase. Đây là template dùng chung, phải thay các placeholder trước khi chạy. Không execute automation trong Phase 1.
 
@@ -31,7 +31,8 @@ Lệnh chỉ nằm ở `.agent/workflows/` thì không ai chạy. Luôn truyền
 | Khi nào | Lệnh | Nó chặn/sinh ra gì |
 |---|---|---|
 | **Ngay sau khi kéo tài liệu về, TRƯỚC khi đọc** | `npm run docs:budget` (thêm `--contract` nếu có file >25k) | Đo từng tài liệu → đọc trực tiếp / chỉ mục cần / **giao subagent trích**. Bắt luôn 2 bẫy đo được thật: tài liệu có **nhiều bản** (đọc bản dư = tốn ~670k token vô ích) và **bản cũ nhỏ hơn hẳn bản mới = bản THIẾU nội dung** (đọc nó là đọc thiếu spec) |
-| **Đầu phase, TRƯỚC khi sinh case** | `npm run scope:anchor:init` → điền `requirements/scope_inventory.md` | **Neo MẪU SỐ trước, sinh case sau.** Mỗi mục phạm vi kèm nguồn (file#anchor). Không có danh mục thì mọi con số coverage về sau là % của một mẫu số do chính agent đặt ra |
+| **Bước 0** | `npm run discover -- --pham-vi <regex>` | Mẫu số từ thứ **quan sát được**. Chạm UAT: xác nhận trước. Xem workflow Bước 0 |
+| **Đầu phase** | `npm run scope:anchor:init` → điền `requirements/scope_inventory.md` | **Neo mẫu số trước, sinh case sau.** Mỗi mục kèm nguồn (file#anchor); màn và API lấy từ Bước 0, không tự liệt kê |
 | Đầu phase, trước khi phân tích | `npm run risk` | Risk register theo module — quyết định độ sâu test (RBT). Không có thì gen dàn đều, chỗ rủi ro cao bị test nông |
 | Khi chuẩn bị context | `npm run domain:check` · `npm run system:check` | Đối chiếu business rule + bản đồ hệ thống đã xác nhận trong `knowledge/` — đây là nguồn oracle độc lập, tra trước để không suy oracle từ app (tautology) |
 | Sau khi QA duyệt Excel | Agent `search_files` → `create_file`/`update_file` qua Drive MCP | Đẩy TC lên Google Sheet. **Luôn review nội dung `.xlsx` local trước khi ghi đè**; chi tiết ở `phase1/04_auto_publish_backlog.md` |

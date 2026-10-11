@@ -20,6 +20,20 @@ import { chromium, Browser, Page } from '@playwright/test';
  * Đường thứ hai là chỗ tôi bỏ sót ở bản đầu: ô `hien_disabled` không thử URL thì nó đọc như "đã bị
  * chặn", trong khi ta chỉ biết client đang khoá nút.
  */
+/*
+ * CHẠY TUẦN TỰ TRONG MỘT WORKER. Mặc định Playwright cho mỗi test một worker riêng, nên bộ nhớ đệm ở cấp
+ * module (`luotChung`, `boGon`, `maTran`…) KHÔNG dùng chung được: mỗi test dựng lại server fixture, mở
+ * lại browser, và với spec CLI thì spawn thêm một tiến trình `discover` nữa.
+ *
+ * Đo được: spec CLI chạy riêng từng ca thì xanh trong 968ms, chạy cả file song song thì 6 ca ĐỎ vì hết
+ * timeout 90s — một lỗi hoàn toàn do tranh chấp tài nguyên, không liên quan gì tới thứ đang kiểm. Đó là
+ * loại đỏ tệ nhất: nó dạy người đọc rằng spec này "hay đỏ", rồi lần sau có đỏ thật cũng bị bỏ qua.
+ *
+ * `mode: 'default'` giữ chúng trong CÙNG một worker theo thứ tự, và KHÔNG bỏ qua các ca sau khi một ca
+ * đỏ (khác `serial`) — vẫn thấy đủ bức tranh.
+ */
+test.describe.configure({ mode: 'default' });
+
 const FXDIR = path.resolve(__dirname, '..', 'fixtures', 'discovery-app');
 const DIR = path.resolve(__dirname, '..', '..', '..', 'scripts', 'qa', 'discovery');
 // eslint-disable-next-line @typescript-eslint/no-var-requires

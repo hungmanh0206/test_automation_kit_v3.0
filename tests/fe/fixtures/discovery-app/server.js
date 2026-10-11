@@ -338,9 +338,12 @@ function start() {
     /*
      * Trang CHẬM có chủ đích, dùng để đo TRẦN MỖI TRANG.
      *
-     * Chặn SAU khi tải xong (setTimeout 50ms), KHÔNG chặn trong lúc tải. Bản đầu chặn ngay trong lúc tải
-     * và test đỏ: `page.goto` tự nó chờ hết 4 giây rồi mới trả về, nên tới lúc dấu vân tay chạy thì luồng
-     * đã rảnh và trần mỗi trang không bao giờ bắn. Đường cần đo là đường SAU goto.
+     * Chặn SAU khi tải xong, và chặn LẶP LẠI. Hai bản trước đều hỏng theo một kiểu khác nhau:
+     *   · chặn TRONG lúc tải ⇒ `page.goto` tự nó chờ hết rồi mới trả về, nên tới lúc dấu vân tay chạy thì
+     *     luồng đã rảnh và trần mỗi trang không bao giờ bắn;
+     *   · chặn MỘT lần sau 50ms ⇒ xanh khi chạy riêng, Đỏ khi chạy cả suite: máy bận thì `goto` trả về muộn
+     *     hơn 50ms ấy và cục chặn đã trôi qua. Một test chỉ xanh khi máy rảnh là một test flaky.
+     * Chặn lặp (300ms mỗi 60ms, trong `ms` mili giây) thì phép đo trúng block bất kể nó chạy lúc nào.
      *
      * Link tới trang này KHÔNG đặt trong menu: chỉ test gọi thẳng.
      */
@@ -360,7 +363,7 @@ function start() {
     if (p === '/trang-cham') {
       const ms = Number(q.get('ms') || 3000);
       return html(CHROME(vaiTro, 'Trang cham', '<p>Trang nay chan luong JS mot luc.</p>' +
-        '<script>setTimeout(function(){var het=Date.now()+' + ms + ';while(Date.now()<het){}},50)<\/script>'));
+        '<script>var dung=Date.now()+' + ms + ';setInterval(function(){if(Date.now()>dung)return;var h=Date.now()+300;while(Date.now()<h){}},60)<\/script>'));
     }
     /*
      * `/bao-cao-emis`: menu KHOÁ mục này (aria-disabled) nhưng server VẪN trả 200. Đây là lỗ thứ hai,

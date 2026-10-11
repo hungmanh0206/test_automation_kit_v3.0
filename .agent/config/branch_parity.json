@@ -51,7 +51,8 @@
       ],
       "waived": {
         "phase1": "Phase 1 chưa có kết quả execute để soi; chất lượng bộ case do design_gate + tc_validator gác.",
-        "partial-rerun": "Nhánh này không execute case nên không có kết quả để soi; chất lượng phần merge do design_gate + dim:coverage gác (Step 2a)."
+        "partial-rerun": "Nhánh này không execute case nên không có kết quả để soi; chất lượng phần merge do design_gate + dim:coverage gác (Step 2a).",
+        "discover": "Bước 0 chưa có kết quả execute để soi; nó chỉ sinh bản đồ quan sát."
       },
       "why": "Chất lượng output trước khi đẩy ra ngoài (evidence ảnh/video, step status, comment sạch, FAIL phân tầng, rerun đủ ngưỡng). Nhánh nào ĐẨY KẾT QUẢ RA NGOÀI (Sheet/Backlog) đều phải qua."
     },
@@ -63,7 +64,8 @@
       ],
       "waived": {
         "phase1": "Mở rộng là chuyện lúc EXECUTE (quanh case đang chạy); ở Phase 1 vai trò đó do dim:coverage + spec:gap đảm nhiệm.",
-        "partial-rerun": "Mở rộng thuộc lúc execute; nhánh này chỉ merge thay đổi requirement rồi publish."
+        "partial-rerun": "Mở rộng thuộc lúc execute; nhánh này chỉ merge thay đổi requirement rồi publish.",
+        "discover": "Chưa có case nào để mở rộng quanh — Bước 0 chạy TRƯỚC khi sinh case."
       },
       "why": "Bug/regression hay nằm ở chỗ LÂN CẬN case đã map, không ở chính case đó. Rerun mà chỉ chạy TC cũ thì đo được 'chỗ này đã đúng', không đo được 'chỗ bên cạnh còn đúng không'."
     },
@@ -75,7 +77,8 @@
       "waived": {
         "phase2": "Phase 2 execute theo bộ case đã chốt; Error Guessing từ bug lịch sử thuộc lúc SINH case (phase1) và lúc bug vừa đóng (rerun).",
         "partial-rerun": "Error Guessing thuộc lúc sinh case (phase1) và lúc bug vừa đóng (rerun).",
-        "manual-run": "Nhánh này không sinh case và không phải lượt verify-fix — hai thời điểm mà checklist bug lặp có giá trị. Bug tìm ra khi chạy tay chuyển sang Phase 2 bug triage, nơi máy này đã được nối."
+        "manual-run": "Nhánh này không sinh case và không phải lượt verify-fix — hai thời điểm mà checklist bug lặp có giá trị. Bug tìm ra khi chạy tay chuyển sang Phase 2 bug triage, nơi máy này đã được nối.",
+        "discover": "Bước 0 không kết luận bug: mọi bản ghi là `observed`, và phát hiện đáng ngờ đi vào `EXPANSION_FINDING` cho người quyết."
       },
       "why": "Bug lặp lại là bug rẻ nhất để bắt. Thời điểm giá trị nhất: lúc sinh case, và lúc vừa fix xong (root cause còn nóng)."
     },
@@ -87,7 +90,8 @@
       "waived": {
         "phase1": "Phase 1 dùng design_gate + dim:coverage + risk:gate; self-review là checklist trước FINALIZE của lượt execute.",
         "rerun": "Rerun đã bị output_gate gác ở đúng cửa ra (comment/Done Backlog); thêm self-review vào đây là gác hai lần cùng một thứ.",
-        "partial-rerun": "Human Review 2 pha (APPROVED + APPROVED_REVIEW_FILE) đã là chốt người ở đúng cửa; thêm self-review là gác hai lần."
+        "partial-rerun": "Human Review 2 pha (APPROVED + APPROVED_REVIEW_FILE) đã là chốt người ở đúng cửa; thêm self-review là gác hai lần.",
+        "discover": "Chưa có sản phẩm nào để tự soi; `discover` tự gác bằng độ đầy đủ lượt bò và trần token tóm tắt."
       },
       "why": "Checklist gộp trước finalize/publish."
     },
@@ -99,7 +103,8 @@
       "waived": {
         "phase2": "Độ phủ theo chiều là thuộc tính của BỘ CASE (Phase 1), không phải của lượt execute.",
         "rerun": "Rerun chạy tập con đã map theo bug — đo độ phủ chiều ở đây là vô nghĩa.",
-        "manual-run": "Đo độ phủ của BỘ case, việc của Phase 1. Nhánh này chỉ chạy một tập con đã có trong bộ, không thêm bớt chiều nào."
+        "manual-run": "Đo độ phủ của BỘ case, việc của Phase 1. Nhánh này chỉ chạy một tập con đã có trong bộ, không thêm bớt chiều nào.",
+        "discover": "Chưa có bộ testcase để chấm chiều. Bước 0 CẤP DỮ LIỆU cho nó (`injection_surface.json`), không bị nó gác."
       },
       "why": "Đo độ phủ 22 chiều theo ngưỡng risk band."
     },
@@ -111,7 +116,8 @@
       "waived": {
         "phase2": "Rubric chấm bản THIẾT KẾ của case. Lượt execute không sửa thiết kế nên chấm lại là đo cùng một thứ hai lần.",
         "rerun": "Rerun chạy tập con đã map theo bug, không sinh hay sửa case.",
-        "manual-run": "Chấm chất lượng từng case, việc của Phase 1. Nhánh này không sinh hay sửa case."
+        "manual-run": "Chấm chất lượng từng case, việc của Phase 1. Nhánh này không sinh hay sửa case.",
+        "discover": "Chưa có testcase."
       },
       "why": "Chấm từng case theo rubric 8 tiêu chí — đo case có DÙNG ĐƯỢC không, khác với dim:coverage đo bộ có ĐỦ không."
     },
@@ -123,7 +129,8 @@
       "waived": {
         "phase2": "Phase 2 execute theo bộ case đã chốt, không sinh/sửa cột canonical.",
         "rerun": "Rerun chạy tập con đã map, không sửa bộ case.",
-        "manual-run": "Chặn bộ case thiếu cột canonical. Nhánh này không sinh hay sửa bộ case, chỉ đọc bộ đã có."
+        "manual-run": "Chặn bộ case thiếu cột canonical. Nhánh này không sinh hay sửa bộ case, chỉ đọc bộ đã có.",
+        "discover": "Chưa có testcase để chấm chất lượng thiết kế."
       },
       "why": "Chặn testcase thiếu cột canonical / rỗng ô lõi / thiếu ui_catalog khi có case hiển thị. Nhánh nào SINH-SỬA bộ case rồi đẩy lên Sheet đều phải qua."
     },
@@ -135,7 +142,8 @@
       "waived": {
         "phase2": "Phase 2 ĐỌC oracle để phán, không phiên bản hoá nó.",
         "rerun": "Rerun verify fix theo oracle hiện hành; rule đổi là việc của partial-rerun.",
-        "manual-run": "Máy này gác việc phiên bản hoá oracle khi requirement đổi. Nhánh chạy tay không xử lý requirement đổi."
+        "manual-run": "Máy này gác việc phiên bản hoá oracle khi requirement đổi. Nhánh chạy tay không xử lý requirement đổi.",
+        "discover": "Bước 0 không ghi `knowledge/domain`: nó chỉ sinh ứng viên ở trạng thái `draft`/`observed`, và việc chốt rule là của người."
       },
       "why": "Oracle (business rule / state machine / permission matrix) phải được PHIÊN BẢN HOÁ đúng lúc nó đổi — kèm supersedes + confirmed_at, để `--stale` phát hiện được TC đã execute theo rule cũ. Nhánh xử lý 'requirement đổi' mà không cập nhật kho tri thức thì lần sinh case sau dùng rule lỗi thời."
     }

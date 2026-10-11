@@ -139,6 +139,20 @@ async function main() {
 
   const phamViRaw = arg('pham-vi', '');
   const phamVi = phamViRaw ? new RegExp(phamViRaw) : null;
+  /*
+   * `--mode task` KHÔNG TỰ THU HẸP PHẠM VI. Đo trên UAT 11/10: lượt `--mode task` không truyền phạm vi đã
+   * bò cả app — 40 màn, phần lớn là thời khoá biểu, phân hiệu, điểm trường — trong khi task là "Quản lý
+   * học sinh". Trước đó `mode` chỉ đổi TRẦN TOÁN TẮT, không đổi phạm vi bò; tức cái tên "task" hứa một
+   * thứ mà nó không làm.
+   *
+   * Không tự đoán phạm vi từ tên task: ánh xạ task → route là tri thức của dự án, đoán hộ rồi bò nhầm chỗ
+   * còn tệ hơn bò cả app. Nên: KÊU TO và nói rõ hệ quả cho `scope_anchor`.
+   */
+  if (mode === 'task' && !phamVi) {
+    console.warn('[discover] ⚠ `--mode task` mà KHÔNG có `--pham-vi` ⇒ lệnh sẽ bò CẢ APP, không chỉ module của task.');
+    console.warn('      Hệ quả: `scope_anchor` không biết route nào thuộc phạm vi task, nên nó KHÔNG gác được mẫu số.');
+    console.warn('      Ví dụ: --pham-vi "^/(C3/)?(HocSinh|QuanLyHocSinh)" — khuôn regex trên đường dẫn.');
+  }
   const bid = buildId(kt.host, mode, phamViRaw);
   const OUT = path.resolve(arg('out', path.join(rc.REPO_ROOT, 'knowledge', 'system', 'discovery', bid)));
   fs.mkdirSync(OUT, { recursive: true });
@@ -198,6 +212,12 @@ async function main() {
       doSau: arg('do-sau', '') === '' ? undefined : Number(arg('do-sau', '')),
       phamVi,
       context: ctx,
+      /*
+       * `--do-tre` ghi đè độ trễ giữa thao tác. Lượt THẬT trên UAT giữ 250ms của config vì đó là môi
+       * trường dùng chung; lượt chạy trên fixture offline đặt 0, vì không có ai để mà lịch sự và một
+       * spec hạ tầng chậm thì người ta thôi chạy nó trước khi commit.
+       */
+      doTre: arg('do-tre', '') === '' ? undefined : Number(arg('do-tre', '')),
       get apiRec() { return rec; },
     });
   } finally { await browser.close(); }

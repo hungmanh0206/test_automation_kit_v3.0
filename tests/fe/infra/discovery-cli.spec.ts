@@ -20,6 +20,20 @@ import { gateEnv } from './_gate_env';
  * điểm riêng của CLI — và nó tệ hơn: người chạy sẽ đi tiếp với `system_map.json` trống, rồi `scope_anchor`
  * lấy mẫu số bằng 0 và mọi tỉ lệ coverage về sau vô nghĩa.
  */
+/*
+ * CHẠY TUẦN TỰ TRONG MỘT WORKER. Mặc định Playwright cho mỗi test một worker riêng, nên bộ nhớ đệm ở cấp
+ * module (`luotChung`, `boGon`, `maTran`…) KHÔNG dùng chung được: mỗi test dựng lại server fixture, mở
+ * lại browser, và với spec CLI thì spawn thêm một tiến trình `discover` nữa.
+ *
+ * Đo được: spec CLI chạy riêng từng ca thì xanh trong 968ms, chạy cả file song song thì 6 ca ĐỎ vì hết
+ * timeout 90s — một lỗi hoàn toàn do tranh chấp tài nguyên, không liên quan gì tới thứ đang kiểm. Đó là
+ * loại đỏ tệ nhất: nó dạy người đọc rằng spec này "hay đỏ", rồi lần sau có đỏ thật cũng bị bỏ qua.
+ *
+ * `mode: 'default'` giữ chúng trong CÙNG một worker theo thứ tự, và KHÔNG bỏ qua các ca sau khi một ca
+ * đỏ (khác `serial`) — vẫn thấy đủ bức tranh.
+ */
+test.describe.configure({ mode: 'default' });
+
 const FXDIR = path.resolve(__dirname, '..', 'fixtures', 'discovery-app');
 const REPO = path.resolve(__dirname, '..', '..', '..');
 const CLI = path.join(REPO, 'scripts/qa/discover.js');
@@ -66,7 +80,7 @@ function luotChung() {
   return motLuot;
 }
 const ARG_CHUNG = (out: string) => [
-  '--base-url', srv.url, '--confirm-nonprod', '--out', out, '--khong-chup-anh',
+  '--base-url', srv.url, '--confirm-nonprod', '--out', out, '--khong-chup-anh', '--do-tre', '0',
   '--tai-lieu', path.join(FXDIR, 'fsd.md'),
   '--openapi', path.join(FXDIR, 'openapi.json'),
 ];
@@ -247,21 +261,35 @@ test.describe('@infra trần token tóm tắt — kiểm trên fixture LỚN', (
   });
 });
 
-test.describe('@infra §B2 `scope_anchor` — mẫu số phải phủ thứ quan sát được', () => {
+test.describe('@infra §B2 `scope_anchor` — mẫu số phủ route TRONG PHẠM VI', () => {
+  /*
+   * BẢN ĐẦU KHỚP THEO CHUỖI ROUTE TRONG DANH MỤC, VÀ PHÉP ĐO TRÊN TASK THẬT BÁC NÓ.
+   *
+   * `CSDL-9003`, lượt bò UAT 11/10: 40 màn quan sát được, danh mục 55 dòng `INV-` do người viết —
+   * **khớp được 1, trượt 39**. Hai lý do, cả hai là lỗi thiết kế của tôi chứ không phải lỗi của danh mục:
+   *   ① SAI ĐƠN VỊ: danh mục mô tả theo MÃ CHỨC NĂNG (`HS-01.1 Xem danh sách HS…`), và một MÀN chứa
+   *      NHIỀU mục phạm vi. Đòi khớp 1-1 giữa màn và mục là so hai thứ khác đơn vị.
+   *   ② KHÔNG CÓ PHẠM VI: `--mode task` không tự thu hẹp nên lượt bò đi cả app; phần lớn 39 màn kia là
+   *      thời khoá biểu, phân hiệu, điểm trường — vốn NGOÀI phạm vi task "Quản lý học sinh".
+   *
+   * Khớp theo tiêu đề cũng không cứu được: trên QEMIS **mọi màn có cùng một `<title>`** của master page.
+   */
   const SA = path.join(REPO, 'scripts/qa/scope_anchor.js');
 
-  function taskTam(o: { sm?: unknown; danhMuc?: string[] }) {
+  function taskTam(o: { sm?: unknown; khai?: Record<string, string>; lyDo?: Record<string, string> }) {
     const d = fs.mkdtempSync(path.join(os.tmpdir(), 'scope-'));
     const req = path.join(d, 'tasks', 'T1', 'requirements');
     fs.mkdirSync(req, { recursive: true });
     fs.mkdirSync(path.join(d, 'tasks', 'T1', 'test-cases'), { recursive: true });
     if (o.sm) fs.writeFileSync(path.join(req, 'system_map.json'), JSON.stringify(o.sm), 'utf8');
-    if (o.danhMuc) {
-      fs.writeFileSync(path.join(req, 'scope_inventory.md'), [
-        '# Danh mục phạm vi', '', '| # | Mục | Nguồn |', '|---|---|---|',
-        ...o.danhMuc, '',
-      ].join('\n'), 'utf8');
-    }
+    fs.writeFileSync(path.join(req, 'scope_inventory.md'), [
+      '# Danh mục phạm vi', '', '| # | Mục | Nguồn |', '|---|---|---|',
+      '| INV-001 | `HS-01.1` Xem danh sách học sinh | HDSD §2 |', '',
+    ].join('\n'), 'utf8');
+    const man: Record<string, unknown> = {};
+    if (o.khai) man.routes_quan_sat_duoc = o.khai;
+    if (o.lyDo) man.na_reasons = o.lyDo;
+    fs.writeFileSync(path.join(req, 'dimension_manifest.json'), JSON.stringify(man), 'utf8');
     return d;
   }
 
@@ -272,70 +300,99 @@ test.describe('@infra §B2 `scope_anchor` — mẫu số phải phủ thứ quan
     return `${r.stdout || ''}${r.stderr || ''}`;
   }
 
-  const SM = {
-    screens: [{ route: '/truong', title_observed: 'Hồ sơ trường' }, { route: '/bao-cao', title_observed: 'Báo cáo' }],
-    apis: [{ method: 'GET', path_chuan: '/api/truong' }],
-  };
+  /** Lượt bò cả app: 1 màn trong phạm vi học sinh, 2 màn ngoài (thời khoá biểu, phân hiệu). */
+  const SM = (phamVi: string | null) => ({
+    pham_vi: phamVi,
+    screens: [
+      { route: '/C3/QuanLyHocSinh.aspx', title_observed: 'CƠ SỞ DỮ LIỆU NGÀNH GIÁO DỤC' },
+      { route: '/ThoiKhoaBieu/C3/DanhMucMonHoc.aspx', title_observed: 'CƠ SỞ DỮ LIỆU NGÀNH GIÁO DỤC' },
+      { route: '/C3/QuanLyPhanHieu.aspx', title_observed: 'CƠ SỞ DỮ LIỆU NGÀNH GIÁO DỤC' },
+    ],
+  });
 
   test('CHƯA có `system_map.json` ⇒ nói "CHƯA GÁC ĐƯỢC", không im lặng', () => {
-    const d = taskTam({ danhMuc: ['| 1 | Hồ sơ trường | FSD §2 |'] });
+    const d = taskTam({});
     const out = chaySA(d);
     expect(out).toMatch(/CHƯA GÁC ĐƯỢC/);
     expect(out, 'và nói rõ hệ quả').toMatch(/agent tự liệt kê từ tài liệu/);
     fs.rmSync(d, { recursive: true, force: true });
   });
 
-  test('danh mục BỎ SÓT màn quan sát được ⇒ nêu đúng tên, nói đúng hệ quả', () => {
-    const d = taskTam({ sm: SM, danhMuc: ['| 1 | Hồ sơ trường `/truong` | FSD §2 |'] });
+  test('lượt bò KHÔNG khai phạm vi ⇒ CHƯA GÁC ĐƯỢC, KHÔNG báo hàng chục dòng bỏ sót oan', () => {
+    /*
+     * Đây là ca mà bản đầu sinh ra 39 dòng chặn oan trên task thật. Gác một lượt bò cả app bằng danh mục
+     * của một task là cách chắc chắn nhất để người ta tắt gate.
+     */
+    const d = taskTam({ sm: SM(null) });
     const out = chaySA(d);
-    expect(out).toMatch(/Mẫu số BỎ SÓT 2 thứ QUAN SÁT ĐƯỢC/);
-    expect(out).toMatch(/\/bao-cao/);
-    expect(out).toMatch(/\/api\/truong/);
-    expect(out, 'hệ quả phải nói ra').toMatch(/vùng không ai test mà coverage vẫn báo đủ/);
+    expect(out).toMatch(/KHÔNG khai phạm vi/);
+    expect(out).toMatch(/CHƯA GÁC ĐƯỢC/);
+    expect(out, 'phải nói rõ vì sao không gác').toMatch(/bỏ sót" oan/);
+    expect(out, 'và KHÔNG được liệt kê route như lỗi').not.toMatch(/CHƯA khai trong/);
     fs.rmSync(d, { recursive: true, force: true });
   });
 
-  test('danh mục phủ ĐỦ ⇒ không còn dòng bỏ sót', () => {
-    const d = taskTam({
-      sm: SM,
-      danhMuc: [
-        '| 1 | Hồ sơ trường `/truong` | FSD §2 |',
-        '| 2 | Báo cáo `/bao-cao` | FSD §3 |',
-        '| 3 | API `/api/truong` | OpenAPI |',
-      ],
-    });
+  test('CÓ phạm vi ⇒ chỉ hỏi về route TRONG phạm vi, bỏ qua route ngoài', () => {
+    const d = taskTam({ sm: SM('^/C3/QuanLyHocSinh') });
     const out = chaySA(d);
-    expect(out).not.toMatch(/Mẫu số BỎ SÓT/);
+    expect(out).toMatch(/1 route TRONG PHẠM VI/);
+    expect(out, 'route ngoài phạm vi KHÔNG được nhắc như lỗi').not.toMatch(/DanhMucMonHoc/);
+    expect(out, 'và đưa khuôn để điền').toMatch(/routes_quan_sat_duoc/);
     fs.rmSync(d, { recursive: true, force: true });
   });
 
-  test('CỐ Ý loại ra thì phải ghi lý do TRÊN DÒNG đó, và gate nhắc người review', () => {
-    const d = taskTam({
-      sm: SM,
-      danhMuc: [
-        '| 1 | Hồ sơ trường `/truong` | FSD §2 |',
-        '| 2 | Báo cáo `/bao-cao` | ngoài phạm vi đợt này, chủ DA chốt 10/10 |',
-        '| 3 | API `/api/truong` | OpenAPI |',
-      ],
+  test('khai đủ ⇒ đi qua; thiếu một route ⇒ nêu đúng route đó', () => {
+    const du = taskTam({ sm: SM('^/C3/'), khai: { '/C3/QuanLyHocSinh.aspx': 'INV-001', '/C3/QuanLyPhanHieu.aspx': 'INV-002' } });
+    expect(chaySA(du)).toMatch(/Mẫu số đã phủ 2\/2 route/);
+    fs.rmSync(du, { recursive: true, force: true });
+
+    const thieu = taskTam({ sm: SM('^/C3/'), khai: { '/C3/QuanLyHocSinh.aspx': 'INV-001' } });
+    const out = chaySA(thieu);
+    expect(out).toMatch(/1 route trong phạm vi CHƯA khai/);
+    expect(out).toMatch(/QuanLyPhanHieu/);
+    expect(out, 'hệ quả phải nói ra').toMatch(/màn có thật mà mẫu số không biết tới/);
+    fs.rmSync(thieu, { recursive: true, force: true });
+  });
+
+  test('`n/a` CÓ lý do ⇒ đi qua; `n/a` KHÔNG lý do ⇒ nêu ra', () => {
+    const co = taskTam({
+      sm: SM('^/C3/'),
+      khai: { '/C3/QuanLyHocSinh.aspx': 'INV-001', '/C3/QuanLyPhanHieu.aspx': 'n/a' },
+      lyDo: { '/C3/QuanLyPhanHieu.aspx': 'phân hiệu thuộc task CSDL-9001, không phải task này' },
     });
+    expect(chaySA(co)).toMatch(/đã phủ 2\/2 route/);
+    fs.rmSync(co, { recursive: true, force: true });
+
+    const khong = taskTam({ sm: SM('^/C3/'), khai: { '/C3/QuanLyHocSinh.aspx': 'INV-001', '/C3/QuanLyPhanHieu.aspx': 'n/a' } });
+    expect(chaySA(khong)).toMatch(/khai `n\/a` mà `na_reasons` trống/);
+    fs.rmSync(khong, { recursive: true, force: true });
+  });
+
+  test('phạm vi không khớp route nào ⇒ nghi khuôn regex sai, không báo "đã phủ"', () => {
+    const d = taskTam({ sm: SM('^/khong-ton-tai') });
     const out = chaySA(d);
-    expect(out).not.toMatch(/Mẫu số BỎ SÓT/);
-    expect(out, 'lý do loại trừ là một lời khai ⇒ phải nhắc người đọc lại').toMatch(/bị loại khỏi phạm vi CÓ lý do/);
+    expect(out).toMatch(/không khớp route nào/);
+    expect(out).not.toMatch(/đã phủ/);
     fs.rmSync(d, { recursive: true, force: true });
   });
 
   test('lượt bò chưa đầy đủ ⇒ "phủ hết thứ quan sát được" KHÔNG đồng nghĩa "phủ hết hệ thống"', () => {
     const d = taskTam({
-      sm: { ...SM, crawl_completeness: { canh_bao: 'Chỉ bò tới 3/10 route (30%)' } },
-      danhMuc: [
-        '| 1 | Hồ sơ trường `/truong` | FSD §2 |',
-        '| 2 | Báo cáo `/bao-cao` | FSD §3 |',
-        '| 3 | API `/api/truong` | OpenAPI |',
-      ],
+      sm: { ...SM('^/C3/QuanLyHocSinh'), crawl_completeness: { canh_bao: 'Chỉ bò tới 3/10 route (30%)' } },
+      khai: { '/C3/QuanLyHocSinh.aspx': 'INV-001' },
     });
     const out = chaySA(d);
     expect(out).toMatch(/KHÔNG đồng nghĩa "đã phủ hết hệ thống"/);
-    expect(out).toMatch(/3\/10 route/);
+    fs.rmSync(d, { recursive: true, force: true });
+  });
+
+  test('lượt bò có dấu hiệu session chết ⇒ mẫu số mang theo cảnh báo đó', () => {
+    /* Mẫu số dựng trên một lượt bò mà session chết giữa chừng là một mẫu số không dùng được. */
+    const d = taskTam({
+      sm: { ...SM('^/C3/QuanLyHocSinh'), crawl_completeness: { canh_bao_session: '292 route báo captcha trong khi chỉ bò được 6 màn' } },
+      khai: { '/C3/QuanLyHocSinh.aspx': 'INV-001' },
+    });
+    expect(chaySA(d)).toMatch(/dấu hiệu BẤT THƯỜNG/);
     fs.rmSync(d, { recursive: true, force: true });
   });
 });
