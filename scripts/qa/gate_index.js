@@ -239,54 +239,69 @@ function nguonBan(rows) {
   return rows.map((r) => r.file).filter((f) => doi.has(f));
 }
 
-const data = build();
-const ban = nguonBan(data.rows);
-if (ban.length) {
-  console.error(`[gate-index] CẢNH BÁO: ${ban.length} file nguồn đang SỬA DỞ chưa commit, nên bảng sinh ra ở đây`);
-  console.error('             có thể khác bảng mà CI sinh từ nội dung đã commit:');
-  for (const f of ban) console.error(`               ${f}`);
-  console.error('             Commit phần sửa đó TRƯỚC rồi mới chạy `npm run gates:index`.');
-}
-const md = render(data);
+/*
+ * `require.main` GUARD + export — để `gate_audit.js` dùng ĐÚNG phép kiểm kê này, không tự đếm lại.
+ *
+ * Hai máy cùng trả lời "kit có bao nhiêu gate" mà đếm bằng hai phép quét khác nhau thì sớm muộn chúng
+ * ra hai con số, và lúc đó không ai biết con số nào đúng. Bảng gate đã có một nguồn — chính file này —
+ * nên máy kiểm kê mới phải require nó.
+ *
+ * Guard là bắt buộc theo `tests/fe/infra/cli-guard.spec.ts`: thiếu nó thì `require()` trong máy khác làm
+ * CLI chạy và `process.exit` ngay giữa lượt gọi.
+ */
+module.exports = { build, render, nguonBan, corpus, purposeOf, levelOf, thieuSource, OUT };
 
-if (process.argv.includes('--json')) {
-  console.log(JSON.stringify(data, null, 2));
-} else if (process.argv.includes('--check')) {
-  /*
-   * Source ĐÃ KHAI mà thiếu thì phải chặn TRƯỚC phép đối chiếu bảng. Vì bảng được DỰNG từ cùng phép
-   * quét này, một source biến mất làm cả HAI phía cùng co lại — rồi `--check` báo "khớp source".
-   * Đó là phép kiểm tự xác nhận chính mình, không còn là phép kiểm.
-   */
-  if (thieuSource.length) {
-    const d = [...new Set(thieuSource)];
-    console.error(`[gate-index] CHẶN: ${d.length} source khai trong danh mục nhưng KHÔNG có trên đĩa:`);
-    d.forEach((x) => console.error(`  - ${x}`));
-    console.error('  Bảng dựng từ chính phép quét này, nên thiếu source là hai phía cùng co lại và vẫn "khớp".');
-    process.exit(1);
+if (require.main === module) {
+  const data = build();
+  const ban = nguonBan(data.rows);
+  if (ban.length) {
+    console.error(`[gate-index] CẢNH BÁO: ${ban.length} file nguồn đang SỬA DỞ chưa commit, nên bảng sinh ra ở đây`);
+    console.error('             có thể khác bảng mà CI sinh từ nội dung đã commit:');
+    for (const f of ban) console.error(`               ${f}`);
+    console.error('             Commit phần sửa đó TRƯỚC rồi mới chạy `npm run gates:index`.');
   }
-  const cur = readSafe(OUT);
-  if (!cur) {
-    console.error('[gate-index] CHẶN: thiếu .agent/config/GATES.md — chạy `npm run gates:index`.');
-    process.exit(1);
-  }
-  if (cur.replace(/\r\n/g, '\n').trim() !== md.trim()) {
+  const md = render(data);
+
+  if (process.argv.includes('--json')) {
+    console.log(JSON.stringify(data, null, 2));
+  } else if (process.argv.includes('--check')) {
     /*
-     * Cây làm việc BẨN thì lệch là chuyện đương nhiên, và kết tội bảng ở đó là oan. Bảng là artifact
-     * của nội dung ĐÃ COMMIT, nên chỉ phán được khi source sạch. CI luôn checkout sạch nên nhánh này
-     * không bao giờ chạy ở CI — răng của gate giữ nguyên.
+     * Source ĐÃ KHAI mà thiếu thì phải chặn TRƯỚC phép đối chiếu bảng. Vì bảng được DỰNG từ cùng phép
+     * quét này, một source biến mất làm cả HAI phía cùng co lại — rồi `--check` báo "khớp source".
+     * Đó là phép kiểm tự xác nhận chính mình, không còn là phép kiểm.
      */
-    if (ban.length) {
-      console.error('[gate-index] KHÔNG PHÁN ĐƯỢC: bảng lệch, nhưng source đang sửa dở nên chưa kết luận được.');
-      console.error('             Commit phần sửa ở trên rồi chạy lại. Đây KHÔNG phải là đạt.');
-      process.exit(2);
+    if (thieuSource.length) {
+      const d = [...new Set(thieuSource)];
+      console.error(`[gate-index] CHẶN: ${d.length} source khai trong danh mục nhưng KHÔNG có trên đĩa:`);
+      d.forEach((x) => console.error(`  - ${x}`));
+      console.error('  Bảng dựng từ chính phép quét này, nên thiếu source là hai phía cùng co lại và vẫn "khớp".');
+      process.exit(1);
     }
-    console.error('[gate-index] CHẶN: .agent/config/GATES.md LỆCH source (gate được thêm/xoá, hoặc một gate đã đổi mức CHẶN <-> CẢNH BÁO mà bảng không ghi). Chạy `npm run gates:index` rồi commit.');
-    process.exit(1);
+    const cur = readSafe(OUT);
+    if (!cur) {
+      console.error('[gate-index] CHẶN: thiếu .agent/config/GATES.md — chạy `npm run gates:index`.');
+      process.exit(1);
+    }
+    if (cur.replace(/\r\n/g, '\n').trim() !== md.trim()) {
+      /*
+       * Cây làm việc BẨN thì lệch là chuyện đương nhiên, và kết tội bảng ở đó là oan. Bảng là artifact
+       * của nội dung ĐÃ COMMIT, nên chỉ phán được khi source sạch. CI luôn checkout sạch nên nhánh này
+       * không bao giờ chạy ở CI — răng của gate giữ nguyên.
+       */
+      if (ban.length) {
+        console.error('[gate-index] KHÔNG PHÁN ĐƯỢC: bảng lệch, nhưng source đang sửa dở nên chưa kết luận được.');
+        console.error('             Commit phần sửa ở trên rồi chạy lại. Đây KHÔNG phải là đạt.');
+        process.exit(2);
+      }
+      console.error('[gate-index] CHẶN: .agent/config/GATES.md LỆCH source (gate được thêm/xoá, hoặc một gate đã đổi mức CHẶN <-> CẢNH BÁO mà bảng không ghi). Chạy `npm run gates:index` rồi commit.');
+      process.exit(1);
+    }
+    console.log(`[gate-index] OK — ${data.rows.length} gate, bảng khớp source.`);
+  } else if (process.argv.includes('--write')) {
+    fs.writeFileSync(OUT, md, 'utf8');
+    console.log(`[gate-index] đã ghi .agent/config/GATES.md — ${data.rows.length} gate.`);
+  } else {
+    console.log(md);
   }
-  console.log(`[gate-index] OK — ${data.rows.length} gate, bảng khớp source.`);
-} else if (process.argv.includes('--write')) {
-  fs.writeFileSync(OUT, md, 'utf8');
-  console.log(`[gate-index] đã ghi .agent/config/GATES.md — ${data.rows.length} gate.`);
-} else {
-  console.log(md);
+
 }

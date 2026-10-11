@@ -286,3 +286,6 @@ tests/support/setup/db/verify.validate-dryrun.spec.ts
 
 # Gói nhập từ ngoài để đối chiếu — KHÔNG commit (lớp PROJECT của người khác).
 _import/
+
+# Bản gợi ý của `gate:audit --write-tiers` — artifact để người đối chiếu rồi gộp tay, không phải nguồn.
+.agent/config/gate_tiers.suggested.json
