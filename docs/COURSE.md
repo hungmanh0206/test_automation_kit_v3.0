@@ -752,6 +752,7 @@ có số trỏ tới. Tách ra để bài chính không phình, nhưng nội dun
 
 | Bài chi tiết | Nội dung | Được dạy ở |
 |---|---|---|
+| [Khám phá hệ thống trước khi viết case](course/kham-pha-he-thong.md) | Bước 0: bò app bằng script rồi lấy mẫu số từ thứ quan sát được, không chỉ từ tài liệu | Bài 9, Bài 27 |
 | [Trước khi bắt đầu](course/truoc-khi-bat-dau.md) | 10 từ vựng của cả tài liệu, mỗi từ một ví dụ lấy từ việc vừa làm | Bài 1 |
 | [Chi phí và giới hạn thật](course/chi-phi-va-gioi-han.md) | Dựng kit tốn bao nhiêu, và ba thứ nó không làm được | Bài 1 |
 | [Git từ số 0](course/git-tu-so-0.md) | Commit, nhánh, và máy chặn tệp cấm lọt lên repo | Bài 2 |
