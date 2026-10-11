@@ -222,11 +222,14 @@ test.describe('@infra độ đầy đủ lượt bò — lỗi ② đã sửa', 
      * một con số thiếu: nó dạy người đọc bỏ qua cảnh báo.
      */
     const r = await boGon();
-    const cc = r.crawl_completeness;
+    const cc = r.crawl_completeness as {
+      ti_le: number; canh_bao: string | null; url_tho_phat_hien: number;
+      route_phat_hien: number; man_rieng_biet: number;
+    };
     expect(cc.ti_le, 'bò tới hết thì phải là 1').toBe(1);
     expect(cc.canh_bao, 'và KHÔNG được cảnh báo').toBeNull();
     expect(cc.url_tho_phat_hien, 'số URL thô vẫn giữ riêng — nó có ích, nhưng không phải mẫu số').toBeGreaterThan(cc.route_phat_hien);
-    expect(cc.man_rieng_biet).toBe(r.screens.length);
+    expect(cc.man_rieng_biet).toBe((r.screens as Man[]).length);
   });
 
   test('hết ngân sách giữa chừng ⇒ báo đúng phần chưa tới, KHÔNG báo 100%', async () => {

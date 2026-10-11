@@ -111,6 +111,12 @@ test.describe('@infra token:audit — mẫu lệnh và ngưỡng một lượt',
      * hai lượt subagent ở 29.527 và 29.564, tức không có mốc nào sau chúng. Một máy đo im lặng trả về
      * "haiku" trong tình huống đó là đúng thứ cả đợt v2.4.1 đi sửa.
      */
+    /*
+     * Biên bản của đợt trước nằm ở `docs/v2.4.1/`, mà GÓI PHÁT HÀNH không mang thư mục đó. Bản đầu đọc
+     * thẳng và ĐỎ trong gói với `ENOENT` — một lỗi của phép kiểm, không phải của kit.
+     */
+    const dBB = path.join(REPO, 'docs/v2.4.1/AGENTS_VERIFY.md');
+    if (!fs.existsSync(dBB)) { test.skip(true, 'gói phát hành không mang docs/v2.4.1/ — không có biên bản để đối chiếu'); return; }
     const src = fs.readFileSync(path.join(REPO, 'scripts/qa/token_audit.js'), 'utf8');
     expect(src, 'phải có chế độ đo theo model').toContain('inTheoModel');
     expect(src, 'thiếu mốc thì phải nói KHÔNG PHÁN ĐƯỢC, không đoán').toContain('KHÔNG PHÁN ĐƯỢC');

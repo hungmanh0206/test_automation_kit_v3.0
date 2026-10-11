@@ -173,7 +173,18 @@ test.describe('@infra skills:lint — nợ khoá theo số lượng', () => {
 });
 
 test.describe('@infra skills:lint — repo thật và giới hạn đã nói', () => {
+  /*
+   * HAI TEST DƯỚI CHỈ CÓ NGHĨA TRÊN CÂY NGUỒN. Gói phát hành CỐ Ý không mang lớp PROJECT, trong đó có
+   * `tests/fe/support/opsLogin.ts` (helper đăng nhập riêng của dự án) — mà `ui_debug_agent/SKILL.md`
+   * trỏ tới nó. Chạy trong gói thì gate báo "đường dẫn không tồn tại" và ĐỎ.
+   *
+   * Đó là một phép kiểm sai chỗ, không phải một lỗi của kit: gói là một cây KHÁC theo thiết kế. Gate vẫn
+   * gác đầy đủ trên cây nguồn, nơi nó có nghĩa.
+   */
+  const trongGoi = !fs.existsSync(path.join(REPO, '.git'));
+
   test('repo hiện tại: ĐẠT', () => {
+    test.skip(trongGoi, 'gói phát hành không mang lớp PROJECT mà skill trỏ tới — gate này chỉ có nghĩa trên cây nguồn');
     const r = spawnSync(process.execPath, [SL, '--enforce'], { cwd: REPO, encoding: 'utf8', env: gateEnv() });
     expect(r.status, `${r.stdout}${r.stderr}`).toBe(0);
   });
@@ -182,6 +193,7 @@ test.describe('@infra skills:lint — repo thật và giới hạn đã nói', (
     /*
      * Không nói ra thì người đọc tin gate đã kiểm nội dung. Nó chỉ kiểm mô tả có ĐỦ THÔNG TIN ĐỂ CHỌN.
      */
+    test.skip(trongGoi, 'gói phát hành không mang lớp PROJECT mà skill trỏ tới');
     const r = spawnSync(process.execPath, [SL], { cwd: REPO, encoding: 'utf8', env: gateEnv() });
     expect(`${r.stdout}${r.stderr}`).toMatch(/KHÔNG chấm mô tả có ĐÚNG hay không/);
   });

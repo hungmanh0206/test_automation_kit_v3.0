@@ -158,7 +158,13 @@ test.describe('@infra domain:check — KHÔNG thêm hệ mã thứ hai', () => {
      * Cho sai số rộng (±8) để một vài rule mới không làm đỏ oan.
      */
     const dir = path.join(REPO, 'knowledge/domain');
-    if (!fs.existsSync(dir)) { test.skip(true, 'máy này chưa có knowledge/domain (lớp PROJECT)'); return; }
+    /*
+     * Thư mục CÓ mà RỖNG cũng phải bỏ qua. Gói phát hành mang `knowledge/domain/` (thư mục rỗng) nhưng
+     * không mang bản ghi nào — lớp PROJECT bị gitignore. Bản đầu chỉ kiểm `existsSync` nên trong gói nó
+     * đếm được 0 rule rồi ĐỎ, trong khi đúng ra là KHÔNG CÓ GÌ ĐỂ ĐO.
+     */
+    const coRule = fs.existsSync(dir) && fs.readdirSync(dir).some((f) => f.endsWith('.json'));
+    if (!coRule) { test.skip(true, 'máy này chưa có bản ghi nào trong knowledge/domain (lớp PROJECT)'); return; }
     let n = 0;
     for (const f of fs.readdirSync(dir)) {
       if (!f.endsWith('.json')) continue;
