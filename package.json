@@ -159,7 +159,8 @@
     "gate:audit": "node scripts/qa/gate_audit.js",
     "expected:check": "node scripts/qa/expected_ledger.js",
     "expected:snapshot": "node scripts/qa/expected_ledger.js --snapshot",
-    "exit:gate": "node scripts/qa/exit_gate.js"
+    "exit:gate": "node scripts/qa/exit_gate.js",
+    "check": "node scripts/qa/check.js"
   },
   "dependencies": {
     "axe-core": "^4.12.1",
