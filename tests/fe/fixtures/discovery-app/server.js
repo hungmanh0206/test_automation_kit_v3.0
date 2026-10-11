@@ -135,7 +135,7 @@ function trangTruong(vaiTro, q) {
 function trangChiTiet(vaiTro, id) {
   const r = DU_LIEU_GOC.find((x) => String(x.id) === String(id));
   if (!r) return null;
-  return CHROME(vaiTro, `Trường ${escHtml(r.ten)}`, `
+  return CHROME(vaiTro, escHtml(r.ten), `
   <div role="tablist" aria-label="Thông tin trường">
     <button role="tab" aria-selected="true" aria-controls="t1" id="tab1">Thông tin chung</button>
     <button role="tab" aria-selected="false" aria-controls="t2" id="tab2">Hạ tầng</button>

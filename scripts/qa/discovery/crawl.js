@@ -1,0 +1,260 @@
+'use strict';
+
+/*
+ * BÒ UI TẤT ĐỊNH (v2.6.0 §A2) — điểm số 1 trong 10 điểm vượt kit A.
+ *
+ * A để agent tự bò qua Playwright MCP: snapshot đi thẳng vào hội thoại nên rất tốn token, và **mỗi lượt
+ * chạy ra một kết quả khác** vì thứ tự agent chọn bấm phụ thuộc vào ngữ cảnh lúc đó. Script này đổi cả
+ * hai: một lệnh, thứ tự BFS cố định, đầu ra là JSON — agent chỉ đọc bản tóm tắt.
+ *
+ * TẤT ĐỊNH NGHĨA LÀ GÌ Ở ĐÂY, cụ thể:
+ *   · BFS một luồng, hàng đợi theo thứ tự phát hiện; link trong một trang xếp theo thứ tự DOM;
+ *   · danh tính màn tính từ (đường dẫn đã chuẩn hoá + tiêu đề), không từ thứ tự thăm;
+ *   · hết ngân sách thì CẮT Ở ĐUÔI hàng đợi — nên hai lượt cùng cấu hình cắt đúng cùng chỗ.
+ * Mất tính tất định thì `delta` báo khác biệt GIẢ, và đó là lỗi tệ hơn bò chậm.
+ *
+ * AN TOÀN: mọi `page` đều đi qua `write_firewall` trước khi `goto` lần đầu. Crawler KHÔNG bấm nút nào có
+ * nhãn trong `nut_cam_bam`, và chỉ bấm thứ để MỞ RA (accordion, tab) chứ không bấm thứ để GỬI ĐI.
+ *
+ * KHÔNG BAO GIỜ gọi API trực tiếp. Giữ đúng luật của A: chỉ quan sát request do UI tự phát sinh.
+ */
+const fs = require('fs');
+const path = require('path');
+
+const fw = require(path.join(__dirname, 'write_firewall.js'));
+const fp = require(path.join(__dirname, 'fingerprint.js'));
+
+/**
+ * Chuẩn hoá đường dẫn để gộp màn trùng: đoạn số và đoạn dạng uuid/hash thành `:id`.
+ *
+ * Vì sao cần: `/truong/1` và `/truong/2` là CÙNG một màn. Không gộp thì một lưới 500 bản ghi sinh ra 500
+ * "màn", ăn hết ngân sách bò và làm mẫu số coverage vô nghĩa.
+ */
+function chuanHoaRoute(u) {
+  let p;
+  try { p = new URL(u).pathname; } catch (e) { p = String(u); }
+  return p.replace(/\/+$/, '')
+    .split('/')
+    .map((seg) => {
+      if (/^\d+$/.test(seg)) return ':id';
+      if (/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(seg)) return ':id';
+      if (/^[0-9a-f]{24,}$/i.test(seg)) return ':id';
+      return seg;
+    })
+    .join('/') || '/';
+}
+
+/**
+ * Danh tính màn = route chuẩn hoá + CHỮ KÝ CẤU TRÚC. KHÔNG dùng tiêu đề.
+ *
+ * SỬA SAU KHI ĐO (11/10). Bản đầu dùng `route + tiêu đề`, theo đúng chữ trong §A2 ("nhận diện màn bằng
+ * tiêu đề, URL chuẩn hoá và tập nhãn chính"). Chạy trên fixture thì `/truong/:id` ra **5 dòng** — mỗi bản
+ * ghi một dòng, vì tiêu đề màn chi tiết là `Trường THCS Âu Cơ`, `Trường THCS Thủ Lệ`… Tức nó vỡ đúng ở ca
+ * mà tôi viết `chuanHoaRoute` để chống: một lưới 500 bản ghi sinh 500 "màn".
+ *
+ * Tiêu đề của màn chi tiết là **DỮ LIỆU**, không phải danh tính. Chữ ký cấu trúc thì không: cùng một màn
+ * chi tiết thì tập nhãn field, tập component và header bảng giống nhau với mọi bản ghi. Tiêu đề vẫn giữ
+ * lại, nhưng chỉ làm TÊN HIỂN THỊ.
+ *
+ * Đổi lại, hai màn KHÁC nhau mà cùng route và cùng cấu trúc sẽ bị gộp (ví dụ SPA đổi view theo query mà
+ * giữ y nguyên bố cục). Ghi rõ giới hạn đó ở đây chứ không vờ như không có.
+ */
+function chuKyCauTruc(dvt) {
+  const nhan = (dvt.fields || []).map((f) => String(f.nhan || f.ten_truong || '').toLowerCase().trim()).filter(Boolean).sort();
+  const comp = [...(dvt.components || [])].sort();
+  const header = (((dvt.snapshot || {}).tables) || []).flatMap((t) => t.headers || []).map((h) => String(h).toLowerCase().trim()).sort();
+  return JSON.stringify([nhan, comp, header]);
+}
+
+function danhTinh(route, chuKy) {
+  return `${route}\u0000${chuKy}`;
+}
+
+/** Mở các khối co lại trên màn (accordion, tab) để dấu vân tay thấy được field bên trong. */
+async function moCacKhoi(page, bienBan, cfg, doTre) {
+  const moDuoc = [];
+  /*
+   * CHỈ bấm thứ để MỞ RA. `details > summary`, `[aria-expanded=false]`, `[role=tab]` — ba thứ này không
+   * gửi gì đi. Mọi nhãn vẫn qua `duocBam()` trước, vì một app có thể đặt `role=tab` lên một nút Lưu.
+   */
+  for (const sel of ['details:not([open]) > summary', '[aria-expanded="false"]', '[role="tab"]']) {
+    const n = await page.locator(sel).count();
+    for (let i = 0; i < Math.min(n, 12); i += 1) {
+      const el = page.locator(sel).nth(i);
+      let nhan = '';
+      try { nhan = (await el.innerText({ timeout: 800 })) || (await el.getAttribute('aria-label')) || ''; } catch (e) { continue; }
+      if (!bienBan.duocBam(nhan)) continue;
+      bienBan.datNutDangBam(nhan);
+      try { await el.click({ timeout: 1200, noWaitAfter: true }); moDuoc.push(nhan.trim()); } catch (e) { /* phần tử biến mất sau lượt bấm trước — bỏ qua, không chặn lượt bò */ }
+      if (doTre > 0) await page.waitForTimeout(doTre);
+    }
+  }
+  bienBan.datNutDangBam(null);
+  return moDuoc;
+}
+
+/** Gom link trong trang, theo thứ tự DOM, chỉ giữ link cùng origin. */
+async function gomLink(page, origin) {
+  return page.evaluate((org) => [...document.querySelectorAll('a[href]')]
+    .map((a) => a.href)
+    .filter((h) => {
+      try { return new URL(h).origin === org && !/^javascript:/i.test(h); } catch (e) { return false; }
+    })
+    .map((h) => { const u = new URL(h); u.hash = ''; return u.toString(); }), origin);
+}
+
+/**
+ * Bò một app.
+ *
+ * @param {import('playwright').Browser} browser
+ * @param {{baseUrl:string, outDir?:string, maxTrang?:number, doSau?:number, cfg?:any, chupAnh?:boolean,
+ *          phamVi?:RegExp, coCo?:boolean}} o
+ */
+async function boApp(browser, o) {
+  const cfg = o.cfg || fw.napCfg();
+  const gh = cfg.gioi_han_luot_bo;
+  const maxTrang = o.maxTrang || gh.so_trang_toi_da;
+  const doSau = o.doSau == null ? gh.do_sau_toi_da : o.doSau;
+  const hanPhut = gh.thoi_gian_toi_da_phut || 20;
+  /*
+   * ĐỘ TRỄ ghi đè được, và mặc định là giá trị trong config (250ms). Lượt THẬT giữ độ trễ đó vì UAT là
+   * môi trường dùng chung — bò không trễ thì làm chậm người khác và dễ bị coi là tải bất thường. Lượt
+   * TEST chạy trên fixture offline nên đặt 0: spec đầu tiên mất 4,1 phút chỉ vì chờ, và một spec hạ tầng
+   * chậm thế thì người ta thôi chạy nó trước khi commit — lúc đó nó không gác gì nữa.
+   */
+  const doTre = o.doTre == null ? (gh.do_tre_giua_thao_tac_ms || 150) : o.doTre;
+
+  // CHẶN PROD trước mọi thứ. Không có cờ, hoặc host không rõ ⇒ KHÔNG mở trang nào.
+  const kt = fw.kiemTarget(o.baseUrl, cfg, o.coCo === true);
+  if (!kt.duoc) {
+    const e = new Error(`[crawl] TỪ CHỐI BÒ: ${kt.vi_sao}`);
+    e.code = 'TARGET_TU_CHOI';
+    throw e;
+  }
+
+  const origin = new URL(o.baseUrl).origin;
+  const page = await browser.newPage();
+  const bienBan = await fw.install(page, { cfg, domainChoPhep: [new URL(o.baseUrl).host] });
+
+  const hangDoi = [{ url: o.baseUrl, sau: 0 }];
+  const daThay = new Set([o.baseUrl]);
+  const daThamDanhTinh = new Set();
+  const routeDaTham = new Set();
+  const routePhatHien = new Set([chuanHoaRoute(o.baseUrl)]);
+  const screens = [];
+  const khongToiDuoc = { needs_account: [], captcha: [], error: [], budget: [], firewall: [] };
+  const batDau = Date.now();
+
+  while (hangDoi.length) {
+    if (screens.length >= maxTrang) { khongToiDuoc.budget.push(...hangDoi.map((h) => h.url)); break; }
+    if ((Date.now() - batDau) / 60000 > hanPhut) { khongToiDuoc.budget.push(...hangDoi.map((h) => h.url)); break; }
+
+    const { url, sau } = hangDoi.shift();
+    let resp = null;
+    try {
+      resp = await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 15000 });
+    } catch (e) {
+      khongToiDuoc.error.push({ url, vi_sao: String(e.message).slice(0, 120) });
+      continue;
+    }
+    const code = resp ? resp.status() : 0;
+    if (code === 401 || code === 403) { khongToiDuoc.needs_account.push({ url, status: code }); continue; }
+    if (code >= 400) { khongToiDuoc.error.push({ url, status: code }); continue; }
+
+    /*
+     * CAPTCHA: nhận theo dấu hiệu DOM, rồi DỪNG NHÁNH — không thử vượt. Kit đã biết captcha QEMIS hiện ở
+     * mỗi lượt đăng nhập, và một crawler cố vượt captcha là một crawler bị khoá tài khoản.
+     */
+    const coCaptcha = await page.locator('[class*="captcha" i], [id*="captcha" i], iframe[src*="recaptcha"], img[alt*="captcha" i]').count();
+    if (coCaptcha) { khongToiDuoc.captcha.push({ url }); continue; }
+
+    const moDuoc = await moCacKhoi(page, bienBan, cfg, doTre);
+    const route = chuanHoaRoute(url);
+    const dvt = await fp.docDauVanTay(page, { route, keoSnapshot: o.keoSnapshot !== false });
+    const dt = danhTinh(route, chuKyCauTruc(dvt));
+    routeDaTham.add(route);
+
+    if (!daThamDanhTinh.has(dt)) {
+      daThamDanhTinh.add(dt);
+      let anh = null;
+      if (o.chupAnh && o.outDir) {
+        const ten = `${route.replace(/[^a-z0-9]+/gi, '_').replace(/^_|_$/g, '') || 'root'}.png`;
+        const duong = path.join(o.outDir, 'screens', ten);
+        fs.mkdirSync(path.dirname(duong), { recursive: true });
+        await page.screenshot({ path: duong, fullPage: true });
+        anh = path.posix.join('screens', ten);
+      }
+      screens.push({ ...dvt, _dt: dt, url_mau: url, do_sau: sau, khoi_da_mo: moDuoc, evidence: anh, so_ban_ghi_da_xem: 1 });
+    } else {
+      /*
+       * Màn trùng: KHÔNG thêm dòng mới. Ghi `so_ban_ghi_da_xem` để biết màn chi tiết này đã mở trên mấy
+       * bản ghi — con số đó có ích (một màn mở được 5 bản ghi khác nhau mà cấu trúc không đổi là bằng
+       * chứng cấu trúc ổn định), nhưng nó KHÔNG được làm nở mẫu số coverage.
+       */
+      const cu = screens.find((s) => s._dt === dt);
+      if (cu) {
+        cu.so_ban_ghi_da_xem = (cu.so_ban_ghi_da_xem || 1) + 1;
+        cu.url_khac = cu.url_khac || [];
+        if (cu.url_khac.length < 5) cu.url_khac.push(url);
+      }
+    }
+
+    if (sau >= doSau) continue;
+    for (const l of await gomLink(page, origin)) {
+      if (daThay.has(l)) continue;
+      if (o.phamVi && !o.phamVi.test(new URL(l).pathname)) continue;
+      daThay.add(l);
+      routePhatHien.add(chuanHoaRoute(l));
+      hangDoi.push({ url: l, sau: sau + 1 });
+    }
+    if (doTre > 0) await page.waitForTimeout(doTre);
+  }
+
+  await page.close();
+
+  /*
+   * MẪU SỐ PHẢI CÙNG ĐƠN VỊ VỚI TỬ SỐ. Bản đầu lấy `daThay.size` (URL THÔ) làm mẫu số và `screens.length`
+   * làm tử số, rồi báo "chỉ bò tới 10/34 route (29%)" trên fixture — một BÁO ĐỘNG GIẢ: 34 gồm cả
+   * `/truong?sort=ma`, `/truong?page=2`, `/truong/1..5`, vốn là cùng mấy màn đã thăm. Crawler thật ra đã
+   * tới hết.
+   *
+   * Nay cả hai vế đếm bằng ROUTE ĐÃ CHUẨN HOÁ. Số URL thô vẫn giữ riêng (`url_tho_phat_hien`) vì nó cho
+   * biết lượt bò đi qua bao nhiêu đường, nhưng nó KHÔNG phải mẫu số của độ phủ.
+   *
+   * Giới hạn còn lại, nói thẳng: hai màn khác nhau nằm trên cùng một route đã chuẩn hoá thì mẫu số đếm
+   * thiếu. Đổi lại là không còn báo động giả — và một mẫu số nở ra vì `?page=2` thì tệ hơn, vì nó làm mọi
+   * tỉ lệ coverage về sau sai theo.
+   */
+  const soPhatHien = routePhatHien.size;
+  const soToiDuoc = routeDaTham.size;
+  return {
+    target: { host: kt.host, is_nonprod_confirmed: true },
+    screens,
+    crawl_completeness: {
+      route_phat_hien: soPhatHien,
+      route_toi_duoc: soToiDuoc,
+      url_tho_phat_hien: daThay.size,
+      man_rieng_biet: screens.length,
+      ti_le: soPhatHien ? Math.round((soToiDuoc / soPhatHien) * 100) / 100 : 0,
+      khong_toi_duoc: {
+        needs_account: khongToiDuoc.needs_account.length,
+        captcha: khongToiDuoc.captcha.length,
+        error: khongToiDuoc.error.length,
+        budget: khongToiDuoc.budget.length,
+        firewall: bienBan.chan.length ? 0 : 0,
+      },
+      chi_tiet_khong_toi_duoc: khongToiDuoc,
+      /*
+       * Dưới ngưỡng thì MỌI con số coverage về sau phải mang cảnh báo. Không có dòng này thì một lượt bò
+       * tới được 40% route vẫn sinh ra một mẫu số trông như đầy đủ.
+       */
+      canh_bao: soPhatHien && soToiDuoc / soPhatHien < 0.8
+        ? `Chỉ bò tới ${soToiDuoc}/${soPhatHien} route (${Math.round((soToiDuoc / soPhatHien) * 100)}%) — mọi tỉ lệ coverage dựa trên lượt bò này phải ghi kèm cảnh báo này.`
+        : null,
+    },
+    tuong_lua: bienBan.tomTat(),
+    status: 'observed',
+  };
+}
+
+module.exports = { boApp, chuanHoaRoute, danhTinh, chuKyCauTruc };
