@@ -30,6 +30,7 @@ const ai = require(path.join(__dirname, 'discovery', 'api_inventory.js'));
 const fu = require(path.join(__dirname, 'discovery', 'fuse.js'));
 const isf = require(path.join(__dirname, 'discovery', 'injection_surface.js'));
 const rl = require(path.join(__dirname, 'discovery', 'roles.js'));
+const dl = require(path.join(__dirname, 'discovery', 'delta.js'));
 
 const CHARS_PER_TOK = 3.2;
 const TRAN = { task: 2000, delta: 1000, system: 4000 };
@@ -94,6 +95,42 @@ function dungTomTat(d, mode) {
   for (const b of bm) batBuoc.push(`- ${b.nhom}@${b.o} (${b.uu_tien}, gộp ${b.so_diem_nhap} điểm nhập)`);
   if (!bm.length) batBuoc.push('- (không có)');
   batBuoc.push('');
+
+  /*
+   * KHÁC BIỆT SO VỚI LƯỢT TRƯỚC — không cắt, và đứng TRƯỚC mọi thứ khác ở chế độ `delta`. Ở chế độ đó
+   * nó là toàn bộ lý do người ta chạy lệnh; mọi mục khác chỉ là nền.
+   */
+  if (d.delta) {
+    if (!d.delta.co_snapshot_truoc) {
+      batBuoc.push('## Khác biệt: CHƯA CÓ GÌ ĐỂ SO');
+      batBuoc.push(`- ${d.delta._vi_sao}`);
+      batBuoc.push('');
+    } else {
+      batBuoc.push(`## Khác biệt so với \`${d.delta.build_truoc}\`: ${d.delta.so_thay_doi} thay đổi`);
+      for (const r of d.delta.man_them) batBuoc.push(`- MÀN MỚI: ${r}`);
+      for (const r of d.delta.man_mat) batBuoc.push(`- MÀN MẤT: ${r}`);
+      for (const m of d.delta.man_doi) {
+        const ph = [];
+        if (m.field_them.length) ph.push(`+${m.field_them.length} field`);
+        if (m.field_mat.length) ph.push(`-${m.field_mat.length} field`);
+        if (m.field_doi.length) ph.push(`${m.field_doi.length} field đổi ràng buộc`);
+        if (m.component_them.length) ph.push(`+component ${m.component_them.join(',')}`);
+        if (m.component_mat.length) ph.push(`-component ${m.component_mat.join(',')}`);
+        batBuoc.push(`- ${m.route}: ${ph.join(' · ')}`);
+        for (const f of m.field_doi) for (const k of f.khac) batBuoc.push(`    · ${f.field}.${k.rang_buoc}: ${JSON.stringify(k.truoc)} → ${JSON.stringify(k.sau)}`);
+      }
+      for (const a2 of d.delta.api_them) batBuoc.push(`- API MỚI: ${a2}`);
+      for (const a2 of d.delta.api_mat) batBuoc.push(`- API MẤT: ${a2}`);
+      if (!d.delta.so_thay_doi) batBuoc.push('- (không có thay đổi nào)');
+      batBuoc.push('');
+      const dx = d.delta.de_xuat || [];
+      if (dx.length) {
+        batBuoc.push(`## Đề xuất chạy lại: ${dx.length} màn (CHỈ đề xuất, không tự chạy)`);
+        for (const x of dx) batBuoc.push(`- [${x.muc}] ${x.route} — ${x.vi_sao}`);
+        batBuoc.push('');
+      }
+    }
+  }
 
   // PHÁT HIỆN từ ma trận vai trò — không cắt. Đây là thứ duy nhất trong bản tóm tắt nói app TỰ MÂU THUẪN.
   const ef = ((d.rolesOut || {}).expansion_findings) || [];
@@ -229,6 +266,12 @@ async function main() {
       maxTrang: arg('max-trang', '') === '' ? undefined : Number(arg('max-trang', '')),
       doSau: arg('do-sau', '') === '' ? undefined : Number(arg('do-sau', '')),
       phamVi,
+      /*
+       * `task` bò trong phạm vi CỘNG lân cận một bước; `system` và `delta` không giới hạn kiểu đó. Đây
+       * là chỗ ba chế độ thật sự khác nhau — bản v2.6.0 chỉ cho chúng ba trần token khác nhau rồi khai
+       * là "ba chế độ chạy".
+       */
+      lanCan: mode === 'task' && !!phamVi,
       context: ctx,
       /*
        * `--do-tre` ghi đè độ trễ giữa thao tác. Lượt THẬT trên UAT giữ 250ms của config vì đó là môi
@@ -279,16 +322,35 @@ async function main() {
     } finally { await browser2.close(); }
   }
 
+  /*
+   * DELTA. So với snapshot GẦN NHẤT cùng host và CÙNG PHẠM VI. Khác phạm vi thì không so: một lượt bò
+   * cả app đặt cạnh một lượt bò một module sẽ cho ra "mọi màn ngoài module đã biến mất", và bản báo cáo
+   * đó vô dụng. Không có snapshot nào để so thì NÓI RA, không im lặng trả về 0 khác biệt — "chưa có gì
+   * để so" và "không có gì đổi" là hai chuyện khác nhau.
+   */
+  let delta = null;
+  if (mode === 'delta') {
+    const goc = path.join(rc.REPO_ROOT, 'knowledge', 'system', 'discovery');
+    const truoc = dl.timSnapshotTruoc(goc, { host: kt.host, phamVi: crawl.pham_vi, boQuaBuild: bid });
+    if (!truoc) {
+      delta = { co_snapshot_truoc: false, _vi_sao: `Không có snapshot nào trước đó cho host này với CÙNG phạm vi (${crawl.pham_vi || 'toàn app'}). Đây KHÔNG phải "0 khác biệt" — chưa có gì để so. Lượt này trở thành mốc cho lần sau.` };
+    } else {
+      const d = dl.soSanh(truoc.map, { screens: crawl.screens, apis: api.apis });
+      delta = { co_snapshot_truoc: true, build_truoc: truoc.build, ...d, ...dl.deXuatChayLai(d) };
+    }
+  }
+
   const fuse = fu.gop({ crawl, api, taiLieu });
   const injection = isf.lietKe({ crawl, api, cfg });
 
   const outRel = path.relative(rc.REPO_ROOT, OUT).replace(/\\/g, '/');
-  const goiDu = { build_id: bid, mode, crawl, api, fuse, injection, rolesOut, roles: (rolesOut || {}).roles, outRel };
+  const goiDu = { build_id: bid, mode, crawl, api, fuse, injection, delta, rolesOut, roles: (rolesOut || {}).roles, outRel };
 
   fs.writeFileSync(path.join(OUT, 'system_map.json'), JSON.stringify({ build_id: bid, mode, target: crawl.target, screens: crawl.screens, apis: api.apis, doc_coverage: fuse.doc_coverage, crawl_completeness: crawl.crawl_completeness, pham_vi: crawl.pham_vi, roles: (rolesOut || {}).roles || [], role_route_matrix: (rolesOut || {}).role_route_matrix || [], status: 'observed' }, null, 2), 'utf8');
   fs.writeFileSync(path.join(OUT, 'injection_surface.json'), JSON.stringify({ build_id: bid, ...injection }, null, 2), 'utf8');
   fs.writeFileSync(path.join(OUT, 'api_inventory.json'), JSON.stringify({ build_id: bid, ...api }, null, 2), 'utf8');
   fs.writeFileSync(path.join(OUT, 'doc_coverage.json'), JSON.stringify({ build_id: bid, ...fuse }, null, 2), 'utf8');
+  if (delta) fs.writeFileSync(path.join(OUT, 'delta.json'), JSON.stringify({ build_id: bid, ...delta }, null, 2), 'utf8');
   if (rolesOut) fs.writeFileSync(path.join(OUT, 'roles.json'), JSON.stringify({ build_id: bid, ...rolesOut }, null, 2), 'utf8');
 
   const hoiTatCa = [...(fuse.cau_hoi_ambiguity || []), ...(injection.cau_hoi_ambiguity || []), ...((rolesOut || {}).cau_hoi_ambiguity || [])];

@@ -38,16 +38,16 @@ Trước đây nhánh GitLab cố ý bị gỡ 2 file so với GitHub. Hai file 
 hai cây **hết phân kỳ**. Cơ chế strip vẫn giữ: lần sau có đường dẫn nào chỉ được nằm ở một nhánh thì khai
 vào file đó, đừng gỡ tay.
 
-Đo ngày 11/10/2026 (sau v2.6.0 §A1) trên **worktree sạch ở HEAD** (`git worktree add --detach`), không đo trên cây làm việc:
-cây làm việc có file chưa track và chúng đẩy số test lên (đo cùng lúc: 1.222 trên cây làm việc, 1.207 trên cây sạch).
+Đo ngày 11/10/2026 (v2.6.1) trên **worktree sạch ở HEAD** (`git worktree add --detach`), không đo trên cây làm việc:
+cây làm việc có file chưa track và chúng đẩy số test lên (đo cùng lúc: 1.271 trên cây làm việc, 1.258 trên cây sạch).
 
 | | GitHub | GitLab |
 |---|---|---|
-| file được track | 595 | 595 |
-| `npx playwright test tests/fe/infra` | **1.207 test · 0 đỏ** (1.198 chạy · 9 bỏ qua) | **1.207 test · 0 đỏ** |
-| `npm run ci:scope` đếm | 100 spec | 100 spec |
+| file được track | 598 | 598 |
+| `npx playwright test tests/fe/infra` | **1.258 test · 0 đỏ** (1.248 chạy · 10 bỏ qua) | **1.258 test · 0 đỏ** |
+| `npm run ci:scope` đếm | 101 spec | 101 spec |
 
-> 9 test bỏ qua trên cây sạch là đúng: chúng cần dữ liệu ở `knowledge/**` hoặc `outputs/**` — hai lớp PROJECT
+> 10 test bỏ qua trên cây sạch là đúng: chúng cần dữ liệu ở `knowledge/**` hoặc `outputs/**` — hai lớp PROJECT
 > bị gitignore. Mỗi test tự in lý do khi bỏ qua.
 
 **Số của bạn khác bảng này là có gì đó sai** — đừng bỏ qua. Test bỏ qua đều tự khai lý do khi chạy.

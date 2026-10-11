@@ -10,7 +10,7 @@ Script làm hết việc bò, đọc DOM, bắt network, gộp nguồn. **Bạn 
 | Chế độ | Khi dùng | Phạm vi |
 |---|---|---|
 | `task` | đầu mỗi Phase 1 (mặc định) | module của task + lân cận 1 bước |
-| `delta` | build mới, trước regression | chỉ phần khác so với snapshot gần nhất |
+| `delta` | build mới, trước regression | chỉ phần khác so với snapshot gần nhất (v2.6.1) |
 | `system` | nhận dự án mới | toàn app, theo giới hạn lượt bò |
 
 ```bash
@@ -21,6 +21,12 @@ TASK_ENV=profiles/<TASK>/task.env npm run discover -- --mode task \
 
 Không có `--confirm-nonprod` thì lệnh **từ chối**. Host không khớp dấu hiệu non-prod cũng từ chối — nó
 không đoán.
+
+`--mode delta` so **hình dạng** với lượt bò gần nhất **cùng host và cùng phạm vi**. Nó nêu màn mới, màn
+biến mất, field đổi ràng buộc (`maxlength`, `required`, `pattern`), rồi component và API mới hoặc mất.
+Nó **không** so giá trị dữ liệu. Dữ liệu UAT đổi mỗi ngày, nên so nó thì lượt nào cũng có khác biệt và một
+thay đổi thật chìm theo. Đọc kỹ một phân biệt: **"chưa có snapshot để so" KHÁC "0 khác biệt"**. Hai câu
+cùng ra số 0 mà nghĩa ngược nhau. Phần đề xuất chạy lại chỉ là đề xuất, người chốt phạm vi.
 
 ## Rồi làm hai việc với kết quả
 

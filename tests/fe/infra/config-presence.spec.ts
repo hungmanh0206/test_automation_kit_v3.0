@@ -173,7 +173,15 @@ test.describe('@infra config của gate — phải có mặt, thiếu thì phả
      * `package_kit.js` đã bị cắt một dòng.
      */
     const pk = fs.readFileSync(path.join(REPO, 'scripts/qa/package_kit.js'), 'utf8');
-    const nan = pk.replace("  '.agent/config/design_techniques.json',\n", '');
+    /*
+     * Cắt bằng REGEX chịu được cả hai kiểu xuống dòng, không bằng chuỗi ghim `\n`.
+     *
+     * Bản đầu ghim `"  '.agent/config/design_techniques.json',\n"`. Repo này không có `.gitattributes`
+     * và máy đang đặt `core.autocrlf=true`, nên blob là LF mà bản trên đĩa là CRLF: chuỗi ghim `\n`
+     * KHÔNG khớp, `replace` trả về y nguyên, và âm bản này đỏ trên Windows trong khi vẫn xanh trên CI.
+     * Một test chỉ đỏ ở một hệ máy là test không nói được gì về sản phẩm.
+     */
+    const nan = pk.replace(/[ \t]*'\.agent\/config\/design_techniques\.json',\r?\n/, '');
     const goi = duongTrongGoi(nan);
     expect(nan, 'fixture phải khác bản thật, nếu không thì phép so này vô nghĩa').not.toBe(pk);
     const thieu = configDuocDoc()
