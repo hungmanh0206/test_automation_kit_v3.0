@@ -143,13 +143,49 @@ async function oCanChe(page) {
 }
 
 /** Gom link trong trang, theo thứ tự DOM, chỉ giữ link cùng origin. */
-async function gomLink(page, origin) {
-  return page.evaluate((org) => [...document.querySelectorAll('a[href]')]
-    .map((a) => a.href)
-    .filter((h) => {
-      try { return new URL(h).origin === org && !/^javascript:/i.test(h); } catch (e) { return false; }
-    })
-    .map((h) => { const u = new URL(h); u.hash = ''; return u.toString(); }), origin);
+/**
+ * Gom link trong trang, theo thứ tự DOM, chỉ giữ link cùng origin.
+ *
+ * LỖ HỔNG ĐO ĐƯỢC TRÊN UAT THẬT (11/10, lượt §E đầu tiên): crawler ĐI THEO LINK ĐĂNG XUẤT và tự huỷ
+ * session của chính nó. `nut_cam_bam` chỉ gác lượt BẤM NÚT; `gomLink` thì gom mọi `a[href]` mà không
+ * kiểm nhãn. Trên QEMIS, Đăng xuất là một thẻ `<a>` trong menu người dùng, nằm ngay đầu thứ tự DOM.
+ *
+ * Hậu quả đo được, và nó ngụy trang rất khéo: bò được 6 màn rồi chạm `/Logout.aspx`, sau đó **292/321
+ * route** bị đẩy về màn đăng nhập và bộ dò captcha gắn nhãn `captcha` cho tất cả. Báo cáo đọc ra như
+ * "app này bắt captcha ở mọi màn" — một kết luận SAI HẲN về sản phẩm, sinh ra từ một lỗi của chính kit.
+ *
+ * Chặn theo HAI đường, vì mỗi đường bắt một dạng khác nhau:
+ *   ① NHÃN link khớp `nut_cam_bam` — bắt được "Đăng xuất", "Thoát", "Logout";
+ *   ② ĐƯỜNG DẪN khớp khuôn đăng xuất — bắt được link chỉ có icon, không chữ.
+ */
+async function gomLink(page, origin, cfg) {
+  const camNhan = (cfg.nut_cam_bam || []).map((x) => fw.chuanHoa(x));
+  const ra = await page.evaluate(({ org, cam }) => {
+    const chuan = (s) => String(s == null ? '' : s)
+      .normalize('NFC').normalize('NFD').replace(/[̀-ͯ]/g, '')
+      .replace(/đ/gi, 'd').toLowerCase().replace(/\s+/g, ' ')
+      .trim();
+    const out = [];
+    for (const a of document.querySelectorAll('a[href]')) {
+      let u;
+      try { u = new URL(a.href); } catch (e) { continue; }
+      if (u.origin !== org || /^javascript:/i.test(a.href)) continue;
+      const nhan = chuan(a.textContent || a.getAttribute('aria-label') || a.getAttribute('title'));
+      const camTheoNhan = cam.some((c) => c && new RegExp(`(^|[^a-z0-9])${c.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}([^a-z0-9]|$)`).test(nhan));
+      u.hash = '';
+      out.push({ url: u.toString(), path: u.pathname, nhan, camTheoNhan });
+    }
+    return out;
+  }, { org: origin, cam: camNhan });
+
+  const RE_THOAT = /(logout|signout|sign-?out|dang-?xuat|dangxuat|thoat)/i;
+  const bo = [];
+  const giu = [];
+  for (const l of ra) {
+    if (l.camTheoNhan || RE_THOAT.test(l.path)) { bo.push({ url: l.url, nhan: l.nhan }); continue; }
+    giu.push(l.url);
+  }
+  return { giu, bo };
 }
 
 /**
@@ -202,6 +238,7 @@ async function boApp(browser, o) {
   const daThay = new Set([o.baseUrl]);
   const daThamDanhTinh = new Set();
   const routeDaTham = new Set();
+  const linkDaBo = new Map();   // link CỐ Ý không đi theo (đăng xuất…), giữ lại để báo cáo
   const routePhatHien = new Set([chuanHoaRoute(o.baseUrl)]);
   const screens = [];
   const khongToiDuoc = { needs_account: [], captcha: [], error: [], budget: [], firewall: [] };
@@ -231,9 +268,36 @@ async function boApp(browser, o) {
     const coCaptcha = await page.locator('[class*="captcha" i], [id*="captcha" i], iframe[src*="recaptcha"], img[alt*="captcha" i]').count();
     if (coCaptcha) { khongToiDuoc.captcha.push({ url }); continue; }
 
-    const moDuoc = await moCacKhoi(page, bienBan, cfg, doTre);
-    const route = chuanHoaRoute(url);
-    const dvt = await fp.docDauVanTay(page, { route, keoSnapshot: o.keoSnapshot !== false });
+    /*
+     * TRẦN MỖI TRANG. Trần TỔNG ở đầu vòng lặp KHÔNG đủ: nó chỉ được kiểm GIỮA các trang, nên một trang
+     * treo thì nó không bao giờ bắn và lượt bò chạy vô hạn mà vẫn "trong ngân sách".
+     *
+     * Chỗ treo được: `page.evaluate` của dấu vân tay và của `gomLink` KHÔNG có timeout nào — trên một
+     * lưới Telerik hàng chục nghìn node, phép lọc leaf node có thể rất lâu. Và `moCacKhoi` bấm vào
+     * `[aria-expanded]`/`[role=tab]`, mà trên app ASP.NET những nút đó gây POSTBACK — tức một request
+     * ghi, bị chính tường lửa của ta abort, để lại trang ở trạng thái điều hướng dở.
+     *
+     * Hết giờ thì ghi trang đó vào `khong_toi_duoc.error` rồi ĐI TIẾP. Một trang hỏng không được làm
+     * chết cả lượt: 11 trang còn lại vẫn là dữ liệu thật.
+     */
+    const tranTrang = (gh.thoi_gian_moi_trang_giay || 90) * 1000;
+    const hetGio = Symbol('het-gio');
+    const xuLyTrang = (async () => {
+      const moDuoc = await moCacKhoi(page, bienBan, cfg, doTre);
+      const route = chuanHoaRoute(url);
+      const dvt = await fp.docDauVanTay(page, { route, keoSnapshot: o.keoSnapshot !== false });
+      return { moDuoc, route, dvt };
+    })();
+    const kq = await Promise.race([
+      xuLyTrang,
+      new Promise((res) => { setTimeout(() => res(hetGio), tranTrang); }),
+    ]).catch((e) => ({ _loi: String(e.message).slice(0, 120) }));
+    if (kq === hetGio) {
+      khongToiDuoc.error.push({ url, vi_sao: `quá ${tranTrang / 1000}s cho một trang — bỏ qua, đi tiếp` });
+      continue;
+    }
+    if (kq && kq._loi) { khongToiDuoc.error.push({ url, vi_sao: kq._loi }); continue; }
+    const { moDuoc, route, dvt } = kq;
     const dt = danhTinh(route, chuKyCauTruc(dvt));
     routeDaTham.add(route);
 
@@ -263,7 +327,12 @@ async function boApp(browser, o) {
     }
 
     if (sau >= doSau) continue;
-    for (const l of await gomLink(page, origin)) {
+    const lk = await gomLink(page, origin, cfg);
+    for (const x of lk.bo) {
+      if (linkDaBo.has(x.url)) continue;
+      linkDaBo.set(x.url, x.nhan);
+    }
+    for (const l of lk.giu) {
       if (daThay.has(l)) continue;
       if (o.phamVi && !o.phamVi.test(new URL(l).pathname)) continue;
       daThay.add(l);
@@ -308,9 +377,23 @@ async function boApp(browser, o) {
       },
       chi_tiet_khong_toi_duoc: khongToiDuoc,
       /*
+       * Link CỐ Ý KHÔNG đi theo. Ghi ra chứ không im lặng: người đọc phải biết lượt bò đã tránh những
+       * đường nào, nếu không thì "không thấy màn Đăng xuất" trông như một thiếu sót của lượt bò.
+       */
+      link_co_y_bo_qua: [...linkDaBo.entries()].map(([url, nhan]) => ({ url, nhan })),
+      /*
        * Dưới ngưỡng thì MỌI con số coverage về sau phải mang cảnh báo. Không có dòng này thì một lượt bò
        * tới được 40% route vẫn sinh ra một mẫu số trông như đầy đủ.
        */
+      /*
+       * SESSION CHẾT GIỮA CHỪNG ngụy trang thành "app bắt captcha ở mọi màn". Đo thật trên UAT: 292/321
+       * route bị gắn nhãn `captcha`, và báo cáo đọc ra như một đặc điểm của sản phẩm — trong khi nguyên
+       * nhân là lượt bò tự đi vào `/Logout.aspx`. Một tỉ lệ captcha cao là tín hiệu của PHIÊN, không
+       * phải của app, nên nói thẳng ra ở đây.
+       */
+      canh_bao_session: (khongToiDuoc.captcha.length > 3 && khongToiDuoc.captcha.length > soToiDuoc)
+        ? `${khongToiDuoc.captcha.length} route báo captcha trong khi chỉ bò được ${soToiDuoc} màn. Một app hiếm khi bắt captcha ở mọi màn — nhiều khả năng SESSION ĐÃ CHẾT giữa chừng và mọi trang sau đó là màn đăng nhập. Kiểm "link_co_y_bo_qua" và lịch sử điều hướng trước khi kết luận gì về sản phẩm.`
+        : null,
       canh_bao: soPhatHien && soToiDuoc / soPhatHien < 0.8
         ? `Chỉ bò tới ${soToiDuoc}/${soPhatHien} route (${Math.round((soToiDuoc / soPhatHien) * 100)}%) — mọi tỉ lệ coverage dựa trên lượt bò này phải ghi kèm cảnh báo này.`
         : null,
@@ -320,4 +403,4 @@ async function boApp(browser, o) {
   };
 }
 
-module.exports = { boApp, chuanHoaRoute, danhTinh, chuKyCauTruc, oCanChe };
+module.exports = { boApp, chuanHoaRoute, danhTinh, chuKyCauTruc, oCanChe, gomLink };

@@ -86,6 +86,7 @@ const CHROME = (vaiTro, tieuDe, than) => `<!doctype html>
     <a href="/bao-cao-emis" aria-disabled="true" style="opacity:.45">Báo cáo EMIS (chưa mở)</a>
   </details>
   ${vaiTro === 'admin' ? '<details class="nhom" open><summary>Quản trị</summary><a href="/admin">Cấu hình hệ thống</a></details>' : '<!-- vai trò nhanvien: mục Quản trị KHÔNG render ở menu, nhưng /admin vẫn vào được -->'}
+  <a href="/Logout.aspx">Đăng xuất</a>
   <hr style="border-color:#2c3a47">
   <span style="font-size:12px;color:#8fa6ba">vai trò: <b id="vaiTro">${vaiTro}</b></span>
   <form method="POST" action="/login" style="margin-top:8px">
@@ -334,6 +335,33 @@ function start() {
     if (p === '/them-truong') return html(trangThemTruong(vaiTro));
     if (p === '/bao-cao') return html(trangBaoCao(vaiTro, q));
     if (p === '/admin') return html(trangAdmin(vaiTro));   // KHÔNG kiểm quyền — cố ý
+    /*
+     * Trang CHẬM có chủ đích, dùng để đo TRẦN MỖI TRANG.
+     *
+     * Chặn SAU khi tải xong (setTimeout 50ms), KHÔNG chặn trong lúc tải. Bản đầu chặn ngay trong lúc tải
+     * và test đỏ: `page.goto` tự nó chờ hết 4 giây rồi mới trả về, nên tới lúc dấu vân tay chạy thì luồng
+     * đã rảnh và trần mỗi trang không bao giờ bắn. Đường cần đo là đường SAU goto.
+     *
+     * Link tới trang này KHÔNG đặt trong menu: chỉ test gọi thẳng.
+     */
+    /*
+     * `/Logout.aspx` HUY session roi day ve man dang nhap co captcha. Dung dung hinh dang cua QEMIS:
+     * Dang xuat la mot the <a> trong menu, nen crawler di theo link se tu giet phien cua chinh no.
+     */
+    if (p === '/Logout.aspx') {
+      res.writeHead(302, { 'set-cookie': 'role=; Path=/; Max-Age=0', location: '/Login.aspx' });
+      return res.end();
+    }
+    if (p === '/Login.aspx') {
+      return html('<!doctype html><html><body><h1>Dang nhap</h1>'
+        + '<img id="captchaImage" alt="captcha" src="data:image/gif;base64,R0lGODlhAQABAAAAACw=">'
+        + '</body></html>');
+    }
+    if (p === '/trang-cham') {
+      const ms = Number(q.get('ms') || 3000);
+      return html(CHROME(vaiTro, 'Trang cham', '<p>Trang nay chan luong JS mot luc.</p>' +
+        '<script>setTimeout(function(){var het=Date.now()+' + ms + ';while(Date.now()<het){}},50)<\/script>'));
+    }
     /*
      * `/bao-cao-emis`: menu KHOÁ mục này (aria-disabled) nhưng server VẪN trả 200. Đây là lỗ thứ hai,
      * khác đường vào với `/admin`: ở `/admin` việc chặn nằm ở chỗ ẩn menu, ở đây nằm ở chỗ khoá nút. Cả

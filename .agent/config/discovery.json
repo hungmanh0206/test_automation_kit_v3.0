@@ -103,6 +103,8 @@
     "_vi_sao_1_luong": "SỬA 11/10 (lúc viết `crawl.js`): bản đầu khai 2, lý do là \"lượt system quá lâu\". Lý do đó SAI. Điểm số 1 trong 10 điểm vượt kit A là BÒ TẤT ĐỊNH — mỗi lượt cho ra cùng một kết quả. BFS hai luồng thì thứ tự thăm phụ thuộc lượt nào về trước, nên thứ tự `screens[]` VÀ cả việc màn nào bị cắt vì hết ngân sách đều đổi giữa hai lượt — tức chế độ `delta` sẽ báo khác biệt GIẢ. Đổi tốc độ lấy tính tất định là đúng chiều ở đây; muốn nhanh thì thu hẹp phạm vi (`--mode task`), không tăng luồng.",
     "do_tre_giua_thao_tac_ms": 250,
     "thoi_gian_toi_da_phut": 20,
+    "thoi_gian_moi_trang_giay": 90,
+    "_vi_sao_co_tran_moi_trang": "Trần TỔNG (`thoi_gian_toi_da_phut`) chỉ được kiểm ở ĐẦU mỗi vòng lặp, nên một trang treo thì nó KHÔNG BAO GIỜ bắn — lượt bò chạy vô hạn mà vẫn \"trong ngân sách\". Phát hiện khi chuẩn bị lượt §E trên QEMIS: app Telerik postback khiến mỗi trang tốn hàng chục giây, và lúc đó mới thấy trần tổng không đủ. Trần MỖI TRANG bọc toàn bộ phần xử lý một trang (mở khối, đọc dấu vân tay, gom link); hết giờ thì ghi trang đó vào `khong_toi_duoc.error` rồi đi tiếp, KHÔNG làm chết cả lượt.",
     "_het_gioi_han_thi_sao": "DỪNG và ghi phần chưa tới vào `crawl_completeness.khong_toi_duoc.budget`. KHÔNG báo 100%."
   },
   "_tu_dien_loi_sql_la_gi": "Dấu hiệu MÁY ĐỌC ĐƯỢC của việc back-end để lọt lỗi cơ sở dữ liệu ra ngoài. Dùng ở oracle case injection (A9.3) và ở `dim:coverage`. Một dòng khớp = FAIL, không cần suy luận thêm: thông báo lỗi SQL lọt ra UI/response đã là lỗ thông tin, bất kể có inject được hay không.",

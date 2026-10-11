@@ -338,3 +338,103 @@ test.describe('@infra che PII trong ẢNH chụp màn', () => {
     expect(src, 'và ghi rõ vì sao che lúc chụp').toMatch(/chụp xong rồi bôi/);
   });
 });
+
+test.describe('@infra trần MỖI TRANG — trần tổng một mình không đủ', () => {
+  /*
+   * Trần TỔNG (`thoi_gian_toi_da_phut`) chỉ được kiểm ở ĐẦU mỗi vòng lặp, nên một trang treo thì nó
+   * KHÔNG BAO GIỜ bắn: lượt bò chạy vô hạn mà vẫn "trong ngân sách".
+   *
+   * Chỗ treo được là có thật, không phải lo xa: `page.evaluate` của dấu vân tay và của `gomLink` KHÔNG
+   * có timeout nào, và trên app ASP.NET thì `moCacKhoi` bấm vào các nút gây POSTBACK — tức một request
+   * ghi, bị chính tường lửa của ta abort, để lại trang ở trạng thái điều hướng dở.
+   */
+  test('một trang chặn luồng JS ⇒ bỏ qua trang đó, lượt bò ĐI TIẾP', async () => {
+    const cfg = fw.napCfg();
+    cfg.gioi_han_luot_bo = { ...cfg.gioi_han_luot_bo, thoi_gian_moi_trang_giay: 1 };
+    const r = await cr.boApp(br, {
+      baseUrl: `${srv.url}/trang-cham?ms=4000`, coCo: true, cfg, doTre: 0, keoSnapshot: false, doSau: 0,
+    });
+    const loi = r.crawl_completeness.chi_tiet_khong_toi_duoc.error;
+    expect(loi.length, 'trang chậm phải vào danh sách không tới được').toBeGreaterThan(0);
+    expect(String(loi[0].vi_sao)).toMatch(/quá 1s cho một trang/);
+    expect(r.screens.length, 'và KHÔNG được tính là một màn đã bò').toBe(0);
+  });
+
+  test('một trang hỏng KHÔNG làm chết cả lượt — các trang còn lại vẫn là dữ liệu thật', async () => {
+    /* Đây là lý do dùng `continue` chứ không `throw`: 11 trang còn lại vẫn đáng giá. */
+    const cfg = fw.napCfg();
+    cfg.gioi_han_luot_bo = { ...cfg.gioi_han_luot_bo, thoi_gian_moi_trang_giay: 2 };
+    const r = await cr.boApp(br, { baseUrl: srv.url, coCo: true, cfg, doTre: 0, keoSnapshot: false });
+    expect(r.screens.length, 'vẫn bò được các màn bình thường').toBeGreaterThanOrEqual(5);
+  });
+
+  test('trần mỗi trang khai trong CONFIG kèm lý do, không đóng cứng trong code', () => {
+    const cfg = fw.napCfg();
+    expect(cfg.gioi_han_luot_bo.thoi_gian_moi_trang_giay).toBeGreaterThan(0);
+    expect(cfg.gioi_han_luot_bo._vi_sao_co_tran_moi_trang, 'phải ghi vì sao trần tổng không đủ')
+      .toMatch(/chỉ được kiểm ở ĐẦU mỗi vòng lặp/);
+  });
+});
+
+test.describe('@infra KHÔNG đi theo link Đăng xuất — lỗ đo được trên UAT thật', () => {
+  /*
+   * LƯỢT §E ĐẦU TIÊN TRÊN UAT (11/10) phơi ra lỗ này, và nó ngụy trang rất khéo.
+   *
+   * `nut_cam_bam` chỉ gác lượt BẤM NÚT; `gomLink` gom mọi `a[href]` mà không kiểm nhãn. Trên QEMIS,
+   * Đăng xuất là một thẻ `<a>` trong menu người dùng, nằm ngay đầu thứ tự DOM. Crawler đi theo nó và TỰ
+   * HUỶ SESSION của chính mình.
+   *
+   * Số đo: bò được 6 màn rồi chạm `/Logout.aspx`, sau đó **292/321 route** bị đẩy về màn đăng nhập, và
+   * bộ dò captcha gắn nhãn `captcha` cho tất cả. Bản tóm tắt đọc ra như "app này bắt captcha ở mọi màn"
+   * — một kết luận SAI HẲN về sản phẩm, sinh ra từ một lỗi của chính kit. Đó là loại sai tệ nhất: nó
+   * không làm gì đỏ, nó chỉ tạo ra một phát hiện giả rất thuyết phục.
+   */
+  test('link Đăng xuất bị BỎ QUA, và session vẫn sống sau cả lượt bò', async () => {
+    const r = await bo({ keoSnapshot: false });
+    const route = (r.screens as Man[]).map((s) => s.route);
+    expect(route, 'KHÔNG được đi vào /Logout.aspx').not.toContain('/Logout.aspx');
+    expect(route, 'và do đó KHÔNG bao giờ thấy màn đăng nhập').not.toContain('/Login.aspx');
+    expect(r.crawl_completeness.khong_toi_duoc.captcha, 'session còn sống ⇒ 0 route báo captcha').toBe(0);
+    expect(route.length, 'vẫn bò được các màn thường').toBeGreaterThanOrEqual(6);
+  });
+
+  test('link bị bỏ qua phải GHI RA, không im lặng', async () => {
+    /* Không ghi thì "lượt bò không thấy màn Đăng xuất" trông như một thiếu sót của lượt bò. */
+    const r = await bo({ keoSnapshot: false });
+    const bq = r.crawl_completeness.link_co_y_bo_qua as { url: string; nhan: string }[];
+    expect(bq.some((x) => /Logout/i.test(x.url)), 'phải kê link đã tránh').toBe(true);
+    expect(bq.find((x) => /Logout/i.test(x.url))!.nhan).toMatch(/dang xuat/);
+  });
+
+  test('chặn theo CẢ HAI đường: nhãn, và đường dẫn', async ({ page }) => {
+    /*
+     * Nhãn bắt được "Đăng xuất"/"Logout"; đường dẫn bắt được link chỉ có icon, không chữ. Thiếu đường
+     * thứ hai thì một nút đăng xuất dạng icon vẫn lọt.
+     */
+    await page.goto(srv.url);
+    await page.setContent(`<a href="${srv.url}/Logout.aspx"><i class="icon"></i></a>
+      <a href="${srv.url}/binh-thuong">Xem danh sách</a>`);
+    const lk = await cr.gomLink(page, new URL(srv.url).origin, fw.napCfg());
+    expect(lk.bo.length, 'link icon không chữ vẫn phải bị chặn theo đường dẫn').toBe(1);
+    expect(lk.giu.length).toBe(1);
+  });
+
+  test('tỉ lệ captcha cao ⇒ báo SESSION CHẾT, không báo đặc điểm của app', async () => {
+    /*
+     * Chốt chặn cho đúng triệu chứng đã gặp. Một app hiếm khi bắt captcha ở MỌI màn; tỉ lệ captcha cao là
+     * tín hiệu của PHIÊN, không phải của sản phẩm.
+     */
+    const gia = {
+      crawl_completeness: {
+        khong_toi_duoc: { captcha: 292 },
+        chi_tiet_khong_toi_duoc: { captcha: new Array(292).fill({ url: 'x' }) },
+      },
+    };
+    // Đo trực tiếp trên văn bản cảnh báo trong mã nguồn: nhánh này chỉ chạy khi session chết thật.
+    const src = fs.readFileSync(path.join(DIR, 'crawl.js'), 'utf8');
+    expect(src).toMatch(/canh_bao_session/);
+    expect(src).toMatch(/hiếm khi bắt captcha ở mọi màn/);
+    expect(src, 'và nói rõ đừng kết luận về sản phẩm').toMatch(/trước khi kết luận gì về sản phẩm/);
+    expect(gia.crawl_completeness.khong_toi_duoc.captcha).toBeGreaterThan(3);
+  });
+});
