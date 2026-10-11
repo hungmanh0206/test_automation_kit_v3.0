@@ -1,5 +1,5 @@
 ---
-description: Sinh bộ testcase cho một task (Phase 1) — đọc spec, hỏi cho hết mơ hồ, rồi mới sinh và xuất Excel canonical.
+description: Sinh bộ testcase cho một task (Phase 1) — đọc spec, hỏi cho hết mơ hồ, rồi mới sinh Markdown canonical và xuất Excel.
 ---
 
 Task: **$ARGUMENTS**
@@ -28,4 +28,4 @@ npm run risk:gate
 **Dừng khi:** còn câu hỏi mơ hồ về spec — **Ambiguity Gate**: gộp câu hỏi, hỏi user, chờ trả lời, phân
 tích lại, rồi mới sinh testcase. Không đoán rồi sinh.
 
-**Không publish trong lượt chạy lại:** task đã có testcase trên test-management thì dừng ở Excel canonical.
+**Không publish trong lượt chạy lại:** task đã có testcase trên test-management thì dừng ở Markdown canonical cùng bản xuất Excel.

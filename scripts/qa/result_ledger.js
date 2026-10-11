@@ -2,7 +2,7 @@
 'use strict';
 
 /*
- * result_ledger.js — Chống MẤT KẾT QUẢ ÂM THẦM trong Excel canonical.
+ * result_ledger.js — Chống MẤT KẾT QUẢ ÂM THẦM ở cột `Result` của bản xuất Excel.
  *
  * VÌ SAO CẦN. Ngày 08/10/2026, task CSDL-9001 mất **129 ô kết quả** trong `test-cases/*.xlsx`: cả cột
  * `Result THCS` của một cấp đã chạy đủ 184/184 tụt xuống còn 47 ô, cộng 4 ô đính chính và 1 ô của lượt

@@ -11,7 +11,7 @@ const FLOW_STEPS = [
 
   { n:'1', k:'phase1', title:'Phase 1 — Sinh testcase', who:'AI Agent + QA',
     goal:'Đọc Backlog/tài liệu nguồn/Figma/Swagger, phân tích, hỏi cho rõ, rồi sinh bộ testcase.',
-    out:['testcase Markdown','Excel canonical (7 cột bắt buộc)','phase1-summary.md','Setup Strategy contract (PRE-NN)','task.md'],
+    out:['testcase Markdown','bản xuất Excel (7 cột bắt buộc)','phase1-summary.md','Setup Strategy contract (PRE-NN)','task.md'],
     cmd:'/phase1 <TASK_KEY>',
     gate:'Ambiguity Gate — còn chỗ mơ hồ thì DỪNG, gộp câu hỏi hỏi BA rồi mới gen.' },
 
@@ -22,7 +22,7 @@ const FLOW_STEPS = [
     gate:'Chưa review xong thì KHÔNG chạy Phase 2 — tránh execute trên expected sai.' },
 
   { n:'3', k:'publish', title:'Publish lên Google Sheet', who:'QA',
-    goal:'Đưa testcase từ Excel canonical lên Google Sheet để cả team thấy và để Phase 2 kéo về.',
+    goal:'Đưa testcase từ bản xuất Excel lên Google Sheet để cả team thấy và để Phase 2 kéo về.',
     out:['Case trên Google Sheet + folder theo nhóm chức năng','publish summary'],
     cmd:'node scripts/convert_excel/md_to_xlsx.js <testcase.md> <testcase.xlsx>  ·  upload qua Drive MCP',
     gate:'Dry-run trước — Sheet ghi đè toàn bộ mỗi lần sync. Publish thật chỉ sau khi QA xác nhận Excel.' },
@@ -101,9 +101,9 @@ const TROUBLES = [
   { p:'Backlog bug thiếu thông tin', c:'Chưa có expected, actual hoặc evidence đủ rõ.', f:'Bổ sung đủ 4 phần mô tả và đính ảnh/video.' },
   { p:'Re-run vẫn fail', c:'Bug chưa được fix thật, hoặc setup vẫn lỗi.', f:'Giữ bug mở, ghi actual mới kèm evidence mới.' },
   { p:'Ghi kết quả execution bị chặn: thiếu reports/expansion-plan.md', c:'Task có case band high đã execute nhưng chưa quyết định mở rộng 5 trục. Gate đứng ở ĐƯỜNG PUBLISH chứ không chỉ ở self-review, vì bỏ qua self-review rồi đẩy thẳng thì trước đây không gì cản.', f:'Chạy npm run expansion:plan (vài giây, chỉ đọc Excel). Cố ý bỏ qua thì thêm --qa-approved và nêu lý do.', hot:1 },
-  { p:'Publish lên Sheet trả 2xx mà trường vẫn sai', c:'2xx chỉ chứng minh request được nhận, KHÔNG chứng minh mapping đúng — đã có lượt đổ nhầm cột mà log trông hoàn toàn bình thường.', f:'Sau MỖI lượt publish, mở Sheet và đối soát lại từng trường với Excel canonical — ít nhất là bộ cột và vài dòng đầu mỗi nhóm.', hot:1 },
+  { p:'Publish lên Sheet trả 2xx mà trường vẫn sai', c:'2xx chỉ chứng minh request được nhận, KHÔNG chứng minh mapping đúng — đã có lượt đổ nhầm cột mà log trông hoàn toàn bình thường.', f:'Sau MỖI lượt publish, mở Sheet và đối soát lại từng trường với bản xuất Excel — ít nhất là bộ cột và vài dòng đầu mỗi nhóm.', hot:1 },
   { p:'Ưu tiên bị tụt về Medium sau khi publish', c:'Giá trị "Highest" là thang cũ của Backlog; công cụ cũ map theo TÊN nên rơi về fallback. Đo được 14 case của một bộ bị tụt mà không ai biết.', f:'Dùng thang canonical của kit: Critical | High | Medium | Low | Lowest.' },
-  { p:'Case cũ vẫn còn sau khi bỏ TC khỏi Excel', c:'Chưa chạy cleanup, hoặc chưa được QA duyệt.', f:'Đối chiếu Excel canonical với Sheet rồi đánh dấu Deprecated bằng tay — không xoá dòng, xoá là mất luôn lịch sử run. Xem trước rồi :apply — case chuyển Deprecated, không xoá (Sheet ghi đè toàn bộ mỗi lần sync).' },
+  { p:'Case cũ vẫn còn sau khi bỏ TC khỏi Excel', c:'Chưa chạy cleanup, hoặc chưa được QA duyệt.', f:'Đối chiếu bản xuất Excel với Sheet rồi đánh dấu Deprecated bằng tay — không xoá dòng, xoá là mất luôn lịch sử run. Xem trước rồi :apply — case chuyển Deprecated, không xoá (Sheet ghi đè toàn bộ mỗi lần sync).' },
   { p:'Tài liệu nguồn thay đổi', c:'Dùng nhầm Re-run.', f:'Chạy Partial Rerun Prepare Review, không phải Re-run.' },
   { p:'gate:policy chặn: còn nhắc công cụ test-management cũ', c:'Kit chỉ còn Google Sheet — script đã xoá, biến môi trường đã xoá, dữ liệu đã di trú đủ 2103/2103 lượt run. Mỗi câu còn nhắc công cụ trước đó là một đường mòn dẫn đi tìm lệnh không còn tồn tại.', f:'Xoá hoặc viết lại theo luồng Google Sheet. Đừng để lại ghi chú "legacy" — luật này cấm cả cái tên.' },
   { p:'gates:index:check chặn: bảng lệch source', c:'Thêm/sửa một máy trong scripts/qa/ mà chưa sinh lại danh mục gate.', f:'Chạy npm run gates:index. Nếu bảng báo sai mức (CHẶN/SINH/BÁO CÁO) thì soi lại — 4 "phát hiện" đầu tiên khi mới dựng bảng đều là lỗi của BẢNG, không của kit.' },
@@ -113,7 +113,7 @@ const TROUBLES = [
 /* ── Checklist ── */
 const CHECKLISTS = [
   { role:'QA Member', icon:'✅', rows:[
-    ['Phase 1', 'testcase Markdown · Excel canonical · phase1-summary.md · task.md'],
+    ['Phase 1', 'testcase Markdown · bản xuất Excel · phase1-summary.md · task.md'],
     ['Publish Backlog', 'QA confirmation · publish summary · mirror created hoặc dry-run rõ ràng'],
     ['Review Phase 1', 'coverage % · Final Decision · High/Critical gap rõ ràng'],
     ['Phase 2', 'execution summary · pass/fail/skip · evidence · phân tầng lỗi · testcase-status.json'],
@@ -133,7 +133,7 @@ const CHECKLISTS = [
 
 /* ── README: kiến trúc theo tầng ── */
 const ARCH_LAYERS = [
-  { k:'Phase 1', c:'#4F46E5', d:'Đọc requirement/design/API rồi sinh testcase Markdown + Excel + coverage report + Setup Strategy contract (PRE-NN) + Precondition Execution Matrix. Excel là source of truth khi gen và publish.' },
+  { k:'Phase 1', c:'#4F46E5', d:'Đọc requirement/design/API rồi sinh testcase Markdown + Excel + coverage report + Setup Strategy contract (PRE-NN) + Precondition Execution Matrix. Markdown là source of truth cho nội dung case; Excel là bản xuất bắt buộc của bước gen.' },
   { k:'Testcase Publish (Google Sheet)', c:'#4338CA', d:'Step riêng trong Phase 1: sau khi QA xác nhận Excel thì tạo/cập nhật case trên Google Sheet, nhóm bằng folder 2 cấp, TC ID ở automationKey. Mặc định dry-run.' },
   { k:'Phase 2', c:'#2A6FDB', d:'Đọc testcase từ nguồn canonical (mặc định kéo từ Google Sheet), chạy Precondition Resolution Pass, sinh/cập nhật Playwright spec, execute thật rồi thu evidence.' },
   { k:'Setup Layer', c:'#0E9AA7', d:'tests/support/setup/ — factory, hook, fixture, mock, cleanup, contract dùng chung để dựng tiền điều kiện. Không dựng state bằng DB; DB chỉ read-only verify qua guarded client.' },
@@ -168,7 +168,7 @@ const TREE = [
 /* ── README: output của một task ── */
 const OUTPUT_DIRS = [
   ['requirements/','Backlog, tài liệu nguồn, Figma, Swagger hoặc tài liệu đầu vào đã fetch. Chứa cả ui_catalog.json và dimension_manifest.json.'],
-  ['test-cases/','Testcase Markdown, Excel canonical và snapshot ngữ cảnh. Có from-sheet/ khi Phase 2 kéo bản Sheet về.'],
+  ['test-cases/','Testcase Markdown, bản xuất Excel và snapshot ngữ cảnh. Có from-sheet/ khi Phase 2 kéo bản Sheet về.'],
   ['test-results/','Playwright JSON, HTML report, screenshot, video, trace.'],
   ['reports/','phase1-summary · execution-summary · publish summary · bug log · rerun report.'],
   ['change/','Artifact của nhánh Requirement Change Management nếu có gọi.'],
@@ -247,7 +247,7 @@ const CMD_GROUPS = [
   ]},
   { g:'Backlog & Google Sheet', items:[
     ['npm run integration:check','Kiểm kết nối Backlog'],
-    ['node scripts/convert_excel/md_to_xlsx.js <md> <xlsx>','Dựng Excel canonical từ testcase Markdown'],
+    ['node scripts/convert_excel/md_to_xlsx.js <md> <xlsx>','Dựng bản xuất Excel từ testcase Markdown'],
     ['(Drive MCP)','Upload Excel lên Google Sheet sau khi QA duyệt · tải bản mới nhất về canonical local'],
     ['npm run backlog:bug-report:dry-run -- …','Xem trước bug sẽ tạo'],
     ['npm run merge:execution-status -- --task <KEY>','Ghép kết quả execute vào bộ canonical']

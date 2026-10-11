@@ -42,7 +42,7 @@ Thực thi BE API testcases bằng Playwright request context, không mở brows
   Khi có `RUN_ID`, không sửa testcase Markdown/Excel chính trong lúc execute; ghi status/actual/evidence vào run-scoped report/status.
 - Swagger env: `App 1_SWAGGER_URL`, `APP2_SWAGGER_URL`
 - API base env: `App 1_API_BASE_URL`, `APP2_API_BASE_URL`
-- Testcases: nguồn canonical local `<PROJECT_OUTPUT_DIR>/tasks/[TASK_KEY]/test-cases/from-sheet/*.xlsx` — agent tải bản MỚI NHẤT về từ Google Sheet qua Drive MCP ở Bước 0 TRƯỚC mỗi lượt execute. Execute đọc file local — không gọi Drive/Backlog cho từng case.
+- Testcases: **Markdown canonical** `<PROJECT_OUTPUT_DIR>/tasks/[TASK_KEY]/test-cases/*.md`. Markdown rẻ token hơn `.xlsx` (lý do đầy đủ: RULE_GLOBAL §"Phase-Separated Story Execution"). Bước 0 chạy `canonical:drift` trước; trôi thì kéo Sheet về `from-sheet/*.xlsx` và đọc bản đó. Execute đọc file local — không gọi Drive/Backlog cho từng case.
 
 # Precondition Resolution Pass (bắt buộc, chạy TRƯỚC khi generate/execute)
 > 📚 **TRA KHO HỌC TRƯỚC KHI TỰ MÒ.** Rẻ hơn mò lại nhiều lần, và đây là chỗ 80% thời gian bị tiêu.
@@ -56,7 +56,7 @@ Thực thi BE API testcases bằng Playwright request context, không mở brows
 
 Cho toàn bộ selected TC, chạy pass này trước khi sinh hoặc chạy bất kỳ spec nào:
 
-1. Đọc selected TC từ nguồn canonical local `test-cases/from-sheet/*.xlsx` (đã tải từ Google Sheet ở Bước 0). Cách dựng precondition lấy từ **tag `[<method>]`** ở đầu cell `Tiền điều kiện`; chi tiết (endpoint/payload/fixture id · verification · cleanup) đọc `### Setup Readiness` trong `reports/phase1-summary.md`, và tra `knowledge/setup_recipes/` trước khi tự mò. Bộ testcase CŨ chưa có tag thì đọc `### Precondition Execution Matrix` như trước.
+1. Đọc selected TC từ `test-cases/*.md` (hoặc `from-sheet/*.xlsx` nếu Bước 0 phải kéo Sheet về). Cách dựng precondition lấy từ **tag `[<method>]`** ở đầu cell `Tiền điều kiện`; chi tiết (endpoint/payload/fixture id · verification · cleanup) đọc `### Setup Readiness` trong `reports/phase1-summary.md`, và tra `knowledge/setup_recipes/` trước khi tự mò. Bộ testcase CŨ chưa có tag thì đọc `### Precondition Execution Matrix` như trước.
 2. Với mỗi selected TC, lấy `Setup Method` **từ tag `[<method>]` ở đầu cell `Tiền điều kiện`** (bộ cũ chưa có tag thì đọc `### Precondition Execution Matrix` của `phase1-summary.md`), rồi map:
    - `api` → gọi business/public test API theo `Setup Source`.
    - `factory`/`test_hook` → dùng factory/hook tương ứng.
@@ -73,7 +73,7 @@ Nếu precondition chỉ có thể DỰNG bằng DB hoặc backend internal stat
 
 # Các bước thực thi
 1. Echo `PROJECT_OUTPUT_DIR`, `TASK_KEY`, `TASK_OUTPUT_DIR`, `RUN_ID` nếu có; nếu sai task thì dừng.
-2. Đọc `.agent/config/project_context.md` và testcase API từ nguồn canonical local `test-cases/from-sheet/*.xlsx`.
+2. Đọc `.agent/config/project_context.md` và testcase API từ `test-cases/*.md`.
 3. Chạy `Precondition Resolution Pass` (section ở trên) cho toàn bộ selected TC trước khi generate/execute. Dùng Swagger spec từ App 1 hoặc App 2 theo testcase; KHÔNG tự đoán payload nếu contract đã có.
 4. Gọi request.post/get/put/delete theo từng TC.
 5. Assert status code, response body schema, headers và response time.

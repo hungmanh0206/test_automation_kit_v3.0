@@ -4,7 +4,7 @@
 
 ## Mục Đích
 
-Đẩy testcase đã được QA xác nhận từ Excel lên Google Sheet để QA/Dev review. Excel là source of truth khi gen/publish; **publish là bước cần TRƯỚC Phase 2** vì Phase 2 execute luôn tải bản Sheet mới nhất về trước khi chạy.
+Đẩy testcase đã được QA xác nhận lên Google Sheet để QA/Dev review, đi từ **Markdown canonical** qua bản xuất `.xlsx`; **publish là bước cần TRƯỚC Phase 2** vì Phase 2 execute luôn tải bản Sheet mới nhất về trước khi chạy.
 
 > Công cụ test-management của kit là **Google Sheet** (qua Google Drive MCP), thay cho Google Sheet cũ. File `.xlsx` do `md_to_xlsx.js` xuất ra chính là nội dung Sheet — không có bước ánh xạ field riêng. Chi tiết: skill `backlog_testcase_publisher`.
 
@@ -34,7 +34,7 @@ Bước convert Markdown sang Excel trước khi publish giao `excel-convert` (�
 2. Xác nhận QA đã approve Excel/testcase:
    - Nếu prompt/user không ghi rõ `QA confirmation: APPROVED`, dừng chờ xác nhận, chưa ghi lên Sheet.
    - Không tự suy diễn approval từ việc Excel tồn tại.
-3. Đọc Excel canonical:
+3. Đọc bản xuất Excel (sinh từ Markdown canonical):
    - `<TASK_OUTPUT_DIR>/test-cases/*.xlsx` (output của `md_to_xlsx.js`, đã có dashboard + 1 sheet/nhóm chức năng).
 4. Tìm file Sheet đã publish trước đó (tránh tạo trùng):
    - Có `GOOGLE_SHEET_URL` trong `profiles/<TASK_KEY>/task.env` → `mcp__claude_ai_Google_Drive__search_files` xác nhận file còn tồn tại.
@@ -48,13 +48,13 @@ Bước convert Markdown sang Excel trước khi publish giao `excel-convert` (�
 
 ## Rules
 
-- Không publish từ Markdown khi Excel đã tồn tại; Excel canonical là source of truth, Sheet chỉ là bản đồng bộ.
+- Publish upload chính file `.xlsx` (Drive tự convert sang Sheet). Nhưng `.xlsx` đó phải vừa xuất TỪ Markdown canonical, không phải bản sửa tay.
 - Không publish thật nếu thiếu QA confirmation.
 - Không sửa nội dung testcase trực tiếp trên Sheet (UI Google Sheets); authoring ở Excel rồi re-publish (`update_file`) — ghi đè toàn phần nên bản sửa tay trên Sheet sẽ mất.
 - Sheet không có folder/tag/Cycle/Run/custom field như công cụ test-management cũ — đổi mô hình dữ liệu, không phải đổi tên; đừng đi tìm các khái niệm đó rồi kết luận "thiếu". Nhóm chức năng thể hiện bằng sheet riêng trong cùng workbook.
 - Nếu Excel bỏ bớt TC sau publish thì không cần xử lý cleanup riêng, khác công cụ cũ. Lần `update_file` kế tiếp tự phản ánh đúng Excel hiện tại: case bị xoá khỏi Excel cũng biến mất khỏi Sheet.
 - Không log bug Backlog trong step này; bug logging thuộc Phase 2.
-- Nếu publish lỗi một phần, giữ Excel canonical và ghi rõ lỗi trong report local.
+- Nếu publish lỗi một phần, giữ Markdown canonical cùng bản xuất `.xlsx` và ghi rõ lỗi trong report local.
 - Việc publish chỉ làm được khi agent đang chạy trong phiên chat (MCP không gọi được từ CI headless) — đánh đổi có chủ ý.
 
 ## Outputs

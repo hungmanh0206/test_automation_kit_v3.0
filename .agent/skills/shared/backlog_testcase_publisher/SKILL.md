@@ -1,6 +1,6 @@
 ---
 name: backlog_testcase_publisher
-description: Publish testcase từ Excel canonical lên **Google Sheet** sau Phase 1 (qua Drive MCP: search_files/create_file/update_file).
+description: Publish testcase từ bản xuất Excel lên **Google Sheet** sau Phase 1 (qua Drive MCP: search_files/create_file/update_file).
 ---
 
 # Testcase Publisher (Google Sheet)
@@ -9,7 +9,7 @@ description: Publish testcase từ Excel canonical lên **Google Sheet** sau Pha
 
 ## Purpose
 
-Publish bộ testcase đã được QA xác nhận từ Excel canonical lên **Google Sheet** (qua Google Drive MCP) để QA/Dev review, track và làm nguồn cho Phase 2 execute. File `.xlsx` do `md_to_xlsx.js` xuất ra ở `<TASK_OUTPUT_DIR>/test-cases/` **chính là** nội dung Sheet — không có bước ánh xạ field/model riêng: upload lên Drive là xong, Drive tự convert `.xlsx` → Google Sheets. Publish là step riêng trong phạm vi Phase 1; không cần lifecycle cleanup (Deprecated) như công cụ test-management cũ — mỗi lần sync là ghi đè toàn bộ, case bị xoá khỏi Excel tự nhiên biến mất khỏi Sheet ở lần sync sau.
+Publish bộ testcase đã được QA xác nhận, đi từ bản xuất Excel của Markdown canonical, lên **Google Sheet** (qua Google Drive MCP) để QA/Dev review, track và làm nguồn cho Phase 2 execute. File `.xlsx` do `md_to_xlsx.js` xuất ra ở `<TASK_OUTPUT_DIR>/test-cases/` **chính là** nội dung Sheet — không có bước ánh xạ field/model riêng: upload lên Drive là xong, Drive tự convert `.xlsx` → Google Sheets. Publish là step riêng trong phạm vi Phase 1; không cần lifecycle cleanup (Deprecated) như công cụ test-management cũ — mỗi lần sync là ghi đè toàn bộ, case bị xoá khỏi Excel tự nhiên biến mất khỏi Sheet ở lần sync sau.
 
 ## Responsibilities
 
@@ -21,7 +21,7 @@ Publish bộ testcase đã được QA xác nhận từ Excel canonical lên **G
 | Publish | Có rồi → `update_file` (ghi đè, giữ nguyên `fileId`/link, không tạo file trùng); chưa có → `create_file` (upload `.xlsx`, để Drive tự convert sang Google Sheets, không set `disableConversionToGoogleType`). |
 | Lưu link | Ghi `viewUrl`/link Drive trả về vào `profiles/<TASK_KEY>/task.env` field `GOOGLE_SHEET_URL`. |
 | Không có lifecycle riêng | Không có khái niệm Deprecated/case status trên Sheet — Excel là canonical, Sheet chỉ là bản hiển thị/đồng bộ. Excel bỏ TC nào thì lần `update_file` sau Sheet cũng mất TC đó. |
-| No hard delete thủ công | Không tự xoá dòng trên Sheet qua UI — sửa ở Excel canonical rồi re-publish (`update_file`) để tránh lệch nguồn. |
+| No hard delete thủ công | Không tự xoá dòng trên Sheet qua UI — sửa ở **Markdown canonical** rồi xuất lại `.xlsx` và re-publish (`update_file`) để tránh lệch nguồn. |
 
 ## Inputs
 
@@ -63,12 +63,12 @@ rồi agent `update_file` đẩy bản đã merge lên Drive.
 - Nhóm chức năng thể hiện bằng sheet riêng trong cùng workbook (`md_to_xlsx.js` đã tạo 1 sheet/nhóm), không phải folder.
 - Nếu chưa có `GOOGLE_SHEET_URL` và không tìm thấy file qua `search_files`, tạo mới bằng `create_file` rồi lưu link — không đoán ID file.
 - Nếu publish lỗi một phần (network/quyền), giữ Excel và báo blocker; không sửa testcase để khớp lỗi publish.
-- Phase 2 execute LUÔN tải bản Sheet mới nhất về `test-cases/from-sheet/*.xlsx` qua `download_file_content` trước khi execute — không có khái niệm nguồn opt-in/opt-out (`TESTCASE_SOURCE`) như trước.
+- Phase 2 execute đọc `test-cases/*.md`. Tải Sheet về `from-sheet/*.xlsx` qua `download_file_content` là opt-in, khi `canonical:drift` báo trôi.
 - Việc upload/download chỉ làm được khi **agent đang chạy trong phiên chat** (MCP không gọi được từ script CLI/CI headless) — đây là đánh đổi có chủ ý, không phải thiếu sót.
 
 ## Anti-Patterns
 
-- Tạo testcase trực tiếp trên Sheet khi chưa có Excel canonical.
+- Tạo testcase trực tiếp trên Sheet khi chưa có Markdown canonical.
 - Sửa nội dung case trực tiếp trên Sheet (UI Google Sheets) thay vì sửa Excel rồi re-publish — `update_file` ghi đè toàn phần nên bản sửa tay trên Sheet sẽ mất.
 - Ghi đè Sheet (`update_file`) khi chưa review nội dung `.xlsx` local sắp upload.
 - Trộn testcase publish với Backlog bug logging sau Phase 2 — hai việc khác nhau, khác đích (Sheet vs Backlog).

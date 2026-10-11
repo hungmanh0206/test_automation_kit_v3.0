@@ -5,7 +5,7 @@
   "_measured_at": "2026-09-18",
   "lanes": {
     "phase1": {
-      "mo_ta": "Thiết kế testcase: đọc spec, sinh bộ case, xuất Excel canonical.",
+      "mo_ta": "Thiết kế testcase: đọc spec, sinh Markdown canonical, xuất bản Excel.",
       "required": [
         "PROJECT_OUTPUT_DIR",
         "TASK_KEY"

@@ -6,7 +6,7 @@ const TERMS_GATE2 = [
 /* ── Mở rộng 5 trục quanh case ── */
 { id:'g-expansion_plan', t:'expansion_plan', cat:'gate',
   def:'Quyết TRƯỚC khi chạy: case nào mở rộng trục nào, và tốn bao nhiêu.',
-  detail:'Đọc Excel canonical, chia case theo risk band rồi ra kế hoạch mở rộng kèm ước lượng chi phí. Band lấy từ hai cột đã có — Mức độ rủi ro và Ưu tiên, và luôn lấy cái NẶNG HƠN trong hai cột.',
+  detail:'Đọc bản xuất Excel, chia case theo risk band rồi ra kế hoạch mở rộng kèm ước lượng chi phí. Band lấy từ hai cột đã có — Mức độ rủi ro và Ưu tiên, và luôn lấy cái NẶNG HƠN trong hai cột.',
   why:'Mở rộng 5 trục cho MỌI case thì suite dài ra và evidence nhân lên. Đo thật: một task đang có 1021 file, 136 MB evidence, và chính đống artifact đó làm không ai đọc báo cáo nữa. Nên độ sâu phải đi theo band, và chi phí phải hiện ra TRƯỚC khi chạy chứ không phải phát hiện sau khi đầy ổ.',
   how:['Chạy vài giây, chỉ đọc Excel, không cần môi trường.','Kết quả ghi ra reports/expansion-plan.md.'],
   cmd:'npm run expansion:plan',

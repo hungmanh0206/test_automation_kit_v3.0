@@ -202,7 +202,7 @@ npm run domain:trace-back                 # case có oracle nghiệp vụ mà kh
 
 Bộ testcase có **hai trục**: *module* = test **ở đâu**, *chiều* = hỏi **loại câu hỏi nào** (validate · hiển thị · công thức · BE conformance · guard · bảo mật · perf · change-impact). Phủ kín module mà trống một chiều thì bộ vẫn *trông* đầy đủ. Mỗi case gắn **tag chiều** trong tiêu đề (`[Positive][Display] …`); 20 chương nội dung ở [`prompt_templates/phase1/dimensions/`](prompt_templates/phase1/dimensions/); luật đầy đủ ở [RULE_GLOBAL §Chiều coverage](RULE_GLOBAL.md).
 
-Auto Publish là step riêng trong phạm vi Phase 1. Excel là source of truth khi gen/publish. Khi chạy Phase 2, agent **luôn tải bản Google Sheet mới nhất qua Drive MCP** về canonical local (`test-cases/from-sheet/*.xlsx`) rồi execute từ đó; `TESTCASE_SOURCE=excel` là opt-out khi chưa publish.
+Auto Publish là step riêng trong phạm vi Phase 1. Markdown canonical là source of truth cho nội dung case; `.xlsx` là bản xuất bắt buộc của bước gen và cũng là file đem upload. Khi chạy Phase 2, agent **luôn tải bản Google Sheet mới nhất qua Drive MCP** về canonical local (`test-cases/from-sheet/*.xlsx`) rồi execute từ đó; `TESTCASE_SOURCE=excel` là opt-out khi chưa publish.
 
 ## Phase 1 - Auto Publish Testcase (Google Sheet)
 

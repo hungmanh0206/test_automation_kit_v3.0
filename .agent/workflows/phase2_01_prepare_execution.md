@@ -16,7 +16,7 @@ Tránh chạy nhầm task, nhầm story hoặc thiếu env khiến testcase bị
    - `RUN_ID` nếu có
 2. Nếu yêu cầu hiện tại không nêu rõ `TASK_KEY`, không dùng `TASK_KEY` từ `.env` hoặc context cũ để chạy; phải hỏi lại.
 3. Đọc artifact local:
-   - Nguồn execute: `<TASK_OUTPUT_DIR>/test-cases/from-sheet/*.xlsx`. Agent tải bản MỚI NHẤT từ Google Sheet qua Drive MCP ở Bước 0 (dùng `GOOGLE_SHEET_URL` trong `profiles/<TASK_KEY>/task.env`) TRƯỚC mỗi lượt execute.
+   - Nguồn execute: `<TASK_OUTPUT_DIR>/test-cases/*.md` (Markdown canonical). Chạy `npm run canonical:drift` trước; nếu trôi thì tải bản Sheet mới nhất qua Drive MCP về `from-sheet/*.xlsx` (dùng `GOOGLE_SHEET_URL` trong `profiles/<TASK_KEY>/task.env`), mang phần sửa về Markdown, rồi mới execute.
    - `<TASK_OUTPUT_DIR>/test-cases/` Markdown chỉ dùng khi cần đọc chi tiết vượt ngoài cell `Tiền điều kiện` (cách dựng chi tiết nằm ở `### Setup Readiness` của `phase1-summary.md`).
    - `<TASK_OUTPUT_DIR>/reports/phase1-summary.md`, gồm `### Setup Readiness` và `### Precondition Execution Matrix`. Dùng để chọn case automatable, case cần hook, hay case blocked trước khi execute.
    - `<TASK_OUTPUT_DIR>/reports/capability-request.md` nếu có. Đó là danh sách capability gap; xem Capability gate ở Rules.
@@ -36,7 +36,8 @@ Tránh chạy nhầm task, nhầm story hoặc thiếu env khiến testcase bị
 
 - Không sửa `.env` chung khi có session khác; truyền env theo command nếu cần.
 - Không đọc lại toàn bộ requirement thô nếu Phase 1 summary đã đủ.
-- **Phase 2 execute LUÔN tải bản Google Sheet mới nhất về trước** (`test-cases/from-sheet/*.xlsx`, qua Drive MCP) rồi execute từ file đó. KHÔNG gọi Drive hay Backlog cho từng case lúc execute. (Excel/Sheet là source of truth khi gen/publish.)
+- **Phase 2 execute đọc `test-cases/*.md`** (Markdown canonical). Markdown rẻ token hơn `.xlsx` (lý do đầy đủ: RULE_GLOBAL §"Phase-Separated Story Execution"). KHÔNG gọi Drive hay Backlog cho từng case lúc execute. Kéo Sheet về là opt-in khi `canonical:drift` báo trôi.
+- **Cửa trước execute**: `npm run canonical:drift:enforce` — CHẶN khi bản xuất đã đi trước Markdown (QA sửa tay trên Sheet, hoặc có case chỉ tồn tại ở bản xuất). Hướng ngược lại (Markdown mới hơn, chỉ là chưa xuất lại) **không** chặn: lượt execute vẫn đọc đúng bộ mới nhất, chỉ cần xuất lại trước khi publish. Máy tự phân biệt hai hướng, và khi không kết luận được hướng thì nó cảnh báo chứ không chặn oan — `mtime` chỉ nói lần ghi cuối.
 - Không chạy Phase 2 nếu không có testcase đã review.
 - Resolve cách dựng precondition theo tag `[<method>]` của từng TC trong scope trước khi execute; thiếu capability thì ghi blocker, KHÔNG dựng bằng DB.
 - Definition of Ready (DoR) trước khi execute mỗi TC: precondition rõ + setup method rõ + test data/fixture rõ + verification + cleanup + capability (API/hook/mock/sandbox/fixture) đã tồn tại. Thiếu bất kỳ điều nào → KHÔNG chạy bừa và KHÔNG connect DB: ghi `BLOCKED_SETUP` (capability/contract chưa đủ) hoặc `SKIP_SETUP` (`Manual-only`) kèm missing capability cụ thể.
