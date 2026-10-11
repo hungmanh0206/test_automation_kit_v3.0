@@ -3,7 +3,7 @@
 > **SINH TỰ ĐỘNG** bởi `node scripts/qa/gate_index.js --write`. Đừng sửa tay — `--check` sẽ chặn khi
 > bảng lệch source. Cột **Mức** suy từ code: `exit 1` = CHẶN · ghi artifact = SINH · chỉ in = BÁO CÁO.
 
-Tổng **98** máy — **69 CHẶN** · 19 SINH (ghi artifact) · 10 BÁO CÁO (chỉ in).
+Tổng **99** máy — **70 CHẶN** · 19 SINH (ghi artifact) · 10 BÁO CÁO (chỉ in).
 
 SINH/BÁO CÁO **không phải gate bị nới** — chúng không kiểm vi phạm. Ví dụ `bugs:checklist` in brief bug
 lịch sử, còn việc CHẶN nằm ở `dim:coverage` (chiều `bug_history` §20).
@@ -24,6 +24,7 @@ lịch sử, còn việc CHẶN nằm ở `dim:coverage` (chiều `bug_history` 
 | CHẶN | `design:gate` | round-3) — Gate CHẤT LƯỢNG THIẾT KẾ testcase (Phase 1), THỰC THI. | `scripts/qa/design_gate.js` | RULE_GLOBAL.md · README.md · USER_GUIDE.md · scripts/qa/README.md · .agent/workflows · .agent/skills · prompt_templates · partial-rerun · .claude/commands · tests/fe/infra |
 | CHẶN | `discover` | KHÁM PHÁ HỆ THỐNG (v2.6.0 §A1). Một lệnh, ba chế độ. | `scripts/qa/discover.js` | RULE_GLOBAL.md · README.md · USER_GUIDE.md · .agent/workflows · .agent/skills · prompt_templates · .claude/commands · tests/fe/infra |
 | CHẶN | `expansion:audit` | ĐO ĐỘ PHỦ 5 TRỤC trên MỌI task đã execute, để quyết định siết gate bằng SỐ. | `scripts/qa/expansion_audit.js` | RULE_GLOBAL.md · .claude/commands · tests/fe/infra |
+| CHẶN | `expected:check`, `expected:snapshot` | CHẶN "đổi expected để case xanh" (non-negotiable §6, tầng T0). | `scripts/qa/expected_ledger.js` | RULE_GLOBAL.md · prompt_templates · tests/fe/infra |
 | CHẶN | `json:check` | kiểm MỌI file .json ĐANG ĐƯỢC TRACK có parse được không. | `scripts/qa/json_check.js` | .gitlab-ci.yml · .github/workflows |
 | CHẶN | `leak:report` | đo "kit đang rò bao nhiêu và rò kiểu gì" (baseline cho mọi cải tiến sau). | `scripts/qa/leak_report.js` | RULE_GLOBAL.md · README.md · .agent/workflows · prompt_templates · tests/fe/infra |
 | CHẶN | `learn:bugs`, `learn:bugs:apply` | nối mắt xích còn ĐỨT: bug đã log Backlog → knowledge/bugs/ (+ root_causes ref, index). | `scripts/qa/learn_bugs.js` | README.md · USER_GUIDE.md · QUICKSTART.md · scripts/qa/README.md · .agent/workflows · prompt_templates |
