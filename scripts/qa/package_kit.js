@@ -108,6 +108,12 @@ const KEEP_FILES = [
    * Không chứa host, bảng DB, credential hay PII: chỉ là danh sách nhãn và ngưỡng.
    */
   '.agent/config/discovery.json',
+  /*
+   * `gate_tiers.json` (v2.7.0): T0 khai tay cùng luật ba tầng. Thiếu nó trong gói thì `gate:audit`
+   * xếp MỌI máy chặn thành T1 — tức 12 máy không-thương-lượng tụt xuống "chỉ chặn ở cửa ra" một
+   * cách im lặng. Lớp GENERIC, không mang mã task hay host.
+   */
+  '.agent/config/gate_tiers.json',
   '.agent/config/checklist_types.json',
   '.agent/config/gate_codes.json',
   '.agent/config/na_reasons_rejected.json',

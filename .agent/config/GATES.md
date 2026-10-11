@@ -3,7 +3,7 @@
 > **SINH TỰ ĐỘNG** bởi `node scripts/qa/gate_index.js --write`. Đừng sửa tay — `--check` sẽ chặn khi
 > bảng lệch source. Cột **Mức** suy từ code: `exit 1` = CHẶN · ghi artifact = SINH · chỉ in = BÁO CÁO.
 
-Tổng **97** máy — **69 CHẶN** · 18 SINH (ghi artifact) · 10 BÁO CÁO (chỉ in).
+Tổng **98** máy — **69 CHẶN** · 19 SINH (ghi artifact) · 10 BÁO CÁO (chỉ in).
 
 SINH/BÁO CÁO **không phải gate bị nới** — chúng không kiểm vi phạm. Ví dụ `bugs:checklist` in brief bug
 lịch sử, còn việc CHẶN nằm ở `dim:coverage` (chiều `bug_history` §20).
@@ -49,13 +49,13 @@ lịch sử, còn việc CHẶN nằm ở `dim:coverage` (chiều `bug_history` 
 | CHẶN (có cờ --enforce) | `auto:review`, `auto:review:enforce` | GATE chất lượng code automation, phần `lint:locator` KHÔNG gác. | `scripts/qa/automation_review.js` | RULE_GLOBAL.md · .agent/workflows · .agent/rules · .agent/skills · prompt_templates · tests/fe/infra |
 | CHẶN (có cờ --enforce) | `canonical:drift`, `canonical:drift:enforce` | ĐO ĐỘ TRÔI giữa Markdown canonical và bản xuất `.xlsx`. | `scripts/qa/canonical_drift.js` | RULE_GLOBAL.md · README.md · USER_GUIDE.md · .agent/workflows · .agent/rules · .agent/skills · prompt_templates · tests/fe/infra |
 | CHẶN (có cờ --enforce) | `xsurf:diff` | TRỤC 2: **cùng một giá trị, khác nơi hiển thị**. | `scripts/qa/cross_surface_diff.js` | RULE_GLOBAL.md · README.md · prompt_templates |
-| CHẶN (có cờ --enforce) | `decisions:check`, `decisions:index` | quản lý `knowledge/decisions/`: LÝ DO của những quyết định QA đã chốt. | `scripts/qa/decisions.js` | README.md · USER_GUIDE.md · .agent/workflows · .agent/skills · prompt_templates |
+| CHẶN (có cờ --enforce) | `decisions:check`, `decisions:index` | quản lý `knowledge/decisions/`: LÝ DO của những quyết định QA đã chốt. | `scripts/qa/decisions.js` | README.md · USER_GUIDE.md · .agent/workflows · .agent/skills · prompt_templates · tests/fe/infra |
 | CHẶN (có cờ --enforce) | `dim:coverage` | đếm case theo 15 CHIỀU coverage của `prompt_templates/phase1/02_gen_testcases.md` | `scripts/qa/dimension_coverage.js` | RULE_GLOBAL.md · README.md · USER_GUIDE.md · QUICKSTART.md · .agent/workflows · .agent/rules · .agent/skills · prompt_templates · partial-rerun · .claude/commands · tests/fe/infra |
 | CHẶN (có cờ --enforce) | `domain:check`, `domain:index`, `domain:trace-back` | quản lý `knowledge/domain/` (business rule đã XÁC NHẬN = nền của oracle). | `scripts/qa/domain_rules.js` | RULE_GLOBAL.md · README.md · USER_GUIDE.md · QUICKSTART.md · .agent/workflows · .agent/skills · prompt_templates · partial-rerun · tests/fe/infra |
 | CHẶN (có cờ --enforce) | `expansion:plan` | QUYẾT TRƯỚC KHI CHẠY: case nào mở rộng trục nào, và tốn bao nhiêu. | `scripts/qa/expansion_plan.js` | RULE_GLOBAL.md · README.md · .agent/workflows · prompt_templates · manual-run · .claude/commands · tests/fe/infra |
 | CHẶN (có cờ --enforce) | `explore:check`, `explore:check:enforce`, `explore:close` | MÁY cho nhánh exploratory: kiểm phiên + đóng vòng học. | `scripts/qa/explore_session.js` | exploratory · .claude/commands |
 | CHẶN (có cờ --enforce) | `fixture:matrix` | TRỤC 4 + 5: **nhánh/biến thể** × **trạng thái kế cận** (42/69 bug của CSDL-24395). | `scripts/qa/fixture_matrix.js` | RULE_GLOBAL.md · README.md · prompt_templates |
-| CHẶN (có cờ --enforce) | `gates:index`, `gates:index:check` | sinh DANH MỤC GATE của kit từ chính source, không viết tay. | `scripts/qa/gate_index.js` | .gitlab-ci.yml · README.md · .github/workflows |
+| CHẶN (có cờ --enforce) | `gates:index`, `gates:index:check` | sinh DANH MỤC GATE của kit từ chính source, không viết tay. | `scripts/qa/gate_index.js` | .gitlab-ci.yml · README.md · .github/workflows · tests/fe/infra |
 | CHẶN (có cờ --enforce) | `howto:check`, `howto:index`, `howto:find` | quản lý 2 store trả lời câu hỏi "LÀM SAO tới được đó": | `scripts/qa/howto_store.js` | README.md · prompt_templates |
 | CHẶN (có cờ --enforce) | `lighthouse` | điểm Performance / Accessibility / SEO / Best-practices thật, chạy qua CDP. | `scripts/qa/lighthouse_check.js` | README.md · USER_GUIDE.md · scripts/qa/README.md · .github/workflows · .agent/skills · prompt_templates · tests/fe/infra |
 | CHẶN (có cờ --enforce) | `load` | wrapper MỎNG cho k6 (Loại B: load/stress/soak nhiều VU). Loại A (single-user) dùng perf_check.js. | `scripts/qa/load_check.js` | RULE_GLOBAL.md · CLAUDE.md · README.md · USER_GUIDE.md · QUICKSTART.md · scripts/qa/README.md · .github/workflows · .agent/workflows · .agent/rules · .agent/skills · prompt_templates · exploratory · partial-rerun · manual-run · .claude/commands · tests/fe/infra |
@@ -85,6 +85,7 @@ lịch sử, còn việc CHẶN nằm ở `dim:coverage` (chiều `bug_history` 
 | SINH | `dep:graph` | GỘP traceability + impact-map thành 1 graph query-được. | `scripts/qa/dependency_graph.js` | README.md · scripts/qa/README.md |
 | SINH | `explore:charter` | CHỌN VÙNG DÒ BẰNG DỮ LIỆU, không bằng cảm tính. | `scripts/qa/explore_charter.js` | exploratory · .claude/commands |
 | SINH | `ui:contract` | biến DESIGN thành ORACLE MÁY ĐỌC ĐƯỢC (`knowledge/system/UI-*.json`). | `scripts/qa/figma_to_ui_contract.js` | RULE_GLOBAL.md · README.md · .agent/rules |
+| SINH | `gate:audit` | KIỂM KÊ GATE để phân tầng (v2.7.0 bước 1a). | `scripts/qa/gate_audit.js` | tests/fe/infra |
 | SINH | `knowledge:backup` | sao lưu / khôi phục các store knowledge KHÔNG NẠP LẠI ĐƯỢC. | `scripts/qa/knowledge_backup.js` | .gitlab-ci.yml · README.md · QUICKSTART.md · .github/workflows · .agent/workflows · prompt_templates · tests/fe/infra |
 | SINH | `knowledge:bootstrap` | DỰNG KHUNG `domain/` ở trạng thái `draft`, để kho không ở lại rỗng. | `scripts/qa/knowledge_bootstrap.js` | tests/fe/infra |
 | SINH | `learn:report` | trả lời câu "chạy task này thì đã HỌC được gì?". | `scripts/qa/learn_report.js` | README.md · prompt_templates |
