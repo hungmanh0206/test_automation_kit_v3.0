@@ -117,6 +117,34 @@ test.describe('@infra tường lửa — 0 request ghi lọt, và FIXTURE KHÔNG
       'POST /login phải được cho qua kèm nhãn ngoại lệ').toBe(true);
     expect(bb.chan.some((c: { url: string }) => c.url.includes('/login')), 'và KHÔNG bị ghi vào sổ chặn').toBe(false);
     await expect(page.locator('#vaiTro')).toHaveText('admin');
+
+    /*
+     * NGOẠI LỆ ĐĂNG NHẬP KHÔNG ĐƯỢC ĐẾM THÀNH RÒ RỈ — khuyết điểm phát hiện khi viết `roles.js`.
+     *
+     * Bản đầu của `tomTat()` đếm mọi request ngoài `method_cho_phep` trong `choQua`, nên lượt lập ma trận
+     * vai trò (bắt buộc phải đăng nhập) báo `request_ghi_lot: 1` trong khi server KHÔNG nhận lượt ghi
+     * nào. Đáng sửa chứ không đáng bỏ qua: mọi lượt chạy THẬT đều phải đăng nhập, nên bảo đảm "0 request
+     * ghi lọt" sẽ luôn sai một đơn vị — rồi người ta nới ngưỡng thành `<= 1`, và một rò rỉ THẬT lọt qua.
+     *
+     * Đổi lại, lượt đăng nhập vẫn phải HIỆN RA, không bị che: nó đi vào cột riêng.
+     */
+    expect(bb.soRequestGhiLot, 'đăng nhập KHÔNG phải rò rỉ').toBe(0);
+    expect(bb.tomTat().request_ghi_lot).toBe(0);
+    expect(bb.tomTat().request_ghi_ngoai_le_dang_nhap, 'nhưng phải đếm và hiện ra').toBeGreaterThan(0);
+  });
+
+  test('ÂM BẢN: rò rỉ THẬT vẫn phải đếm, dù đã có lượt đăng nhập trong cùng sổ', async ({ page }) => {
+    /*
+     * Nửa còn lại của phép sửa trên. Nếu `soRequestGhiLot` chỉ cần bỏ qua `ngoai_le` mà làm sai chỗ khác
+     * thì một rò rỉ thật sẽ bị che sau lượt đăng nhập. Dựng sổ bằng tay để đo đúng phép lọc.
+     */
+    const bb = await fw.install(page);
+    bb.choQua.push({ method: 'POST', url: 'http://x/login', ngoai_le: 'dang_nhap' });
+    bb.choQua.push({ method: 'GET', url: 'http://x/api/a' });
+    expect(bb.soRequestGhiLot, 'chưa có rò rỉ').toBe(0);
+    bb.choQua.push({ method: 'POST', url: 'http://x/api/ghi' });
+    expect(bb.soRequestGhiLot, 'một POST KHÔNG phải đăng nhập ⇒ rò rỉ').toBe(1);
+    expect(bb.soNgoaiLeDangNhap).toBe(1);
   });
 
   test('request ghi bị chặn phải QUY ĐƯỢC cho nút gây ra nó — đó là dữ liệu, không chỉ là log', async ({ page }) => {

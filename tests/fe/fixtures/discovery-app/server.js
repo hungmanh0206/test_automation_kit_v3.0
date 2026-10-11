@@ -79,6 +79,11 @@ const CHROME = (vaiTro, tieuDe, than) => `<!doctype html>
   </details>
   <details class="nhom"><summary>Báo cáo</summary>
     <a href="/bao-cao">Báo cáo tổng hợp</a>
+    <!-- HIEN NHUNG DISABLED, co y: "an" va "hien nhung khong bam duoc" la hai loi khai khac nhau cua app
+         ve quyen, moi cai mot case. Dung aria-disabled de roles.js doc duoc bang cach chuan; app that con
+         dung class disabled va pointer-events none, ca ba deu duoc doc. KHONG dung dau backtick trong khoi
+         nay: no nam trong mot template literal cua JS, va backtick se dong chuoi som. -->
+    <a href="/bao-cao-emis" aria-disabled="true" style="opacity:.45">Báo cáo EMIS (chưa mở)</a>
   </details>
   ${vaiTro === 'admin' ? '<details class="nhom" open><summary>Quản trị</summary><a href="/admin">Cấu hình hệ thống</a></details>' : '<!-- vai trò nhanvien: mục Quản trị KHÔNG render ở menu, nhưng /admin vẫn vào được -->'}
   <hr style="border-color:#2c3a47">
@@ -329,6 +334,14 @@ function start() {
     if (p === '/them-truong') return html(trangThemTruong(vaiTro));
     if (p === '/bao-cao') return html(trangBaoCao(vaiTro, q));
     if (p === '/admin') return html(trangAdmin(vaiTro));   // KHÔNG kiểm quyền — cố ý
+    /*
+     * `/bao-cao-emis`: menu KHOÁ mục này (aria-disabled) nhưng server VẪN trả 200. Đây là lỗ thứ hai,
+     * khác đường vào với `/admin`: ở `/admin` việc chặn nằm ở chỗ ẩn menu, ở đây nằm ở chỗ khoá nút. Cả
+     * hai đều là client-only, và `roles.js` phải bắt được cả hai.
+     */
+    if (p === '/bao-cao-emis') {
+      return html(CHROME(vaiTro, 'Bao cao EMIS', '<p>Man nay le ra chua mo. Menu khoa muc nay, nhung server khong chan.</p>'));
+    }
 
     // ---- tệp tĩnh cạnh file này (openapi.json, fsd.md) ----
     const tep = path.join(__dirname, p.replace(/^\/+/, ''));

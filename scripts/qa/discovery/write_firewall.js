@@ -141,11 +141,25 @@ async function install(page, tuyChon) {
       if (cam) { this.nutDaChan.push({ nhan: String(nhan), khop: cam, luc: Date.now() }); return false; }
       return true;
     },
-    get soRequestGhiLot() { return this.choQua.filter((r) => !methodOk.has(r.method)).length; },
+    /*
+     * RÒ RỈ = request ghi đi qua mà KHÔNG phải ngoại lệ đăng nhập.
+     *
+     * Bản đầu đếm mọi request ngoài `method_cho_phep` trong `choQua`, nên `POST /login` — ngoại lệ CỐ Ý,
+     * không mở thì không bò được gì sau màn login — bị đếm thành rò rỉ. Phát hiện lúc viết `roles.js`:
+     * lập ma trận vai trò thì phải đăng nhập, và bộ đếm báo 1 request ghi lọt.
+     *
+     * Vì sao chuyện này đáng sửa chứ không đáng bỏ qua: mọi lượt chạy THẬT đều phải đăng nhập, nên bảo
+     * đảm "0 request ghi lọt" sẽ luôn sai một đơn vị. Một ngưỡng luôn sai thì người ta đổi nó thành
+     * `<= 1`, và lúc đó một rò rỉ THẬT lọt qua mà không ai thấy.
+     */
+    get soRequestGhiLot() { return this.choQua.filter((r) => !methodOk.has(r.method) && !r.ngoai_le).length; },
+    get soNgoaiLeDangNhap() { return this.choQua.filter((r) => r.ngoai_le === 'dang_nhap').length; },
     tomTat() {
       return {
         request_ghi_bi_chan: this.chan.length,
         request_ghi_lot: this.soRequestGhiLot,
+        // Hiện ra chứ không che: người đọc phải thấy đã có mấy lượt đăng nhập, chỉ là nó không phải rò rỉ.
+        request_ghi_ngoai_le_dang_nhap: this.soNgoaiLeDangNhap,
         nut_bi_tu_choi: this.nutDaChan.length,
         tai_file_bi_chan: this.taiFile.length,
         cua_so_ngoai_bi_chan: this.cuaSoNgoai.length,
