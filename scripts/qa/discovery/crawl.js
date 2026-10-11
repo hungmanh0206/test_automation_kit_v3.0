@@ -135,6 +135,12 @@ async function boApp(browser, o) {
   const origin = new URL(o.baseUrl).origin;
   const page = await browser.newPage();
   const bienBan = await fw.install(page, { cfg, domainChoPhep: [new URL(o.baseUrl).host] });
+  /*
+   * Bộ theo dõi API gắn vào CÙNG `page`, trước lần `goto` đầu tiên. Nó chỉ NGHE `response`, không gửi gì.
+   * Crawler có nhiệm vụ gọi `datRoute()` trước mỗi lần điều hướng — không có bước đó thì danh mục vẫn
+   * đúng về endpoint nhưng mất cột `goi_tu`, mà `goi_tu` chính là thứ suy ra `shared_surface`.
+   */
+  const apiRec = o.apiRec || null;
 
   const hangDoi = [{ url: o.baseUrl, sau: 0 }];
   const daThay = new Set([o.baseUrl]);
@@ -150,6 +156,7 @@ async function boApp(browser, o) {
     if ((Date.now() - batDau) / 60000 > hanPhut) { khongToiDuoc.budget.push(...hangDoi.map((h) => h.url)); break; }
 
     const { url, sau } = hangDoi.shift();
+    if (apiRec) apiRec.datRoute(chuanHoaRoute(url));
     let resp = null;
     try {
       resp = await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 15000 });
