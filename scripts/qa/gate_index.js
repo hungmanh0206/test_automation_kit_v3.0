@@ -20,6 +20,12 @@
  */
 const fs = require('fs');
 const path = require('path');
+/*
+ * Lớp TẦNG (v2.7.0 §A1). Bảng này là nơi người đọc tra "máy nào chặn gì", nên nó phải nói luôn
+ * máy đó chặn Ở ĐÂU: T0 chặn mọi lúc, T1 chỉ chặn ở cửa ra, T2 không bao giờ. Thiếu cột đó thì
+ * bảng vẫn đúng nhưng trả lời thiếu đúng phần quan trọng nhất sau đợt phân tầng.
+ */
+const gateTier = require(path.join(__dirname, 'lib', 'gate_tier.js'));
 
 const REPO = path.resolve(__dirname, '..', '..');
 const OUT = path.join(REPO, '.agent', 'config', 'GATES.md');
@@ -188,6 +194,10 @@ function render({ rows, orphanFiles }) {
   L.push('');
   L.push('> **SINH TỰ ĐỘNG** bởi `node scripts/qa/gate_index.js --write`. Đừng sửa tay — `--check` sẽ chặn khi');
   L.push('> bảng lệch source. Cột **Mức** suy từ code: `exit 1` = CHẶN · ghi artifact = SINH · chỉ in = BÁO CÁO.');
+  L.push('>');
+  L.push('> Cột **Tầng** (v2.7.0) nói máy đó chặn Ở ĐÂU: **T0** chặn ở mọi ngữ cảnh và không có cờ override ·');
+  L.push('> **T1** chỉ chặn ở cửa ra, lúc đang làm thì cảnh báo và ghi `reports/gate-debt.json` · **T2** không');
+  L.push('> bao giờ chặn. T0 khai tay trong `.agent/config/gate_tiers.json`; không khai thì mặc định T1.');
   L.push('');
   const nGen = rows.filter((r) => r.level === 'SINH').length;
   const nRep = rows.filter((r) => r.level === 'BÁO CÁO').length;
@@ -196,11 +206,12 @@ function render({ rows, orphanFiles }) {
   L.push('SINH/BÁO CÁO **không phải gate bị nới** — chúng không kiểm vi phạm. Ví dụ `bugs:checklist` in brief bug');
   L.push('lịch sử, còn việc CHẶN nằm ở `dim:coverage` (chiều `bug_history` §20).');
   L.push('');
-  L.push('| Mức | npm script | Chặn/kiểm cái gì | File | Gọi từ |');
-  L.push('|---|---|---|---|---|');
+  L.push('| Tầng | Mức | npm script | Chặn/kiểm cái gì | File | Gọi từ |');
+  L.push('|---|---|---|---|---|---|');
   for (const r of sorted) {
     const p = r.purpose.length > 110 ? `${r.purpose.slice(0, 107)}...` : r.purpose;
-    L.push(`| ${r.level} | \`${r.npm.join('`, `')}\` | ${p.replace(/\|/g, '&#124;')} | \`${r.file}\` | ${r.called.length ? r.called.join(' · ') : '**KHÔNG BỀ MẶT NÀO**'} |`);
+    const t = gateTier.tangCua(r.npm[0], { laBaoCao: !r.level.startsWith('CHẶN') }).tang;
+    L.push(`| ${t} | ${r.level} | \`${r.npm.join('`, `')}\` | ${p.replace(/\|/g, '&#124;')} | \`${r.file}\` | ${r.called.length ? r.called.join(' · ') : '**KHÔNG BỀ MẶT NÀO**'} |`);
   }
   if (orphanFiles.length) {
     L.push('');
