@@ -1,0 +1,48 @@
+{
+  "_la_gi": "BA CỬA RA của kit (v2.7.0 §A2). Mỗi đường đi RA NGOÀI kit phải qua đúng một cửa, và cửa đó đọc sổ nợ T1 cộng chạy các máy khai ở đây.",
+  "_vi_sao_co_cua_ra": "Phân tầng ở §A1 hoãn mọi vi phạm T1 từ 'chặn ngay' sang 'chặn ở cửa ra'. Nếu cửa ra không có thật thì đợt giảm ma sát biến thành đợt NỚI GATE: 57 máy T1 thôi chặn mà không gì chặn thay. Ba cửa này là phần giữ lời của §A1.",
+  "_luat_khong_ne_duoc": "Không đường nào ra ngoài kit (publish Sheet · log bug Backlog · chuyển Done · báo cáo release) được phép né cửa. Script nào tự đẩy ra ngoài thì phải TỰ gọi kiểm cửa, không chờ ai nhớ chạy.",
+  "_dau_vet": "Qua cửa thì ghi `reports/exit-gate-<cửa>.json`, mang BĂM của đầu vào đã kiểm. Băm để một lượt qua cửa không dùng lại được cho một bộ case đã đổi sau đó.",
+  "cua": {
+    "publish": {
+      "ten": "Trước publish testcase lên Google Sheet",
+      "lenh": "npm run exit:gate -- --cua publish",
+      "goi_tu": ["prompt_templates/phase1/04_auto_publish_backlog.md", ".agent/workflows/phase1_04_auto_publish_backlog.md", ".claude/commands/publish.md"],
+      "may": [
+        { "lenh": "self-review:enforce", "vi_sao": "bó sẵn preflight + design_gate + output_gate + typecheck:task + ledger của task; dùng lại thay vì liệt kê lại từng máy" },
+        { "lenh": "canonical:drift:enforce", "vi_sao": "bản xuất đem publish phải vừa sinh TỪ Markdown canonical, không phải bản .xlsx sửa tay" },
+        { "lenh": "expected:check", "vi_sao": "đổi `Kết quả mong đợi` mà chưa khai lý do thì không được đẩy bộ đó cho cả team đọc" }
+      ],
+      "doi_so_no_sach": true,
+      "_vi_sao_cua_nay": "Publish là lúc bộ case thôi là việc riêng của một người: cả team đọc nó, và Phase 2 chạy theo nó. Một vi phạm T1 lọt qua đây sẽ được nhân lên theo số người đọc."
+    },
+    "bug": {
+      "ten": "Trước khi log bug lên Backlog",
+      "lenh": "npm run exit:gate -- --cua bug",
+      "goi_tu": ["prompt_templates/phase2/08_log_bug_backlog.md", ".agent/workflows/phase2_04_report_and_backlog_gate.md"],
+      "may": [
+        { "lenh": "bug:claim", "vi_sao": "một phát hiện bug phải qua máy trước khi được nói thành lời (T0 §3)" },
+        { "lenh": "decisions:check", "vi_sao": "triệu chứng này đã từng bị kết luận KHÔNG phải bug chưa — chống log lại đúng thứ đã Rejected" },
+        { "lenh": "gate:output", "vi_sao": "FAIL phải có tầng lỗi và evidence là ảnh hoặc video (T0 §4)" }
+      ],
+      "doi_so_no_sach": false,
+      "_vi_sao_khong_doi_so_no_sach": "Log bug là việc PHẢI làm khi tìm ra lỗi thật, và nợ T1 về chất lượng bộ case không liên quan tới việc một bug có thật hay không. Chặn log bug vì bộ case còn nợ là chặn sai chỗ — nó làm người ta không báo bug, tức tệ hơn hẳn."
+    },
+    "done": {
+      "ten": "Trước khi chuyển Done hoặc phát hành",
+      "lenh": "npm run exit:gate -- --cua done",
+      "goi_tu": ["prompt_templates/run_phase_re-run_template.md", ".agent/workflows/phase2_04_report_and_backlog_gate.md", ".claude/commands/rerun.md"],
+      "may": [
+        { "lenh": "self-review:enforce", "vi_sao": "checklist gộp trước finalize — bó sẵn preflight, design_gate, output_gate, typecheck:task và ledger của task" },
+        { "lenh": "run:analysis", "vi_sao": "lượt chạy này có đủ điều kiện để kết luận chất lượng hay không (T0 §3)" },
+        { "lenh": "unit:stamp", "vi_sao": "mọi verdict đã chạy phải khai đơn vị đã đo (T0 §3)" },
+        { "lenh": "expected:check", "vi_sao": "kết luận Done trên một bộ có expected vừa bị sửa lặng lẽ là kết luận về một kỳ vọng khác" }
+      ],
+      "doi_so_no_sach": true,
+      "_vi_sao_cua_nay": "Đây là cửa cuối. Mọi nợ T1 đã hoãn từ §A1 phải được trả ở đây, nếu không thì 'hoãn tới cửa ra' nghĩa là 'bỏ'."
+    }
+  },
+  "_con_ho": {
+    "publish qua Drive MCP": "KHÔNG chặn được bằng code. Publish là agent gọi Google Drive MCP, không qua script nào của kit, nên không có chỗ nào chèn kiểm cửa. Hiện chặn bằng prompt cộng dấu vết `exit-gate-publish.json`; đó là lớp yếu hơn code. Xem mục Điều kiện DỪNG của §B.3."
+  }
+}

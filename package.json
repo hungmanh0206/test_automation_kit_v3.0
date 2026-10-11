@@ -158,7 +158,8 @@
     "canonical:drift:enforce": "node scripts/qa/canonical_drift.js --enforce",
     "gate:audit": "node scripts/qa/gate_audit.js",
     "expected:check": "node scripts/qa/expected_ledger.js",
-    "expected:snapshot": "node scripts/qa/expected_ledger.js --snapshot"
+    "expected:snapshot": "node scripts/qa/expected_ledger.js --snapshot",
+    "exit:gate": "node scripts/qa/exit_gate.js"
   },
   "dependencies": {
     "axe-core": "^4.12.1",

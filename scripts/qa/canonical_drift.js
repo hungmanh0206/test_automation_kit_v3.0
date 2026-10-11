@@ -250,7 +250,14 @@ async function main() {
     console.log(`[drift] CHƯA ĐƯỢC GÁC — ${thieu} trong ${path.join(taskOutputDir, 'test-cases')}.`);
     console.log('        Đây KHÔNG phải "không trôi": chưa có gì được đem ra so.');
     console.log('        Phase 1 gen xong phải có CẢ `*.md` (canonical) và `*.xlsx` (bản xuất bắt buộc).');
-    return;
+  /*
+   * EXIT 2 = "KHÔNG PHÁN ĐƯỢC", theo convention đã có của kit (`gates:index:check` dùng đúng mã này).
+   *
+   * Bản đầu exit 0 ở nhánh này, và CỬA RA phơi ra chỗ sai ngay lượt chạy thật đầu tiên: bảng của
+   * `exit:gate` in dấu ✓ cho máy này, ngay dưới dòng chính nó vừa nói "đây KHÔNG phải là đạt". Một máy
+   * nói đúng bằng chữ mà trả sai bằng mã thì mọi thứ ĐỌC MÃ sẽ hiểu ngược — và cửa ra là thứ đọc mã.
+   */
+    process.exit(2);
   }
 
   const mdDocs = mdFiles.map((f) => canonical.parseMarkdown(f));

@@ -111,10 +111,16 @@ test.describe('@infra expected:check — bắt được thay đổi expected', (
 });
 
 test.describe('@infra expected:check — "chưa gác được" KHÔNG thành "đạt"', () => {
-  test('chưa có mốc ⇒ nói rõ, và nói thẳng đây không phải là đạt', () => {
+  test('chưa có mốc ⇒ exit 2 ("không phán được"), KHÔNG phải exit 0', () => {
+    /*
+     * CỬA RA (§A2) phơi ra chỗ này ngay lượt chạy thật đầu tiên: bản đầu exit 0, nên bảng của
+     * `exit:gate` in dấu ✓ cho máy này — ngay dưới dòng chính nó vừa nói "đây KHÔNG phải là đạt".
+     * Một máy nói đúng bằng chữ mà trả sai bằng mã thì mọi thứ ĐỌC MÃ sẽ hiểu ngược, và cửa ra là thứ
+     * đọc mã. Exit 2 là convention đã có của kit cho "không phán được".
+     */
     const t = dungTask(bo([{ id: 'TC_001', expected: '1. Hiện A' }]));
     const r = chay(t.goc);
-    expect(r.status).toBe(0);
+    expect(r.status).toBe(2);
     expect(`${r.stdout}`).toContain('CHƯA CÓ MỐC');
     expect(`${r.stdout}`).toContain('KHÔNG phải là đạt');
     expect(`${r.stdout}`, 'không được in ĐẠT').not.toContain('✓ ĐẠT');
@@ -124,6 +130,7 @@ test.describe('@infra expected:check — "chưa gác được" KHÔNG thành "đ
     const goc = fs.mkdtempSync(path.join(os.tmpdir(), 'expled-rong-'));
     fs.mkdirSync(path.join(goc, 'tasks', 'T-EXP', 'test-cases'), { recursive: true });
     const r = chay(goc);
+    expect(r.status, 'mẫu số 0 là không phán được, không phải đạt').toBe(2);
     expect(`${r.stdout}`).toContain('CHƯA ĐƯỢC GÁC');
     expect(`${r.stdout}`).toContain('chưa có gì được đem ra so');
   });

@@ -126,7 +126,7 @@ test.describe('@infra canonical:drift — "chưa có gì để so" KHÁC "không
   test('không có `.xlsx` nào ⇒ CHƯA ĐƯỢC GÁC, và KHÔNG in ĐẠT', async () => {
     const t = dungTask(boMd([dongMd('TC_001')]), null);
     const r = chay(t.goc);
-    expect(r.status, 'thiếu bản xuất không phải lỗi của người chạy').toBe(0);
+    expect(r.status, 'exit 2 = không phán được; 0 sẽ bị cửa ra đọc thành ĐẠT').toBe(2);
     expect(`${r.stdout}`).toContain('CHƯA ĐƯỢC GÁC');
     expect(`${r.stdout}`, 'tuyệt đối không được in ĐẠT khi chưa so gì').not.toContain('✓ ĐẠT');
     expect(`${r.stdout}`).toContain('chưa có gì được đem ra so');
@@ -136,7 +136,7 @@ test.describe('@infra canonical:drift — "chưa có gì để so" KHÁC "không
     const t = dungTask(null, []);
     await ghiXlsx(path.join(t.tcDir, 'bo.xlsx'), ['ID_TC', 'Module'], [['TC_001', 'Hồ sơ trường']]);
     const r = chay(t.goc);
-    expect(r.status).toBe(0);
+    expect(r.status).toBe(2);
     expect(`${r.stdout}`).toContain('CHƯA ĐƯỢC GÁC');
     expect(`${r.stdout}`).toContain('test-cases/*.md');
   });

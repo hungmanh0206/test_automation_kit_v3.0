@@ -1409,6 +1409,37 @@ async function main() {
   if (UPDATE_ISSUE_KEY) console.log(`Update existing issue: ${UPDATE_ISSUE_KEY}`);
   if (DRY_RUN) console.log('DRY RUN: Backlog will not be changed.');
 
+  /*
+   * ── KIỂM CỬA RA (v2.7.0 §A2) ────────────────────────────────────────────────────────────────────
+   *
+   * Script này ĐẨY RA NGOÀI kit: nó tạo issue thật trên Backlog. Luật §A2 là không đường nào ra ngoài
+   * được né cửa, và "né" ở đây không cần ác ý — chỉ cần gọi thẳng `npm run backlog:bug-report` là xong,
+   * mà đó là cách gọi có thật trong README và CI.
+   *
+   * Nên script TỰ kiểm, không chờ ai nhớ chạy cửa. Đây là khác biệt giữa một luật và một máy.
+   *
+   * `--dry-run` KHÔNG kiểm: nó không đẩy gì ra ngoài, và bắt nó qua cửa thì người ta mất đường xem
+   * trước — rồi họ sẽ chạy thẳng bản thật để khỏi vướng.
+   */
+  if (!DRY_RUN) {
+    /* eslint-disable-next-line global-require */
+    const exitGate = require(path.join(REPO_ROOT, 'scripts', 'qa', 'exit_gate.js'));
+    const taskDir = path.dirname(path.dirname(RESULTS_FILE));
+    const kq = exitGate.kiemDauVet(taskDir, 'bug');
+    if (!kq.ok) {
+      fail(
+        `CỬA RA "bug" chưa qua: ${kq.vi_sao}\n`
+        + '  Log bug là một đường ĐI RA NGOÀI kit, nên nó phải qua cửa — chạy:\n'
+        + '    npm run exit:gate -- --cua bug\n'
+        + '  Cửa đó kiểm `bug:claim` (phát hiện phải qua máy trước khi nói thành lời), `decisions:check`\n'
+        + '  (triệu chứng này đã từng bị kết luận KHÔNG phải bug chưa) và `gate:output` (FAIL phải có\n'
+        + '  tầng lỗi cộng evidence là ảnh hoặc video).\n'
+        + '  Xem trước mà không đẩy đi thì dùng `--dry-run`: nhánh đó KHÔNG cần qua cửa.',
+      );
+    }
+    console.log(`Cửa ra "bug": ✓ đã qua lúc ${String(kq.luc).slice(0, 19)} (băm đầu vào ${kq.bam}).`);
+  }
+
   let parentIssue = null;
   let projectId = null;
   let issueTypeId = null;

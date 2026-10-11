@@ -141,7 +141,14 @@ async function main() {
     if (JSON_OUT) { console.log(JSON.stringify({ trang_thai: 'CHUA_GAC_DUOC', vi_sao: 'không đọc được case nào', task: taskKey }, null, 2)); return; }
     console.log(`[expected] CHƯA ĐƯỢC GÁC — không đọc được case nào trong ${path.join(taskOutputDir, 'test-cases')}.`);
     console.log('           Đây KHÔNG phải "không có gì đổi": chưa có gì được đem ra so.');
-    return;
+  /*
+   * EXIT 2 = "KHÔNG PHÁN ĐƯỢC", theo convention đã có của kit (`gates:index:check` dùng đúng mã này).
+   *
+   * Bản đầu exit 0 ở nhánh này, và CỬA RA phơi ra chỗ sai ngay lượt chạy thật đầu tiên: bảng của
+   * `exit:gate` in dấu ✓ cho máy này, ngay dưới dòng chính nó vừa nói "đây KHÔNG phải là đạt". Một máy
+   * nói đúng bằng chữ mà trả sai bằng mã thì mọi thứ ĐỌC MÃ sẽ hiểu ngược — và cửa ra là thứ đọc mã.
+   */
+    process.exit(2);
   }
 
   let cu = null;
@@ -174,7 +181,7 @@ async function main() {
     console.log('           Chụp ở thời điểm bộ case được CHỐT (cửa publish). Chụp sau khi đã sửa expected thì');
     console.log('           mốc mang luôn bản đã sửa, và gate này thành đồ trang trí.');
     console.log('[expected] Đây KHÔNG phải là đạt.');
-    return;
+    process.exit(2);
   }
 
   const kq = soSanh(cu.expected, cases);
