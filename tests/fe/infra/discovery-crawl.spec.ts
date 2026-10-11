@@ -286,3 +286,55 @@ test.describe('@infra bò TẤT ĐỊNH, và không chạm dữ liệu', () => {
     await expect(cr.boApp(br, { baseUrl: srv.url, coCo: false })).rejects.toThrow(/THIẾU cờ/);
   });
 });
+
+test.describe('@infra che PII trong ẢNH chụp màn', () => {
+  /*
+   * LỖ HỔNG CHỈ LỘ RA KHI SẮP CHẠM UAT. §C đòi che PII trong JSON **và trong ảnh**. JSON đã che (qua
+   * `screen_snapshot` và `fingerprint`), nhưng `page.screenshot` chụp THÔ — một lượt bò trên UAT có dữ
+   * liệu thật sẽ ghi ra hàng chục ảnh đầy họ tên, ngày sinh và CCCD. Kit đã trả giá cho đúng lớp lỗi này
+   * một lần: 100 email và 100 SĐT rò ra một file requirements.
+   *
+   * Fixture offline không bắt được lỗ này (nó không có dữ liệu người), nên phép kiểm đi thẳng vào hàm.
+   */
+  test('ô nhập có nhãn PII ⇒ vào danh sách che', async ({ page }) => {
+    await page.setContent(`
+      <label for="hoten">Họ và tên</label><input id="hoten" value="Nguyễn Văn A">
+      <label for="email">Email liên hệ</label><input id="email" value="a@b.vn">
+      <label for="ngaysinh">Ngày sinh</label><input id="ngaysinh" value="01/01/1990">
+      <label for="tent">Tên trường</label><input id="tent" value="THCS Âu Cơ">
+      <label for="siso">Sĩ số</label><input id="siso" value="820">`);
+    const che = await cr.oCanChe(page);
+    expect(che.length, 'che đúng 3 ô PII, KHÔNG che ô nghiệp vụ thường').toBe(3);
+  });
+
+  test('CỘT bảng có header PII ⇒ che cả cột — ô trong lưới không có nhãn kề bên', async ({ page }) => {
+    /* Đây đúng là chỗ đã rò thật: mask-theo-nhãn không tới được ô của lưới. */
+    await page.setContent(`
+      <table><thead><tr><th>Mã</th><th>Họ và tên</th><th>Số điện thoại</th><th>Lớp</th></tr></thead>
+      <tbody>
+        <tr><td>HS01</td><td>Nguyễn Văn A</td><td>0912345678</td><td>6A1</td></tr>
+        <tr><td>HS02</td><td>Trần Thị B</td><td>0987654321</td><td>6A2</td></tr>
+      </tbody></table>`);
+    const che = await cr.oCanChe(page);
+    expect(che.length, '2 cột PII × 2 dòng').toBe(4);
+  });
+
+  test('ÂM BẢN: màn không có PII ⇒ KHÔNG che gì', async ({ page }) => {
+    /* Che quá tay thì ảnh mất giá trị minh hoạ, và người đọc không còn kiểm được lượt bò thấy gì. */
+    await page.setContent(`
+      <label for="ma">Mã trường</label><input id="ma" value="C2-001">
+      <table><thead><tr><th>Mã</th><th>Cấp</th></tr></thead><tbody><tr><td>C2-001</td><td>THCS</td></tr></tbody></table>`);
+    expect((await cr.oCanChe(page)).length).toBe(0);
+  });
+
+  test('che LÚC CHỤP, không phải chụp xong rồi bôi', () => {
+    /*
+     * `page.screenshot({ mask })` tô đè vùng đó NGAY lúc chụp, nên dữ liệu không bao giờ nằm trong tệp.
+     * Chụp xong rồi bôi thì bản gốc đã tồn tại một nhịp trên đĩa — và một nhịp là đủ để nó vào backup,
+     * vào index của trình đồng bộ, hoặc vào tay người khác.
+     */
+    const src = fs.readFileSync(path.join(DIR, 'crawl.js'), 'utf8');
+    expect(src).toMatch(/page\.screenshot\(\{[^}]*mask: await oCanChe\(page\)/);
+    expect(src, 'và ghi rõ vì sao che lúc chụp').toMatch(/chụp xong rồi bôi/);
+  });
+});

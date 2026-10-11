@@ -23,6 +23,7 @@ const path = require('path');
 
 const fw = require(path.join(__dirname, 'write_firewall.js'));
 const fp = require(path.join(__dirname, 'fingerprint.js'));
+const snapshot = require(path.resolve(__dirname, '..', '..', 'utils', 'ui', 'screen_snapshot.js'));
 
 /**
  * Chuẩn hoá đường dẫn để gộp màn trùng: đoạn số và đoạn dạng uuid/hash thành `:id`.
@@ -93,6 +94,54 @@ async function moCacKhoi(page, bienBan, cfg, doTre) {
   return moDuoc;
 }
 
+/**
+ * Các vùng phải CHE trong ảnh chụp màn.
+ *
+ * LỖ HỔNG ĐÃ CÓ THẬT, và nó chỉ lộ ra khi sắp chạm UAT: `§C` đòi che PII trong JSON **và trong ảnh**.
+ * JSON đã che (qua `screen_snapshot` và `fingerprint`), nhưng ảnh thì `page.screenshot` chụp thô — tức
+ * một lượt bò trên UAT có dữ liệu thật sẽ ghi ra hàng chục ảnh đầy họ tên, ngày sinh và CCCD. Kit đã trả
+ * giá cho đúng lớp lỗi này một lần (100 email + 100 SĐT rò ra một file requirements).
+ *
+ * Che theo HAI đường, vì một đường không đủ:
+ *   ① Ô nhập có nhãn PII — `<label for>` khớp `PII_LABEL` thì che chính ô đó;
+ *   ② CỘT bảng có header PII — che cả cột, vì ô trong lưới KHÔNG có nhãn kề bên nên đường ① không tới.
+ *
+ * Dùng `page.screenshot({ mask })` của Playwright: nó tô đè vùng đó lúc chụp, nên dữ liệu không bao giờ
+ * nằm trong tệp ảnh — khác hẳn việc chụp xong rồi bôi, lúc đó bản gốc đã tồn tại một nhịp trên đĩa.
+ */
+async function oCanChe(page) {
+  const sel = await page.evaluate(({ piiLabel }) => {
+    const PII = new RegExp(piiLabel.source, piiLabel.flags);
+    const norm = (s) => String(s == null ? '' : s).replace(/\s+/g, ' ').trim().replace(/[:*]\s*$/, '');
+    const ra = [];
+    let n = 0;
+    const danhDau = (el) => {
+      if (!el) return;
+      const d = `qa-che-${n}`;
+      n += 1;
+      el.setAttribute('data-qa-che', d);
+      ra.push(`[data-qa-che="${d}"]`);
+    };
+    // ① ô nhập có nhãn PII
+    for (const l of document.querySelectorAll('label[for]')) {
+      if (!PII.test(norm(l.textContent))) continue;
+      danhDau(document.getElementById(l.getAttribute('for')));
+    }
+    // ② cột bảng có header PII — che cả cột
+    for (const t of document.querySelectorAll('table')) {
+      const th = [...t.querySelectorAll('thead th')];
+      const cot = th.map((h, i) => (PII.test(norm(h.textContent)) ? i : -1)).filter((i) => i >= 0);
+      if (!cot.length) continue;
+      for (const tr of t.querySelectorAll('tbody tr')) {
+        const td = [...tr.querySelectorAll('td')];
+        for (const i of cot) danhDau(td[i]);
+      }
+    }
+    return ra;
+  }, { piiLabel: { source: snapshot.PII_LABEL.source, flags: snapshot.PII_LABEL.flags } });
+  return sel.map((s) => page.locator(s));
+}
+
 /** Gom link trong trang, theo thứ tự DOM, chỉ giữ link cùng origin. */
 async function gomLink(page, origin) {
   return page.evaluate((org) => [...document.querySelectorAll('a[href]')]
@@ -134,7 +183,13 @@ async function boApp(browser, o) {
   }
 
   const origin = new URL(o.baseUrl).origin;
-  const page = await browser.newPage();
+  /*
+   * `o.context` cho phép bò bằng một SESSION ĐÃ ĐĂNG NHẬP (`browser.newContext({ storageState })`).
+   * Không có nó thì mọi app có login đều ra "0 màn": crawler đứng ở màn đăng nhập và không có đường nào
+   * đi tiếp. Và kit KHÔNG tự đăng nhập ở đây — QEMIS có captcha mỗi lượt, nên session phải được nạp sẵn
+   * từ ngoài. `context.newPage()` và `browser.newPage()` cùng chữ ký nên chỗ gọi không đổi gì khác.
+   */
+  const page = await (o.context || browser).newPage();
   const bienBan = await fw.install(page, { cfg, domainChoPhep: [new URL(o.baseUrl).host] });
   /*
    * Bộ theo dõi API gắn vào CÙNG `page`, trước lần `goto` đầu tiên. Nó chỉ NGHE `response`, không gửi gì.
@@ -189,7 +244,7 @@ async function boApp(browser, o) {
         const ten = `${route.replace(/[^a-z0-9]+/gi, '_').replace(/^_|_$/g, '') || 'root'}.png`;
         const duong = path.join(o.outDir, 'screens', ten);
         fs.mkdirSync(path.dirname(duong), { recursive: true });
-        await page.screenshot({ path: duong, fullPage: true });
+        await page.screenshot({ path: duong, fullPage: true, mask: await oCanChe(page), maskColor: '#111' });
         anh = path.posix.join('screens', ten);
       }
       screens.push({ ...dvt, _dt: dt, url_mau: url, do_sau: sau, khoi_da_mo: moDuoc, evidence: anh, so_ban_ghi_da_xem: 1 });
@@ -265,4 +320,4 @@ async function boApp(browser, o) {
   };
 }
 
-module.exports = { boApp, chuanHoaRoute, danhTinh, chuKyCauTruc };
+module.exports = { boApp, chuanHoaRoute, danhTinh, chuKyCauTruc, oCanChe };

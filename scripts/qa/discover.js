@@ -121,7 +121,12 @@ function dungTomTat(d, mode) {
 async function main() {
   const mode = arg('mode', 'task');
   if (!TRAN[mode]) { console.error(`[discover] --mode phải là task|delta|system (nhận "${mode}")`); process.exit(2); }
-  const baseUrl = arg('base-url', process.env.BASE_URL || '');
+  /*
+   * Lấy URL từ profile khi không truyền cờ. `runtime_config` đã nạp `TASK_ENV` vào `process.env`, nên giá
+   * trị KHÔNG phải đi qua dòng lệnh — tức nó không lọt vào history hay log của shell. `OPS_BASE_URL` là
+   * tên biến lane mà kit đang dùng.
+   */
+  const baseUrl = arg('base-url', process.env.BASE_URL || process.env.OPS_BASE_URL || '');
   if (!baseUrl) { console.error('[discover] cần --base-url <url> (hoặc BASE_URL trong task.env)'); process.exit(2); }
 
   const cfg = fw.napCfg();
@@ -140,9 +145,45 @@ async function main() {
 
   const { chromium } = require('playwright');
   const browser = await chromium.launch();
+  /*
+   * SESSION ĐÃ ĐĂNG NHẬP nạp từ ngoài bằng `--storage-state`. Kit KHÔNG tự đăng nhập trong lệnh này:
+   * QEMIS có captcha ở MỖI lượt đăng nhập, nên một bước login tự động sẽ hoặc hỏng, hoặc phải đọc
+   * captcha — cả hai đều không thuộc việc của một lệnh khám phá. Không có session thì app nào có login
+   * cũng ra "0 màn", và lệnh exit 1 kèm lý do.
+   */
+  const ss = arg('storage-state', '');
+  let ctx = null;
+  if (ss) {
+    /*
+     * BỌC HAY KHÔNG BỌC — và đây là một kiểu hỏng IM LẶNG.
+     *
+     * `session_cache` của kit ghi `.auth/<key>.json` dưới dạng **bản bọc** `{ savedAt, storageState }`,
+     * còn Playwright đợi một file CÓ `cookies`/`origins` ở gốc. Truyền thẳng đường dẫn thì Playwright
+     * KHÔNG ném: nó đọc được JSON, không thấy `cookies`, và trả về một context RỖNG. Lượt bò sau đó bị
+     * đẩy về màn đăng nhập và báo `captcha 1 · 0 màn` — trông y hệt một session hết hạn.
+     *
+     * Đo thật: lượt §E đầu tiên trên UAT báo đúng như vậy, và session khi đó MỚI 1 phút tuổi.
+     */
+    let st = null;
+    try {
+      const j = JSON.parse(fs.readFileSync(ss, 'utf8'));
+      st = j && j.storageState ? j.storageState : j;
+    } catch (e) {
+      console.error(`[discover] ✗ không đọc được --storage-state ${ss}: ${e.message}`);
+      process.exit(2);
+    }
+    const soCookie = ((st || {}).cookies || []).length;
+    if (!soCookie) {
+      console.error(`[discover] ✗ --storage-state ${ss} KHÔNG có cookie nào. Một context rỗng không ném lỗi — nó chỉ làm lượt bò dừng ở màn đăng nhập rồi báo "0 màn", nên chặn ngay ở đây thay vì để triệu chứng hiện ra ở chỗ khác.`);
+      process.exit(2);
+    }
+    console.log(`[discover] nạp session: ${soCookie} cookie từ ${path.basename(ss)}`);
+    ctx = await browser.newContext({ storageState: st });
+  }
+  const nguon = ctx || browser;
   let rec = null;
-  const goc = browser.newPage.bind(browser);
-  browser.newPage = async (...a) => { const pg = await goc(...a); rec = ai.theoDoi(pg); return pg; };
+  const goc = nguon.newPage.bind(nguon);
+  nguon.newPage = async (...a) => { const pg = await goc(...a); rec = ai.theoDoi(pg); return pg; };
 
   let crawl;
   try {
@@ -156,6 +197,7 @@ async function main() {
       maxTrang: arg('max-trang', '') === '' ? undefined : Number(arg('max-trang', '')),
       doSau: arg('do-sau', '') === '' ? undefined : Number(arg('do-sau', '')),
       phamVi,
+      context: ctx,
       get apiRec() { return rec; },
     });
   } finally { await browser.close(); }
