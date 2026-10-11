@@ -41,10 +41,14 @@ Kit không thay thế vai trò review của Team QA. AI Agent hỗ trợ đọc 
 
 ![Sơ đồ Main Flow của Test Automation Kit](docs/user-guide-images/main-flow.png)
 
-Main Flow hiện tại:
+Main Flow hiện tại. Bước 0 thêm ở v2.6.0: nó bò app bằng script rồi lấy mẫu số từ thứ **quan sát
+được**, chứ không chỉ từ tài liệu. Trước đó màn nào tài liệu không nhắc thì không ai test, và không
+gate nào biết.
+
 
 ```text
-Phase 1
+Bước 0: khám phá hệ thống (npm run discover)
+-> Phase 1
 -> Excel source of truth
 -> Review / QA Confirmation
 -> Auto Publish testcase lên Google Sheet (qua Drive MCP)
