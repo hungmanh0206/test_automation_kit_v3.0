@@ -8,6 +8,7 @@
 import { test, expect } from '@playwright/test';
 import fs from 'fs';
 import path from 'path';
+import { thuMucTam } from './_thu_muc_tam';
 
 const REPO = path.resolve(__dirname, '..', '..', '..');
 /* eslint-disable @typescript-eslint/no-var-requires, global-require */
@@ -23,7 +24,7 @@ const FIXTURE = path.join(REPO, 'tests', 'fe', 'fixtures', 'steps', 'testcase-ch
 
 /** Dựng một cây `outputs/` giả có shard kết quả đúng khuôn, để đo `steps:stats` thật sự đọc được. */
 function dungCayShard(cacStep: Array<{ tcId: string; name: string; status: string }>, runId = 'r1') {
-  const goc = fs.mkdtempSync(path.join(REPO, 'outputs', '_scratch', 'stats-'));
+  const goc = thuMucTam('stats');
   const dir = path.join(goc, 'DA', 'tasks', 'T1', 'test-results', 'testcase-status');
   fs.mkdirSync(dir, { recursive: true });
   const theoTc = new Map<string, Array<{ name: string; status: string }>>();
@@ -242,7 +243,7 @@ test.describe('§E — cửa phiên bản: đổi hợp đồng phải tăng s�
   });
 
   test('`aiDangDung` đọc được dấu `Bước đã dùng` của TỪNG case, không chỉ case đầu', () => {
-    const out = fs.mkdtempSync(path.join(REPO, 'outputs', '_scratch', 'impact-'));
+    const out = thuMucTam('impact');
     cs.bienDich({ taskKey: 'FIXTURE', duongMd: FIXTURE, outDir: out });
     const src = fs.readdirSync(out).filter((f) => f.endsWith('.spec.ts'))
       .map((f) => fs.readFileSync(path.join(out, f), 'utf8')).join('\n');

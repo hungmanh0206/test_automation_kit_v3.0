@@ -11,6 +11,7 @@
 import { test, expect } from '@playwright/test';
 import fs from 'fs';
 import path from 'path';
+import { thuMucTam } from './_thu_muc_tam';
 
 const REPO = path.resolve(__dirname, '..', '..', '..');
 /* eslint-disable @typescript-eslint/no-var-requires, global-require */
@@ -21,7 +22,7 @@ const sm = require(path.join(REPO, 'scripts', 'qa', 'reuse', 'steps_match.js'));
 /* eslint-enable @typescript-eslint/no-var-requires, global-require */
 
 const FIXTURE = path.join(REPO, 'tests', 'fe', 'fixtures', 'steps', 'testcase-chuan-phrasing.md');
-const tmp = (ten: string) => fs.mkdtempSync(path.join(REPO, 'outputs', '_scratch', `${ten}-`));
+const tmp = (ten: string) => thuMucTam(ten);
 
 test.describe('§F — replay:check đếm lượt phải gọi AI', () => {
   test('fixture còn TODO ⇒ con số LỚN HƠN 0, và tách theo từng loại', () => {

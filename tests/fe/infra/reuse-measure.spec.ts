@@ -12,6 +12,7 @@
 import { test, expect } from '@playwright/test';
 import fs from 'fs';
 import path from 'path';
+import { thuMucTam } from './_thu_muc_tam';
 
 const REPO = path.resolve(__dirname, '..', '..', '..');
 /* eslint-disable @typescript-eslint/no-var-requires, global-require */
@@ -20,7 +21,7 @@ const sm = require(path.join(REPO, 'scripts', 'qa', 'reuse', 'steps_match.js'));
 /* eslint-enable @typescript-eslint/no-var-requires, global-require */
 
 const FIXTURE = path.join(REPO, 'tests', 'fe', 'fixtures', 'steps', 'testcase-chuan-phrasing.md');
-const tmp = (t: string) => fs.mkdtempSync(path.join(REPO, 'outputs', '_scratch', `${t}-`));
+const tmp = (t: string) => thuMucTam(t);
 
 /** Dựng một bộ case canonical tối thiểu để đo, không phụ thuộc `outputs/**` (vốn bị gitignore). */
 function dungBo(dir: string, ten: string, cauBuoc: string[][]) {

@@ -13,6 +13,7 @@
 import { test, expect } from '@playwright/test';
 import fs from 'fs';
 import path from 'path';
+import { thuMucTam } from './_thu_muc_tam';
 
 const REPO = path.resolve(__dirname, '..', '..', '..');
 /* eslint-disable @typescript-eslint/no-var-requires, global-require */
@@ -22,7 +23,7 @@ const pwc = require(path.join(REPO, 'scripts', 'qa', 'lib', 'pw_task_config.js')
 /* eslint-enable @typescript-eslint/no-var-requires, global-require */
 
 const CAT_FX = path.join(REPO, 'tests', 'fe', 'fixtures', 'steps', 'ui_catalog_fixture.json');
-const tmp = (t: string) => fs.mkdtempSync(path.join(REPO, 'outputs', '_scratch', `${t}-`));
+const tmp = (t: string) => thuMucTam(t);
 
 const sinhVao = (deep = false) => {
   const out = tmp(deep ? 'sm-deep' : 'sm');

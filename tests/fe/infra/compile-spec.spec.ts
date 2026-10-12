@@ -12,6 +12,7 @@
 import { test, expect } from '@playwright/test';
 import fs from 'fs';
 import path from 'path';
+import { thuMucTam } from './_thu_muc_tam';
 
 const REPO = path.resolve(__dirname, '..', '..', '..');
 /* eslint-disable @typescript-eslint/no-var-requires, global-require */
@@ -25,7 +26,7 @@ let OUT: string;
 let ketQua: Record<string, any>;
 
 test.beforeAll(() => {
-  OUT = fs.mkdtempSync(path.join(REPO, 'outputs', '_scratch', 'compile-test-'));
+  OUT = thuMucTam('compile-test');
   ketQua = cs.bienDich({ taskKey: 'FIXTURE', duongMd: FIXTURE, outDir: OUT });
 });
 test.afterAll(() => { fs.rmSync(OUT, { recursive: true, force: true }); });
@@ -61,7 +62,7 @@ test.describe('§D — bộ biên dịch sinh được file CHẠY ĐƯỢC', ()
      */
     const cot = '| TC ID | Loại case | Tag | Module | Trường hợp kiểm thử | Tiền điều kiện | Dữ liệu Test | Các bước thực hiện | Kết quả mong đợi | Ưu tiên |';
     const hang = Array.from({ length: 6 }, (_, i) => `| T_${i} | UI | [Positive] | Cập nhật hồ sơ trường / tình huống ${i} | ca ${i} | [ui] x | — | 1. bấm nút "Ghi" | 1. Hiện thông báo "xong" | Medium |`);
-    const d = fs.mkdtempSync(path.join(REPO, 'outputs', '_scratch', 'gom-'));
+    const d = thuMucTam('gom');
     const md = path.join(d, 'x.md');
     fs.writeFileSync(md, `# gom\n\n${cot}\n|---|---|---|---|---|---|---|---|---|---|\n${hang.join('\n')}\n`, 'utf8');
     const r = cs.bienDich({ taskKey: 'GOM', duongMd: md, outDir: d });
@@ -235,7 +236,7 @@ test.describe('§D — dấu đầu spec ghi PHIÊN BẢN bước', () => {
 
 test.describe('§D — compile:check: đối chứng ÂM', () => {
   const chay = (ten: string, pha: (s: string) => string) => {
-    const d = fs.mkdtempSync(path.join(REPO, 'outputs', '_scratch', `cc-${ten}-`));
+    const d = thuMucTam(`cc-${ten}`);
     const nguon = fileChua('FIX_STEPS_TC_002');
     fs.writeFileSync(path.join(d, 'x.spec.ts'), pha(nguon), 'utf8');
     const kq = cc.kiem(d);
@@ -265,7 +266,7 @@ test.describe('§D — compile:check: đối chứng ÂM', () => {
   });
 
   test('file KHÔNG mang dấu sinh tự động thì không bị quét', () => {
-    const d = fs.mkdtempSync(path.join(REPO, 'outputs', '_scratch', 'cc-tay-'));
+    const d = thuMucTam('cc-tay');
     fs.writeFileSync(path.join(d, 'tay.spec.ts'), 'test("x", async () => { /* TODO-ORACLE */ });', 'utf8');
     const kq = cc.kiem(d);
     fs.rmSync(d, { recursive: true, force: true });
@@ -273,7 +274,7 @@ test.describe('§D — compile:check: đối chứng ÂM', () => {
   });
 
   test('quét 0 file là PHÉP ĐO HỎNG, không phải "sạch"', () => {
-    const d = fs.mkdtempSync(path.join(REPO, 'outputs', '_scratch', 'cc-rong-'));
+    const d = thuMucTam('cc-rong');
     const kq = cc.kiem(d);
     fs.rmSync(d, { recursive: true, force: true });
     expect(kq.so_file).toBe(0);
