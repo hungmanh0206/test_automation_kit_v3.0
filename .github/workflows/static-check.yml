@@ -58,6 +58,11 @@ jobs:
       - name: Bản đồ luật → gate → spec khớp nguồn, và không mục luật nào chưa ai rà
         run: npm run rule:coverage:check
 
+      # Hợp đồng dữ liệu testcase (`scripts/lib/testcase/testcase.d.ts`) phải khớp model. Trước v2.7.0
+      # KHÔNG dòng nào trong scripts/**.js được kiểm kiểu, nên hợp đồng đã trôi mất 4 trường.
+      - name: Hợp đồng dữ liệu testcase được kiểm bằng kiểu (typecheck:scripts)
+        run: npm run typecheck:scripts
+
       # Ngân sách token cho hướng dẫn của chính kit. Ngưỡng ở .agent/config/prompt_budget.json, đo theo
       # lời khai bat_buoc trong load_map.json. Chốt chống trôi: tài liệu phình lại bằng cách mỗi lần
       # thêm vài dòng hợp lý, và không gì ghi lại việc đó.

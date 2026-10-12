@@ -70,7 +70,7 @@ const RISK_HIGH = /^(blocker|critical|high|cao)$/i;
 const RISK_LOW = /^(minor|trivial|low|thấp|thap)$/i;
 
 /**
- * @param {import('./model').TestCaseDoc} doc
+ * @param {import('./testcase').TestCaseDoc} doc
  * @returns {{ problems: string[], warnings: string[] }}
  */
 function validate(doc) {

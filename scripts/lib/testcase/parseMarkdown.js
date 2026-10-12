@@ -34,7 +34,7 @@ function parseTablesMatching(lines, predicate) {
  * Parse Markdown (chuỗi hoặc đường dẫn file) → TestCaseDoc.
  * @param {string} mdOrPath nội dung markdown, hoặc đường dẫn .md (tự đọc file).
  * @param {{ story?: string }} [opts] story/task key để gắn traceability.
- * @returns {import('./model').TestCaseDoc}
+ * @returns {import('./testcase').TestCaseDoc}
  */
 function parseMarkdown(mdOrPath, opts = {}) {
   const md = (typeof mdOrPath === 'string' && mdOrPath.includes('\n')) || !fs.existsSync(mdOrPath)

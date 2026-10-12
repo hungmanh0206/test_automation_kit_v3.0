@@ -1,0 +1,23 @@
+{
+  "//": "TYPECHECK cho JS trong scripts/ (v2.7.0 A10.2). tsconfig.json chính chỉ phủ tests/**/*.ts với allowJs:false, nên trước bản này KHÔNG dòng nào trong scripts/ từng được kiểm kiểu. Hợp đồng dữ liệu testcase đã có đủ ở scripts/lib/testcase/testcase.d.ts, chỉ là không ai bắt gate tuân theo nó.",
+  "//2": "include MỞ RỘNG DẦN, không bật cả scripts/ một lượt: 166 file JS chưa từng được kiểm sẽ ra hàng trăm lỗi, và một bảng đỏ như vậy bị bỏ qua chứ không được sửa. Thêm file vào đây là một cam kết, nên nó phải đi cùng việc vá lỗi của chính file đó.",
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "Node16",
+    "moduleResolution": "Node16",
+    "allowJs": true,
+    "checkJs": true,
+    "noEmit": true,
+    "skipLibCheck": true,
+    "resolveJsonModule": true,
+    "strict": false,
+    "types": [
+      "node"
+    ]
+  },
+  "include": [
+    "scripts/lib/testcase/**/*.js",
+    "scripts/lib/testcase/testcase.d.ts"
+  ],
+  "//3": "ĐO 12/10/2026 khi thử thêm 3 gate tiêu thụ (canonical_drift, expected_ledger, result_ledger): 27 lỗi, phần lớn là thiếu JSDoc nội bộ chứ không phải bug (nhiều dòng 'Property X does not exist on type object'). Đó là nợ CÓ SỐ ĐO, không phải việc bỏ qua."
+}
