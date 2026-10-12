@@ -33,6 +33,7 @@
  * Dùng:
  *   node scripts/qa/check.js [--task <KEY>] [--context write|phase|exit|ci] [--full] [--json]
  *   node scripts/qa/check.js --explain <CODE>
+ *   node scripts/qa/check.js --override <CODE> --tc <TC_ID>[,<TC_ID>] --reason "<lý do>" --by <vai trò>
  *
  * Exit: 0 không còn chặn · 1 còn chặn (theo tầng và ngữ cảnh) · 2 không chạy được
  */
@@ -319,6 +320,40 @@ function main() {
   const maGt = val('explain');
   if (maGt) { giaiThich(maGt); return; }
 
+  /*
+   * ── `--override`: VƯỢT QUA CÓ KIỂM SOÁT (§A8) ────────────────────────────────────────────────
+   *
+   * Đây là đường duy nhất cố tình mở ra trong cả đợt. Bốn hàng rào nằm ở `override.js`, và chúng được
+   * kiểm TRƯỚC khi chạm đĩa: T0 bị từ chối mà KHÔNG ghi gì, vì một bản ghi nói "T0 đã được miễn" sẽ
+   * được đọc lại sau và lúc đó nó là một tiền lệ.
+   */
+  const maOv = val('override');
+  if (maOv) {
+    /* eslint-disable-next-line global-require */
+    const ov = require(path.join(__dirname, 'override.js'));
+    let tKey;
+    try {
+      rc.loadEnvFiles();
+      tKey = val('task', process.env.TASK_KEY) || rc.getTaskKey();
+    } catch (e) {
+      console.error(`[check] ✗ --override cần TASK_KEY: ${e.message}`);
+      process.exit(2);
+    }
+    const tcIds = String(val('tc', '')).split(',').map((x) => x.trim()).filter(Boolean);
+    const kq = ov.tao({
+      taskKey: tKey, ma: maOv, tcIds, lyDo: val('reason'), by: val('by'), evidence: val('evidence'),
+      hanNgay: Number(val('het-han-ngay', String(ov.HAN_MAC_DINH_NGAY))),
+    });
+    if (!kq.ok) {
+      console.error(`[check] ✗ TỪ CHỐI miễn trừ "${maOv}": ${kq.vi_sao}`);
+      process.exit(1);
+    }
+    console.log(`[check] ✓ đã ghi miễn trừ ${kq.ban.id} — ${maOv} cho ${tcIds.join(', ')}, hết hạn ${kq.ban.expires_at}`);
+    console.log(`        ${path.relative(REPO, kq.duong).split(path.sep).join('/')}`);
+    console.log('        Hết hạn thì gate chặn lại. Gia hạn là một quyết định MỚI, không phải sửa ngày trong file.');
+    return;
+  }
+
   let taskKey; let taskOutputDir;
   try {
     rc.loadEnvFiles();
@@ -379,6 +414,30 @@ function main() {
   const giay = Math.round((Date.now() - t0) / 100) / 10;
 
   /* ── Áp lớp TẦNG cho từng gate ──────────────────────────────────────────────────────────────────── */
+  /*
+   * ÁP MIỄN TRỪ CÒN HIỆU LỰC. Chúng chuyển một finding từ "phải sửa" sang "đã vượt qua", KHÔNG xoá nó:
+   * con số vẫn in ra, và cửa ra vẫn đọc được. Xoá hẳn thì miễn trừ thành vô hình, và một thứ vô hình
+   * thì không ai rà lại.
+   */
+  let mienTru = [];
+  let daVuotQua = [];
+  try {
+    /* eslint-disable-next-line global-require */
+    const ov = require(path.join(__dirname, 'override.js'));
+    mienTru = ov.dangHieuLuc(taskKey);
+    if (mienTru.length) {
+      for (const r of results) {
+        const fails = r.findings.filter((f) => f.level === 'FAIL');
+        const loc = ov.apDung(fails, mienTru, { maCua: engine.maCua, tcIdTrong: engine.tcIdTrong });
+        if (!loc.da_vuot_qua.length) continue;
+        daVuotQua.push(...loc.da_vuot_qua.map((f) => ({ ...f, gateId: r.gateId })));
+        r.findings = [...loc.con_lai, ...r.findings.filter((f) => f.level !== 'FAIL')];
+        r.counts.fail = loc.con_lai.length;
+        if (!r.counts.fail) r.status = r.counts.warn ? 'WARN' : 'PASS';
+      }
+    }
+  } catch (e) { /* thiếu lớp miễn trừ thì KHÔNG được che vi phạm — cứ để nguyên */ }
+
   const theoTang = { T0: [], T1: [], T2: [] };
   let coChan = false;
   for (const r of results) {
@@ -406,6 +465,8 @@ function main() {
     theo_tang: { T0: theoTang.T0.map((r) => r.gateId), T1: theoTang.T1.map((r) => r.gateId), T2: theoTang.T2.map((r) => r.gateId) },
     chan: coChan,
     lan: lanHienTai,
+    mien_tru: mienTru,
+    da_vuot_qua: daVuotQua.length,
     results,
   };
   if (JSON_OUT) { console.log(JSON.stringify(ra, null, 2)); process.exit(coChan ? 1 : 0); }
@@ -442,6 +503,16 @@ function main() {
       engine.inGon(moi.slice(0, SO_DONG), { nhan: tang });
       if (moi.length > SO_DONG) console.log(`     … +${moi.length - SO_DONG} nữa (thêm \`--full\`)`);
     }
+  }
+
+  if (daVuotQua.length) {
+    console.log(`\n✓ ${daVuotQua.length} vi phạm ĐÃ VƯỢT QUA (miễn trừ T1 còn hiệu lực):`);
+    for (const f of daVuotQua.slice(0, 8)) {
+      const m = f._mien_tru;
+      console.log(`  ${m.ma} · ${m.tc_ids.join(', ')} · ${m.by} · hết hạn ${m.het_han} · ${m.id}`);
+    }
+    if (daVuotQua.length > 8) console.log(`  … (+${daVuotQua.length - 8})`);
+    console.log('  Chúng KHÔNG bị xoá, chỉ chuyển mục — cửa ra vẫn đọc được, và hết hạn thì chặn lại.');
   }
 
   if (soSkip.length) {

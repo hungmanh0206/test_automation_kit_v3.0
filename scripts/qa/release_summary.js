@@ -243,6 +243,47 @@ function main() {
     console.log(`  ${String(c.id).padStart(2)} ${kq.padEnd(14)} ${c.ten} (ngưỡng ${c.nguong}) — ${so}${nl ? ` · NGOẠI LỆ: ${nl}` : ''}`);
   }
 
+  /*
+   * ĐÃ VƯỢT QUA (§A8) — mọi miễn trừ CÒN HIỆU LỰC ở mốc này.
+   *
+   * Không có mục này thì miễn trừ thành vô hình ở đúng chỗ nó cần được thấy nhất: báo cáo phát hành.
+   * Một tiêu chí "đạt" nhờ ba miễn trừ khác hẳn một tiêu chí đạt thật, và người đọc báo cáo phải phân
+   * biệt được hai thứ đó.
+   *
+   * Nó KHÔNG đổi đề xuất go/no-go: miễn trừ là quyết định đã có người chịu trách nhiệm, nên hạ đề xuất
+   * vì nó là phủ quyết lại người đã quyết. Nhưng nó phải CÓ MẶT.
+   */
+  console.log('\n— Đã vượt qua (miễn trừ T1 còn hiệu lực) —');
+  let soMienTru = 0;
+  try {
+    /* eslint-disable-next-line global-require */
+    const ov = require(require('path').join(__dirname, 'override.js'));
+    /*
+     * Mã task lấy từ ĐƯỜNG DẪN thư mục task, không từ một biến `TASK` — file này không có biến đó,
+     * và bản đầu của tôi tham chiếu một biến không tồn tại. `getTaskOutputDir()` đã giải xong mọi
+     * nguồn (env, --task, TASK_ENV), nên tên thư mục cuối chính là mã task đã được giải.
+     */
+    const maTask = require('path').basename(p.taskOut);
+    const ds = ov.dangHieuLuc(maTask);
+    soMienTru = ds.length;
+    if (!ds.length) {
+      console.log('  không có miễn trừ nào còn hiệu lực.');
+    } else {
+      for (const m of ds) {
+        console.log(`  ${m.ma} · ${m.tc_ids.join(', ')} · ${m.by} · hết hạn ${m.het_han} · ${m.id}`);
+        console.log(`    ${String(m.ly_do).slice(0, 110)}`);
+      }
+      console.log('  Một tiêu chí "đạt" nhờ miễn trừ KHÁC một tiêu chí đạt thật. Hết hạn thì gate chặn lại.');
+    }
+  } catch (e) {
+    /*
+     * Đọc được hay không thì cũng phải NÓI RA. Im lặng ở đây nghĩa là báo cáo phát hành khai "không có
+     * miễn trừ nào" trong khi thực ra nó chưa đọc được sổ.
+     */
+    console.log(`  KHÔNG đọc được sổ miễn trừ (${e.message}) — đây KHÔNG phải "không có miễn trừ nào".`);
+    soMienTru = null;
+  }
+
   /* ④ ĐỀ XUẤT, không quyết. */
   console.log('\n— ĐỀ XUẤT —');
   const ly = [];
