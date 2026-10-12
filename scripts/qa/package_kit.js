@@ -137,6 +137,17 @@ const KEEP_FILES = [
    * 21 mã "không có cặp" — một màn CHẶN toàn bộ ở máy mới, vì thiếu config chứ không vì thiếu gate.
    */
   '.agent/config/gate_code_pairs.json',
+  /*
+   * `judge_rubric.json` + `judge_calibration.json` (v2.7.0 §A11): thang chấm cho phần máy không đo được,
+   * và bộ hiệu chuẩn. Thiếu thang thì `judge --check` không biết chấm những mục nào; thiếu bộ hiệu chuẩn
+   * thì mọi lời chấm thành CHƯA ĐƯỢC GÁC — đúng hướng an toàn, nhưng vì lý do sai.
+   *
+   * MỐC hiệu chuẩn (`.judge_calibration_moc.json`) KHÔNG vào gói, cố ý: nó nói về một NGƯỜI CHẤM cụ thể
+   * ở một thời điểm cụ thể. Đem mốc của máy này sang máy khác là khai rằng người chấm bên kia đã hiệu
+   * chuẩn, trong khi họ chưa chấm ca nào.
+   */
+  '.agent/config/judge_rubric.json',
+  '.agent/config/judge_calibration.json',
   '.agent/config/checklist_types.json',
   '.agent/config/gate_codes.json',
   '.agent/config/na_reasons_rejected.json',

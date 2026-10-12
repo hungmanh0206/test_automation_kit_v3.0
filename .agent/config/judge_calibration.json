@@ -1,0 +1,156 @@
+{
+  "_y": "BỘ HIỆU CHUẨN cho tầng chấm §A11: những ca mà verdict đúng KHÔNG tranh cãi được, kèm nhãn. Người chấm (agent hoặc subagent) chấm bộ này trước, và `judge:calibrate` so lời chấm với nhãn.",
+  "_vi_sao_can": "Một lời chấm bằng phán đoán không có ĐƠN VỊ. Nó nghe như một kết luận trong khi nó có thể chỉ là một văn phong. Hiệu chuẩn cho nó một con số: trên những ca rõ ràng, người chấm này đồng ý với nhãn bao nhiêu phần. Dưới ngưỡng thì mọi lời chấm của lượt đó KHÔNG dùng được.",
+  "_gioi_han_phai_doc": "Bộ này cố ý chỉ gồm ca RÕ RÀNG, nên nó chỉ bắt được lệch thang THÔ: người chấm quá dễ dãi, quá khắt khe, hoặc đọc sai mục nào đo cái gì. Nó KHÔNG nói gì về ca biên — và ca biên mới là chỗ phán đoán thật sự khó. Đạt hiệu chuẩn nghĩa là 'không lệch thô', không nghĩa là 'chấm đúng'.",
+  "_nguong": {
+    "ti_le_dung_toi_thieu": 0.9,
+    "so_ngay_het_han": 30,
+    "vi_sao_90": "Bộ gồm ca rõ ràng, nên sai một ca là dấu hiệu đọc sai thang chứ không phải khác biệt phán đoán. Để 0.9 thay vì 1.0 vì bộ có 20 ca và một lỗi gõ không nên hạ cả lượt.",
+    "vi_sao_30_ngay": "Thang chấm và luật đều đổi được; một lần hiệu chuẩn từ ba tháng trước nói về một thang khác."
+  },
+  "_do_ngay": "2026-10-12",
+  "ca": [
+    {
+      "id": "CAL-01",
+      "muc": "SKIP_LY_DO",
+      "dau_vao": "SKIP — chưa chạy",
+      "nhan": "khong_dat",
+      "vi_sao_nhan": "chỉ mô tả trạng thái, không nêu điều kiện nào để chạy được"
+    },
+    {
+      "id": "CAL-02",
+      "muc": "SKIP_LY_DO",
+      "dau_vao": "SKIP — môi trường UAT lỗi",
+      "nhan": "khong_dat",
+      "vi_sao_nhan": "không nêu lỗi gì, cũng không nêu ai/cái gì sửa được"
+    },
+    {
+      "id": "CAL-03",
+      "muc": "SKIP_LY_DO",
+      "dau_vao": "SKIP — tài khoản cấp Sở chưa được cấp quyền sửa Hồ sơ trường; cần admin bật cờ địa-bàn cho đơn vị TEST 1 thì chạy được",
+      "nhan": "dat",
+      "vi_sao_nhan": "nêu đúng thứ còn thiếu và ai cấp được nó"
+    },
+    {
+      "id": "CAL-04",
+      "muc": "SKIP_LY_DO",
+      "dau_vao": "BLOCKED_SETUP — bảng DM_HOC_SINH ở TEST 1 rỗng nên không có học sinh để sửa; cần import 1 bản ghi qua màn Nhập Excel trước",
+      "nhan": "dat",
+      "vi_sao_nhan": "nêu bảng cụ thể và đường dựng state cụ thể"
+    },
+    {
+      "id": "CAL-05",
+      "muc": "SKIP_LY_DO",
+      "dau_vao": "SKIP — không có dữ liệu",
+      "nhan": "khong_dat",
+      "vi_sao_nhan": "không nói dữ liệu gì, ở đâu, lấy bằng cách nào"
+    },
+    {
+      "id": "CAL-06",
+      "muc": "COMMENT_NGUOI_DOC",
+      "dau_vao": "Đã kiểm tra, kết quả đúng như mong đợi.",
+      "nhan": "khong_dat",
+      "vi_sao_nhan": "lặp lại verdict, không nêu quan sát nào kiểm lại được"
+    },
+    {
+      "id": "CAL-07",
+      "muc": "COMMENT_NGUOI_DOC",
+      "dau_vao": "Hoạt động bình thường, không có vấn đề gì.",
+      "nhan": "khong_dat",
+      "vi_sao_nhan": "rỗng nghĩa; sạch khuôn nên mọi máy đều cho qua"
+    },
+    {
+      "id": "CAL-08",
+      "muc": "COMMENT_NGUOI_DOC",
+      "dau_vao": "Bỏ trống Tên trường rồi bấm Ghi: form chặn lưu và hiện thông báo đỏ \"Tên trường là bắt buộc\" ngay dưới ô.",
+      "nhan": "dat",
+      "vi_sao_nhan": "nêu thao tác, chỗ hiện, và nguyên văn thông báo"
+    },
+    {
+      "id": "CAL-09",
+      "muc": "COMMENT_NGUOI_DOC",
+      "dau_vao": "Mã trường ở tab Thông tin chung hiện 15 ký tự và ở trạng thái chỉ-đọc; thử dán giá trị khác thì ô không nhận.",
+      "nhan": "dat",
+      "vi_sao_nhan": "nêu màn, giá trị quan sát được, và một phép thử"
+    },
+    {
+      "id": "CAL-10",
+      "muc": "COMMENT_NGUOI_DOC",
+      "dau_vao": "editable=false disabled=true atGateway=true match=true",
+      "nhan": "khong_dat",
+      "vi_sao_nhan": "dấu vết kỹ thuật thuần — máy cũng bắt được ca này, nên nó là ca neo cho cả hai tầng"
+    },
+    {
+      "id": "CAL-11",
+      "muc": "ORACLE_DOC_LAP",
+      "dau_vao": "Kết quả mong đợi: hệ thống hiển thị đúng như dữ liệu đang có trong hệ thống.",
+      "nhan": "khong_dat",
+      "vi_sao_nhan": "app == app, tautology lộ"
+    },
+    {
+      "id": "CAL-12",
+      "muc": "ORACLE_DOC_LAP",
+      "dau_vao": "Kết quả mong đợi: ô Mã trường hiện 15 ký tự (mở màn thấy đang hiện 15 ký tự).",
+      "nhan": "khong_dat",
+      "vi_sao_nhan": "giá trị được ĐỌC TỪ APP rồi viết thành kỳ vọng; văn bản trông độc lập nhưng nguồn là app"
+    },
+    {
+      "id": "CAL-13",
+      "muc": "ORACLE_DOC_LAP",
+      "dau_vao": "Kết quả mong đợi (BR-HS-004): chặn lưu kèm thông báo \"Tên trường là bắt buộc\" — Tên trường là trường bắt buộc theo đặc tả, số thứ tự đỏ trên form.",
+      "nhan": "dat",
+      "vi_sao_nhan": "neo vào mã BR có thật và vào một dấu hiệu trên đặc tả, không vào hành vi app"
+    },
+    {
+      "id": "CAL-14",
+      "muc": "ORACLE_DOC_LAP",
+      "dau_vao": "Kết quả mong đợi (BR-XX-999): hệ thống chặn lưu.",
+      "nhan": "khong_dat",
+      "vi_sao_nhan": "oracle ma — mã không tồn tại trong knowledge store, nên neo đó không neo vào gì"
+    },
+    {
+      "id": "CAL-15",
+      "muc": "ORACLE_DOC_LAP",
+      "dau_vao": "Kết quả mong đợi: URL sau khi Ghi là /GiaoDuc/C2/HoSoTruong/Index và lưới hiện thêm 1 hàng có mã vừa nhập.",
+      "nhan": "dat",
+      "vi_sao_nhan": "nêu URL và element cụ thể, kiểm lại được mà không cần tin app"
+    },
+    {
+      "id": "CAL-16",
+      "muc": "PRECONDITION_THAT",
+      "dau_vao": "[api] Đã có 1 trường cấp THCS ở đơn vị TEST 1 — lấy bằng SELECT TOP 1 từ TRUONG rồi dùng ID đó.",
+      "nhan": "khong_dat",
+      "vi_sao_nhan": "khai `[api]` mà thao tác thật là ĐỌC DB rồi giả định; đúng chỗ non-negotiable §2 cấm"
+    },
+    {
+      "id": "CAL-17",
+      "muc": "PRECONDITION_THAT",
+      "dau_vao": "[ui] Đã đăng nhập cấp THCS và đang ở màn Hồ sơ trường, đã kiểm tiêu đề màn trước khi thao tác.",
+      "nhan": "dat",
+      "vi_sao_nhan": "method khớp thao tác, và state được verify trước khi assert"
+    },
+    {
+      "id": "CAL-18",
+      "muc": "PRECONDITION_THAT",
+      "dau_vao": "[factory] Đã tạo lớp QA10A1 bằng factory; chưa kiểm lớp có trong lưới.",
+      "nhan": "khong_dat",
+      "vi_sao_nhan": "dựng xong không verify — một setup hỏng sẽ hiện ra dưới dạng FAIL nghiệp vụ và tầng lỗi bị gán sai"
+    },
+    {
+      "id": "CAL-19",
+      "muc": "BATCH",
+      "dau_vao": "12 case cùng màn Hồ sơ trường, cùng tiền điều kiện [ui] đã đăng nhập THCS, chạy trong 12 lượt riêng.",
+      "nhan": "khong_dat",
+      "vi_sao_nhan": "cùng tiền điều kiện mà mỗi case một lượt — đúng kiểu lắt nhắt luật cấm"
+    },
+    {
+      "id": "CAL-20",
+      "muc": "BATCH",
+      "dau_vao": "12 case chia 3 lượt theo 3 nhóm tiền điều kiện khác nhau (THCS, THPT, GDTX).",
+      "nhan": "dat",
+      "vi_sao_nhan": "số lượt xấp xỉ số NHÓM tiền điều kiện, không xấp xỉ số case"
+    }
+  ],
+  "_nhan_do_ai_viet": "claude-opus-5 (phiên dựng v2.7.0 §A11, 12/10/2026)",
+  "_tu_cham_la_vo_nghia": "Người chấm TRÙNG với người viết nhãn thì tỉ lệ đúng không đo gì — nó chỉ đo khả năng nhớ nhãn mình vừa viết. `judge.js` đánh dấu lượt đó là `tu_cham` và in cảnh báo ở MỌI lần `--check` sau đó. Hiệu chuẩn có nghĩa phải do một người chấm KHÔNG thấy nhãn: một subagent được đưa thang chấm và 20 câu đầu vào, không đưa cột nhãn."
+}
