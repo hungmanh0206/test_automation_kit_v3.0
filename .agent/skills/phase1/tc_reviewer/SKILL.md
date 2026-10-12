@@ -1,6 +1,6 @@
 ---
 name: tc_reviewer
-description: Chấm chất lượng bộ testcase theo rubric 8 tiêu chí (0-2 điểm mỗi tiêu chí) — máy chấm 6, người chấm 2. Dùng trước khi publish, hoặc khi nhận bàn giao một bộ TC không phải mình viết.
+description: Chấm chất lượng bộ testcase theo rubric 9 tiêu chí (0-2 điểm mỗi tiêu chí) — máy chấm 7, người chấm 2. Dùng trước khi publish, hoặc khi nhận bàn giao một bộ TC không phải mình viết.
 ---
 
 # TC Reviewer — trả lời được câu "bộ này dùng được chưa"
@@ -27,7 +27,7 @@ npm run tc:review:enforce          # thêm: dưới ngưỡng ⇒ exit 1
 Ngưỡng ở [`.agent/config/tc_review.json`](../../../config/tc_review.json). Đổi ngưỡng phải kèm số đo trên
 bộ TC thật, đừng đổi theo cảm giác.
 
-## Tám tiêu chí, và ai chấm cái nào
+## Chín tiêu chí, và ai chấm cái nào
 
 | # | Tiêu chí | Máy đo được tới đâu |
 |---|---|---|
@@ -39,6 +39,7 @@ bộ TC thật, đừng đổi theo cảm giác.
 | 6 | Đúng trọng tâm | **Một phần** — máy bắt dấu hiệu thô ở tiêu đề. Case verify nhiều mục tiêu rời nhau thì người chấm |
 | 7 | Actor và Context | **Một phần** — máy bắt actor chung chung. Actor có đúng vai trò thật hay không thì người chấm |
 | 8 | Kỹ thuật thiết kế | **Đủ** — dùng kết quả của `design_techniques.json` |
+| 9 | Câu bước theo chuẩn §K | **Một phần, và tự khai là một phần** — máy chấm 2 trong 5 luật của `step_phrasing.json` (P1 bọc giá trị · P4 không dán đường dẫn màn). Ba luật còn lại hoặc trùng tiêu chí khác, hoặc phạt oan — số đo ở đầu `scripts/qa/lib/step_phrasing_check.js` |
 
 ## Ba luật nền, cả ba chống cùng một kiểu tự lừa
 

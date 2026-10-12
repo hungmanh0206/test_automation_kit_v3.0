@@ -171,6 +171,7 @@
     "judge": "node scripts/qa/judge.js",
     "steps:lint": "node scripts/qa/reuse/steps_lint.js",
     "steps:catalog": "node scripts/qa/reuse/steps_catalog_check.js",
+    "steps:suggest": "node scripts/qa/reuse/steps_suggest.js",
     "steps:match": "node scripts/qa/reuse/steps_match.js",
     "compile:spec": "node scripts/qa/reuse/compile_spec.js",
     "compile:check": "node scripts/qa/reuse/compile_check.js",
