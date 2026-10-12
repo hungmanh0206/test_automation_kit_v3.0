@@ -172,6 +172,8 @@
     "steps:lint": "node scripts/qa/reuse/steps_lint.js",
     "steps:catalog": "node scripts/qa/reuse/steps_catalog_check.js",
     "steps:match": "node scripts/qa/reuse/steps_match.js",
+    "compile:spec": "node scripts/qa/reuse/compile_spec.js",
+    "compile:check": "node scripts/qa/reuse/compile_check.js",
     "sync:canonical": "node scripts/qa/testcases/sync_canonical.js",
     "canonical:check": "node scripts/qa/canonical_check.js",
     "db:query": "node scripts/qa/db_query.js",
