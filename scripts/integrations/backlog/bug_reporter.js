@@ -1424,7 +1424,14 @@ async function main() {
   if (!DRY_RUN) {
     /* eslint-disable-next-line global-require */
     const exitGate = require(path.join(REPO_ROOT, 'scripts', 'qa', 'exit_gate.js'));
-    const taskDir = path.dirname(path.dirname(RESULTS_FILE));
+    /*
+     * Dùng TASK_OUTPUT_DIR, KHÔNG suy ngược từ đường dẫn results.json.
+     * Suy ngược chỉ đúng với layout `<task>/test-results/results.json`. Khi chạy có `--run-id` thì
+     * results.json nằm ở `<task>/test-results/runs/<RUN_ID>/results.json`, cắt hai cấp ra
+     * `<task>/test-results/runs` — và cửa ra báo "chưa qua cửa" trong khi dấu vết có thật ở
+     * `<task>/reports/`. Đo 12/10/2026: chặn đúng một lượt log bug hợp lệ của CSDL-9003.
+     */
+    const taskDir = TASK_OUTPUT_DIR;
     const kq = exitGate.kiemDauVet(taskDir, 'bug');
     if (!kq.ok) {
       fail(
