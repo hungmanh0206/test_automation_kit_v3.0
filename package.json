@@ -173,6 +173,8 @@
     "steps:catalog": "node scripts/qa/reuse/steps_catalog_check.js",
     "steps:suggest": "node scripts/qa/reuse/steps_suggest.js",
     "stt:map": "node scripts/qa/reuse/stt_map.js",
+    "smoke:gen": "node scripts/qa/reuse/smoke_gen.js",
+    "smoke:run": "node scripts/qa/reuse/smoke_run.js",
     "steps:match": "node scripts/qa/reuse/steps_match.js",
     "compile:spec": "node scripts/qa/reuse/compile_spec.js",
     "compile:check": "node scripts/qa/reuse/compile_check.js",

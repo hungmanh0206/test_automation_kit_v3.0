@@ -1,0 +1,55 @@
+{
+  "_y": "Catalog FIXTURE — khớp đúng trang `/ho-so` của app fixture `tests/fe/fixtures/discovery-app/server.js`. Dùng để đo L1 và `smoke:gen` hoàn toàn OFFLINE.",
+  "_vi_sao_can_file_nay": "Catalog thật của một task nằm ở `outputs/**` và bị `.gitignore`, nên trên checkout sạch không có gì để đo. Một bộ test đọc catalog thật sẽ XANH vì tập rỗng trên máy người khác — đúng kiểu dương tính giả mà đợt này đã gặp ở chỗ khác.",
+  "_control_anchor": "Neo đo trên app fixture ngày 12/10/2026. Ngày này cố ý có thật, để `canhBaoHanDung` có cái mà đối chiếu.",
+  "screens": [
+    {
+      "name": "Hồ sơ fixture — THCS",
+      "url": "/ho-so",
+      "stt_nhan": {
+        "1": "Tên trường",
+        "2": "Mã định danh",
+        "26": "Diện tích đất",
+        "85": "Có Internet"
+      },
+      "fields": [
+        {
+          "name": "I. Định danh",
+          "headingText": "1.1 Hồ sơ trường",
+          "mode": "exact",
+          "expectedFields": [
+            "Tên trường",
+            "Mã định danh",
+            "Diện tích đất",
+            "Loại hình",
+            "Mã số thuế",
+            "Khoảng cách (tự hoàn nguyên)",
+            "Có Internet",
+            "Có điện (lưới)",
+            "Ghi chú",
+            "Nhãn không có neo"
+          ],
+          "controls": {
+            "Tên trường": { "name": "tbTen", "tag": "input", "type": "text" },
+            "Mã định danh": { "name": "tbMa", "tag": "input", "type": "text" },
+            "Diện tích đất": { "name": "tbDienTich", "tag": "input", "type": "text" },
+            "Loại hình": { "name": "tbKhoa", "tag": "input", "type": "text" },
+            "Mã số thuế": { "name": "tbThue", "tag": "input", "type": "text", "disabled": true },
+            "Khoảng cách (tự hoàn nguyên)": { "name": "tbTuHoan", "tag": "input", "type": "text" },
+            "Có Internet": { "name": "ckInternet", "tag": "input", "type": "checkbox" },
+            "Có điện (lưới)": { "name": "ckDien", "tag": "input", "type": "checkbox" },
+            "Ghi chú": { "name": "txGhiChu", "tag": "textarea" }
+          }
+        }
+      ]
+    },
+    {
+      "_y": "Màn CHƯA CÓ NEO — bốn trên năm màn của CSDL-9001 đang ở đúng trạng thái này, nên nó phải có đại diện trong fixture.",
+      "name": "Hồ sơ fixture — Mầm non",
+      "url": "/ho-so",
+      "fields": [
+        { "name": "I", "expectedFields": ["Cơ sở GDMN"] }
+      ]
+    }
+  ]
+}

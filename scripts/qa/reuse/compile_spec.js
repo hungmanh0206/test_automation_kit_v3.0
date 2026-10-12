@@ -29,6 +29,7 @@ const path = require('path');
 const REPO = path.resolve(__dirname, '..', '..', '..');
 const rc = require(path.join(REPO, 'scripts', 'utils', 'runtime_config'));
 const sm = require(path.join(REPO, 'scripts', 'qa', 'reuse', 'steps_match.js'));
+const pwConfig = require(path.join(REPO, 'scripts', 'qa', 'lib', 'pw_task_config.js'));
 
 /** Dấu máy đọc được, để `compile:check` biết file nào chưa đủ. Đổi chuỗi này là đổi hợp đồng. */
 const DAU_CHUA_DU = 'BIEN-DICH:CHUA-DU';
@@ -383,62 +384,17 @@ function bienDich({ taskKey, taskOutputDir, duongMd, outDir }) {
   }
 
   /*
-   * SINH NỐT `playwright.task.config.js`. Không có nó thì spec sinh ra KHÔNG CHẠY ĐƯỢC: `playwright.
-   * config.js` ở gốc khai `testDir: './tests'` và không project nào trỏ tới `outputs/**`, nên gọi thẳng
-   * file spec ở đây trả "No tests found" — đã đo lại ở lượt này, và task CSDL-9001 đã đo đúng chuyện đó
-   * ngày 30/09/2026. Sinh ra một thư mục spec không chạy được là sinh ra một bản kê ước nguyện.
+   * SINH NỐT `playwright.task.config.js` — qua MỘT NGUỒN dùng chung với `smoke:gen`.
    *
-   * Hai cái bẫy của file config này được ghi vào chính nó, không ghi ở đây: reporter đường dẫn tương
-   * đối, và việc cố ý KHÔNG sửa config gốc (isolation §5).
+   * Không có nó thì spec sinh ra KHÔNG CHẠY ĐƯỢC: config gốc khai `testDir` là `./tests` và không
+   * project nào trỏ tới `outputs/**`, nên gọi thẳng file spec ở đây trả "No tests found" — đo được ở
+   * CSDL-9001 ngày 30/09/2026, và đo lại ngày 12/10 khi `smoke:gen` sinh spec đầu tiên của nó.
+   *
+   * Bản đầu CHÉP cả khối sinh config vào đây. `smoke:gen` cần đúng thứ đó, và lúc đó thành hai bản sao —
+   * đợt này đã trả giá bốn lần cho chuyện hai bản sao trôi khỏi nhau. Lý lẽ của từng cái bẫy trong file
+   * config (reporter đường dẫn tương đối · cố ý không sửa config gốc) nằm ở `lib/pw_task_config.js`.
    */
-  const duongConfig = path.join(specDir, 'playwright.task.config.js');
-  const sauRepo = path.relative(specDir, REPO).replace(/\\/g, '/') || '.';
-  if (/^[A-Za-z]:/.test(sauRepo) || path.isAbsolute(sauRepo)) {
-    throw new Error(`compile:spec: thư mục đích ${specDir} không nằm cùng ổ đĩa với repo, không dựng được config.`);
-  }
-  if (!fs.existsSync(duongConfig)) {
-    fs.writeFileSync(duongConfig, [
-      '/*',
-      ' * SINH TỰ ĐỘNG bởi `compile:spec` (v2.8.0 §D).',
-      ' *',
-      " * Vì sao cần: `playwright.config.js` ở gốc khai `testDir: './tests'` và không có project nào trỏ tới",
-      ' * `outputs/**`, nên gọi thẳng spec ở thư mục này trả "No tests found".',
-      ' *',
-      ' * CỐ Ý không sửa config gốc: đó là file dùng chung, thêm một project quét `outputs/**` sẽ kéo',
-      ' * automation của MỌI task vào lane mặc định của người khác (isolation §5).',
-      ' */',
-      "const path = require('path');",
-      `const base = require('${sauRepo}/playwright.config.js');`,
-      "const { devices } = require('@playwright/test');",
-      '',
-      `const REPO = path.resolve(__dirname, '${sauRepo}');`,
-      '',
-      '/*',
-      " * Reporter của config gốc khai đường dẫn TƯƠNG ĐỐI (`./scripts/qa/...`). Playwright resolve nó theo",
-      ' * thư mục CHỨA CONFIG, nên khi config nằm ở đây thì nó tìm trong thư mục này và vỡ với',
-      ' * MODULE_NOT_FOUND. Chuyển mọi path reporter sang tuyệt đối theo gốc repo.',
-      ' */',
-      "const reporter = (base.reporter || []).map((r) => (Array.isArray(r) && typeof r[0] === 'string' && r[0].startsWith('.')",
-      '  ? [path.resolve(REPO, r[0]), ...r.slice(1)]',
-      '  : r));',
-      '',
-      'module.exports = {',
-      '  ...base,',
-      '  reporter,',
-      '  testDir: __dirname,',
-      '  projects: [',
-      '    {',
-      `      name: ${q(`task-${sm.boDau(taskKey).replace(/[^a-z0-9]+/g, '-')}-compiled`)},`,
-      '      use: {',
-      "        ...devices['Desktop Chrome'],",
-      "        launchOptions: { args: ['--disable-blink-features=AutomationControlled'] },",
-      '      },',
-      '    },',
-      '  ],',
-      '};',
-      '',
-    ].join('\n'), 'utf8');
-  }
+  pwConfig.ghiConfigTask(specDir, taskKey);
 
   const raFile = [];
   /*
