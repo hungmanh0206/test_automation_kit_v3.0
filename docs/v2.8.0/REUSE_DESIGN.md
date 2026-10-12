@@ -212,6 +212,30 @@ bản lint SQL bất đồng ở 4/795 câu, và năm bản mẫu PII lệch nha
 **Sửa một chỗ, lành mọi chỗ:** locator heal áp ở **tầng bước**, không áp ở từng spec, và ghi vào
 `knowledge/locators`.
 
+> ### Bổ sung 12/10/2026 — ba thứ bảng trên không nói, phát hiện lúc dựng §E
+>
+> **(a) Bảng nói "chạy ổn định ≥3 lượt" mà không có gì đo số lượt.** `thong_ke` chỉ giữ `so_lan_dung` và
+> `ti_le_on_dinh`; cả hai đều không phải số lượt. Và KHÔNG suy được: một case có thể chạy bước đó ba
+> lần, còn ba case có thể mỗi case chạy một lần. Nên thêm `steps:stats`, đọc shard kết quả thật của
+> `EvidenceRecorder` và đếm từng lượt. Bước thiếu bản đo thì `steps:promote` từ chối đường A.
+>
+> **(b) `compile:spec` sinh ra spec KHÔNG chụp evidence theo step** — tức sinh sẵn một case sẽ bị
+> `output_gate` chặn vì CLAUDE.md §4. Đã vá: mỗi bước khớp được bọc trong `try/catch` kèm
+> `tc.step(page, '<mã bước> · <câu>')`. Khuôn tên đó thành **hợp đồng giữa `compile:spec` và
+> `steps:stats`** — nó là đường duy nhất nối một lượt chạy thật với một mã bước trong danh mục.
+> `try/catch` không phải để cho đẹp: không bọc thì bước ném sẽ không có bản ghi nào, và `ti_le_on_dinh`
+> tính ra 100% cho một bước vừa vỡ.
+>
+> **(c) Bảng không nói `screen: "*"` xử lý thế nào ở dòng `needs_reverify`.** Bước tầng widget áp cho
+> mọi màn; hễ màn nào đổi là đánh dấu hết thì cả danh mục đỏ sau mỗi lượt discovery, và một tín hiệu
+> luôn bật không còn là tín hiệu. Luật đã chốt: bước `*` chỉ bị đánh dấu khi chính **widget** nó khai
+> biến mất khỏi một màn. Và bước có `screen_fingerprint: null` xếp vào nhóm thứ ba —
+> **`khong_ket_luan_duoc`**, không gộp vào "không bị ảnh hưởng".
+>
+> Đo được ngay sau khi dựng: 310 shard kết quả thật trên máy này, 686 lượt step, **0** lượt theo khuôn
+> mã bước — vì chưa spec biên dịch nào từng chạy. `steps:stats` in ra đúng con số đó kèm lời giải thích,
+> thay vì in một bảng rỗng trông như "chưa bước nào chập chờn".
+
 ## 6. Luật an toàn chất lượng (có máy kiểm)
 
 1. **Bước chỉ làm thao tác, và tự xác nhận thao tác tới đích** (`clickVerified`/`assertScreen`). Đây là

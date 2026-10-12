@@ -180,8 +180,28 @@ function sinhThanCase(tc, danhMuc, nguPhap, specDir) {
         const dsParam = Object.keys(b.params || {});
         const doi = kq.gia_tri.map((v) => q(v));
         buocDaDung.set(b.id, b.version);
+        /*
+         * MỖI BƯỚC MỘT ẢNH, và tên step mang MÃ BƯỚC.
+         *
+         * Hai lý do, cả hai đều bắt buộc:
+         *   - CLAUDE.md §4: mọi step của case đã execute phải có ảnh. Bản đầu của bộ biên dịch sinh ra
+         *     một chuỗi lời gọi trần, không ảnh nào — tức sinh ra sẵn một case sẽ bị `output_gate` chặn.
+         *   - §E cần đo `ti_le_on_dinh` của từng bước. Tên step là chỗ DUY NHẤT nối được một lượt chạy
+         *     thật với một mã bước trong danh mục. Khuôn `<id> · <câu>` là hợp đồng với `steps:stats`.
+         *
+         * Bọc `try/catch` để bước NÉM được ghi là FAILED rồi mới ném tiếp. Không bọc thì `tc.step` không
+         * bao giờ chạy, step không có bản ghi nào, và `ti_le_on_dinh` tính ra 100% cho một bước vừa vỡ —
+         * một phép đo luôn báo "ổn định" là một phép đo vô dụng.
+         */
+        const nhanStep = q(`${b.id} · ${md.slice(0, 80)}`);
         dong.push(`    /* ${soThuTu}. ${md} */`);
-        dong.push(`    await ${ten}(page${doi.length ? `, ${doi.join(', ')}` : ''});`);
+        dong.push('    try {');
+        dong.push(`      await ${ten}(page${doi.length ? `, ${doi.join(', ')}` : ''});`);
+        dong.push(`      await tc.step(page, ${nhanStep});`);
+        dong.push('    } catch (e) {');
+        dong.push(`      await tc.step(page, ${nhanStep}, { status: 'FAILED', comment: \`script_error: \${(e as Error).message}\` });`);
+        dong.push('      throw e;');
+        dong.push('    }');
         if (dsParam.length !== doi.length) {
           /* Không bao giờ nên xảy ra — `exact` đã đòi khớp số tham số. Để lại máy canh, không để lại niềm tin. */
           dong.push(`    /* ✗ BỘ BIÊN DỊCH SAI: bước ${b.id} cần ${dsParam.length} đối số, dựng được ${doi.length}. */`);
