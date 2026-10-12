@@ -37,6 +37,8 @@ static-check:
       t "rule:coverage" npm run rule:coverage:check
       # Hợp đồng dữ liệu testcase phải khớp model — trước v2.7.0 scripts/**.js không được kiểm kiểu.
       t "typecheck:scripts" npm run typecheck:scripts
+      # Mốc đóng băng đầu ra parser canonical + hai phép đếm độc lập. Chỉ đọc file trong repo.
+      t "golden:check" npm run golden:check
       t "skills:index" npm run skills:index:check
       # Ngân sách token hướng dẫn của chính kit — chốt chống trôi, chỉ đọc file trong repo.
       t "prompt:budget" npm run prompt:budget -- --enforce

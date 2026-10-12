@@ -91,6 +91,8 @@ kèm một phép kiểm-âm, đừng tắt nó.
 | `0 màn` sau `/discover` | session chết hoặc chưa truyền `--storage-state` | đọc dòng lỗi; đừng lấy `system_map.json` rỗng làm mẫu số |
 | `canonical:drift` báo trôi | Markdown và bản xuất lệch nhau | xem **hướng** trôi. Markdown mới hơn chỉ là chưa xuất lại |
 | `expected:check` báo CHƯA CÓ MỐC | chưa chụp mốc ở cửa publish | `npm run expected:snapshot`. Chụp SAU khi sửa thì gate thành đồ trang trí |
+| `golden:check` LỆCH MỐC | parser canonical vừa đổi, và nó đổi đầu ra của **cả 30 gate** | đọc trường nào lệch. Chỉ `npm run golden:snapshot` khi bạn **chủ ý** đổi parser |
+| `golden:check` báo NGHI GATE SAI | hai phép đếm độc lập cho hai số | đi tìm bên nào sai trước. "Chưa biết tin bên nào" không phải đạt |
 | gate xanh mà bạn thấy lạ | có thể nó **kiểm 0 thứ** | đọc mẫu số trong output, ví dụ "đã so 7/10 trường" |
 | `/check` báo CHƯA BIẾT PHASE | không có `test-cases/` lẫn file status | sinh case hoặc execute trước |
 

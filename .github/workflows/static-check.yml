@@ -63,6 +63,11 @@ jobs:
       - name: Hợp đồng dữ liệu testcase được kiểm bằng kiểu (typecheck:scripts)
         run: npm run typecheck:scripts
 
+      # Parser canonical là chỗ 30 gate cùng dùng. Mốc đóng băng đầu ra trên bộ fixture vàng, cộng hai
+      # phép đếm độc lập (model vs đếm thô) — lệch nhau là NGHI GATE SAI, không phải "đạt".
+      - name: Bộ dữ liệu vàng của parser canonical (golden:check)
+        run: npm run golden:check
+
       # Ngân sách token cho hướng dẫn của chính kit. Ngưỡng ở .agent/config/prompt_budget.json, đo theo
       # lời khai bat_buoc trong load_map.json. Chốt chống trôi: tài liệu phình lại bằng cách mỗi lần
       # thêm vài dòng hợp lý, và không gì ghi lại việc đó.

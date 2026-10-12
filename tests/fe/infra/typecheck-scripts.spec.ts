@@ -3,6 +3,7 @@ import * as fs from 'fs';
 import * as os from 'os';
 import * as path from 'path';
 import { spawnSync } from 'child_process';
+import { gateEnv } from './_gate_env';
 
 /*
  * HỢP ĐỒNG DỮ LIỆU TESTCASE PHẢI ĐƯỢC KIỂM BẰNG KIỂU (v2.7.0 §A10.2).
@@ -26,7 +27,11 @@ const DTS = path.join(REPO, 'scripts/lib/testcase/testcase.d.ts');
 
 const npx = process.platform === 'win32' ? 'npx.cmd' : 'npx';
 const chayTsc = (args: string[]) => spawnSync(npx, ['tsc', ...args], {
-  cwd: REPO, encoding: 'utf8', shell: process.platform === 'win32', timeout: 5 * 60 * 1000,
+  /*
+   * `gateEnv()` dù `tsc` không đọc biến task-scoped: luật của `gate-selftest` là MỌI spec spawn tiến
+   * trình con đều phải đi qua nó, và một ngoại lệ "cái này không cần" là chỗ để ngoại lệ thứ hai bám vào.
+   */
+  cwd: REPO, encoding: 'utf8', env: gateEnv(), shell: process.platform === 'win32', timeout: 5 * 60 * 1000,
 });
 const demLoi = (out: string) => (out.match(/error TS/g) || []).length;
 

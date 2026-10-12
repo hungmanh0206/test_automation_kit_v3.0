@@ -18,13 +18,13 @@ Ví dụ cụ thể: `secret:scan` chặn theo mục Security mà mục đó kh�
 không nhắc tên. Đã đo trên bản máy của `gate:policy`: đòi luật canonical nhắc TÊN mọi lệnh thì **19/24
 script báo oan**. Nên con số `chưa nối được` ở dưới là **việc cần rà**, không phải một lỗ đã chứng minh.
 
-Nguồn: `RULE_GLOBAL.md` (34 mục có nội dung) · 106 gate · 116 spec hạ tầng.
+Nguồn: `RULE_GLOBAL.md` (34 mục có nội dung) · 108 gate · 120 spec hạ tầng.
 
 ## Mục luật ĐÃ nối được gate (28)
 
 | Mục luật | Gate thi hành | Spec canh gate |
 |---|---|---|
-| Purpose | `rule` · `report` | `api-card.spec.ts` · `backlog-bug-images.spec.ts` · `bug-layer-gate.spec.ts` +50 |
+| Purpose | `rule` · `report` | `api-card.spec.ts` · `backlog-bug-images.spec.ts` · `bug-layer-gate.spec.ts` +51 |
 | When To Use | `report` | `autofix.spec.ts` · `backlog-bug-images.spec.ts` · `bug-claim.spec.ts` +34 |
 | Inputs | `profile:create` | `start-command.spec.ts` |
 | Outputs | `report` | `autofix.spec.ts` · `backlog-bug-images.spec.ts` · `bug-claim.spec.ts` +34 |
@@ -33,25 +33,25 @@ Nguồn: `RULE_GLOBAL.md` (34 mục có nội dung) · 106 gate · 116 spec hạ
 | Security | `gate:output` · `report` | `check-command.spec.ts` · `dimension-threshold.spec.ts` · `evidence-quality.spec.ts` +38 |
 | Project And Output | `report` | `autofix.spec.ts` · `backlog-bug-images.spec.ts` · `bug-claim.spec.ts` +34 |
 | Parallel Story Safety | `report` | `autofix.spec.ts` · `backlog-bug-images.spec.ts` · `bug-claim.spec.ts` +34 |
-| Phase-Separated Story Execution | `merge:execution-status` · `canonical:drift` · `check` · `expected:check` · `load` · `gate:policy` · `ledger:check` · `risk` · `report` | `canonical-drift.spec.ts` · `expansion-gates.spec.ts` · `manual-run-gate.spec.ts` +87 |
+| Phase-Separated Story Execution | `merge:execution-status` · `canonical:drift` · `check` · `expected:check` · `load` · `gate:policy` · `ledger:check` · `risk` · `report` | `canonical-drift.spec.ts` · `expansion-gates.spec.ts` · `manual-run-gate.spec.ts` +90 |
 | Task-Scoped Automation Code | `report` | `autofix.spec.ts` · `backlog-bug-images.spec.ts` · `bug-claim.spec.ts` +34 |
-| Shared Change Gate | `dim:coverage` · `domain:check` · `rule` · `secret:scan` | `config-presence.spec.ts` · `dimension-threshold.spec.ts` · `discovery-injection.spec.ts` +34 |
+| Shared Change Gate | `dim:coverage` · `domain:check` · `rule` · `secret:scan` | `config-presence.spec.ts` · `dimension-threshold.spec.ts` · `discovery-injection.spec.ts` +35 |
 | Automation Promote Review | `report` | `autofix.spec.ts` · `backlog-bug-images.spec.ts` · `bug-claim.spec.ts` +34 |
-| Analysis & Ambiguity Gate (Phase 1 — đọc kỹ, hỏi trước khi gen) | `rule` · `report` | `api-card.spec.ts` · `backlog-bug-images.spec.ts` · `bug-layer-gate.spec.ts` +50 |
-| Chiều coverage (Phase 1 — khai phạm vi, gắn tag, có máy đếm) | `dim:coverage` · `domain:check` · `rule` | `config-presence.spec.ts` · `dimension-threshold.spec.ts` · `discovery-injection.spec.ts` +33 |
-| 5 trục mở rộng quanh case + luật đóng vòng (Phase 2 — có máy đứng sau) | `check` · `xsurf:diff` · `design:gate` · `discover` · `expansion:audit` · `expansion:plan` · `ui:contract` · `fixture:matrix` · `lane` · `leak:report` · `load` · `mutation:check` · `probe:persist` · `risk` · `rule` · `self-review` · `spec:extract` · `spec:gap` · `report` | `autofix.spec.ts` · `bug-claim.spec.ts` · `bug-retest.spec.ts` +96 |
-| Execute Results | `rule` · `report` | `api-card.spec.ts` · `backlog-bug-images.spec.ts` · `bug-layer-gate.spec.ts` +50 |
+| Analysis & Ambiguity Gate (Phase 1 — đọc kỹ, hỏi trước khi gen) | `rule` · `report` | `api-card.spec.ts` · `backlog-bug-images.spec.ts` · `bug-layer-gate.spec.ts` +51 |
+| Chiều coverage (Phase 1 — khai phạm vi, gắn tag, có máy đếm) | `dim:coverage` · `domain:check` · `rule` | `config-presence.spec.ts` · `dimension-threshold.spec.ts` · `discovery-injection.spec.ts` +34 |
+| 5 trục mở rộng quanh case + luật đóng vòng (Phase 2 — có máy đứng sau) | `check` · `xsurf:diff` · `design:gate` · `discover` · `expansion:audit` · `expansion:plan` · `ui:contract` · `fixture:matrix` · `lane` · `leak:report` · `load` · `mutation:check` · `probe:persist` · `risk` · `rule` · `self-review` · `spec:extract` · `spec:gap` · `report` | `autofix.spec.ts` · `bug-claim.spec.ts` · `bug-retest.spec.ts` +99 |
+| Execute Results | `rule` · `report` | `api-card.spec.ts` · `backlog-bug-images.spec.ts` · `bug-layer-gate.spec.ts` +51 |
 | Phân tầng lỗi FE hay BE — bắt buộc kiểm API trước khi kết luận | `load` | `agent-routing.spec.ts` · `auth-session-lock.spec.ts` · `automation-review.spec.ts` +34 |
-| Evidence — Quy chuẩn bắt buộc | `load` · `rule` · `report` | `agent-routing.spec.ts` · `auth-session-lock.spec.ts` · `automation-review.spec.ts` +72 |
-| Bug Claim Gate — kiểm chứng phải đi TRƯỚC lời nói | `bug:claim` · `check` · `report` | `bug-claim.spec.ts` · `bug-retest.spec.ts` · `autofix.spec.ts` +68 |
-| Retest một bug đã log (thêm 10/10/2026, v2.5.0 G1.8) | `bug:claim` · `check` | `bug-claim.spec.ts` · `bug-retest.spec.ts` · `autofix.spec.ts` +52 |
+| Evidence — Quy chuẩn bắt buộc | `load` · `rule` · `report` | `agent-routing.spec.ts` · `auth-session-lock.spec.ts` · `automation-review.spec.ts` +73 |
+| Bug Claim Gate — kiểm chứng phải đi TRƯỚC lời nói | `bug:claim` · `check` · `report` | `bug-claim.spec.ts` · `bug-retest.spec.ts` · `autofix.spec.ts` +71 |
+| Retest một bug đã log (thêm 10/10/2026, v2.5.0 G1.8) | `bug:claim` · `check` | `bug-claim.spec.ts` · `bug-retest.spec.ts` · `autofix.spec.ts` +55 |
 | Backlog Bug Gate | `load` | `agent-routing.spec.ts` · `auth-session-lock.spec.ts` · `automation-review.spec.ts` +34 |
-| Executable QA capabilities (autonomy & safety) | `check` · `dashboard` · `learn` · `load` · `gate:output` · `perf` · `risk` · `rule` · `security` · `report` | `autofix.spec.ts` · `bug-claim.spec.ts` · `bug-retest.spec.ts` +92 |
-| Automation quality | `auto:review` · `rule` | `automation-review.spec.ts` · `expected-ledger.spec.ts` · `gate-audit.spec.ts` +26 |
+| Executable QA capabilities (autonomy & safety) | `check` · `dashboard` · `learn` · `load` · `gate:output` · `perf` · `risk` · `rule` · `security` · `report` | `autofix.spec.ts` · `bug-claim.spec.ts` · `bug-retest.spec.ts` +95 |
+| Automation quality | `auto:review` · `check` · `golden:check` · `rule` | `automation-review.spec.ts` · `expected-ledger.spec.ts` · `gate-audit.spec.ts` +68 |
 | Push execution | `merge:execution-status` | `canonical-drift.spec.ts` · `expansion-gates.spec.ts` · `manual-run-gate.spec.ts` +2 |
 | Workflow | `report` | `autofix.spec.ts` · `backlog-bug-images.spec.ts` · `bug-claim.spec.ts` +34 |
 | Chi phí một lượt chạy — đếm SỐ LƯỢT, không đếm độ dài | `prompt:budget` · `rerun:failed` · `token:audit` | `agent-routing.spec.ts` · `discovery-cli.spec.ts` · `load-map.spec.ts` +8 |
-| References | `rule` | `api-card.spec.ts` · `backlog-bug-images.spec.ts` · `bug-layer-gate.spec.ts` +23 |
+| References | `rule` | `api-card.spec.ts` · `backlog-bug-images.spec.ts` · `bug-layer-gate.spec.ts` +24 |
 
 ## Mục luật CHƯA nối được gate bằng tên lệnh (6)
 
