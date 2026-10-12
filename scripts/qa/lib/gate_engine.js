@@ -108,8 +108,57 @@ function inGon(messages, { nhan = '-', log = console.log } = {}) {
   return dong.length;
 }
 
-const STATUS = { PASS: 'PASS', WARN: 'WARN', FAIL: 'FAIL', SKIP: 'SKIP' };
+/*
+ * ── LUẬT "KIỂM 0 THỨ THÌ KHÔNG ĐƯỢC BÁO ĐẠT" (v2.7.0 §A10.1) ────────────────────────────────────────
+ *
+ * BA LỖI THẬT CÙNG MỘT KIỂU, và cả ba đều xanh:
+ *   · `expansion_audit` đọc `t.id` thay vì `t.tcId` ⇒ báo "0/6 đỏ" mà trông rất yên tâm;
+ *   · `dimension_coverage` đọc một file config bị thiếu, rơi vào `catch → []` ⇒ gate tắt, không báo gì;
+ *   · bộ 530 case được tính "đủ coverage" trong khi một chiều chỉ phủ 12%.
+ *
+ * Cùng một gốc: **gate xanh vì không kiểm gì, chứ không phải vì đúng.** Và nó không phát hiện được từ
+ * output, vì một gate kiểm 0 thứ in ra đúng y như một gate kiểm xong và không thấy vi phạm.
+ *
+ * Nên `CHUA_KIEM` là một trạng thái RIÊNG, không gộp vào `SKIP` lẫn `PASS`:
+ *   · `PASS`      — đã kiểm N thứ, N > 0, không thấy vi phạm;
+ *   · `SKIP`      — chiều/phép kiểm này KHÔNG áp dụng cho task (người khai, có lý do);
+ *   · `CHUA_KIEM` — đã CHẠY nhưng mẫu số bằng 0, hoặc thấp hơn rõ so với đầu vào thực tế.
+ *
+ * Gộp `CHUA_KIEM` vào `SKIP` làm nó biến mất khỏi mọi phép đếm "còn gì chưa kiểm"; gộp vào `PASS` thì
+ * đúng là ba lỗi trên.
+ */
+const STATUS = { PASS: 'PASS', WARN: 'WARN', FAIL: 'FAIL', SKIP: 'SKIP', CHUA_KIEM: 'CHUA_KIEM' };
 const SEVERITY = { P0: 'P0', P1: 'P1', P2: 'P2' };
+
+/*
+ * Ngưỡng "thấp hơn rõ": mẫu số dưới 50% đầu vào thực tế là dấu hiệu gate đọc sai trường hoặc rơi vào
+ * `catch`. Không đặt 100% vì có phép kiểm chỉ áp cho một phần đầu vào một cách hợp lệ (vd chỉ case đã
+ * execute). Chọn một nửa vì nó bắt được ba ca ở trên (0/6, 0 case, 12%) mà không báo oan ca hợp lệ.
+ */
+const TI_LE_MAU_SO_TOI_THIEU = 0.5;
+
+/**
+ * Chấm mẫu số của một gate. Trả `null` nếu ổn, hoặc một `{ status, note }` để `toResult` dùng.
+ *
+ * @param {number|null} mauSo    số thứ gate ĐÃ ĐỌC được (case, file, ảnh, dòng)
+ * @param {number|null} dauVao   số thứ ĐÁNG LẼ có (nếu biết). Không biết thì truyền `null`.
+ */
+function kiemMauSo(mauSo, dauVao = null) {
+  if (mauSo === null || mauSo === undefined) {
+    return { status: STATUS.CHUA_KIEM, note: 'gate KHÔNG khai mẫu số — không biết nó đã kiểm bao nhiêu thứ' };
+  }
+  if (mauSo === 0) {
+    return { status: STATUS.CHUA_KIEM, note: 'mẫu số = 0: gate đã CHẠY nhưng không đọc được thứ gì để kiểm' };
+  }
+  if (dauVao !== null && dauVao > 0 && mauSo / dauVao < TI_LE_MAU_SO_TOI_THIEU) {
+    return {
+      status: STATUS.CHUA_KIEM,
+      note: `mẫu số ${mauSo} trên ${dauVao} đầu vào (${Math.round((mauSo / dauVao) * 100)}%) — thấp hơn rõ, `
+        + 'thường là đọc sai tên trường hoặc rơi vào `catch`',
+    };
+  }
+  return null;
+}
 
 /**
  * Bọc kết quả 1 gate (shape {problems, warnings}) → GateResult chuẩn.
@@ -117,13 +166,51 @@ const SEVERITY = { P0: 'P0', P1: 'P1', P2: 'P2' };
  * @param {{ problems?: string[], warnings?: string[], skipped?: boolean, severity?: string, note?: string }} o
  * @returns {GateResult}
  */
-function toResult(gateId, { problems = [], warnings = [], skipped = false, severity = SEVERITY.P1, note = '' } = {}) {
+function toResult(gateId, {
+  problems = [], warnings = [], skipped = false, severity = SEVERITY.P1, note = '',
+  mauSo = undefined, dauVao = null,
+} = {}) {
   const findings = [
     ...problems.map((m) => ({ level: STATUS.FAIL, message: String(m) })),
     ...warnings.map((m) => ({ level: STATUS.WARN, message: String(m) })),
   ];
-  const status = skipped ? STATUS.SKIP : (problems.length ? STATUS.FAIL : (warnings.length ? STATUS.WARN : STATUS.PASS));
-  return { gateId, status, severity, findings, note, counts: { fail: problems.length, warn: warnings.length } };
+  let status = skipped ? STATUS.SKIP : (problems.length ? STATUS.FAIL : (warnings.length ? STATUS.WARN : STATUS.PASS));
+  let ghiChu = note;
+
+  /*
+   * MẪU SỐ CHỈ CHẤM KHI GATE KHAI NÓ. Nó hạ `PASS` **và** `WARN` xuống `CHUA_KIEM`; chỉ `FAIL` được miễn.
+   *
+   * Vì sao không chấm khi gate không khai: hàng chục gate đang gọi `toResult` theo hợp đồng cũ, và bắt
+   * mọi gate khai mẫu số NGAY sẽ đổi tất cả chúng thành `CHUA_KIEM` trong một commit. Lúc đó cả bộ đỏ
+   * vì một thay đổi hợp đồng, không vì một vi phạm nào — và không ai đọc được cái đỏ đó.
+   *
+   * Vì sao `WARN` CŨNG bị hạ, và đây là một lỗ đã đo được: bản đầu chỉ hạ `PASS`, nên `gate:output`
+   * chạy trên một task có 0 case execute vẫn báo `WARN` và luật A10.1 không áp. Một cảnh báo trên mẫu
+   * số 0 là cảnh báo về chỗ CHƯA ĐO GÌ — nó không nói được điều gì về sản phẩm.
+   *
+   * Vì sao `FAIL` được miễn: một gate đọc được ít nhưng ĐÃ THẤY vi phạm thì vi phạm đó vẫn thật. Hạ nó
+   * xuống "chưa kiểm" là bỏ một phát hiện có thật.
+   *
+   * Phần ÉP mọi gate khai mẫu số là việc của `gate:policy` (xem §A10.3), không của hàm này.
+   */
+  if (mauSo !== undefined && (status === STATUS.PASS || status === STATUS.WARN)) {
+    const v = kiemMauSo(mauSo, dauVao);
+    if (v) {
+      status = v.status;
+      ghiChu = ghiChu ? `${ghiChu} · ${v.note}` : v.note;
+    }
+  }
+
+  return {
+    gateId,
+    status,
+    severity,
+    findings,
+    note: ghiChu,
+    mau_so: mauSo === undefined ? null : mauSo,
+    dau_vao: dauVao,
+    counts: { fail: problems.length, warn: warnings.length },
+  };
 }
 
 /**
@@ -134,13 +221,25 @@ function aggregate(results) {
   const list = (results || []).filter(Boolean);
   const totalFail = list.reduce((s, r) => s + r.counts.fail, 0);
   const totalWarn = list.reduce((s, r) => s + r.counts.warn, 0);
+  const chuaKiem = list.filter((r) => r.status === STATUS.CHUA_KIEM).map((r) => r.gateId);
+  /*
+   * `CHUA_KIEM` KHÔNG được rơi vào nhánh `PASS` của phép gộp.
+   *
+   * Nếu không có nó ở đây thì một bộ gồm 40 gate PASS và 3 gate CHUA_KIEM sẽ gộp thành `PASS`, và dòng
+   * tổng nói "mọi thứ đạt" trong khi ba phép kiểm chưa chạy được. Đó đúng là cách ba lỗi ở đầu file
+   * sống sót: mỗi cái đều nằm trong một bộ trông toàn xanh.
+   *
+   * Nó cũng KHÔNG thành `FAIL`: chưa kiểm được không phải một vi phạm, và gộp nó vào FAIL làm người ta
+   * đi tìm một lỗi không tồn tại.
+   */
   const status = list.some((r) => r.status === STATUS.FAIL) ? STATUS.FAIL
-    : (list.some((r) => r.status === STATUS.WARN) ? STATUS.WARN : STATUS.PASS);
+    : (chuaKiem.length ? STATUS.CHUA_KIEM
+      : (list.some((r) => r.status === STATUS.WARN) ? STATUS.WARN : STATUS.PASS));
   const blockers = list.filter((r) => r.status === STATUS.FAIL).map((r) => r.gateId);
-  return { status, totalFail, totalWarn, blockers, results: list };
+  return { status, totalFail, totalWarn, blockers, chua_kiem: chuaKiem, results: list };
 }
 
-const MARK = { PASS: '✓ OK', WARN: '⚠ warn', FAIL: '✗ CHẶN', SKIP: '○ n/a' };
+const MARK = { PASS: '✓ OK', WARN: '⚠ warn', FAIL: '✗ CHẶN', SKIP: '○ n/a', CHUA_KIEM: '◌ CHƯA KIỂM' };
 
 /** Format 1 báo cáo checklist người-đọc từ aggregate(). */
 function format(agg, { title = 'GATE ENGINE', failHead = 15, warnHead = 8 } = {}) {
@@ -155,7 +254,19 @@ function format(agg, { title = 'GATE ENGINE', failHead = 15, warnHead = 8 } = {}
     if (warns.length > warnHead) L.push(`    … +${warns.length - warnHead} cảnh báo nữa`);
   }
   L.push(`\n=== Tổng: ${agg.totalFail} CHẶN · ${agg.totalWarn} cảnh báo · overall ${agg.status}${agg.blockers.length ? ` (CHẶN ở: ${agg.blockers.join(', ')})` : ''} ===`);
+  /*
+   * CHƯA KIỂM phải KÈM CÂU PHỦ ĐỊNH, không chỉ một dấu `◌`.
+   *
+   * Dấu riêng là cần nhưng chưa đủ: người đọc thấy một dòng không có `✗` sẽ đọc nó thành "không có vấn
+   * đề". `◌ CHƯA KIỂM` nghĩa là gate ĐÃ CHẠY mà không đọc được gì — tức chỗ đó KHÔNG CÓ phép đo nào, và
+   * đó là trạng thái cần xử lý, không phải trạng thái sạch. Non-negotiable §3: "không phán được" KHÔNG
+   * thành PASS.
+   */
+  if (agg.chua_kiem && agg.chua_kiem.length) {
+    L.push(`    ◌ ${agg.chua_kiem.length} gate CHƯA KIỂM được gì (${agg.chua_kiem.join(', ')}) — đây KHÔNG phải đạt,`);
+    L.push('      mà là chỗ chưa có phép đo nào. Xem gate đó đọc đầu vào ở đâu và vì sao mẫu số bằng 0.');
+  }
   return L.join('\n');
 }
 
-module.exports = { STATUS, SEVERITY, toResult, aggregate, format, maCua, tcIdTrong, yChinh, nenGon, inGon,};
+module.exports = { STATUS, SEVERITY, TI_LE_MAU_SO_TOI_THIEU, kiemMauSo, toResult, aggregate, format, maCua, tcIdTrong, yChinh, nenGon, inGon,};

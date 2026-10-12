@@ -64,6 +64,37 @@ function chay(goc: string, them: string[] = []) {
   });
 }
 
+test.describe('@infra canonical:drift — không xác định được task ⇒ exit 2, KHÔNG phải exit 0', () => {
+  /*
+   * LỖ NÀY DO `gate:selfmutate` TÌM RA (§A10.6), sau khi toán tử `NUOT_EXCEPTION` được sửa để tìm ranh
+   * giới khối `catch` bằng đếm ngoặc thay vì một regex cắt ngang template literal. Sửa xong nó với tới
+   * `catch` của đoạn xác định task và đổi `process.exit(2)` thành `return []` — gate KHÔNG biết mình
+   * đang gác task nào mà vẫn exit 0 — và cả bộ spec vẫn XANH.
+   *
+   * Đây đúng chỗ non-negotiable §3 cấm: "không phán được" KHÔNG thành "đạt". Một gate exit 0 vì không
+   * biết gác gì sẽ được CI đọc là đã gác xong.
+   */
+  test('TASK_OUTPUT_DIR lệch TASK_KEY ⇒ exit 2, KHÔNG âm thầm gác sai chỗ', () => {
+    /*
+     * Dùng đúng đường ném CÓ THẬT: `getTaskOutputDir` chặn khi `TASK_OUTPUT_DIR` không khớp `TASK_KEY`
+     * (non-negotiable §5, cách ly scope). Thiếu env thì KHÔNG ném — `getTaskKey` trả về placeholder —
+     * nên lượt đầu tôi viết test theo hướng đó và nó đo sai chỗ.
+     */
+    const goc = fs.mkdtempSync(path.join(os.tmpdir(), 'nokey-'));
+    const r = spawnSync(process.execPath, [MAY], {
+      cwd: REPO,
+      encoding: 'utf8',
+      env: gateEnv({
+        TASK_KEY: 'T-MOT',
+        PROJECT_OUTPUT_DIR: goc,
+        TASK_OUTPUT_DIR: path.join(goc, 'tasks', 'T-HAI'),
+      }),
+    });
+    expect(r.status, '"không xác định được task" phải là exit 2 — không phán được, không phải đạt').toBe(2);
+    expect(`${r.stdout}${r.stderr}`).toContain('không xác định được task');
+  });
+});
+
 test.describe('@infra canonical:drift — cờ `--task` phải THẮNG env', () => {
   /*
    * LỖ NÀY DO `gate:selfmutate` TÌM RA (§A10.6). Nó nới `i >= 0` trong hàm đọc cờ `val()` lên một ngưỡng
