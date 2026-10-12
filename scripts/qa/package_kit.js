@@ -126,6 +126,12 @@ const KEEP_FILES = [
    * luôn bản khai rằng làn KHÔNG nới được T0, evidence, rerun hay cửa ra.
    */
   '.agent/config/risk_lanes.json',
+  /*
+   * `rule_coverage_notes.json` (v2.7.0 §A10.7): lời khai của người cho các mục luật không nối được gate
+   * bằng tên lệnh. Thiếu nó trong gói thì `rule:coverage:check` thấy 6 mục trống và CHẶN ngay ở máy mới,
+   * trong khi chẳng có gì sai — và người cài kit sẽ đọc màu đỏ đó thành "kit thiếu 6 gate".
+   */
+  '.agent/config/rule_coverage_notes.json',
   '.agent/config/checklist_types.json',
   '.agent/config/gate_codes.json',
   '.agent/config/na_reasons_rejected.json',

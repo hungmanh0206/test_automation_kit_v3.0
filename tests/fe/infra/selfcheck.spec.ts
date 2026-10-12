@@ -136,6 +136,54 @@ test.describe('@infra A10.1 — kiểm 0 thứ thì KHÔNG được báo ĐẠT'
   });
 });
 
+test.describe('@infra A10.7 — bản đồ LUẬT → GATE → SPEC: không ô nào được để trống', () => {
+  /*
+   * Bản đồ này tồn tại để trả lời "luật nào đang có máy thi hành". Giá trị của nó nằm hết ở chỗ KHÔNG ô
+   * nào trống: một mục luật không nối được gate và cũng không có lời khai sẽ được đọc thành "chưa có lỗ",
+   * đúng cách đọc sai mà §A10.7 đặt ra để chặn.
+   *
+   * Nó đã trả về một phát hiện thật ngay lượt đầu: §Cleanup Rules liệt kê hẳn bảng pattern file dump
+   * (`scratch_*`, `*_debug.txt`) và nói rõ chuyện đã xảy ra — dump API/swagger sót ở root repo, thường
+   * chứa email và SĐT — mà không máy nào quét. Đó là loại `do_duoc_ma_chua_co_may`, và nhãn đó phải TỒN
+   * TẠI: ghi nó là "không đo được bằng máy" là khai sai, vì quét root theo bảng pattern là phép đo hiển nhiên.
+   */
+  const KHAI = path.join(REPO, '.agent/config/rule_coverage_notes.json');
+
+  test('mọi mục luật không nối được gate đều CÓ lời khai', () => {
+    // eslint-disable-next-line @typescript-eslint/no-var-requires, global-require
+    const rc = require(path.join(REPO, 'scripts/qa/rule_coverage.js'));
+    const d = rc.dungBang();
+    const trong = d.banDo.filter((x: { gate: unknown[]; khai: unknown }) => !x.gate.length && !x.khai);
+    expect(trong.map((x: { muc: string }) => x.muc), 'ô trống sẽ được đọc thành "không có lỗ"').toEqual([]);
+  });
+
+  test('nhãn trong lời khai phải là nhãn CÓ ĐỊNH NGHĨA, không phải chuỗi gõ tay', () => {
+    /*
+     * Một nhãn gõ sai vẫn render ra bảng dưới dạng chuỗi trong nháy ngược, trông y như nhãn thật. Lúc đó
+     * bảng có vẻ đã rà xong mà thực ra mục đó không thuộc loại nào.
+     */
+    const j = JSON.parse(fs.readFileSync(KHAI, 'utf8'));
+    const hopLe = Object.keys(j._loai);
+    expect(hopLe.length, 'phải có đủ bốn loại').toBeGreaterThanOrEqual(4);
+    for (const m of j.muc) {
+      expect(hopLe, `mục "${m.ten}" khai nhãn lạ: ${m.loai}`).toContain(m.loai);
+      expect(String(m.ghi_chu).length, `mục "${m.ten}" khai nhãn mà không nói vì sao`).toBeGreaterThan(80);
+    }
+  });
+
+  test('`--check` CHẶN khi có mục chưa ai rà, và nói rõ phải khai ở đâu', () => {
+    const src = fs.readFileSync(path.join(REPO, 'scripts/qa/rule_coverage.js'), 'utf8');
+    expect(src).toContain('chưa ai phân loại');
+    expect(src).toContain('rule_coverage_notes.json');
+    expect(src, 'chặn thì phải exit khác 0').toMatch(/chuaRa\.length[\s\S]{0,900}?process\.exit\(1\)/);
+  });
+
+  test('file khai nằm trong gói kit — thiếu nó thì máy mới CHẶN oan 6 mục', () => {
+    const pk = fs.readFileSync(path.join(REPO, 'scripts/qa/package_kit.js'), 'utf8');
+    expect(pk).toContain('.agent/config/rule_coverage_notes.json');
+  });
+});
+
 test.describe('@infra A10.6 — gate_selfmutate: spec có bắt được gate bị làm hỏng không', () => {
   test('bộ đột biến tái hiện lỗi THẬT, mỗi cái có nguồn', () => {
     expect(sm.DOT_BIEN.length).toBeGreaterThanOrEqual(4);

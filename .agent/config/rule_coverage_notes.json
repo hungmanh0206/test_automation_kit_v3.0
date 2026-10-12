@@ -1,0 +1,42 @@
+{
+  "_y": "LỜI KHAI của người về các mục luật mà rule_coverage KHÔNG nối được gate bằng tên lệnh. Một ô trống sẽ được đọc thành 'chưa rà'; một lời khai thì rà lại được.",
+  "_loai": {
+    "co_may_khong_nhac_ten": "Luật CÓ máy thi hành, chỉ là mục luật không nhắc tên lệnh. Sửa: thêm tên lệnh vào mục luật.",
+    "do_duoc_ma_chua_co_may": "Luật ĐO ĐƯỢC bằng máy nhưng chưa có máy nào. Đây là lỗ thật, không phải giới hạn của phép nối.",
+    "khong_do_duoc_bang_may": "Luật nói về phán đoán hoặc cách làm việc, không quy về một phép đo. Thuộc §A11 (chấm bằng subagent + hiệu chuẩn).",
+    "khong_phai_luat": "Mục minh hoạ hoặc dẫn chiếu, không mang luật nào riêng."
+  },
+  "_do_ngay": "2026-10-12",
+  "muc": [
+    {
+      "ten": "Execution Discipline (Kỷ luật thực thi — chạy thông suốt)",
+      "loai": "khong_do_duoc_bang_may",
+      "ghi_chu": "Hai vế, và chúng khác nhau. Vế 'batch tối đa mỗi lượt, không lắt nhắt' nói về CÁCH LÀM của agent: không có artifact nào ghi lại 'lẽ ra gom được bao nhiêu case vào một lượt', nên không có mẫu số để đo — thuộc §A11. Vế 'không TODO/SKIP khi chưa thử' thì có máy một phần: `gate:output` đòi evidence cho mọi case đã execute, và `result_ledger` đối soát verdict với file status, nên một case khai SKIP mà thật ra chưa thử vẫn lọt được."
+    },
+    {
+      "ten": "Comment kết quả (Test Execution) — Quy chuẩn trình bày",
+      "loai": "co_may_khong_nhac_ten",
+      "ghi_chu": "`gate:output` (`scripts/qa/output_gate.js` + `scripts/qa/lib/output_rules.js`) thi hành đúng mục này: cấm dán `key=value`, cấm dump state, cấm mở đầu bằng `[PASS]`. Mục luật mô tả yêu cầu mà không nhắc tên lệnh, nên phép nối theo tên không thấy."
+    },
+    {
+      "ten": "Reporting",
+      "loai": "co_may_khong_nhac_ten",
+      "ghi_chu": "Phần 'FAIL phải ghi đủ năm thứ' nằm ở `.agent/config/verdict_taxonomy.json` (`failureLayer` bắt buộc) và được `gate:output` gác. Phần 'tiếng Việt có dấu, không trộn tiếng Anh' do `writing:lint` gác trên tập tài liệu đã khai. Phần 'SKIP phải ghi điều kiện để chạy được' là chỗ yếu nhất: máy đòi có lý do, không đòi lý do đó nêu được điều kiện."
+    },
+    {
+      "ten": "Setup Strategy",
+      "loai": "co_may_khong_nhac_ten",
+      "ghi_chu": "Khuôn `[<method>]` của ô `Tiền điều kiện` được `scripts/lib/testcase/validate.js` kiểm và `tc:review` báo. Luật 'KHÔNG dựng state bằng DB' thì không có máy: `uatDbClient` chỉ chặn câu lệnh không phải SELECT, nên một precondition khai `[api]` mà thật ra dựng bằng SELECT + giả định vẫn lọt — chỗ này thuộc §A11."
+    },
+    {
+      "ten": "Cleanup Rules",
+      "loai": "do_duoc_ma_chua_co_may",
+      "ghi_chu": "ĐÂY LÀ LỖ THẬT, và là phát hiện đầu tiên của chính bản đồ này. Mục luật liệt kê hẳn một bảng pattern (`*_debug.txt`, `scratch_*`…) và nói rõ nó ĐÃ XẢY RA: nhiều file dump API và swagger sót ở root repo sau một task, chưa gitignore, và các dump đó thường chứa email/SĐT. Quét root repo theo bảng pattern là phép đo hiển nhiên, mà `grep -rl 'scratch_|_debug.txt' scripts/` không ra máy nào. `secret:scan` không thay được: nó tìm secret trong nội dung, không tìm file dump lọt chỗ."
+    },
+    {
+      "ten": "Examples",
+      "loai": "khong_phai_luat",
+      "ghi_chu": "Bảng Good/Bad minh hoạ cho các mục khác (PROJECT_OUTPUT_DIR, đường evidence, Backlog bug gate). Không mang luật riêng nào, nên không có gate riêng là đúng."
+    }
+  ]
+}
