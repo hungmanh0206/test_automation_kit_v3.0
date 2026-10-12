@@ -60,6 +60,33 @@ const KEEP_FILES = [
   'LICENSE', '.agent/AUDIT_REFERENCES.md',
   'README.md', 'QUICKSTART.md', 'USER_GUIDE.md', 'RULE_GLOBAL.md', 'CHANGELOG.md', 'CLAUDE.md',
   /*
+   * BA FILE CỦA v2.7.0 BỊ BỎ SÓT KHỎI GÓI, và `release:verify` bắt được bằng cách CHẠY BỘ TEST TRONG GÓI:
+   * 13 test đỏ, không phải vì code sai mà vì file chúng đọc không có ở đó.
+   *
+   *   · `docs/CHEATSHEET.md` — trang §A7 nói "năm lệnh phải nhớ". `five-commands.spec.ts` đọc nó, và
+   *     `writing_lint` cũng gác nó. Thiếu file thì cả hai hỏng trong gói.
+   *   · `docs/RULE_COVERAGE.md` — bản đồ luật → gate → spec (§A10.7). `rule:coverage:check` CHẶN khi
+   *     thiếu file, nên gói không mang nó thì máy mới đỏ ngay lượt đầu vì thiếu config, không vì lỗi.
+   *   · `tsconfig.scripts.json` — `typecheck:scripts` (§A10.2) chạy theo file này. Thiếu nó thì lệnh
+   *     chết, và hợp đồng dữ liệu testcase thôi được kiểm trong gói.
+   *
+   * Bài học: thêm một file mà gate đọc thì phải thêm vào ĐÂY cùng lúc. Chỗ duy nhất bắt được là chạy bộ
+   * test TRONG gói — chạy ở repo thì file luôn có mặt.
+   */
+  'docs/CHEATSHEET.md', 'docs/RULE_COVERAGE.md', 'tsconfig.scripts.json',
+  /*
+   * `.claude/settings.json` — file ĐĂNG KÝ HOOK, tức lớp chặn mạnh nhất của kit (chạy tự động ở tầng
+   * harness, không phụ thuộc agent nhớ gọi). Nó ĐÃ được commit từ `98879ee`; thứ chặn nó khỏi gói là
+   * luật `DENY` cũ `/^.claude\/settings/`, vốn định chặn `settings.local.json` nhưng giết luôn cả hai.
+   *
+   * Lộ ra ở v2.7.0 vì §A5 làm `gates:index --check` CÓ RĂNG: nó chặn khi một source khai trong danh mục
+   * mà không có trên đĩa. Ở repo file có mặt nên không ai thấy; trong gói thì không, và ba test đỏ.
+   *
+   * File chỉ chứa tên event và đường dẫn script trong repo. Env, secret và đường dẫn cá nhân thuộc
+   * `.claude/settings.local.json`, vẫn bị chặn.
+   */
+  '.claude/settings.json',
+  /*
    * Danh mục 80 máy của kit. Hai lý do phải mang theo, cả hai đo được:
    *   · `README.md` trỏ tới file này, không mang là link hỏng ngay ở tài liệu đầu tiên;
    *   · `gate:policy` trong gói ĐỎ vì `writing:lint:docs` không bề mặt nào nhắc — GATES.md là nơi
@@ -172,7 +199,18 @@ const DENY = [
   /(^|\/)node_modules(\/|$)/,
   /^outputs\//, /^reports\//, /^test-results\//, /^dist\//, /(^|\/)\.git(\/|$)/,
   // `.env.example` PHẢI được giữ (nó là bản mẫu, lớp GENERIC). Luật cũ `/^\.env(\..*)?$/` giết luôn nó.
-  /^\.env$/, /^\.env\.(?!example$)/, /(^|\/)\.env$/, /^\.claude\/settings/,
+  /^\.env$/, /^\.env\.(?!example$)/, /(^|\/)\.env$/,
+  /*
+   * CHỈ chặn `settings.local.json`, KHÔNG chặn `settings.json`.
+   *
+   * Luật cũ `/^.claude\/settings/` giết cả hai, và nó giết đúng file quan trọng hơn:
+   * `settings.json` ĐĂNG KÝ HOOK, tức lớp chặn mạnh nhất của kit — chạy tự động ở tầng harness, không
+   * phụ thuộc agent nhớ gọi. Gói không mang nó thì người nhận phải tự bật, nghĩa là lớp chặn mạnh nhất
+   * lại là lớp DỄ KHÔNG CÓ NHẤT. `.gitignore` đã mở ngoại lệ cho nó từ round-3 với đúng lý lẽ này.
+   *
+   * `settings.local.json` mới là file cá nhân (env, đường dẫn máy) và vẫn bị chặn.
+   */
+  /^\.claude\/settings\.local\.json$/,
   /^profiles\/(?!task\.env\.example$)/,
   /^knowledge\/(?!SCHEMA\.md$)(?!.*\.gitkeep$)/,
   /^tests\/api\//, /^tests\/mobile-web\//,

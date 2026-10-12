@@ -49,6 +49,22 @@ const chay = (them: string[], goc?: string, taskKey = 'T-JUDGE') => spawnSync(pr
 
 test.describe.configure({ mode: 'default' });
 
+/*
+ * MỐC HIỆU CHUẨN KHÔNG ĐI THEO GÓI PHÁT HÀNH, cố ý — và vì vậy một phần bộ test này phải tự bỏ qua.
+ *
+ * `.judge_calibration_moc.json` nói về một NGƯỜI CHẤM cụ thể ở một thời điểm cụ thể. Đem nó sang máy
+ * khác là khai rằng người chấm bên đó đã hiệu chuẩn, trong khi họ chưa chấm ca nào — đúng kiểu lời khai
+ * suông mà cả tầng §A11 dựng ra để chặn. Nên `package_kit` KHÔNG mang nó.
+ *
+ * Hệ quả phải chịu: trong gói, `judge --check` luôn trả CHƯA ĐƯỢC GÁC, nên mọi test đi qua đường đó
+ * không đo được gì. Bỏ qua KÈM LÝ DO thay vì để đỏ: một màu đỏ vì thiếu file sẽ dạy người nhận gói rằng
+ * bộ test của kit vốn đỏ, và đó là cách nhanh nhất làm cả bộ mất nghĩa.
+ */
+const COC_HIEU_CHUAN = fs.existsSync(j.MOC_CALIB);
+const LY_DO_BO_QUA = 'chưa có mốc hiệu chuẩn trên máy này (`.judge_calibration_moc.json`). '
+  + 'Mốc KHÔNG đi theo gói vì nó nói về một người chấm cụ thể. '
+  + 'Chạy `npm run judge -- --calib-form` rồi `--calib-score <file>` để hiệu chuẩn, sau đó test này chạy được.';
+
 test.describe('@infra judge — lấy mẫu TẤT ĐỊNH, không chọn tuỳ ý', () => {
   test('cùng task + cùng bộ ⇒ cùng mẫu; đổi bộ ⇒ đổi mẫu', () => {
     /*
@@ -164,6 +180,7 @@ test.describe('@infra judge — hiệu chuẩn, và vì sao thiếu nó là CHƯ
   });
 
   test('mốc hiệu chuẩn HIỆN TẠI có thật, trên ngưỡng, và chấm MÙ', () => {
+    test.skip(!COC_HIEU_CHUAN, LY_DO_BO_QUA);
     /*
      * Mốc của v2.7.0 do một subagent chấm MÙ: nó được đưa thang chấm và 20 câu đầu vào, không đưa cột
      * nhãn. 20/20. Đó là lý do con số này dùng được, khác với một lượt tự chấm.
@@ -194,6 +211,7 @@ test.describe('@infra judge — ba luật không đổi được', () => {
   });
 
   test('lời chấm KHÔNG có neo ⇒ CHẶN', () => {
+    test.skip(!COC_HIEU_CHUAN, LY_DO_BO_QUA);
     const t = dungTask(boCase(6, () => 'M'));
     expect(chay(['--sample', '--n', '2'], t.goc).status).toBe(0);
     const mau = JSON.parse(fs.readFileSync(path.join(t.taskDir, 'reports', 'judge-sample.json'), 'utf8'));
@@ -211,6 +229,7 @@ test.describe('@infra judge — ba luật không đổi được', () => {
   });
 
   test('lời chấm có neo ⇒ ĐẠT; và lời chấm đòi GHI ĐÈ verdict máy ⇒ CHẶN', () => {
+    test.skip(!COC_HIEU_CHUAN, LY_DO_BO_QUA);
     const t = dungTask(boCase(6, () => 'M'));
     expect(chay(['--sample', '--n', '2'], t.goc).status).toBe(0);
     const mau = JSON.parse(fs.readFileSync(path.join(t.taskDir, 'reports', 'judge-verdicts.json').replace('verdicts', 'sample'), 'utf8'));
@@ -238,6 +257,7 @@ test.describe('@infra judge — ba luật không đổi được', () => {
   });
 
   test('chấm thiếu case trong mẫu ⇒ CHẶN, không cho chấm một nửa rồi báo tỉ lệ', () => {
+    test.skip(!COC_HIEU_CHUAN, LY_DO_BO_QUA);
     const t = dungTask(boCase(10, () => 'M'));
     expect(chay(['--sample', '--n', '4'], t.goc).status).toBe(0);
     const mau = JSON.parse(fs.readFileSync(path.join(t.taskDir, 'reports', 'judge-sample.json'), 'utf8'));
@@ -252,6 +272,7 @@ test.describe('@infra judge — ba luật không đổi được', () => {
   });
 
   test('OBSERVATION không kèm câu hỏi mở ⇒ cảnh báo (không chặn)', () => {
+    test.skip(!COC_HIEU_CHUAN, LY_DO_BO_QUA);
     /*
      * `OBSERVATION` là verdict hợp lệ khi chưa phán được — nhưng một quan sát không có câu hỏi thì không
      * ai theo tiếp được, và nó sẽ chết ở đó. Cảnh báo chứ không chặn: chặn sẽ đẩy người chấm sang `dat`

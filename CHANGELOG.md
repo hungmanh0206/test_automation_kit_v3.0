@@ -7,6 +7,117 @@
 > `.agent/**`, `tests/support/**` đều là **shared change** (xem `RULE_GLOBAL.md` §Shared Change Gate) —
 > ảnh hưởng mọi story đang chạy. Mỗi mục ghi **vấn đề → cách chữa**, không chỉ liệt kê tính năng.
 
+## v2.7.0 — 2026-10-12 — Giảm ma sát, và bắt máy kiểm tự chứng minh là nó có gác
+
+**Vấn đề.** Kit có hơn một trăm máy gác, nhưng không gì trả lời được ba câu cơ bản: máy nào chặn ở lúc
+nào, máy nào chặn oan, và máy nào chỉ trông như đang gác. Hệ quả là ma sát dồn lên người dùng theo cách
+không ai đo được, và một gate hỏng lặng lẽ thì không khác gì một gate không tồn tại.
+
+Đợt này làm hai việc song song: **giảm ma sát có kiểm soát**, và **bắt chính bộ máy kiểm chứng minh nó
+còn hiệu lực**. Việc thứ hai là phần đắt hơn, và nó tìm ra nhiều lỗi hơn dự tính.
+
+### Giảm ma sát
+
+**Phân tầng có máy thi hành** (`gate_tier`). Ba tầng T0/T1/T2 nhân bốn ngữ cảnh (write · phase · exit ·
+ci). T0 luôn chặn; T1 chỉ chặn ở cửa ra và những lúc khác thì ghi **sổ nợ**; T2 không chặn. Hook lúc ghi
+file giờ chỉ chặn T0 — trước đó nó chặn mọi thứ, kể cả lúc người ta đang viết dở.
+
+**Ba cửa ra** (`exit:gate`): `publish`, `bug`, `done`. Mỗi cửa có dấu vết băm theo đầu vào, nên một dấu
+vết cũ hoặc một dấu vết của cửa khác không dùng lại được. `.xlsx` chỉ xuất được khi đã qua cửa — chặn ở
+ARTIFACT thay vì chặn ở hành động, vì chặn ở hành động thì luôn còn một đường vòng.
+
+**Một lệnh thay cho mười hai** (`npm run check`). Tự nhận phase, chạy 5 máy trong tiến trình và 6 máy
+spawn, in một bảng gọn 2,3k byte thay cho 12,7k. Có `--fix` tự sửa định dạng, và một hàng rào quanh bốn
+cột **KHÔNG** được tự sửa (`Kết quả mong đợi`, `Dữ liệu Test`, `Loại case`, `Tiền điều kiện`) vì sửa tự
+động ở đó là sửa nội dung kiểm thử.
+
+**21 mã lỗi nay nói được cách sửa.** Mỗi mã có `vi_sao`, `sua`, `vi_du` và `tang`.
+
+**Hai làn theo risk** (`npm run lane`): làn gọn và làn đầy đủ. Bốn thứ **không** làn nào nới được: tầng
+T0, chuẩn evidence, ngưỡng rerun, và ba cửa ra. Band UNKNOWN luôn rơi về làn đầy đủ.
+
+**Năm lệnh phải nhớ, sáu lệnh được chỉ đường** (`npm run next`). Đo thật và báo thật: tổng số lệnh
+**tăng** từ 55 lên 60, không giảm. Thứ giảm là số lệnh người dùng phải *nhớ*.
+
+**Vượt qua có kiểm soát** (`npm run override`): chỉ cho T1 trở xuống, phải có vai trò, lý do dài ít nhất
+20 ký tự, hạn 30 ngày, và T0 thì **không có cờ nào**. Mọi lượt miễn trừ vào **sổ ma sát**
+(`gate:friction`) cùng mọi lượt chặn và ghi nợ.
+
+### Bắt máy kiểm tự chứng minh
+
+**"Kiểm 0 thứ" không được báo ĐẠT** (`CHUA_KIEM`). Gate khai mẫu số; mẫu số bằng 0 hoặc dưới một nửa đầu
+vào thì `PASS` và `WARN` bị hạ xuống `CHUA_KIEM`. `FAIL` được miễn, vì một `FAIL` vẫn là một phép đo.
+
+**Hợp đồng dữ liệu testcase được kiểm bằng kiểu** (`typecheck:scripts`). Hợp đồng đã có sẵn ở
+`testcase.d.ts`, nhưng `tsconfig.json` đặt `allowJs: false` nên **không dòng nào** trong `scripts/**.js`
+từng được kiểm kiểu. Bật lên thì nó lộ ra hợp đồng đã trôi mất bốn trường (`oracleRefs`, `tags`,
+`techniques`, `caseType`) mà `validate.js` dùng cả bốn. Có một phép đối chứng: `t.id` phải đỏ, `t.tcId`
+phải xanh.
+
+**Mã gate không do gate gọi tên** (`gate:code-pair`). `maCua()` khớp regex lên câu thông báo, nên mã là
+thứ suy ra từ văn bản. Đo trên 7.939 chuỗi literal: 18 chuỗi khớp hai mã hoặc hơn, trong đó có cặp hai
+mã T0. Đã đổi sang luật khớp-dài-nhất, siết bốn regex rộng nhất, và khoá đường định tuyến bằng registry.
+Máy tự khai giới hạn của phép đo độ phủ: nó gian lận được, và `gate-code-pair.spec.ts` cố ý không nhúng
+câu mẫu nào.
+
+**Mốc vàng cho parser mà 30 gate cùng dùng** (`golden:check`). Ba fixture phủ ba bẫy đã từng làm sai số
+liệu. Sinh lại mốc là một **lời khai**, phải có cờ `--toi-da-doi-parser`. Cộng hai phép đếm độc lập:
+model canonical và một phép đếm thô không đi qua model. Lệch nhau thì `NGHI GATE SAI`.
+
+**Bản đồ luật → gate → spec** (`rule:coverage`). 34 mục luật, 28 nối được gate. Sáu mục còn lại phải có
+lời khai của người, một trong **bốn** loại — nhãn thứ tư là chỗ prompt nói thiếu: §Cleanup Rules **đo
+được mà chưa có máy**. Nhãn đó dẫn tới việc viết `cleanup:check`.
+
+**Bộ đột biến tự kiểm spec** (`gate:selfmutate`). Bốn toán tử làm hỏng gate rồi xem spec có đỏ không.
+
+**Tầng chấm cho phần máy không đo được** (`npm run judge`). Máy không chấm: nó chọn mẫu tất định, giữ
+thang, kiểm lời chấm có neo, và đo người chấm còn hiệu chuẩn không. Chấm chưa hiệu chuẩn là **CHƯA ĐƯỢC
+GÁC**, không phải "đạt". Hiệu chuẩn của bản này do một subagent chấm **mù**: 20/20.
+
+**Execute Lite** (`04L_execute_lite.md`). Giữ nguyên 6 chốt, mỗi chốt nêu tên máy đứng sau. Prompt rẻ
+hơn 88% (11.760 còn 1.383 token); ở mức luồng rẻ 35% (29.006 còn 18.765), vì file template 13,4k vẫn
+phải nạp. Ghi cả hai con số, vì "88%" đứng một mình sẽ được đọc thành tiết kiệm của cả lượt chạy.
+
+### Những lỗi mà chính bộ tự kiểm tìm ra
+
+Phần này đáng đọc hơn danh sách tính năng, vì nó là lý do đợt này tồn tại.
+
+- **Một lệnh CI bị thay ngầm.** §A10.3 đặt tên lệnh là `gate:policy`, mà tên đó đã thuộc
+  `policy_source_check.js` đang chạy ở cả hai CI. Thêm khoá trùng vào `package.json` xong, bước
+  "Policy 1-nguồn" lặng lẽ chuyển sang chạy máy khác. `JSON.parse` không báo khoá trùng — nó lấy khoá
+  sau. `json:check` giờ tự quét văn bản và đếm khoá theo từng object.
+- **Một verdict lạ làm case tàng hình.** Case khai `status: "DONE"` chỉ nhận một cảnh báo, rồi bị bỏ qua
+  nên không kiểm evidence, không kiểm tầng lỗi, không vào mẫu số. Gate in "0 case đã execute · 0 vi phạm
+  chặn" và exit 0 — trong khi `gate_codes.json` xếp `VERDICT_LA` vào tầng T0. Nay nó chặn.
+- **Cửa ra chưa từng được chạy end-to-end.** Đảo `if (chanVi.length)` thành `if (!chanVi.length)` — cửa
+  cho qua khi có lý do chặn — mà cả 24 test của `exit-gate.spec.ts` vẫn xanh.
+- **Cờ `--task` thua env mà không ai biết.** Hai gate đọc cờ bằng một hàm mà spec truyền cả cờ lẫn env
+  cùng giá trị, nên env gánh thay khi cờ chết.
+- **Lệnh mồ côi bị che.** `gate:policy` so tên lệnh với ngữ liệu gồm cả file của chính lệnh đó, nên mọi
+  tên một-từ trùng tên file đều tự thoả mãn. Sửa xong nó bắt ngay `gate:friction` — dựng ở §A9 cùng đợt
+  này và không chỗ nào gọi.
+- **Phần §A10.1 chưa từng được commit.** Cây làm việc che mất: ba test xanh ở máy và đỏ ở HEAD. Chạy bộ
+  test trên cây làm việc không trả lời được câu "bản sẽ phát hành có chạy không".
+- **Bộ đột biến tự có ba lỗi**, trong đó một lỗi đếm đột biến làm-vỡ-cú-pháp là "đã bắt" — nhưng file
+  không parse được thì mọi spec đều đỏ, kể cả spec rỗng.
+
+### Số đo
+
+| | trước | sau |
+|---|---|---|
+| máy gác | 102 | 110 |
+| máy CHẶN | 73 | 76 |
+| test `tests/fe/infra` | 1.434 | 1.590 |
+| spec | 110 | 121 |
+| file được track | 619 | 653 |
+| mục luật nối được gate | chưa đo | 28/34, 6 còn lại đã khai lý do |
+| mã T0/T1 khoá được đường định tuyến | 0/21 | 21/21 |
+| mã có spec đòi gate phát đúng mã | chưa đo | 2/21 |
+
+Hai con số cuối cố ý đứng cạnh nhau. Đường định tuyến đã khoá xong, nhưng **19/21 mã vẫn chưa có spec
+nào chạy gate thật rồi đọc mã ra** — spec hiện kiểm gate đỏ hay xanh, không kiểm mã đính kèm. Số đó được
+đo mỗi lượt chạy, không khai tay, để nó không bao giờ cũ.
+
 ## v2.6.1 — 2026-10-11 — Trả lại một tính năng đã khai mà chưa cài
 
 **Vấn đề.** Mục `v2.6.0` ngay dưới đây có một bảng tên *"Mười điểm vượt kit QIG QA"*. Điểm số 6 ghi:
