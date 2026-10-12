@@ -4,7 +4,7 @@
 
 ## Mục Đích
 
-Đẩy testcase đã được QA xác nhận lên Google Sheet để QA/Dev review, đi từ **Markdown canonical** qua bản xuất `.xlsx`; **publish là bước cần TRƯỚC Phase 2** vì Phase 2 execute luôn tải bản Sheet mới nhất về trước khi chạy.
+Đẩy testcase đã được QA xác nhận lên Google Sheet để QA và Dev review, đi từ **Markdown canonical** qua bản xuất `.xlsx`; **publish là bước cần TRƯỚC Phase 2** vì Phase 2 execute luôn tải bản Sheet mới nhất về trước khi chạy.
 
 > Công cụ test-management của kit là **Google Sheet** (qua Google Drive MCP), thay cho Google Sheet cũ. File `.xlsx` do `md_to_xlsx.js` xuất ra chính là nội dung Sheet — không có bước ánh xạ field riêng. Chi tiết: skill `backlog_testcase_publisher`.
 
@@ -51,7 +51,7 @@ Bước convert Markdown sang Excel trước khi publish giao `excel-convert` (�
 
 ## Rules
 
-- Publish upload chính file `.xlsx` (Drive tự convert sang Sheet). Nhưng `.xlsx` đó phải vừa xuất TỪ Markdown canonical, không phải bản sửa tay.
+- Publish upload chính file `.xlsx` (Drive tự convert sang Sheet). Nhưng `.xlsx` đó phải vừa xuất TỪ Markdown canonical, không phải một bản sửa tay.
 - Không publish thật nếu thiếu QA confirmation.
 - Không sửa nội dung testcase trực tiếp trên Sheet (UI Google Sheets); authoring ở Excel rồi re-publish (`update_file`) — ghi đè toàn phần nên bản sửa tay trên Sheet sẽ mất.
 - Sheet không có folder/tag/Cycle/Run/custom field như công cụ test-management cũ — đổi mô hình dữ liệu, không phải đổi tên; đừng đi tìm các khái niệm đó rồi kết luận "thiếu". Nhóm chức năng thể hiện bằng sheet riêng trong cùng workbook.

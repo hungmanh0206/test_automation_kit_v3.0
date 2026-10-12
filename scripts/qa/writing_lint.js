@@ -203,7 +203,13 @@ const forced = (() => {
 
 function docSet() {
   const out = [];
-  for (const f of ['README.md', 'USER_GUIDE.md', 'QUICKSTART.md', 'RULE_GLOBAL.md']) {
+  /*
+   * `docs/CHEATSHEET.md` vào bộ gác từ v2.7.0 §A7: nó là trang ĐẦU TIÊN người dùng đọc, và README
+   * trỏ tới nó trước cả USER_GUIDE. Một trang như vậy trôi khỏi chuẩn hành văn thì cả phần còn lại
+   * của bộ tài liệu mất chỗ tựa. Đo lúc thêm: 26,5 gạch dài trên 1k từ, mốc là 11 — nên nó KHÔNG
+   * tự nhiên đạt, phải viết lại mới đạt.
+   */
+  for (const f of ['README.md', 'USER_GUIDE.md', 'QUICKSTART.md', 'RULE_GLOBAL.md', 'docs/CHEATSHEET.md']) {
     const abs = path.join(REPO, f);
     if (fs.existsSync(abs)) out.push(abs);
   }

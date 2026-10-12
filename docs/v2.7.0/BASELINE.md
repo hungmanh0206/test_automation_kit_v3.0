@@ -60,6 +60,22 @@ có phép đối chứng là một gate không ai biết nó còn hoạt động
 Đích của v2.7.0 là **5 lệnh**. Khoảng cách thật không phải từ 12 xuống 5 — mà là từ **55 lệnh rải khắp
 chuỗi** xuống 5, vì đó là con số người dùng thực sự gặp khi đi hết một task.
 
+### Đo lại sau §A7
+
+| Số | Trước | Sau |
+|---|---|---|
+| Slash command người dùng phải NHỚ | 12 | **5, cộng `/check`** |
+| Lệnh npm nằm trong bộ lệnh đó | — | **17** |
+| Lệnh npm rải khắp mọi điểm vào | 55 | 60 |
+
+**Tổng số lệnh TĂNG, và đó là con số đúng để ghi lại.** Không lệnh nào bị xoá — chúng vẫn cần thiết, và
+đợt này còn thêm `exit:gate`, `lane`, `next`, `check`. Thứ giảm là số lệnh người dùng phải NHỚ: sáu lệnh
+ngoài nhóm năm được gợi ý đúng lúc ở dòng "Lệnh tiếp theo" trong output của `/check`, suy từ trạng thái
+artifact có thật.
+
+Nói "đã giảm từ 55 xuống 5" là nói sai. Phép đo đúng là: **5 lệnh phải nhớ, 6 lệnh được chỉ đường, 0
+lệnh bị bỏ.**
+
 ## 4. Token
 
 | Luồng | Phần nạp bắt buộc | Ngưỡng | Mốc |

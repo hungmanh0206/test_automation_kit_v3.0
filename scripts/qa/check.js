@@ -449,6 +449,20 @@ function main() {
   }
 
   console.log('\nsửa: `npm run check -- --explain <CODE>` để biết vì sao và sửa thế nào.');
+
+  /*
+   * DÒNG "LỆNH TIẾP THEO" (§A7). Đích của v2.7.0 là người dùng chỉ nhớ NĂM lệnh; sáu lệnh còn lại vẫn
+   * cần thiết nhưng không nên cần NHỚ. Chỗ đúng để gợi ý chúng là output của lệnh người ta vừa gõ.
+   *
+   * Dùng tiến trình con thay vì require: `next_command` đọc `runtime_config` và có đường `process.exit`
+   * riêng, nên require nó vào giữa lượt in của `check` là mời một `exit` cắt ngang.
+   */
+  try {
+    const rNext = spawnSync(process.execPath, [path.join(__dirname, 'next_command.js'), '--task', taskKey, '--mot-dong'],
+      { cwd: REPO, encoding: 'utf8', env: { ...process.env, TASK_KEY: taskKey } });
+    const dongNext = `${rNext.stdout || ''}`.trim();
+    if (dongNext) console.log(dongNext);
+  } catch (e) { /* gợi ý thiếu thì KHÔNG được làm chết lượt kiểm */ }
   if (coChan) process.exit(1);
 }
 

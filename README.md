@@ -2,11 +2,27 @@
 
 > Bộ kit dùng để phân tích requirement, sinh testcase, execute automation, triage bug và quản lý evidence theo chuẩn QA automation.
 
+## Bắt đầu — đọc một trang này trước
+
+**[`docs/CHEATSHEET.md`](docs/CHEATSHEET.md)** là thứ duy nhất bạn cần đọc trước khi chạy: năm lệnh, ba
+cửa ra, cách đọc output của `/check`, và cách xin vượt qua cho hợp lệ.
+
+```
+/start  →  /phase1  →  /phase2  →  /rerun  →  /release        cộng /check lúc nào cũng được
+```
+
+Sáu lệnh còn lại KHÔNG cần nhớ — chúng được gợi ý đúng lúc ở dòng **Lệnh tiếp theo** trong output của
+`/check`. Xem thẳng bằng `npm run next -- --task <KEY>`.
+
+`docs/course/` và `docs/library/` là **tài liệu đào tạo**: chúng giải thích vì sao kit làm vậy và dùng
+để học, **không cần đọc để dùng kit**. [USER_GUIDE.md](USER_GUIDE.md) là bản tra chi tiết khi cần đi sâu
+một bước cụ thể.
+
 ## Overview
 
 Test Automation Kit hỗ trợ quy trình kiểm thử end-to-end cho nhiều project. Các bước: thu thập requirement, sinh testcase chi tiết, export Excel (nguồn chuẩn khi gen và khi publish), publish testcase lên Google Sheet qua Drive MCP, chạy Playwright hoặc API từ testcase canonical local, tổng hợp report, triage lỗi, và log Backlog bug khi đủ điều kiện. Phase 2 luôn tải bản Sheet mới nhất trước khi chạy.
 
-Tài liệu này là landing page của toàn bộ kit. Team QA nên đọc cùng [USER_GUIDE.md](USER_GUIDE.md) và [QUICKSTART.md](QUICKSTART.md) trước khi chạy Phase 1 hoặc Phase 2.
+Tài liệu này là landing page của toàn bộ kit. Cần đi sâu một bước thì đọc [USER_GUIDE.md](USER_GUIDE.md); cần dựng kit trên máy mới thì đọc [QUICKSTART.md](QUICKSTART.md). Để CHẠY thì một trang [CHEATSHEET](docs/CHEATSHEET.md) ở trên là đủ.
 
 ### Giới hạn — đọc trước khi chọn kit này
 
