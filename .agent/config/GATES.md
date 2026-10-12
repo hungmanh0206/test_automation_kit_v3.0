@@ -7,7 +7,7 @@
 > **T1** chỉ chặn ở cửa ra, lúc đang làm thì cảnh báo và ghi `reports/gate-debt.json` · **T2** không
 > bao giờ chặn. T0 khai tay trong `.agent/config/gate_tiers.json`; không khai thì mặc định T1.
 
-Tổng **101** máy — **72 CHẶN** · 19 SINH (ghi artifact) · 10 BÁO CÁO (chỉ in).
+Tổng **102** máy — **73 CHẶN** · 19 SINH (ghi artifact) · 10 BÁO CÁO (chỉ in).
 
 SINH/BÁO CÁO **không phải gate bị nới** — chúng không kiểm vi phạm. Ví dụ `bugs:checklist` in brief bug
 lịch sử, còn việc CHẶN nằm ở `dim:coverage` (chiều `bug_history` §20).
@@ -32,6 +32,7 @@ lịch sử, còn việc CHẶN nằm ở `dim:coverage` (chiều `bug_history` 
 | T1 | CHẶN | `expansion:audit` | ĐO ĐỘ PHỦ 5 TRỤC trên MỌI task đã execute, để quyết định siết gate bằng SỐ. | `scripts/qa/expansion_audit.js` | RULE_GLOBAL.md · .claude/commands · tests/fe/infra |
 | T0 | CHẶN | `expected:check`, `expected:snapshot` | CHẶN "đổi expected để case xanh" (non-negotiable §6, tầng T0). | `scripts/qa/expected_ledger.js` | RULE_GLOBAL.md · prompt_templates · tests/fe/infra |
 | T1 | CHẶN | `json:check` | kiểm MỌI file .json ĐANG ĐƯỢC TRACK có parse được không. | `scripts/qa/json_check.js` | .gitlab-ci.yml · .github/workflows |
+| T1 | CHẶN | `lane` | CHỌN LÀN theo risk, và CHẶN việc hạ làn ở chỗ rủi ro cao (v2.7.0 §A6). | `scripts/qa/lane.js` | .gitlab-ci.yml · RULE_GLOBAL.md · README.md · .github/workflows · .agent/rules · exploratory · tests/fe/infra |
 | T1 | CHẶN | `leak:report` | đo "kit đang rò bao nhiêu và rò kiểu gì" (baseline cho mọi cải tiến sau). | `scripts/qa/leak_report.js` | RULE_GLOBAL.md · README.md · .agent/workflows · prompt_templates · tests/fe/infra |
 | T1 | CHẶN | `learn:bugs`, `learn:bugs:apply` | nối mắt xích còn ĐỨT: bug đã log Backlog → knowledge/bugs/ (+ root_causes ref, index). | `scripts/qa/learn_bugs.js` | README.md · USER_GUIDE.md · QUICKSTART.md · scripts/qa/README.md · .agent/workflows · prompt_templates |
 | T1 | CHẶN | `library:drift` | CHẶN "thư viện thuật ngữ đã trôi khỏi repo". | `scripts/qa/library_drift.js` | .gitlab-ci.yml · README.md · .github/workflows |
@@ -75,7 +76,7 @@ lịch sử, còn việc CHẶN nằm ở `dim:coverage` (chiều `bug_history` 
 | T1 | CHẶN (có cờ --enforce) | `prompt:budget` | ĐO TĨNH: mỗi điểm vào bảo AI đọc bao nhiêu token hướng dẫn. | `scripts/qa/prompt_budget.js` | .gitlab-ci.yml · RULE_GLOBAL.md · README.md · .github/workflows · .claude/commands · tests/fe/infra |
 | T1 | CHẶN (có cờ --enforce) | `release:summary`, `release:summary:enforce`, `release:summary:init` | KHUYẾN NGHỊ go/no-go, có căn cứ, và KHÔNG tự quyết. | `scripts/qa/release_summary.js` | .agent/rules · .agent/skills · tests/fe/infra |
 | T0 | CHẶN (có cờ --enforce) | `ledger:check`, `ledger:check:enforce`, `ledger:snapshot` | Chống MẤT KẾT QUẢ ÂM THẦM ở cột `Result` của bản xuất Excel. | `scripts/qa/result_ledger.js` | RULE_GLOBAL.md · .agent/workflows · prompt_templates |
-| T1 | CHẶN (có cờ --enforce) | `risk:gate`, `risk:gate:enforce` | ép Risk-Based Testing: đối chiếu testcase với depthPolicy theo band trong risk-register. | `scripts/qa/risk_gate.js` | README.md · USER_GUIDE.md · QUICKSTART.md · .github/workflows · .agent/workflows · .agent/skills · prompt_templates · .claude/commands |
+| T1 | CHẶN (có cờ --enforce) | `risk:gate`, `risk:gate:enforce` | ép Risk-Based Testing: đối chiếu testcase với depthPolicy theo band trong risk-register. | `scripts/qa/risk_gate.js` | README.md · USER_GUIDE.md · QUICKSTART.md · .github/workflows · .agent/workflows · .agent/skills · prompt_templates · .claude/commands · tests/fe/infra |
 | T1 | CHẶN (có cờ --enforce) | `rule:parity`, `rule:parity:enforce` | RÚT GỌN `core_rules.md` MÀ KHÔNG MẤT LUẬT NÀO. | `scripts/qa/rule_parity.js` | .github/workflows · tests/fe/infra |
 | T0 | CHẶN (có cờ --enforce) | `run:analysis`, `run:analysis:enforce` | LƯỢT CHẠY NÀY CÓ ĐƯỢC DÙNG ĐỂ KẾT LUẬN CHẤT LƯỢNG KHÔNG? | `scripts/qa/run_analysis.js` | .agent/workflows · .agent/rules · .agent/skills · tests/fe/infra |
 | T1 | CHẶN (có cờ --enforce) | `scope:anchor`, `scope:anchor:enforce`, `scope:anchor:init` | NEO MẪU SỐ của Phase 1. | `scripts/qa/scope_anchor.js` | .agent/workflows · .agent/skills · prompt_templates · .claude/commands · tests/fe/infra |
