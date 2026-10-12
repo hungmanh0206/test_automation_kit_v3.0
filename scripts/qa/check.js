@@ -346,6 +346,31 @@ function main() {
     console.log('');
   }
 
+  /*
+   * LÀN (§A6) — in ra, và CHƯA đổi tập gate theo nó.
+   *
+   * Làn quyết ĐỘ SÂU: `lite` bỏ phần mở rộng 5 trục ở Phase 2. Phần đó do `expansion:plan` và
+   * `expansion:audit` gác, không do `check` chạy, nên chỗ đúng để áp làn là hai máy kia — sửa chúng là
+   * một hạng mục riêng, không gộp vào đây.
+   *
+   * Nhưng `check` PHẢI in làn, vì nó là lệnh người dùng gõ: thấy `lite` thì họ biết vì sao bảng không
+   * nhắc mở rộng, còn không thấy gì thì họ không biết mình đang ở làn nào.
+   */
+  let lanHienTai = null;
+  try {
+    /* eslint-disable-next-line global-require */
+    const laneLib = require(path.join(__dirname, 'lane.js'));
+    const daChot = laneLib.docLan(taskOutputDir);
+    const regPath = path.join(taskOutputDir, 'reports', 'risk-register.json');
+    const reg = fs.existsSync(regPath) ? JSON.parse(fs.readFileSync(regPath, 'utf8')) : null;
+    const suy = reg ? laneLib.suyLan(reg) : null;
+    lanHienTai = {
+      chot: daChot && daChot.lan ? daChot.lan : null,
+      suy: suy && suy.lan ? suy.lan : null,
+      vi_sao: suy ? suy.vi_sao : 'chưa có risk-register.json',
+    };
+  } catch (e) { lanHienTai = { chot: null, suy: null, vi_sao: `không đọc được làn: ${e.message}` }; }
+
   const t0 = Date.now();
   const trong = gateTrongTienTrinh(taskKey, taskOutputDir, ph.phase);
   const ngoai = chaySpawn(ph.phase, taskKey);
@@ -380,6 +405,7 @@ function main() {
     khong_phan_duoc: soSkip.map((r) => r.gateId),
     theo_tang: { T0: theoTang.T0.map((r) => r.gateId), T1: theoTang.T1.map((r) => r.gateId), T2: theoTang.T2.map((r) => r.gateId) },
     chan: coChan,
+    lan: lanHienTai,
     results,
   };
   if (JSON_OUT) { console.log(JSON.stringify(ra, null, 2)); process.exit(coChan ? 1 : 0); }
@@ -390,6 +416,12 @@ function main() {
   console.log(`  task ${taskKey} · Phase ${ph.phase} (${ph.vi_sao}) · ngữ cảnh ${NGU_CANH} · ${giay}s`
     + ` · ${trong.soLieu.so_case} case${ph.phase === 2 ? `, ${trong.soLieu.so_case_execute} đã execute` : ''}`);
   console.log(`  ${ra.trong_tien_trinh} gate trong tiến trình · ${ra.con_spawn} còn spawn (xem header check.js)`);
+  if (lanHienTai) {
+    const l = lanHienTai.chot || lanHienTai.suy;
+    console.log(`  làn: ${l ? l.toUpperCase() : 'CHƯA CHỌN'}`
+      + `${lanHienTai.chot && lanHienTai.suy && lanHienTai.chot !== lanHienTai.suy ? ` (người chốt ${lanHienTai.chot}, máy suy ${lanHienTai.suy})` : ''}`
+      + ` — ${lanHienTai.vi_sao}`);
+  }
 
   for (const tang of ['T0', 'T1']) {
     const ds = theoTang[tang];

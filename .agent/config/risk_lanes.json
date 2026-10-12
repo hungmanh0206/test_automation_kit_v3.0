@@ -1,0 +1,48 @@
+{
+  "_la_gi": "HAI LÀN chạy theo risk (v2.7.0 §A6): `lite` cho task rủi ro thấp, `full` cho task có module band High. Làn quyết định ĐỘ SÂU, không quyết định mức kiểm an toàn.",
+  "_vi_sao_ten_la_risk_lanes": "Kit đã có `env_lanes.json`, và chữ 'lane' ở đó nghĩa KHÁC: nó là làn MÔI TRƯỜNG (biến env nào mỗi phase cần). Đặt cùng tên là tạo một từ hai nghĩa trong cùng một thư mục config, và kit đã trả giá cho chuyện đó ở chỗ khác.",
+  "_luat_khong_doi_duoc": {
+    "T0 giữ nguyên ở CẢ HAI làn": "Làn nhẹ là nhẹ về ĐỘ SÂU, không nhẹ về an toàn. 13 máy T0 chặn y nguyên trong `lite`: secret, PII, chạm UAT, evidence, oracle rỗng, đổi expected. Nới chúng theo làn nghĩa là một task rủi ro thấp được phép lộ secret, và không có task nào rủi ro thấp đến mức đó.",
+    "Evidence giữ nguyên luật 4": "Mọi case đã execute, PASS và FAIL, vẫn phải có ảnh hoặc video. `lite` KHÔNG giảm evidence — một verdict không ai kiểm lại được thì rẻ hay đắt đều vô dụng.",
+    "Rerun giữ nguyên ngưỡng taxonomy": "`lite` bỏ phần MỞ RỘNG 5 trục, nhưng số lần rerun của một FAIL vẫn theo `verdict_taxonomy.json`. Giảm rerun là tăng tỉ lệ log bug từ flaky, và một bug bịa ra đốt thời gian của dev nhiều hơn phần tiết kiệm được.",
+    "Cửa ra giữ nguyên": "Ba cửa ra của §A2 áp cho cả hai làn. Làn nhẹ không có nghĩa là ra ngoài kit dễ hơn."
+  },
+  "lan": {
+    "lite": {
+      "ten": "Làn nhẹ — task rủi ro thấp, smoke, thử nhanh màn mới",
+      "phase1": {
+        "chieu_bat_buoc": "chỉ các chiều mà `dimension_manifest` khai `required`; không đòi thêm chiều khuyến nghị",
+        "ky_thuat_thiet_ke": "không đòi đủ bộ tag kỹ thuật; vẫn đòi mỗi chức năng ≥1 case Negative"
+      },
+      "phase2": {
+        "mo_rong_5_truc": false,
+        "_vi_sao_bo": "Mở rộng 5 trục là phần đắt nhất của Phase 2 và nó đáng giá ở chỗ rủi ro cao. Ở band Low thì chi phí đó lớn hơn thứ nó mua.",
+        "rerun": "theo verdict_taxonomy — KHÔNG giảm",
+        "evidence": "theo luật 4 — KHÔNG giảm"
+      }
+    },
+    "full": {
+      "ten": "Làn đầy đủ — mặc định, và bắt buộc khi có module band High",
+      "phase1": {
+        "chieu_bat_buoc": "mọi chiều `required` cộng các chiều mà discovery bật tín hiệu",
+        "ky_thuat_thiet_ke": "đòi đủ bộ tag theo `design_techniques.json`"
+      },
+      "phase2": {
+        "mo_rong_5_truc": true,
+        "rerun": "theo verdict_taxonomy",
+        "evidence": "theo luật 4"
+      }
+    }
+  },
+  "chon_lan": {
+    "_cach_chon": "Đọc `reports/risk-register.json` của task. CÓ bất kỳ module nào band High ⇒ cả task chạy `full`. Không có High và không có UNKNOWN ⇒ `lite`. Có UNKNOWN mà không có High ⇒ `full`, vì UNKNOWN nghĩa là CHƯA ĐO ĐƯỢC impact, và chưa đo được thì không phải rủi ro thấp.",
+    "_vi_sao_mot_module_high_keo_ca_task": "Case của một module chạm dữ liệu và trạng thái của module khác. Chạy nửa task ở làn nhẹ nghĩa là phần mở rộng quanh ranh giới hai module không ai soi — mà đó đúng là chỗ bug xuyên module sống.",
+    "band_override": "QA override band trong register thì làn tính theo band ĐÃ override. Override được ghi dài hạn ở `knowledge/decisions/` (type `risk_override`), nên nó không phải một lần bấm mà mất dấu."
+  },
+  "doi_lan": {
+    "nang_lite_len_full": "LUÔN được, không cần lý do. Chọn kiểm nhiều hơn thì không ai phải xin phép.",
+    "ha_full_xuong_lite_band_High": "CHẶN. Không có cờ nào. Hạ làn cho một module band High là bỏ phần mở rộng ở đúng chỗ rủi ro cao nhất, và lý do duy nhất người ta làm vậy là cho nhanh.",
+    "ha_full_xuong_lite_band_Medium": "Được, nhưng phải ghi lý do qua `decision_recorder` (type `risk_override`). Lý do phải nói được vì sao module này không cần mở rộng — 'để kịp deadline' không phải một lý do kỹ thuật, nhưng nó là một lý do THẬT và ghi ra được, nên nó vẫn hợp lệ nếu có người chịu trách nhiệm.",
+    "ha_full_xuong_lite_band_Low_hoac_UNKNOWN": "Low thì vốn đã là `lite`. UNKNOWN thì CHẶN: chưa đo được impact không phải rủi ro thấp."
+  }
+}
