@@ -169,6 +169,7 @@
     "gate:code-pair": "node scripts/qa/gate_code_pair.js",
     "gate:code-pair:enforce": "node scripts/qa/gate_code_pair.js --enforce",
     "judge": "node scripts/qa/judge.js",
+    "steps:lint": "node scripts/qa/reuse/steps_lint.js",
     "sync:canonical": "node scripts/qa/testcases/sync_canonical.js",
     "canonical:check": "node scripts/qa/canonical_check.js",
     "db:query": "node scripts/qa/db_query.js",

@@ -252,6 +252,15 @@ const PHAI_SPAWN = {
      * transaction rollback. Nó không phải chuyện để ghi sổ nợ rồi tính sau.
      */
     { lenh: 'db:paths:check', args: [] },
+    /*
+     * `steps:lint` ở CẢ HAI phase, tầng T1 (v2.8.0 §C3).
+     *
+     * T1 chứ không T0: thư viện bước đang được dựng dần, và giữa lúc viết thì một bước chưa hoàn chỉnh là
+     * chuyện bình thường. Chỗ phải CHẶN là cửa ra — nên T1 ghi sổ nợ ở phase, và chặn ở `exit:gate`.
+     *
+     * Vì sao có ở Phase 1: bước mới hay được viết lúc dò màn để VIẾT case, không chỉ lúc execute.
+     */
+    { lenh: 'steps:lint', args: [] },
   ],
   2: [
     { lenh: 'dim:coverage', args: [] },
@@ -261,6 +270,7 @@ const PHAI_SPAWN = {
     { lenh: 'canonical:check', args: [] },
     { lenh: 'expected:check', args: [] },
     { lenh: 'db:paths:check', args: [] },
+    { lenh: 'steps:lint', args: [] },
   ],
 };
 

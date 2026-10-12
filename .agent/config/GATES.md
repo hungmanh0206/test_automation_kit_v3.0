@@ -7,7 +7,7 @@
 > **T1** chỉ chặn ở cửa ra, lúc đang làm thì cảnh báo và ghi `reports/gate-debt.json` · **T2** không
 > bao giờ chặn. T0 khai tay trong `.agent/config/gate_tiers.json`; không khai thì mặc định T1.
 
-Tổng **114** máy — **80 CHẶN** · 21 SINH (ghi artifact) · 13 BÁO CÁO (chỉ in).
+Tổng **115** máy — **81 CHẶN** · 21 SINH (ghi artifact) · 13 BÁO CÁO (chỉ in).
 
 SINH/BÁO CÁO **không phải gate bị nới** — chúng không kiểm vi phạm. Ví dụ `bugs:checklist` in brief bug
 lịch sử, còn việc CHẶN nằm ở `dim:coverage` (chiều `bug_history` §20).
@@ -45,6 +45,7 @@ lịch sử, còn việc CHẶN nằm ở `dim:coverage` (chiều `bug_history` 
 | T1 | CHẶN | `gate:policy` | giữ 1 NGUỒN policy duy nhất: RULE_GLOBAL.md là canonical. | `scripts/qa/policy_source_check.js` | .gitlab-ci.yml · RULE_GLOBAL.md · README.md · USER_GUIDE.md · .github/workflows · .agent/rules · .agent/skills · prompt_templates · .claude/commands · tests/fe/infra |
 | T0 | CHẶN | `preflight`, `preflight:lanes` | round-3) — CHẶN "miss đọc file / input hỏng" TRƯỚC khi workflow chạy. | `scripts/qa/preflight_gate.js` | .gitlab-ci.yml · README.md · USER_GUIDE.md · QUICKSTART.md · scripts/qa/README.md · .github/workflows · .agent/workflows · prompt_templates · .claude/commands · tests/fe/infra |
 | T1 | CHẶN | `probe:page` | biến artifact KHÁM PHÁ thành bản đồ field DÙNG ĐƯỢC cho spec. | `scripts/qa/probe_to_page.js` | **KHÔNG BỀ MẶT NÀO** |
+| T1 | CHẶN | `steps:lint` | CANH LUẬT VÀNG CỦA THƯ VIỆN BƯỚC (v2.8.0 §A, luật L2–L4). | `scripts/qa/reuse/steps_lint.js` | tests/fe/infra |
 | T1 | CHẶN | `rule:coverage`, `rule:coverage:check` | BẢN ĐỒ LUẬT → GATE → SPEC (v2.7.0 §A10.7). | `scripts/qa/rule_coverage.js` | .gitlab-ci.yml · .github/workflows · tests/fe/infra |
 | T1 | CHẶN | `rule`, `rule:toc` | tra RULE_GLOBAL.md THEO MỤC, thay vì đọc cả file. | `scripts/qa/rule_lookup.js` | .gitlab-ci.yml · RULE_GLOBAL.md · CLAUDE.md · README.md · USER_GUIDE.md · scripts/qa/README.md · .github/workflows · .agent/workflows · .agent/rules · .agent/skills · prompt_templates · exploratory · partial-rerun · manual-run · .claude/commands · tests/fe/infra |
 | T0 | CHẶN | `secret:scan` | quet secret bi commit nham tren cac file DA TRACK trong git. | `scripts/qa/secret_scan.js` | .gitlab-ci.yml · RULE_GLOBAL.md · README.md · .github/workflows · .agent/rules · .agent/skills · tests/fe/infra |
