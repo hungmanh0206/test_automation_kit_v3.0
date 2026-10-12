@@ -326,7 +326,7 @@ Tái dùng login và catalog; kết quả ghi `<TASK_OUTPUT_DIR>/reports/` và l
 | Playwright báo thiếu browser | Browser runtime chưa cài | Chạy `npx playwright install`. |
 | MCP không kết nối | Token/quyền hoặc MCP config sai | Kiểm tra `.env.local` và IDE MCP settings. |
 | Phase 1 không fetch được requirement | URL/quyền Backlog/tài liệu nguồn/Figma sai | Kiểm tra link, token, quyền page/file. |
-| Publish testcase bị lỗi | Chưa kết nối Google Drive MCP, hoặc file `.xlsx` local chưa export/lỗi | Kiểm tra MCP còn sống (`search_files` thử), kiểm tra Excel canonical đã export đúng chưa trước khi `create_file`/`update_file` |
+| Publish testcase bị lỗi | Chưa kết nối Google Drive MCP, hoặc file `.xlsx` local chưa export/lỗi | Kiểm tra MCP còn sống (`search_files` thử), kiểm tra bản xuất `.xlsx` đã sinh đúng từ Markdown canonical chưa (`sync:canonical`) trước khi `create_file`/`update_file` |
 | Case cũ vẫn còn trên Sheet sau khi bỏ TC khỏi Excel | Chưa re-publish (ghi đè) sau khi sửa Excel | Chạy lại bước publish (`update_file`) — ghi đè toàn workbook sẽ tự phản ánh đúng Excel hiện tại, không cần thao tác riêng |
 | Phase 2 bị `SKIP` nhiều | Auth/data/API/env chưa sẵn sàng hoặc case cần state sâu không có API/hook | Kiểm tra credential, base URL, Swagger URL, fixture/test hook; case thiếu capability an toàn (không dựng được qua API/hook/sandbox) đánh dấu `Needs hook`/`Manual-only` — KHÔNG dùng DB để né (xem `tests/support/setup/hooks/README.md`). |
 | Backlog bug không tạo được | Chưa đủ config hoặc chưa được phép log thật | Chạy dry-run trước, kiểm tra `BACKLOG_*` keys. |

@@ -269,8 +269,8 @@ Câu trả lời đổi theo giai đoạn, và đây là chỗ dễ nhầm:
 
 | Giai đoạn | Canonical | Vì sao |
 |---|---|---|
-| Sinh và sửa case (Phần 2) | **Excel / markdown trong repo** | Đang biên soạn, cần diff và review được |
-| Publish lên công cụ test-management | Excel là nguồn đẩy đi | Một chiều: repo → công cụ |
+| Sinh và sửa case (Phần 2) | **Markdown canonical trong repo** | Đang biên soạn, cần diff và review được |
+| Publish lên công cụ test-management | Bản xuất `.xlsx` là thứ đẩy đi, sinh từ Markdown canonical | Một chiều: repo → công cụ |
 | Execute (Phần 3) | **Công cụ test-management** | Cả team đã thấy và đã sửa ở đó |
 
 Nên khi chạy test, phải kéo bản mới nhất về trước. Chạy trên bản sao cũ nghĩa là bạn đang chấm theo kết quả

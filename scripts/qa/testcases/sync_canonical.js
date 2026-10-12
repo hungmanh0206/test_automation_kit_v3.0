@@ -10,7 +10,8 @@
  *   · Mọi thay đổi đi qua ĐÚNG MỘT đường ghi, rồi toả ra cả ba, theo thứ tự **MD → Excel → Sheet**.
  *
  * VÌ SAO CẦN, có số đo. `CLAUDE.md` §6 đã nói "MD canonical" từ đợt trước, nhưng đo 12/10/2026: **9 file
- * tài liệu lớp kit** vẫn gọi Excel là canonical, và **6 prompt + 2 skill** vẫn dặn "tải bản Sheet mới nhất"
+ * tài liệu lớp kit** vẫn khai sai nguồn sự thật (gọi bản xuất là canonical), và **6 prompt + 2 skill** vẫn
+ * dặn "tải bản Sheet mới nhất"
  * trước execute. Tức tài liệu mâu thuẫn với chính non-negotiable của kit, và mỗi lượt execute vẫn trả giá
  * token cho một cú tải Sheet không cần thiết.
  *

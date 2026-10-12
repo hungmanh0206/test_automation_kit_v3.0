@@ -768,10 +768,13 @@ function addGuideWorksheet(workbook) {
 /**
  * Đọc lại cột `Result *` của file .xlsx ĐANG CÓ, trả về Map<ID_TC, Map<tên cột Result, giá trị>>.
  *
- * VÌ SAO CẦN: Markdown không mang kết quả execute, nên dựng workbook mới rồi ghi đè là xoá trắng
- * mọi verdict đã merge. Đo 06/10/2026 trên CSDL-9001: 468 ô kết quả biến mất sau một lượt xuất lại,
- * và chúng chỉ còn ở `test-results/*.json` — nơi không ai đọc khi duyệt. Excel là source-of-truth
- * của kết quả theo §6, nên lượt xuất phải GIỮ, không được dọn.
+ * VÌ SAO CẦN: Markdown canonical mang NỘI DUNG case (§6), còn KẾT QUẢ execute là một trục khác — và
+ * hôm nay chưa file `.md` nào mang nó (`sync_canonical --results` dựng được khối đó, nhưng chưa task
+ * nào chạy). Nên dựng workbook mới từ Markdown rồi ghi đè là xoá trắng mọi verdict đã merge.
+ *
+ * Đo 06/10/2026 trên CSDL-9001: 468 ô kết quả biến mất sau một lượt xuất lại, và chúng chỉ còn ở
+ * `test-results/*.json` — nơi không ai đọc khi duyệt. Chừng nào `.xlsx` còn là chỗ DUY NHẤT giữ
+ * verdict đã merge thì lượt xuất phải GIỮ, không được dọn.
  */
 async function docResultDaCo(outputPath) {
   const giu = new Map();

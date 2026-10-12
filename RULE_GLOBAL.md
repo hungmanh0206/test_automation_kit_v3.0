@@ -219,7 +219,7 @@ việc khác, và không làm.
 
 - Mỗi story không bắt buộc chạy liền một mạch. Luồng chuẩn là:
   `Requirement -> Generate Testcase (Markdown canonical) -> xuất Excel -> QA confirmation -> Auto Publish Google Sheet -> chờ Dev implement -> Phase 2 -> chờ Dev fix bug nếu có -> Re-run`.
-- Sau bước generate testcase, Excel trong `<TASK_OUTPUT_DIR>/test-cases/` là source of truth khi **gen và publish**. Nội dung testcase phải sửa ở Excel rồi re-publish — không sửa trực tiếp trên Google Sheet làm nguồn authoring (`PUT .../detail` ghi đè toàn phần nên bản sửa tay sẽ mất khi re-publish).
+- Sau bước generate testcase, **Markdown canonical** trong `<TASK_OUTPUT_DIR>/test-cases/*.md` là source of truth cho **nội dung case**, ở mọi giai đoạn — gen, publish lẫn execute. `.xlsx` và Google Sheet là **bản xuất**. Nội dung testcase phải sửa ở `.md` rồi chạy lại một bộ ghi toả ba (`sync:canonical`). KHÔNG lấy bản xuất làm nguồn authoring — cả `.xlsx` lẫn Google Sheet đều bị ghi đè toàn phần ở lượt xuất kế tiếp, nên bản sửa tay trên chúng sẽ mất.
 - **Phase 2 execute mặc định đọc Markdown canonical** (`TESTCASE_SOURCE=md`): đọc thẳng `<TASK_OUTPUT_DIR>/test-cases/*.md`.
 
   **Vì sao Markdown, và đây là lý do về CHI PHÍ chứ không phải sở thích:** `.xlsx` là định dạng nhị phân nên agent không đọc trực tiếp được — phải chạy một script, script in bảng ra, rồi bảng đó mới vào ngữ cảnh. Thêm một lượt shell và thêm toàn bộ phần in. Đọc `.md` thì agent đọc thẳng file, không qua tầng nào. Cùng một bộ case, đường Markdown rẻ hơn đúng phần chuyển đổi đó.
@@ -657,8 +657,8 @@ Ba luật:
    nửa vời. Đo xong mà vẫn không có neo thì nói thẳng **KHÔNG phải bug**, kèm việc nó là `OBSERVATION`
    hay `spec:gap` và câu hỏi cần BA chốt — nhưng câu trả lời cho "có phải bug không" vẫn là KHÔNG.
 
-   **Neo của kỳ vọng gồm cả ô `Kết quả mong đợi` của chính case** trong bộ canonical (§6 Excel là
-   source-of-truth), không riêng `BR-`/`SM-`/`UI-`. Phải đọc TRỌN ô đó trước khi kết luận: câu quyết
+   **Neo của kỳ vọng gồm cả ô `Kết quả mong đợi` của chính case** trong bộ canonical (§6 — Markdown
+   canonical), không riêng `BR-`/`SM-`/`UI-`. Phải đọc TRỌN ô đó trước khi kết luận: câu quyết
    định hay nằm ở gạch đầu dòng CUỐI. Đã trả giá hai lần — `CSDL_HS_TC_257` bị hạ nhầm xuống
    `OBSERVATION` vì "kỳ vọng do QA đặt, không neo BR", trong khi ô Expected Result của chính nó ghi
    nguyên văn *"...ghi đè mất số điện thoại của tab B mà không cảnh báo gì là FAIL"*. Phép thử ngược

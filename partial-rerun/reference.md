@@ -151,7 +151,7 @@ Nếu testcase baseline đã từng publish lên Google Sheet và Apply Approved
 - Chạy `partial-rerun/run_testcase_cleanup.md` chỉ khi còn việc unlink Test khỏi Story/Task trên Backlog — không còn việc đổi trạng thái case trên TMS (Sheet không có `caseStatus`).
 - Không có khái niệm xoá/deprecate case trên Sheet — Markdown canonical luôn là nguồn, bản xuất Excel sinh từ nó, và Sheet phản chiếu đúng bản xuất sau mỗi lần re-publish.
 - Unlink stale Test khỏi Story/Task là optional, chỉ bật khi QA yêu cầu.
-- Excel vẫn là source of truth khi cleanup; Sheet là bản đồng bộ hiển thị.
+- Markdown canonical vẫn là nguồn sự thật khi cleanup; `.xlsx` và Sheet là bản xuất hiển thị.
 
 ## Bug candidate handoff
 

@@ -77,7 +77,7 @@ Bước 0: khám phá hệ thống (npm run discover)
 |---|---|
 | Không chạy nhầm `TASK_KEY`. | Tránh ghi đè output của story khác. |
 | Không chạy Phase 2 khi Phase 1 chưa được review. | Tránh execute sai expected result. |
-| Execute luôn tải bản Google Sheet mới nhất qua Drive MCP; Excel là source-of-truth khi gen/publish |
+| Markdown canonical (`test-cases/*.md`) là source-of-truth cho nội dung case; `.xlsx` và Sheet là bản xuất. Execute mặc định đọc `.md`. |
 | Không skip case để làm đẹp pass rate. | Report phải phản ánh chất lượng thật. |
 | Không log Backlog bug nếu fail do setup/test data/automation. | Tránh tạo noise cho Dev. |
 | Không đổi expected result nếu chưa có source xác nhận. | Tránh biến product bug thành pass ảo. |

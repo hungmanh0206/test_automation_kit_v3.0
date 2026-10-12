@@ -6,6 +6,14 @@ import { spawnSync } from 'child_process';
 import { gateEnv } from './_gate_env';
 
 /*
+ * MẪU DÒ DÙNG CHUNG với `canonical-drift.spec.ts` (gom về một nguồn 12/10/2026).
+ *
+ * Trước đó hai file này canh cùng một luật với hai bộ mẫu khác nhau và hai phạm vi quét khác nhau,
+ * và CẢ HAI ĐỀU XANH trong khi 7 bề mặt vẫn khai Excel là nguồn.
+ */
+import { RE_EXCEL_LA_NGUON } from '../../../scripts/qa/lib/canonical_phrases.js';
+
+/*
  * MD LÀ NGUỒN SỰ THẬT, EXCEL VÀ SHEET LÀ BẢN PHÁI SINH (v2.8.0 §0c).
  *
  * `CLAUDE.md` §6 đã nói "MD canonical" từ đợt trước, nhưng đo 12/10/2026 thì tài liệu MÂU THUẪN với chính
@@ -268,12 +276,12 @@ test.describe('@infra tài liệu KHÔNG còn gọi Excel hay Sheet là canonica
      *
      * Nên chỉ bắt câu KHẲNG ĐỊNH Excel/Sheet là nguồn. Đo lại bằng mẫu hẹp: 22 dòng thật trên 9 file.
      */
+    /*
+     * BỐN MẪU ĐẦU ĐÃ THAY BẰNG `RE_EXCEL_LA_NGUON` dùng chung. Hai mẫu còn lại ở đây canh một luật
+     * KHÁC — nguồn EXECUTE, không phải nguồn nội dung — nên chúng không thuộc mẫu chung.
+     */
     const KHANG_DINH = [
-      /Excel\s*\(?\s*[Ss]ource of truth/,
-      /Excel\s+l[àa]\s+canonical/i,
-      /Excel\s+l[àa]\s+(nguồn chính|nguồn sự thật)/i,
-      /Excel\s+canonical\s+source/i,
-      /Sheet\s+l[àa]\s+canonical/i,
+      RE_EXCEL_LA_NGUON,
       /canonical\s+tải\s+từ\s+Google\s+Sheet/i,
       /nguồn execute mặc định/i,
     ];

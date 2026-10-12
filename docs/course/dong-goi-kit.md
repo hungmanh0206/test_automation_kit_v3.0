@@ -379,7 +379,7 @@ npm run gates                                            # phải ĐẠT hết t
 
 ## Ba điều phải biết trước khi sửa gì
 
-1. **Excel/testcase canonical là nguồn duy nhất.** Mọi tầng khác PARSE từ nó, không copy.
+1. **Markdown canonical (`test-cases/*.md`) là nguồn duy nhất của nội dung case.** Mọi tầng khác PARSE từ nó, không copy; `.xlsx` và Sheet là bản xuất.
 2. **Output của bạn bị máy kiểm.** Sai chuẩn = chặn. Xem `npm run gates:list`.
 3. **"Không phán được" KHÔNG thành PASS.** Xem `.agent/config/phan-quyet.json`.
 

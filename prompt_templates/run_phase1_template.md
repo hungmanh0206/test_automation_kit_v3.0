@@ -150,12 +150,12 @@ Phase 1 tasks:
    `node scripts/convert_excel/md_to_xlsx.js <testcase.md> <testcase.xlsx>`
    Ví dụ:
    `node scripts/convert_excel/md_to_xlsx.js <PROJECT_OUTPUT_DIR>/tasks/[TASK_KEY]/test-cases/[TESTCASE_BASENAME].md <PROJECT_OUTPUT_DIR>/tasks/[TASK_KEY]/test-cases/[TESTCASE_BASENAME].xlsx`
-8. Coi Excel đã export là source of truth khi gen/publish (Phase 2 execute mặc định từ Google Sheet) và chuẩn bị trạng thái `Pending QA confirmation` cho step Auto Publish testcase.
+8. Coi **Markdown canonical** (`test-cases/*.md`) là source of truth cho nội dung case ở mọi giai đoạn; `.xlsx` và Sheet là bản xuất. Chuẩn bị trạng thái `Pending QA confirmation` cho step Auto Publish testcase.
    - Không publish Backlog trong prompt này.
    - Sau khi QA xác nhận Excel/testcase đạt, chạy prompt riêng:
      `prompt_templates/phase1/04_auto_publish_backlog.md`
-   - Excel là source-of-truth khi GEN/PUBLISH. Phase 2 **execute mặc định đọc từ Google Sheet** → **publish (step 04) là bước cần trước Phase 2**; Phase 2 tự tải Sheet về canonical local qua Drive MCP để chạy. Muốn chạy thuần Excel local thì đặt `TESTCASE_SOURCE=excel`.
-   - Nếu Excel thay đổi sau khi đã publish, chỉ cần re-publish (ghi đè Sheet) — không cần lifecycle riêng như công cụ test-management cũ; xem `partial-rerun/run_testcase_cleanup.md` nếu chỉ cần unlink Backlog.
+   - **Markdown canonical là source-of-truth**, kể cả khi gen và publish. Phase 2 **execute mặc định đọc `test-cases/*.md`** (`TESTCASE_SOURCE=md`) vì đọc Markdown rẻ token hơn hẳn `.xlsx` nhị phân; `sheet` và `excel` là opt-in cho lượt cần đúng bộ QA vừa sửa tay. Vì thế **publish KHÔNG còn là bước bắt buộc trước Phase 2**.
+   - Nếu nội dung case thay đổi sau khi đã publish, sửa ở `.md` rồi chạy lại `sync:canonical` và re-publish (ghi đè Sheet) — không cần lifecycle riêng như công cụ test-management cũ; xem `partial-rerun/run_testcase_cleanup.md` nếu chỉ cần unlink Backlog.
 9. Lưu requirement/context artifacts dưới:
    `<PROJECT_OUTPUT_DIR>/tasks/[TASK_KEY]/requirements/`
 10. Cập nhật:
@@ -227,7 +227,7 @@ sang file ở mục `phase1_chieu_coverage.anh_xa` của bản đồ đó.
   494 đến 515k token, và cache-hit 98,5 đến 99,0% nghĩa là cả context đó được đọc lại ở MỌI message.
   Giữ một phiên cho cả hai phase là bắt phase sau trả tiền cho hội thoại của phase trước.
 
-- Trước khi dừng, tự kiểm tra: testcase có đủ precondition/data/steps/expected, coverage chính >= 80% hoặc có gap rõ, không còn gap Critical/High nếu muốn kết luận PASS, Excel mở được và là source of truth khi gen/publish (Phase 2 execute mặc định từ Google Sheet), publish testcase đang ở trạng thái `Pending QA confirmation`, report/task log tiếng Việt chuẩn có dấu, không có placeholder hoặc encoding lỗi.
+- Trước khi dừng, tự kiểm tra: testcase có đủ precondition/data/steps/expected, coverage chính >= 80% hoặc có gap rõ, không còn gap Critical/High nếu muốn kết luận PASS, Markdown canonical là nguồn sự thật cho nội dung case và bản xuất `.xlsx` mở được (Phase 2 execute mặc định đọc `test-cases/*.md`), publish testcase đang ở trạng thái `Pending QA confirmation`, report/task log tiếng Việt chuẩn có dấu, không có placeholder hoặc encoding lỗi.
 - Trước khi dừng, chạy `Self-check vét cạn biên` (mục 18 — vẫn ở [`phase1/02_gen_testcases.md`](phase1/02_gen_testcases.md); mục 12–17 đã dời sang [`phase1/dimensions/`](phase1/dimensions/)): mỗi input đủ EP/BVA; filter/list có biên ngày/tháng/năm nhuận; export verify cấu trúc file + mapping + empty + dataset lớn; side-effect có negative; UI guard có cross-layer check; entity có status có đủ ma trận status x action; computed field có TC derivation + biên; nếu có Figma thì component chính có TC design compliance (token màu/font/radius/spacing/alignment); **mỗi màn có bảng/field có case Display Conformance (tên cột exact + format + số cột/thứ tự + field bắt buộc + empty-state, expected từ `ui_catalog.md`/tài liệu — mục 12)**; **logic/tính toán có oracle giá trị cụ thể + so khớp/delta dữ liệu (mục 13); field trống nghi ngờ đối chiếu response BE, phân biệt null/rỗng/thiếu/0 (mục 14); IDOR/privilege/injection/mass-assignment/data-exposure (mục 15); SLA/large-dataset/concurrent khi có ngưỡng (mục 16); change impact: story đụng bề mặt dùng chung (data/endpoint/component/rule/status/permission) → regression smoke cho feature bị ảnh hưởng + backward-compat, cái nghi ghi `QA confirm` (mục 17)**. Mục thiếu phải ghi vào Coverage Gaps.
 
 Extra instruction:
