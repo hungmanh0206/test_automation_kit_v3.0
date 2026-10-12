@@ -140,17 +140,57 @@ const RE_SO = /(?<![\w.])\d{1,8}(?:[.-]\d{1,8})*(?![\w.])/g;
 /**
  * Tách giá trị thành tham số, trả `{ khung, giaTri }`.
  *
- * Nhận BA dạng, cả ba đo được trong mẫu: nháy kép 31% · ngoặc vuông 6% (`kích nút [Đồng bộ dữ liệu]` —
- * bản đầu của bộ tách BỎ SÓT dạng này, đo mới thấy) · biến môi trường 182 lượt. Số trần thành `#` nhưng
- * KHÔNG tính là tham số: `Stt 87` chỉ vị trí dòng trên lưới, không phải giá trị người dùng nhập.
+ * Nhận BỐN dạng, cả bốn đo được trong mẫu: nháy kép 31% · ngoặc vuông 6% (`kích nút [Đồng bộ dữ liệu]`
+ * — bản đầu BỎ SÓT dạng này) · biến môi trường 182 lượt · **số trần**.
+ *
+ * ─────────────────────────────────────────────────────────────────────────────────────────────────────
+ * SỐ TRẦN LÀ THAM SỐ — đính chính một quyết định sai của chính tôi.
+ *
+ * Bản đầu đổi số trần thành `#` và KHÔNG tính là tham số, với lý lẽ "`Stt 87` chỉ vị trí dòng trên lưới,
+ * không phải giá trị người dùng nhập". Lý lẽ đó sai ở đúng chỗ quan trọng nhất: `Stt 87` là thứ XÁC ĐỊNH
+ * FIELD NÀO, tức nó là tham số đầu tiên của bước. Đo trên 1.079 mệnh đề của CSDL-9001: **330 mệnh đề
+ * (31%)** trỏ field bằng `Stt #`, và với `#` không phải tham số thì không bước nào khớp được chúng — bất
+ * kể danh mục có bao nhiêu mục.
+ *
+ * MỘT LƯỢT QUÉT TỪ TRÁI SANG PHẢI, không ba lượt `replace` nối nhau.
+ *
+ * Bản đầu chạy `RE_NHAY` trên cả câu, rồi `RE_VUONG`, rồi `RE_SO` — nên `giaTri` xếp theo LOẠI chứ không
+ * theo VỊ TRÍ. Câu `nhập 5000 vào ô "Diện tích"` cho ra `['Diện tích', '5000']`, tức ngược thứ tự, và
+ * `compile:spec` sẽ sinh `nhapO(page, man, "5000", "Diện tích")` — gọi hàm đúng với đối số đảo. Lỗi đó
+ * không làm spec đỏ ở tầng biên dịch; nó đỏ ở UAT, với thông báo lạc hướng.
+ * ─────────────────────────────────────────────────────────────────────────────────────────────────────
  */
 function tachGiaTri(s) {
   if (laCauSql(s)) return { khung: String(s), giaTri: [] };
+
+  /* URL và biến môi trường thay TRƯỚC: `<ops_base_url>/c3/lop.aspx` chứa cả biến lẫn đường dẫn, và
+   * chúng KHÔNG phải tham số bước — đường dẫn màn thuộc tầng L1. */
+  const nguon = String(s).replace(RE_URL, '<U>').replace(RE_BIEN, '<U>');
+
+  /* Một lượt quét: lấy mốc của cả ba dạng rồi xếp theo VỊ TRÍ. */
+  const moc = [];
+  const quet = (re, layGiaTri) => {
+    const r = new RegExp(re.source, re.flags.includes('g') ? re.flags : `${re.flags}g`);
+    for (const m of nguon.matchAll(r)) moc.push({ tu: m.index, den: m.index + m[0].length, giaTri: layGiaTri(m) });
+  };
+  quet(RE_NHAY, (m) => m[1].trim());
+  quet(RE_VUONG, (m) => m[1].trim());
+  quet(RE_SO, (m) => m[0]);
+
+  moc.sort((a, b) => a.tu - b.tu);
+
   const giaTri = [];
-  let khung = String(s).replace(RE_URL, '<U>');
-  khung = khung.replace(RE_NHAY, (_m, v) => { giaTri.push(v.trim()); return '{}'; });
-  khung = khung.replace(RE_VUONG, (_m, v) => { giaTri.push(v.trim()); return '{}'; });
-  khung = khung.replace(RE_BIEN, '<U>').replace(RE_SO, '#');
+  let khung = '';
+  let i = 0;
+  for (const m of moc) {
+    /* Mốc LỒNG NHAU bị bỏ: số nằm trong `"Khối 10"` đã thuộc mốc nháy kép rồi. */
+    if (m.tu < i) continue;
+    khung += nguon.slice(i, m.tu);
+    khung += '{}';
+    giaTri.push(m.giaTri);
+    i = m.den;
+  }
+  khung += nguon.slice(i);
   return { khung, giaTri };
 }
 

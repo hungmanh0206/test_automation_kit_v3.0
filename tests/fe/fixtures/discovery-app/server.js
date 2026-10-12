@@ -268,6 +268,68 @@ function trangTelerik(vaiTro) {
   ].join('\n'));
 }
 
+/*
+ * Trang HỒ SƠ kiểu ASP.NET WebForms — để đo L1 (mô hình màn) + L0.5 textbox/checkbox + L2 form hoàn
+ * toàn OFFLINE. Ba đặc điểm dưới đây là thứ làm nó giống app thật, và mỗi cái là một bài học đã trả giá:
+ *
+ *   · `name` dạng `ctl00$ContentPlaceHolder1$tbTen` — có `$`, nên `#id` không dùng được và phải định vị
+ *     bằng `[name$="tbTen"]`. Đúng cách L1 làm.
+ *   · ô `tbMa` có `maxlength=10` và CẮT ÂM THẦM: `fill` không báo gì, giá trị chỉ còn 10 ký tự.
+ *   · `tbKhoa` là `readonly`, `tbThue` là `disabled` — hai kiểu khoá KHÁC nhau, và L0.5 phải phân biệt
+ *     `khong-tuong-tac-duoc` với `tuong-tac-duoc-nhung-khong-doi-duoc`.
+ */
+function trangHoSo(vaiTro) {
+  const pre = 'ctl00$ContentPlaceHolder1$';
+  const o = (id, nhan, opt) => {
+    const v = opt || {};
+    const attr = [
+      `name="${pre}${id}"`, `id="${id}"`, 'type="text"',
+      `value="${v.giaTri === undefined ? '' : v.giaTri}"`,
+      v.maxlength ? `maxlength="${v.maxlength}"` : '',
+      v.readonly ? 'readonly' : '',
+      v.disabled ? 'disabled' : '',
+    ].filter(Boolean).join(' ');
+    return `<div class="row"><label for="${id}">${nhan}</label><input ${attr}></div>`;
+  };
+  const cb = (id, nhan, opt) => {
+    const v = opt || {};
+    return `<div class="row"><label for="${id}">${nhan}</label>`
+      + `<input name="${pre}${id}" id="${id}" type="checkbox" ${v.tich ? 'checked' : ''}></div>`;
+  };
+  const ta = (id, nhan) => `<div class="row"><label for="${id}">${nhan}</label>`
+    + `<textarea name="${pre}${id}" id="${id}"></textarea></div>`;
+
+  return CHROME(vaiTro, 'Hồ sơ trường', [
+    '<h2>1.1 Hồ sơ trường</h2>',
+    '<form id="aspnetForm" method="POST">',
+    o('tbTen', 'Tên trường', { giaTri: 'Truong THCS Fixture' }),
+    o('tbMa', 'Mã định danh', { giaTri: '', maxlength: 10 }),
+    o('tbDienTich', 'Diện tích đất', { giaTri: '1000' }),
+    o('tbKhoa', 'Loại hình', { giaTri: 'Công lập', readonly: true }),
+    o('tbThue', 'Mã số thuế', { giaTri: '0101234567', disabled: true }),
+    /*
+     * Ô NHẬN ĐƯỢC CHỮ RỒI TRẢ LẠI GIÁ TRỊ CŨ KHI RỜI Ô.
+     *
+     * Đây là trạng thái thứ ba của `ghiDuoc()` — `tuong-tac-duoc-nhung-khong-doi-duoc` — và nó KHÁC hẳn
+     * ô khoá: người dùng gõ được, nhìn thấy chữ mình gõ, rồi mất. Không có ô kiểu này trong fixture thì
+     * một trong ba trạng thái của hàm đó chưa bao giờ được thử, và một nhánh chưa thử là một nhánh có
+     * thể sai mà suite vẫn xanh. Mẫu thật: field bị JS/postback của WebForms nắn lại.
+     */
+    o('tbTuHoan', 'Khoảng cách (tự hoàn nguyên)', { giaTri: '3' }),
+    cb('ckInternet', 'Có Internet', { tich: false }),
+    cb('ckDien', 'Có điện (lưới)', { tich: true }),
+    ta('txGhiChu', 'Ghi chú'),
+    '<table id="grid"><thead><tr><th><input type="checkbox" id="ckAll" name="ckAll"></th><th>Tên</th></tr></thead>',
+    '<tbody><tr><td><input type="checkbox" name="ckRow1"></td><td>Dòng 1</td></tr></tbody></table>',
+    '<input type="submit" value="Cập nhật">',
+    '<input type="button" value="Huỷ">',
+    '</form>',
+    /* JS nắn `tbTuHoan` về giá trị cũ khi rời ô — xem ghi chú ở chỗ khai ô đó. */
+    '<script>(function(){var e=document.getElementById("tbTuHoan");var cu=e.value;'
+      + 'e.addEventListener("blur",function(){e.value=cu;});})();</script>',
+  ].join('\n'));
+}
+
 function trangThemTruong(vaiTro) {
   /* Đủ 18 loại field của `.agent/config/ui_components.json`, để spec dấu vân tay đếm được. */
   return CHROME(vaiTro, 'Thêm trường', `
@@ -425,6 +487,7 @@ function start() {
     if (p === '/lop') return html(trangLop(vaiTro, q));
     if (p === '/them-truong') return html(trangThemTruong(vaiTro));
     if (p === '/telerik') return html(trangTelerik(vaiTro));
+    if (p === '/ho-so') return html(trangHoSo(vaiTro));
     if (p === '/bao-cao') return html(trangBaoCao(vaiTro, q));
     if (p === '/admin') return html(trangAdmin(vaiTro));   // KHÔNG kiểm quyền — cố ý
     /*

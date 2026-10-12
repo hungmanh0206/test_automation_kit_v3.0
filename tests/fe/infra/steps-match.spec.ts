@@ -149,10 +149,37 @@ test.describe('§C2 — tách giá trị thành tham số', () => {
     expect(r.khung).toBe('mở <U>');
   });
 
-  test('số trần thành `#` nhưng KHÔNG tính là tham số', () => {
+  test('số trần LÀ tham số — đính chính quyết định cũ, có số đo', () => {
+    /*
+     * Bản đầu đổi số trần thành `#` và KHÔNG tính là tham số, với lý lẽ "`Stt 87` chỉ vị trí dòng trên
+     * lưới, không phải giá trị người dùng nhập". Lý lẽ đó sai ở đúng chỗ quan trọng nhất: `Stt 87` là
+     * thứ XÁC ĐỊNH FIELD NÀO, tức tham số đầu tiên của bước.
+     *
+     * Đo trên 1.079 mệnh đề của CSDL-9001: 330 mệnh đề (31%) trỏ field bằng `Stt #`, và với `#` không
+     * phải tham số thì KHÔNG bước nào khớp được chúng — bất kể danh mục có bao nhiêu mục. Sau khi sửa,
+     * tỉ lệ dùng lại của 9001 đi từ 13% lên 19%.
+     */
     const r = sm.tachGiaTri('nhập Stt 87 = 100');
-    expect(r.giaTri).toEqual([]);
-    expect(r.khung).toBe('nhập Stt # = #');
+    expect(r.giaTri).toEqual(['87', '100']);
+    expect(r.khung).toBe('nhập Stt {} = {}');
+  });
+
+  test('giá trị xếp theo VỊ TRÍ trong câu, không theo LOẠI', () => {
+    /*
+     * Bản đầu chạy ba lượt `replace` nối nhau (nháy kép → ngoặc vuông → số), nên `giaTri` xếp theo
+     * loại. Câu dưới đây cho ra `['Diện tích', '5000']` — ngược thứ tự — và `compile:spec` sẽ sinh
+     * `nhapO(page, man, "5000", "Diện tích")`. Lời gọi đó KHÔNG đỏ ở tầng biên dịch; nó đỏ ở UAT, với
+     * thông báo lạc hướng.
+     */
+    expect(sm.tachGiaTri('nhập 5000 vào ô "Diện tích"').giaTri).toEqual(['5000', 'Diện tích']);
+    expect(sm.tachGiaTri('nhập "Diện tích" = 5000').giaTri).toEqual(['Diện tích', '5000']);
+  });
+
+  test('số nằm TRONG một giá trị đã bọc thì không tách thêm lần nữa', () => {
+    /* `"Khối 10, 11"` là MỘT giá trị. Tách tiếp số bên trong là biến một tham số thành ba. */
+    const r = sm.tachGiaTri('chọn "Khối 10, 11" trên lưới');
+    expect(r.giaTri).toEqual(['Khối 10, 11']);
+    expect(r.khung).toBe('chọn {} trên lưới');
   });
 
   test('KHÔNG tách bên trong câu SQL', () => {
