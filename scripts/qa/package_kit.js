@@ -43,6 +43,19 @@ const KEEP_DIRS = [
    * vì lý do đó, nhưng gói lại không mang. Người nhận kit sẽ không có subagent nào.
    */
   'manual-run', '.claude/agents', 'tests/load',
+  /*
+   * `tests/fe/lib`: THƯ VIỆN BƯỚC của v2.8.0 — L0.5 widget, L1 mô hình màn, L2 bước, L4 bộ kiểm, và
+   * `step_catalog.json`.
+   *
+   * Đo 12/10/2026 trước khi thêm: gói mang **16 file** `scripts/qa/reuse/**` (các gate) nhưng **0 file**
+   * `tests/fe/lib/**` — tức người nhận kit có đủ máy gác mà không có thứ chúng gác. `steps:catalog` sẽ
+   * ĐỎ ở phép kiểm 2 (`impl` trỏ tới hàm có thật) cho cả 17 mục, còn `steps:lint` sẽ in "CHƯA CÓ GÌ ĐỂ
+   * CANH" và người đọc hiểu thành "thư viện sạch".
+   *
+   * Cùng một lớp lỗi với ca `manual-run` ghi ở trên: thêm một nhánh/một tầng mà quên danh sách này.
+   * `tests/fe/infra/config-presence.spec.ts` đã đối chiếu nhánh; phần tầng thì có test ở `package-kit`.
+   */
+  'tests/fe/lib',
   'tests/support', 'tests/fe/infra', 'tests/fe/fixtures', 'tests/fe/pages', 'tests/fe/visual', 'tests/fixtures',
   '.claude/commands', '.github/workflows',
   /*

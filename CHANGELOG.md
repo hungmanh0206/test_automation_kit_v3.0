@@ -7,6 +7,158 @@
 > `.agent/**`, `tests/support/**` đều là **shared change** (xem `RULE_GLOBAL.md` §Shared Change Gate) —
 > ảnh hưởng mọi story đang chạy. Mỗi mục ghi **vấn đề → cách chữa**, không chỉ liệt kê tính năng.
 
+## v2.8.0 — 2026-10-12 — Dùng lại script Phase 2, và con số nói thật về mức dùng lại được
+
+**Vấn đề.** Mỗi task Phase 2 viết lại automation gần như từ đầu. Khai thác 421 file automation của 4 task
+đã chạy cho thấy 1.387/1.388 lời gọi định vị là `page.locator()` thô, 0 lời gọi `getByRole`, và 29/323
+selector lặp chéo task (9%). Không có tầng nào để dùng lại, nên mỗi lượt là một lượt viết mới — và một
+lần sửa cách thao tác một widget phải sửa theo SỐ MÀN.
+
+Đợt này dựng tám tầng thư viện, bộ khớp câu bước bằng luật, bộ biên dịch testcase→spec, vòng đời bước, và
+bộ đo. Phần đắt nhất không phải code, mà là **đo trước khi thiết kế** — và phép đo bác bỏ tiền đề nhiều
+hơn dự tính.
+
+### Tám tầng, trong đó một tầng không có trong thiết kế ban đầu
+
+L0.5 **widget** được chèn thêm sau khi đo: ba hình dạng `#<ID>_Arrow` · `#<ID>_DropDown li` ·
+`#<ID>_Input` của Telerik chiếm **475/1.388 = 34%** mọi lời gọi định vị, nhiều hơn bất kỳ "bước nghiệp
+vụ" nào. Nó gói theo **loại control**, còn L1 gói theo **màn** — hai trục khác nhau nên không gộp được;
+gộp thì cách thao tác một widget bị chép lại theo số màn.
+
+Tầng hiện có: L0.5 `_widget/` (radcombobox · textbox · checkbox) · L1 `screens/` (mô hình màn) · L2
+`steps/` (bước nghiệp vụ) · L4 `_checks/` (bộ kiểm). **Luật vàng có máy canh** (`steps:lint`): chỉ
+`_checks/` được phép chứa `expect(`. Gói oracle vào bước làm tỉ lệ "dùng lại" nhảy vọt, nhưng lúc đó
+oracle bị đóng khung trong code và case vẫn xanh kể cả khi đặc tả đã đổi — `app == app` chuyển từ tầng
+testcase xuống tầng thư viện, và khó thấy hơn nhiều.
+
+### Khớp câu bước bằng luật, không gọi model
+
+`steps:match` khớp câu bước của testcase vào danh mục bằng luật và mẫu. Nếu khớp bước cần gọi AI thì mỗi
+lượt chạy lại vẫn tốn token, và "dùng lại" chỉ chuyển chi phí từ viết code sang gọi model.
+
+**Ba tiền đề của thiết kế sai, đo trên 952 case · 4.080 câu bước · 5.886 mệnh đề:**
+
+- *"Gộp đồng nghĩa là đòn bẩy"* — sai: 25% → 26%. Giá trị thật của nó là giảm **số mục danh mục** (ba
+  khung `kích nút`/`bấm nút`/`click nút` thành một mục 269 lượt).
+- *Thiếu hẳn một bước:* **tách mệnh đề**. Đây mới là đòn bẩy, 37% → 47%. Câu bước của QA là câu ghép tới
+  bốn thao tác.
+- *"Bỏ dấu để so"* phải làm **sau** khi gộp đồng nghĩa. Gộp trên chữ đã bỏ dấu đổi `xác nhận` → `xác bấm`
+  (65 câu), `nhân sự` → `bấm sự` (50 câu), và sửa cả nội dung câu `db_readonly: SELECT` (34 câu). Giữ dấu
+  + chỉ thay ở vị trí động từ ⇒ 0 va chạm còn lại.
+
+### Biên dịch testcase → spec, và case chưa đủ thì KHÔNG được PASS
+
+`compile:spec` sinh spec Playwright từ MD canonical, **0 token AI**. Hai luật định hình nó, cả hai đi
+ngược bản năng "sinh cho đủ":
+
+1. **Case còn TODO sinh ra dưới dạng `test.skip`.** Sinh `test()` thật mà thân chỉ có vài lời gọi khớp
+   được thì nó sẽ XANH — xanh vì chẳng kiểm gì — và một case chưa làm xong được đếm vào cột PASS.
+   `test.fail()` cũng không dùng được: Playwright coi là đạt khi nó đỏ.
+2. **Bộ biên dịch KHÔNG bịa giá trị kỳ vọng.** Chỉ nhận giá trị được bọc nháy trong chính ô kỳ vọng, và
+   chỉ khi dòng đó khớp một trong bốn khuôn bộ kiểm L4. Có giá trị KHÔNG có nghĩa là biết phải kiểm cái gì
+   với nó.
+
+`compile:check` canh bốn luật, trong đó hai luật không trùng nhau: bỏ `.skip` mà còn TODO, và bỏ `.skip`
+sau khi **xoá** TODO nhưng việc chưa làm.
+
+### Vòng đời bước: "chưa đo" không được biến thành một kết luận
+
+`steps:stats` · `steps:promote` · `steps:impact` · `steps:reverify`. Mỗi máy đều **từ chối kết luận** khi
+thiếu đầu vào — một cửa luôn mở và một cửa luôn đóng đều vô dụng như nhau, chỉ khác chiều.
+
+- `ti_le_on_dinh: null` nghĩa **chưa đo**, khác hẳn `0`: một bước chưa chạy lần nào không phải một bước
+  chập chờn, và `steps:promote` từ chối thăng nó.
+- **Cửa phiên bản** chặn khi đổi hợp đồng (`params`/`pre`/`post`/`impl`) mà không tăng số chính, và phân
+  biệt rạch ròi với phần không phải hợp đồng (`mo_ta`/`phrases`/`ghi_chu`). Cửa báo oan mỗi lần ai đó thêm
+  một `phrases` thì người ta sẽ học cách bỏ qua nó.
+- Bước khai `screen: "*"` **không** đổ đồng theo mọi màn đổi: đổ đồng thì cả danh mục đỏ sau mỗi lượt
+  discovery, và một tín hiệu luôn bật không còn là tín hiệu.
+
+### Hai mục tiêu của §G KHÔNG đạt, và báo bằng số
+
+`reuse:measure` chạy trên 951 case · 5.886 mệnh đề:
+
+| Mục tiêu | Đo được | Mục | |
+|---|---|---|---|
+| Dùng lại, module KHÁC | 22% (1.285/5.886) | ≥50% | ✗ |
+| Dùng lại, CÙNG module | — | ≥70% | chưa có cặp task nào trên cùng màn |
+| Khớp danh mục, case viết tự do | 0–3% → **19%** sau §A0 | — | bị chặn bởi độ phủ danh mục |
+| Khớp danh mục, case viết đúng chuẩn | **79%** | — | cùng bộ khớp, cùng danh mục |
+
+Hai dòng cuối phải đọc **cạnh nhau**: khoảng cách đó là phần **chuẩn viết câu bước** mua được, và nó
+KHÔNG mua được bằng một bộ khớp tốt hơn. Chỉ **31%** câu bước đang bọc giá trị trong nháy kép.
+
+**Ba mục không đo được, và máy in LÝ DO thay vì in một con số:** token −50% (mốc duy nhất là token theo
+*phiên*, không phải theo một lượt sinh automation — chia ra là bịa mẫu số) · 5 bug gài (spec biên dịch
+hiện gần như không có lời gọi bộ kiểm nào) · `mutation_check` (cần chạy thật trên UAT, và §2 đòi xác
+nhận). Ba mục đó **không được đọc thành "đã đạt" hay "không đạt"**.
+
+### Chuẩn viết câu bước: ba trong năm luật bị LOẠI vì phạt oan
+
+`tc:review` thêm tiêu chí 9, nhưng chỉ chấm **hai** trong năm luật. Đo từng luật:
+
+- **P3** (dùng động từ chuẩn) bắt **3.425/5.886 mệnh đề = 58%** — và đó là lỗi của bộ chấm, không của
+  case: danh sách `chuan` trong config là dạng chuẩn của các **nhóm đồng nghĩa**, không phải danh sách
+  động từ được phép. `đọc`, `đếm`, `cuộn` không có đồng nghĩa nên không nằm trong nhóm nào. Một tiêu chí
+  phạt 58% vì dùng chữ "đọc" sẽ bị tắt ngay trong tuần.
+- **P2** trùng tiêu chí 1 (chồng lấn 8%) · **P5** trùng tiêu chí 2 và `steps:lint`.
+
+Hai luật còn lại cũng phải sửa sau khi soi ví dụ thật: P1 báo oan `Chụp màn hình toàn bảng làm evidence`
+(`\b` của JavaScript tính theo ASCII nên biên giới từ quanh chữ có dấu không đáng tin); P4 bắt
+`Website = http://...` (giá trị một ô, không phải màn) và `<script>alert(1)</script>` — tức **phạt đúng
+những case bảo mật**.
+
+Đo tác động trước khi gắn vào: CSDL-9001 96.2% → 95.0%, các bộ khác 88.9–93.0%, đều xa ngưỡng chặn 75%.
+
+### Buildout thật một module, và `stt:map`
+
+L1 + textbox/checkbox + bước form cho module Hồ sơ trường, **không chạm UAT** (đọc `ui_catalog.json` có
+sẵn trên đĩa). Ba con số đo trước khi viết: neo control chỉ có ở **một** cấp (THCS 87/89; bốn cấp còn lại
+**0**) · control của màn là text 67 · checkbox 18 · textarea 2, **không có RadComboBox nào** · và
+**330/1.079 mệnh đề (31%)** trỏ field bằng `Stt #` chứ không bằng nhãn.
+
+`stt:map` suy bản đồ Stt→nhãn từ bảng đặc tả đối chiếu `expectedFields` — 5/5 màn, **0 nhập nhằng**, 0
+nhãn mồ côi — và **từ chối** suy theo thứ tự: đặc tả có 120 dòng cho cả 5 cấp, mỗi màn ít nhãn hơn, và
+catalog tự đo `screenIdx` chỉ khớp Stt 10/89. Nhãn ghép khớp nhiều hơn một `expectedField` thì không ghi.
+
+### Smoke hệ thống: mặc định nông và chỉ-đọc
+
+`smoke:gen` sinh smoke từ mô hình màn; `smoke:run` chạy qua **ba lớp chặn**. Smoke trả lời một câu hỏi
+hẹp — "thư viện còn nói đúng về app không?" — và **không phán nghiệp vụ**: một smoke phán nghiệp vụ sẽ đỏ
+vì dữ liệu UAT đổi, và người ta sẽ tắt nó.
+
+Lớp nông chỉ `goto` + đếm + đọc nhãn: không chạm dữ liệu UAT. Lớp `--deep` GHI THẬT rồi hoàn nguyên nên
+**tắt sẵn** và đòi thêm cờ `--toi-dong-y-cham-du-lieu` — `--deep` một mình không đủ, vì §2 đòi xác nhận
+trước mỗi lượt chạm dữ liệu.
+
+### Lỗi của chính bộ máy, do máy khác bắt được
+
+- **`gate:policy` một nguồn.** `schema_mini` tự viết thay vì dùng `ajv` (ajv chỉ là phụ thuộc gián tiếp
+  theo `eslint`). Luật quan trọng nhất của nó: **từ khoá không hiểu thì NÉM, không bỏ qua** — đợt này đã
+  có một gate đọc sai tên khoá (`kqDrift.lech`, không tồn tại) nên luôn mở, và chỉ phép đối chứng âm tìm ra.
+- **Hai gate canh "Excel là nguồn" cùng xanh** trong khi 7 bề mặt vẫn khai Excel là source-of-truth: một
+  gate chỉ bắt `source of truth` viết dấu cách, còn repo viết `source-of-truth` gạch nối. Đã gom mẫu +
+  danh sách bỏ qua + **đối chứng hai chiều** về một nguồn.
+- **`compile:spec` sinh ra import dính ổ đĩa** (`from './D:/Project/...'`) khi thư mục đích khác ổ: trên
+  Windows `path.relative` giữa hai ổ trả đường tuyệt đối. File trông bình thường và chỉ vỡ lúc Playwright
+  nạp. Giờ NÉM thay vì sinh import hỏng.
+- **Hai module cắt 60 ký tự ra cùng slug** nên file thứ hai ghi đè file thứ nhất im lặng: báo 196 file,
+  trên đĩa 195. Cùng lớp lỗi với chuyện Excel mất 129 ô. Thêm chống trùng + máy canh so số báo với số
+  trên đĩa.
+- **`ghiDuoc()` đọc lại mà không rời ô**, nên ô bị JS nắn về giá trị cũ khi blur vẫn được báo là ghi
+  được — và tệ hơn, `ghi()` cùng file CÓ blur, tức hai hàm nói hai điều khác nhau về cùng một ô, và cái
+  sai lại là hàm **đo**.
+- **Gói phát hành thiếu cả thư viện bước.** Đo trước khi vá: gói mang 16 file `scripts/qa/reuse/**` (các
+  gate) nhưng **0 file** `tests/fe/lib/**` — người nhận kit có đủ máy gác mà không có thứ chúng gác.
+
+### Một phép đo về chính lượt chạy test
+
+Chạy cả bộ offline một lượt với `workers` mặc định (nửa số core) thì **2 test** của L0.5 ĐỎ và cả lượt mất
+**2.1 giờ**; chạy riêng thì 17/17 trong 1.3 phút, và hai file browser với `--workers=1` thì 47/47 trong
+2.0 phút. Đó là **bỏ đói do tranh chấp**, không phải khiếm khuyết: hai test đó đo **hành vi theo thời
+gian**, nên nới ngưỡng chờ để chúng xanh dưới tải là xoá mất đúng thứ chúng đo. Cố ý **không** sửa
+`playwright.config.js` (file dùng chung, §5) — cách chạy ghi ở đầu spec, và `smoke:run` ghim `--workers=1`.
+
 ## v2.7.0 — 2026-10-12 — Giảm ma sát, và bắt máy kiểm tự chứng minh là nó có gác
 
 **Vấn đề.** Kit có hơn một trăm máy gác, nhưng không gì trả lời được ba câu cơ bản: máy nào chặn ở lúc
