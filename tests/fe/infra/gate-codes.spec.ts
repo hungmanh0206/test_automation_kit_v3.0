@@ -134,7 +134,19 @@ test.describe('@infra gates:index --check — CÓ RĂNG với mã thiếu hướ
       const r = chayCheck();
       expect(`${r.stderr}`).toContain('còn NỢ hướng dẫn');
       expect(`${r.stderr}`, 'và phải nói rõ nợ chỉ miễn một release').toContain('MỘT release');
-      expect(r.status, 'mã khai nợ thì không chặn').not.toBe(1);
+      /*
+       * KHÔNG assert exit code ở đây, và đó là một lần sửa test.
+       *
+       * `gates:index --check` chạy NHIỀU phép kiểm độc lập và trả về MỘT exit code. Bản đầu assert
+       * `not.toBe(1)`, nên nó xanh trên cây làm việc (ở đó check exit 2 vì source đang sửa dở) và đỏ
+       * trên cây sạch — vì ở đó một phép kiểm KHÁC chặn: GATES.md lệch source. Hai chuyện không liên
+       * quan gì nhau, mà test lại trộn chúng qua một con số.
+       *
+       * Thứ cần khoá là: mã khai nợ ra CẢNH BÁO, chứ không ra dòng CHẶN của §A5. Khẳng định đúng vào
+       * đó thì test không còn phụ thuộc tình trạng của cây.
+       */
+      expect(`${r.stderr}`, 'mã khai nợ KHÔNG được sinh dòng chặn của §A5')
+        .not.toContain('mã lỗi chưa nói được cách sửa');
     } finally {
       fs.writeFileSync(P, bak, 'utf8');
     }

@@ -120,6 +120,12 @@ const KEEP_FILES = [
    * được một bản đã nới 57 máy gác. Lớp GENERIC: chỉ tên lệnh và lý do, không mang host hay mã task.
    */
   '.agent/config/exit_gates.json',
+  /*
+   * `risk_lanes.json` (v2.7.0 §A6): hai làn theo risk, và `_luat_khong_doi_duoc` — bốn thứ giữ
+   * nguyên ở cả hai làn. Thiếu nó trong gói thì `lane` không chạy được, và người nhận kit mất
+   * luôn bản khai rằng làn KHÔNG nới được T0, evidence, rerun hay cửa ra.
+   */
+  '.agent/config/risk_lanes.json',
   '.agent/config/checklist_types.json',
   '.agent/config/gate_codes.json',
   '.agent/config/na_reasons_rejected.json',
