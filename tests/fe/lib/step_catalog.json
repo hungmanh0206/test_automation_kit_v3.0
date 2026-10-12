@@ -1,0 +1,155 @@
+{
+  "_y": "Danh mục BƯỚC NGHIỆP VỤ dùng lại (v2.8.0 §C1). Hình dạng được gác bởi `.agent/config/step_catalog.schema.json`; `steps:match` khớp câu bước của testcase vào đây; `compile:spec` (§D) sinh spec từ đây.",
+  "_mo_danh_muc_nay_dang_o_dau": "SEED, 6 mục — và cả 6 đều là bước TẦNG WIDGET, không phải bước nghiệp vụ. Lý do: lúc gieo danh mục này, `tests/fe/lib/` chỉ có hai tầng được dựng thật là L0.5 (`_widget/radcombobox.ts`) và L4 (`_checks/`). L1 (mô hình màn) và L2 (bước nghiệp vụ) chưa có, nên MỌI bước nghiệp vụ khai ở đây sẽ trỏ tới hàm không tồn tại. Thà 6 mục thật còn hơn 60 mục có `impl` chết.",
+  "_han_che_khai_san": "Vì chưa có L1, sáu bước này nhận ID ĐIỀU KHIỂN (`id` của RadComboBox) chứ không nhận NHÃN trên màn. Đó là hợp đồng của tầng widget, không phải của tầng bước: một case viết `chọn combobox \"Năm học\"` thì người gọi vẫn phải tự tra `Năm học` → `cbNamHoc`. L1 là chỗ xoá khoảng cách đó, và tới lúc đó `params` của các mục này đổi ⇒ `version` phải tăng SỐ CHÍNH.",
+  "_doi_chieu_ti_le": "Khớp 6 mục này vào 5338 mệnh đề của 5 task thật sẽ ra tỉ lệ rất thấp. Đó là con số ĐÚNG, không phải lỗi bộ khớp: 6 mục không phủ nổi 3308 khung câu khác nhau. Xem phần đo ở đầu `scripts/qa/reuse/steps_match.js`.",
+
+  "buoc": [
+    {
+      "id": "widget.combobox.chon-gia-tri",
+      "mo_ta": "Chọn một giá trị trong RadComboBox theo đúng chuỗi hiển thị; nếu ô đã đúng giá trị thì không chạm vào nó.",
+      "phrases": [
+        "chọn combobox {id} = {giaTri}",
+        "chọn {id} = {giaTri}",
+        "chọn giá trị {giaTri} ở combobox {id}",
+        "đổi combobox {id} sang {giaTri}"
+      ],
+      "params": { "id": "string", "giaTri": "string" },
+      "screen": "*",
+      "widget": ["radcombobox"],
+      "pre": "Đang ở màn có combobox `id`, và combobox đã nạp xong danh sách.",
+      "post": "Combobox `id` đang mang giá trị `giaTri`; postback (nếu có) đã xong.",
+      "impl": "tests/fe/lib/_widget/radcombobox.ts#chonGiaTri",
+      "version": "1.0.0",
+      "status": "draft",
+      "thong_ke": {
+        "so_lan_dung": 0,
+        "ti_le_on_dinh": null,
+        "last_verified_build": null,
+        "screen_fingerprint": null
+      },
+      "ghi_chu": "Trả `da-dung` khi ô vốn đã đúng, `da-chon` khi thật sự chọn. Phân biệt đó quan trọng với case đo cascade: `da-dung` nghĩa là KHÔNG có postback, nên bước sau đừng chờ lưới nạp lại. Đo trong mẫu: `chọn {} = {}` 23 lượt, `chọn combobox {} = #` 10 lượt."
+    },
+    {
+      "id": "widget.combobox.chon-chuoi",
+      "mo_ta": "Chọn lần lượt một chuỗi combobox phụ thuộc nhau (cascade), theo đúng thứ tự khai.",
+      "phrases": [
+        "chọn chuỗi combobox {cap}",
+        "chọn lần lượt {cap}",
+        "chọn cascade {cap}"
+      ],
+      "params": { "cap": "string[]" },
+      "screen": "*",
+      "widget": ["radcombobox"],
+      "pre": "Đang ở màn có đủ các combobox trong `cap`; combobox đầu chuỗi đã nạp xong.",
+      "post": "Mọi combobox trong `cap` mang giá trị đã khai, theo thứ tự.",
+      "impl": "tests/fe/lib/_widget/radcombobox.ts#chonChuoi",
+      "version": "1.0.0",
+      "status": "draft",
+      "thong_ke": {
+        "so_lan_dung": 0,
+        "ti_le_on_dinh": null,
+        "last_verified_build": null,
+        "screen_fingerprint": null
+      },
+      "ghi_chu": "THỨ TỰ LÀ MỘT PHẦN CỦA HỢP ĐỒNG, không phải chi tiết thi hành: combobox sau chỉ nạp xong sau postback của combobox trước. Hàm gọi tuần tự có ý — song song hoá là làm hỏng cascade."
+    },
+    {
+      "id": "widget.combobox.doc-gia-tri",
+      "mo_ta": "Đọc giá trị đang hiển thị của một RadComboBox.",
+      "phrases": [
+        "đọc giá trị combobox {id}",
+        "đọc combobox {id}",
+        "đọc nguyên văn giá trị ô {id}",
+        "ghi lại giá trị combobox {id}"
+      ],
+      "params": { "id": "string" },
+      "screen": "*",
+      "widget": ["radcombobox"],
+      "pre": "Đang ở màn có combobox `id`.",
+      "post": "Không đổi trạng thái màn — đây là bước ĐỌC.",
+      "impl": "tests/fe/lib/_widget/radcombobox.ts#docGiaTri",
+      "version": "1.0.0",
+      "status": "draft",
+      "thong_ke": {
+        "so_lan_dung": 0,
+        "ti_le_on_dinh": null,
+        "last_verified_build": null,
+        "screen_fingerprint": null
+      },
+      "ghi_chu": "Khai cả `đọc` và `ghi lại` làm hai `phrases` của CÙNG bước, thay vì gộp hai từ đó thành đồng nghĩa — `step_phrasing.json` giải thích vì sao gộp chúng là sai (đọc là quan sát, ghi lại là lưu evidence)."
+    },
+    {
+      "id": "widget.combobox.doc-items",
+      "mo_ta": "Mở dropdown rồi đọc toàn bộ lựa chọn trong danh sách.",
+      "phrases": [
+        "đọc toàn bộ lựa chọn trong danh sách {id}",
+        "liệt kê các lựa chọn của combobox {id}",
+        "đọc danh sách combobox {id}"
+      ],
+      "params": { "id": "string" },
+      "screen": "*",
+      "widget": ["radcombobox"],
+      "pre": "Đang ở màn có combobox `id`.",
+      "post": "Dropdown của `id` đang mở — bước sau phải tự đóng nếu cần màn sạch.",
+      "impl": "tests/fe/lib/_widget/radcombobox.ts#docItems",
+      "version": "1.0.0",
+      "status": "draft",
+      "thong_ke": {
+        "so_lan_dung": 0,
+        "ti_le_on_dinh": null,
+        "last_verified_build": null,
+        "screen_fingerprint": null
+      },
+      "ghi_chu": "`post` khai rõ dropdown CÒN MỞ. Bỏ sót chi tiết đó là nguồn của một lớp lỗi chập chờn: bước kế tiếp bấm vào chỗ bị dropdown che, và báo cáo quy cho app chậm. Đo trong mẫu: `đọc toàn bộ lựa chọn trong danh sách` 7 lượt."
+    },
+    {
+      "id": "widget.combobox.kiem-khoa",
+      "mo_ta": "Đo xem một RadComboBox có đang bị khoá không, bằng HÀNH VI chứ không bằng lời khai của markup.",
+      "phrases": [
+        "kiểm combobox {id} có bị khoá không",
+        "kiểm ô {id} còn sửa được không",
+        "đo trạng thái khoá của {id}"
+      ],
+      "params": { "id": "string" },
+      "screen": "*",
+      "widget": ["radcombobox"],
+      "pre": "Đang ở màn có combobox `id`.",
+      "post": "Giá trị ban đầu của `id` được trả về đúng như trước khi đo.",
+      "impl": "tests/fe/lib/_widget/radcombobox.ts#dangKhoa",
+      "version": "1.0.0",
+      "status": "draft",
+      "thong_ke": {
+        "so_lan_dung": 0,
+        "ti_le_on_dinh": null,
+        "last_verified_build": null,
+        "screen_fingerprint": null
+      },
+      "ghi_chu": "Trả BA trạng thái (`mo` · `khong-mo-duoc-danh-sach` · `mo-duoc-nhung-khong-doi-duoc`), không trả một cờ. Bản đầu của hàm này dùng `input[readonly]` làm dấu hiệu khoá và báo KHOÁ cho mọi combobox, vì `readonly` là trạng thái BÌNH THƯỜNG của RadComboBox. `post` hứa phục hồi giá trị gốc, và lời hứa đó có kiểm — sổ tri thức đã có một ca hậu kiểm báo \"về gốc\" là dương tính giả."
+    },
+    {
+      "id": "widget.combobox.liet-ke-tren-man",
+      "mo_ta": "Liệt kê ID của mọi RadComboBox đang có trên màn.",
+      "phrases": [
+        "liệt kê các combobox trên màn",
+        "đọc nguyên văn nhãn từng control trên thanh lọc",
+        "liệt kê control lọc phía trên lưới"
+      ],
+      "params": {},
+      "screen": "*",
+      "widget": ["radcombobox"],
+      "pre": "Màn đã nạp xong.",
+      "post": "Không đổi trạng thái màn — đây là bước ĐỌC.",
+      "impl": "tests/fe/lib/_widget/radcombobox.ts#lietKeTrenMan",
+      "version": "1.0.0",
+      "status": "draft",
+      "thong_ke": {
+        "so_lan_dung": 0,
+        "ti_le_on_dinh": null,
+        "last_verified_build": null,
+        "screen_fingerprint": null
+      },
+      "ghi_chu": "Bước KHÁM PHÁ, không phải bước kiểm. Nó trả ID chứ không trả nhãn, nên câu `đọc nguyên văn nhãn từng control` (6 lượt trong mẫu) khớp vào đây chỉ đúng một nửa — phần nhãn thuộc L1. Khai `phrases` đó ở đây CÓ Ý: thà khớp rồi lộ ra thiếu L1, hơn là để nó rơi vào `none` mà không ai biết vì sao."
+    }
+  ]
+}

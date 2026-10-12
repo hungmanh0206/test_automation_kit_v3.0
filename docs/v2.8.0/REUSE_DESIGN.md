@@ -136,8 +136,36 @@ Hai chỗ cố ý:
 
 Khớp bằng **luật và mẫu**, không dùng model. Bốn bước:
 
-1. **Chuẩn hoá câu**: bỏ dấu để so (giữ bản gốc để in), gộp đồng nghĩa (bấm/nhấn/click, nhập/điền/gõ),
-   tách giá trị trong ngoặc kép thành tham số.
+> ### Đính chính 12/10/2026 — ba tiền đề của mục này không đúng với dữ liệu thật
+>
+> Mục này viết trước khi đo. Sau khi dựng xong §C, tôi đo trên **952 case · 4080 câu bước · 5338 mệnh đề**
+> của 5 task thật (CSDL-3544 · 9001 · 9002 · 9003 · 9004). Ba điều sau phải sửa:
+>
+> **(a) "Gộp đồng nghĩa" KHÔNG phải đòn bẩy.** Nó nâng tỉ lệ khớp từ 25% lên **26%** — một điểm phần
+> trăm. Giá trị thật của nó là giảm **số mục danh mục**: ba khung `kích nút {}` (144 lượt) · `bấm nút {}`
+> (75) · `click nút {}` (42) gộp thành **một** mục 269 lượt. Đó là lý do vẫn giữ nó, nhưng không phải lý
+> do mục này viết.
+>
+> **(b) Thiếu một bước: TÁCH MỆNH ĐỀ.** Đây mới là đòn bẩy, và nó không có trong thiết kế ban đầu: câu
+> bước của QA là câu ghép tới **bốn** thao tác (`navigate đến <url>, chọn Khối = 10, kích "Tìm", đếm số
+> dòng`). Tách ở `,` `;` `→` `rồi` đưa tỉ lệ khớp từ **37% lên 47%**. Không tách ở `và` — nó nối cả danh
+> từ (`Họ và tên`).
+>
+> **(c) "Bỏ dấu để so" phải làm SAU khi gộp đồng nghĩa, không phải trước.** Gộp trên chữ đã bỏ dấu là một
+> lỗi, và nó sai ở quy mô lớn: `nhấn`/`nhận`/`nhân`/`nhãn` cùng thành `nhan`, nên bản đầu đổi `xác nhận`
+> → `xác bấm` (65 câu), `nhân sự` → `bấm sự` (50 câu), `ghi vào evidence` → `ghi mở evidence` (13 câu),
+> và sửa cả nội dung câu `db_readonly: SELECT COUNT(*)` (34 câu). Luật đúng: **giữ dấu, và chỉ thay ở vị
+> trí động từ** (đầu câu hoặc ngay sau dấu ngắt) ⇒ 0 va chạm còn lại trên cùng mẫu số đó.
+>
+> Thêm hai luật nữa mà phép đo mới cho thấy là cần:
+> - **Ngoặc vuông cũng là tham số**: `kích nút [Đồng bộ dữ liệu]` — 241/4080 câu (6%). Bản đầu bỏ sót.
+> - **Cụm dài phải thắng cụm ngắn kể cả khi ở hai nhóm khác nhau**: `kích` thuộc nhóm `bấm`, `kích chọn`
+>   thuộc nhóm `chọn`. Thử theo thứ tự nhóm thì `kích` thắng trước và **41 lượt** `kích chọn` rơi hết vào
+>   `none`. Fixture `tests/fe/fixtures/steps/testcase-chuan-phrasing.md` bắt đúng lỗi này.
+
+1. **Chuẩn hoá câu**: gộp đồng nghĩa **trên chữ còn dấu, chỉ ở vị trí động từ** → tách mệnh đề → tách giá
+   trị (nháy kép · ngoặc vuông · biến môi trường) thành tham số → **rồi mới** bỏ dấu để so (giữ bản gốc
+   để in).
 2. **Khớp mẫu** `phrases` → `exact` (đủ tham số) · `fuzzy` (điểm tương đồng ≥ ngưỡng, kèm tối đa 3 ứng
    viên) · `none`.
 3. **`fuzzy` giao cho subagent model rẻ** chọn **một mã trong danh sách ứng viên**, hoặc trả `none`. Đầu
@@ -207,7 +235,44 @@ bản lint SQL bất đồng ở 4/795 câu, và năm bản mẫu PII lệch nha
 | Phần nạp bắt buộc mỗi luồng | — | **không tăng** | `prompt:budget` đã chặn 3 lần trong §0b/§0c |
 
 **Một con số KHÔNG hứa:** tỉ lệ dùng lại ở module mới phụ thuộc trực tiếp vào §K (chuẩn hoá câu bước ở
-Phase 1). Đo hiện tại chưa có — nó là việc của §K, và prompt yêu cầu ghi cả "tỉ lệ khớp trước/sau chuẩn hoá".
+Phase 1).
+
+### Đã đo 12/10/2026 — hai mục tiêu ≥70% / ≥50% KHÔNG đạt được trên bộ case hiện có
+
+Đo xong §C thì đo luôn mức trần, vì để tới §G mới phát hiện là quá muộn. Phép đo: lấy 5 task thật, mỗi
+lượt coi một task là "task đang làm" và 4 task kia là kho khung đã có, rồi đếm bao nhiêu mệnh đề của task
+đó **đã có khung sẵn**. Chuẩn hoá đầy đủ (đồng nghĩa · tách mệnh đề · tách giá trị · trừu tượng số/URL).
+
+| Task đang làm | mẫu số (mệnh đề) | khớp TUYỆT ĐỐI | + `fuzzy` ≥0.65 | phải viết mới |
+|---|---|---|---|---|
+| Hồ sơ trường (9001) | 1079 | 15% | 32% | 56% |
+| Hồ sơ lớp (9002) | 908 | 21% | 39% | 47% |
+| Học sinh (9003) | 1744 | 17% | 33% | 56% |
+| Đội ngũ (9004) | 1148 | 12% | 35% | 55% |
+| Đồng bộ CSDL (3544) | 459 | 6% | 12% | 71% |
+
+**Mục ≥70% cùng module và ≥50% khác module là không đạt**, và khoảng cách không nhỏ — nó gấp đôi tới gấp
+năm con số đo được. Quan trọng hơn con số: **lý do không phải bộ khớp yếu.** Soi từng cặp `fuzzy` bằng mắt
+thì nguyên nhân chính là **tham số không được bọc**:
+
+```
+B: Nhập Stt 87 = 100
+A: Nhập "Hệ số phụ cấp chức vụ lãnh đạo (%)" = 14      → điểm 0.69, mà là CÙNG một bước
+```
+
+Chỉ **31%** câu bước đang bọc giá trị trong nháy kép. Bảy mươi phần trăm còn lại viết giá trị trần, nên
+hai câu cùng nghĩa ra hai khung khác nhau. Một bộ khớp tốt hơn không mua được phần đó — đòn bẩy nằm ở
+**§K**, và điều đó đổi thứ tự ưu tiên: §K không còn là mục phụ ở cuối, nó là mục quyết định xem §G có con
+số nào để báo hay không.
+
+Phép đối chứng chứng minh chẩn đoán này, không chỉ phỏng đoán nó:
+`tests/fe/fixtures/steps/testcase-chuan-phrasing.md` viết lại **cùng những thao tác** đó theo chuẩn §K và
+đạt **11/14 mệnh đề khớp `exact` (79%)** trên **cùng** danh mục 6 mục mà case thật chỉ khớp 0–3%. Cùng bộ
+khớp, cùng danh mục, khác cách viết câu.
+
+**Việc phải làm ở §G**, thay vì báo "không đạt" rồi thôi: đo **hai** con số cạnh nhau — tỉ lệ trên case
+viết tự do và tỉ lệ trên case viết theo §K — rồi nói rõ mục ≥70% chỉ có nghĩa với nhóm thứ hai. Báo một
+con số đơn lẻ ở đây là che mất đúng phần thông tin có giá trị.
 
 ## 8. Thứ tự làm, và chỗ rủi ro nhất
 

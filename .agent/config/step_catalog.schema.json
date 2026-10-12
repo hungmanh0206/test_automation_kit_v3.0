@@ -1,0 +1,85 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "step_catalog",
+  "_y": "Danh mục BƯỚC NGHIỆP VỤ dùng lại (v2.8.0 §C1). Nội dung thật ở tests/fe/lib/step_catalog.json — lớp PROJECT. File schema này là lớp GENERIC.",
+  "_vi_sao_co_schema": "Danh mục bước là thứ `steps:match` và `compile:spec` cùng đọc. Một mục khai thiếu `pre`/`post` thì phép ghép bước tự động im lặng bỏ qua nó, và không gì báo — nên hình dạng phải có máy gác.",
+  "type": "object",
+  "required": ["_y", "buoc"],
+  "properties": {
+    "_y": { "type": "string", "minLength": 20 },
+    "buoc": { "type": "array", "items": { "$ref": "#/definitions/buoc" } }
+  },
+  "definitions": {
+    "buoc": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "mo_ta", "phrases", "params", "screen", "pre", "post", "impl", "version", "status", "thong_ke"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[a-z0-9]+(?:[.-][a-z0-9]+)*$",
+          "_y": "Khoá ổn định, dạng `<module>.<man>.<viec>`. Chữ thường và dấu chấm để nó không bị đổi vì văn phong."
+        },
+        "mo_ta": { "type": "string", "minLength": 10, "_y": "Một câu nghiệp vụ. Người đọc danh mục phải hiểu bước làm gì mà không mở code." },
+        "phrases": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "type": "string", "minLength": 4 },
+          "_y": "Những CÁCH DIỄN ĐẠT hay gặp ở cột `Các bước thực hiện`, có chỗ trống cho tham số dạng {ten}. Nhiều cách diễn đạt là bắt buộc: QA viết 'Bấm nút \"Ghi\"' và 'Nhấn Ghi' cho cùng một việc, và một mẫu duy nhất sẽ bỏ sót một nửa."
+        },
+        "params": {
+          "type": "object",
+          "additionalProperties": { "enum": ["string", "number", "boolean", "string[]"] },
+          "_y": "Tên tham số phải khớp chỗ trống trong `phrases`. `steps:lint` đối chiếu hai bên — khai lệch thì khớp được câu mà gọi hàm thiếu đối số."
+        },
+        "screen": {
+          "type": "string",
+          "pattern": "^(\\*|.{2,})$",
+          "_y": "Liên kết tới mô hình màn L1, hoặc `*` nghĩa KHÔNG PHỤ THUỘC MÀN.",
+          "_vi_sao_cho_phep_dau_sao": "Bản đầu của schema đặt `minLength: 2` và nó CHẶN đúng 6 mục đầu tiên của danh mục — các bước tầng widget áp dụng cho mọi màn. `*` là một lời khai có nghĩa, khác hẳn một ô bỏ trống. Vẫn giữ ngưỡng 2 ký tự cho tên màn thật, để `screen: \"x\"` không lọt qua."
+        },
+        "widget": {
+          "type": "array",
+          "items": { "type": "string" },
+          "_y": "Liên kết tới tầng L0.5 (v2.8.0, tầng chèn thêm). Bước dùng RadComboBox khai `radcombobox` ở đây, để khi widget đổi thì biết bước nào bị ảnh hưởng."
+        },
+        "pre": { "type": "string", "minLength": 2, "_y": "HỢP ĐỒNG TRẠNG THÁI: cần đang ở đâu. Thiếu nó thì không ghép bước tự động được." },
+        "post": { "type": "string", "minLength": 2, "_y": "Sẽ tới đâu sau khi bước chạy xong." },
+        "impl": {
+          "type": "string",
+          "pattern": "^tests/fe/lib/.+#[A-Za-z_$][\\w$]*$",
+          "_y": "Đường dẫn hàm, dạng `<file>#<tenHam>`. Bắt buộc nằm trong `tests/fe/lib/` — ngoài đó là code của task, không phải thư viện."
+        },
+        "version": {
+          "type": "string",
+          "pattern": "^\\d+\\.\\d+\\.\\d+$",
+          "_y": "Đổi hợp đồng (`params`/`pre`/`post`) thì phải tăng SỐ CHÍNH. `steps:impact` dùng nó để biết spec nào bị ảnh hưởng."
+        },
+        "status": {
+          "enum": ["draft", "active", "needs_reverify", "deprecated"],
+          "_y": "`draft` là mặc định, và bước `draft` KHÔNG được dùng để kết luận PASS cho tới khi kiểm chứng."
+        },
+        "thong_ke": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["so_lan_dung", "ti_le_on_dinh", "last_verified_build", "screen_fingerprint"],
+          "properties": {
+            "so_lan_dung": { "type": "integer", "minimum": 0 },
+            "ti_le_on_dinh": {
+              "type": ["number", "null"],
+              "minimum": 0,
+              "maximum": 1,
+              "_y": "`null` nghĩa CHƯA ĐO, khác hẳn `0`. Một bước chưa chạy lần nào KHÔNG phải một bước chập chờn. Cùng luật với CHUA_KIEM của v2.7.0 §A10.1."
+            },
+            "last_verified_build": { "type": ["string", "null"] },
+            "screen_fingerprint": {
+              "type": ["string", "null"],
+              "_y": "Dấu vân tay màn LÚC KIỂM CHỨNG. Discovery `delta` so nó với dấu vân tay mới; lệch thì bước chuyển `needs_reverify`."
+            }
+          }
+        },
+        "ghi_chu": { "type": "string" }
+      }
+    }
+  }
+}
