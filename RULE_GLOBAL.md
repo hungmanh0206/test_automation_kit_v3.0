@@ -137,6 +137,24 @@ Ba việc nữa, không đo bằng mật độ nhưng cùng gốc:
 - Kết quả mong đợi của testcase phải là điều kiểm được. "Cột Paid Amount hiện 2.000.000", không phải
   "Hệ thống sẽ hiển thị đúng số tiền".
 
+#### Thân bug Backlog — viết cho DEV đọc, không phải cho máy đọc
+
+Chủ dự án nhắc hai lần, 10/10 và 12/10/2026: *"bug log với nội dung ngắn gọn, dễ hiểu cho dev đọc chứ
+không phải AI đọc, nhưng vẫn đúng template"*.
+
+- **Mỗi ý một dòng.** Dòng dồn nhiều ý bị `gate:output` chặn thật, không phải lời khuyên. Đã mất một
+  lượt log vì một dòng gộp "không nhân đôi" với "bảng kết quả vẫn báo không có lỗi" với "màn báo
+  thành công".
+- **Câu ngắn, kể theo thứ tự xảy ra.** Dev đọc để tái hiện, không đọc để thẩm định lập luận của QA.
+- **Phần lập luận dài ở lại claim**, không bê vào Backlog. Ba nhóm phản chứng, cách loại dương tính
+  giả, lịch sử rút verdict — tất cả thuộc `reports/bug-claims/<TC_ID>.json`.
+- **Chuỗi, mã lỗi, id và HTML bọc nháy ngược.** `000-000 Không có lỗi`, `ContentPlaceHolder1_lkbtCapNhat`.
+- **Có số thì đưa số.** "sĩ số giữ nguyên 22", không phải "sĩ số không đổi".
+- **Bỏ dòng trailer `TC: [...] · Tầng: [...]`** khỏi mô tả. Mã TC vẫn cần làm marker chống trùng, nhưng
+  nằm chỗ khác, không nằm trong phần người đọc.
+- **Kết quả mong đợi nói điều kiểm được**, và nêu luôn nhánh chấp nhận được nếu có. "Hoặc chặn và báo
+  phiên đã hết hạn", chứ không chỉ "phải xử lý đúng".
+
 Máy kiểm: `npm run writing:lint <file>`. Ngưỡng ở `.agent/config/writing_style.json` đặt ở **mức cao
 nhất** của 34 bài mẫu, không phải phân vị 75. Mốc mà đánh 25% mẫu là mốc sai, vì mẫu chính là đích.
 Nghĩa của gate: không được tệ hơn bản người viết tay. Cả 34 bài đạt, còn report tôi viết cùng ngày thì
@@ -631,6 +649,22 @@ Ba luật:
    lại điều tra từ đầu. Nếu đổi ý thì bắt buộc nói rõ hai thứ: trường nào trong claim bị bác, và phép
    đo nào bác nó. Rút lời chung chung là không được phép. Claim rút thì ghi `status: withdrawn` kèm
    `withdrawn_by_check`, và phải hạ verdict trong `testcase-status.json` cho khớp.
+
+4. **Trả lời "bug hay không" thì PHẢI DỨT KHOÁT (chủ repo chốt 12/10/2026).** Khi được hỏi thẳng, câu
+   trả lời chỉ có hai giá trị: **là bug** hoặc **không phải bug**. CẤM "không chắc", "có thể là bug",
+   "tuỳ BA chốt", "đo được nhưng chưa kết luận" — đó là đẩy việc phán quyết sang người hỏi, đúng cái
+   lỗi mà luật 1 sinh ra để chặn. Chưa đủ căn cứ thì **đi đo cho đủ rồi mới trả lời**, không trả lời
+   nửa vời. Đo xong mà vẫn không có neo thì nói thẳng **KHÔNG phải bug**, kèm việc nó là `OBSERVATION`
+   hay `spec:gap` và câu hỏi cần BA chốt — nhưng câu trả lời cho "có phải bug không" vẫn là KHÔNG.
+
+   **Neo của kỳ vọng gồm cả ô `Kết quả mong đợi` của chính case** trong bộ canonical (§6 Excel là
+   source-of-truth), không riêng `BR-`/`SM-`/`UI-`. Phải đọc TRỌN ô đó trước khi kết luận: câu quyết
+   định hay nằm ở gạch đầu dòng CUỐI. Đã trả giá hai lần — `CSDL_HS_TC_257` bị hạ nhầm xuống
+   `OBSERVATION` vì "kỳ vọng do QA đặt, không neo BR", trong khi ô Expected Result của chính nó ghi
+   nguyên văn *"...ghi đè mất số điện thoại của tab B mà không cảnh báo gì là FAIL"*. Phép thử ngược
+   ở cùng lượt: đọc trọn ô của `CSDL_HS_TC_124` thì nó KHÔNG nêu điều kiện FAIL nào cho nhánh đo
+   được, nên case đó giữ `OBSERVATION` thật. Cùng một thao tác, hai kết quả khác nhau — đây không
+   phải quy tắc "cứ nâng lên".
 
 Máy: `npm run bug:claim` chặn hai chiều. Chiều xuôi là claim thiếu trường. Chiều ngược là case đã chấm
 `product_bug` hoặc `api_bug` mà không có claim nào, tức đã phán mà chưa kiểm chứng.
