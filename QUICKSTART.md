@@ -187,7 +187,7 @@ Requirement
 ↓
 Generate Testcase
 ↓
-Excel (Source of truth khi gen/publish)
+Excel (bản phái sinh của Markdown canonical)
 ↓
 QA xác nhận
 ↓
@@ -223,7 +223,7 @@ Nhóm chức năng thành **sheet riêng** trong workbook (1 sheet cho mỗi nh�
 
 ## Partial Rerun - Cleanup testcase
 
-Khi Excel source of truth thay đổi sau khi đã publish, cleanup thuộc nhánh phụ Partial Rerun. **Không còn lifecycle riêng** như công cụ TMS cũ: re-publish (bước ở trên) ghi đè toàn workbook nên case bị bỏ khỏi Excel tự động biến mất khỏi Sheet ngay lần ghi đè kế tiếp. Dùng prompt riêng [partial-rerun/run_testcase_cleanup.md](partial-rerun/run_testcase_cleanup.md) chỉ khi còn việc unlink liên kết Test↔Story/Task trên Backlog (optional, cần QA yêu cầu rõ).
+Khi nội dung Markdown canonical thay đổi sau khi đã publish, cleanup thuộc nhánh phụ Partial Rerun. **Không còn lifecycle riêng** như công cụ TMS cũ: re-publish (bước ở trên) ghi đè toàn workbook nên case bị bỏ khỏi Excel tự động biến mất khỏi Sheet ngay lần ghi đè kế tiếp. Dùng prompt riêng [partial-rerun/run_testcase_cleanup.md](partial-rerun/run_testcase_cleanup.md) chỉ khi còn việc unlink liên kết Test↔Story/Task trên Backlog (optional, cần QA yêu cầu rõ).
 
 ## Parallel Story Safety
 

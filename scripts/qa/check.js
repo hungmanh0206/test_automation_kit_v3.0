@@ -233,7 +233,16 @@ const PHAI_SPAWN = {
   1: [
     { lenh: 'dim:coverage', args: [] },
     { lenh: 'risk:gate', args: [] },
-    { lenh: 'canonical:drift', args: [] },
+    /*
+     * `canonical:check` THAY `canonical:drift` ở đây (v2.8.0 §0c.4), không chạy cả hai.
+     *
+     * `canonical:check` GỌI LẠI drift để so MD với Excel, rồi thêm hai thứ drift không có: tách lệch
+     * NỘI DUNG khỏi lệch KẾT QUẢ (lệch kết quả sau một lượt chạy là HỢP LỆ, chặn nó thì gate đỏ sau
+     * mọi lượt execute), và đọc `sync_state.json` cho chân thứ ba là Google Sheet.
+     *
+     * Giữ cả hai trong danh sách này là chạy drift hai lần cho cùng một kết luận.
+     */
+    { lenh: 'canonical:check', args: [] },
     { lenh: 'expected:check', args: [] },
     /*
      * `db:paths:check` ở CẢ HAI phase, tầng T0 (v2.8.0 §0b.5).
@@ -249,7 +258,7 @@ const PHAI_SPAWN = {
     { lenh: 'risk:gate', args: [] },
     { lenh: 'ledger:check', args: [] },
     { lenh: 'typecheck:task', args: [] },
-    { lenh: 'canonical:drift', args: [] },
+    { lenh: 'canonical:check', args: [] },
     { lenh: 'expected:check', args: [] },
     { lenh: 'db:paths:check', args: [] },
   ],

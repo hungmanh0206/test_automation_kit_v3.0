@@ -19,7 +19,7 @@ Chạy step Phase 1 - Auto Publish testcase lên Google Sheet.
 
 Điều kiện bắt buộc trước khi chạy:
 - Testcase Markdown đã được sinh/cập nhật.
-- Excel testcase đã export thành công và là source of truth.
+- Bản xuất Excel đã sinh thành công từ Markdown canonical.
 - `reports/phase1-summary.md` đã có coverage/risk review và Final Decision.
 - QA đã xác nhận Excel/testcase được phép publish.
 - Nếu QA chưa xác nhận rõ, chỉ được review file local, không upload thật.
@@ -42,7 +42,7 @@ Parallel story safety:
 - Không sửa `.env` hoặc `.env.local` chung khi có session khác đang chạy.
 
 Input artifacts:
-- Testcase Excel source of truth:
+- Bản xuất Excel (sinh từ Markdown canonical):
   `<PROJECT_OUTPUT_DIR>/tasks/<TASK_KEY>/test-cases/*.xlsx`
 - Testcase Markdown:
   `<PROJECT_OUTPUT_DIR>/tasks/<TASK_KEY>/test-cases/*.md`

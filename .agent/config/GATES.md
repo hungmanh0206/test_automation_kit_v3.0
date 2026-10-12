@@ -7,7 +7,7 @@
 > **T1** chỉ chặn ở cửa ra, lúc đang làm thì cảnh báo và ghi `reports/gate-debt.json` · **T2** không
 > bao giờ chặn. T0 khai tay trong `.agent/config/gate_tiers.json`; không khai thì mặc định T1.
 
-Tổng **112** máy — **78 CHẶN** · 21 SINH (ghi artifact) · 13 BÁO CÁO (chỉ in).
+Tổng **114** máy — **80 CHẶN** · 21 SINH (ghi artifact) · 13 BÁO CÁO (chỉ in).
 
 SINH/BÁO CÁO **không phải gate bị nới** — chúng không kiểm vi phạm. Ví dụ `bugs:checklist` in brief bug
 lịch sử, còn việc CHẶN nằm ở `dim:coverage` (chiều `bug_history` §20).
@@ -50,6 +50,7 @@ lịch sử, còn việc CHẶN nằm ở `dim:coverage` (chiều `bug_history` 
 | T0 | CHẶN | `secret:scan` | quet secret bi commit nham tren cac file DA TRACK trong git. | `scripts/qa/secret_scan.js` | .gitlab-ci.yml · RULE_GLOBAL.md · README.md · .github/workflows · .agent/rules · .agent/skills · tests/fe/infra |
 | T1 | CHẶN | `seed:knowledge`, `seed:knowledge:apply` | Seed Knowledge từ lịch sử Backlog (Suggest-only, DRY-RUN mặc định). | `scripts/qa/seed_knowledge_from_backlog.js` | README.md · scripts/qa/README.md |
 | T1 | CHẶN | `skills:index`, `skills:index:check` | sinh bảng tra skill từ frontmatter của `.agent/skills/**\/SKILL.md`. | `scripts/qa/skills_index.js` | .gitlab-ci.yml · README.md · .github/workflows · tests/fe/infra |
+| T1 | CHẶN | `sync:canonical` | MỘT BỘ GHI, TOẢ BA NƠI (v2.8.0 §0c). | `scripts/qa/testcases/sync_canonical.js` | README.md · USER_GUIDE.md · .agent/skills · prompt_templates · tests/fe/infra |
 | T1 | CHẶN | `trace:matrix` | sinh ma trận REQ → TC → AUTO → EXEC → BUG dạng artifact. | `scripts/qa/traceability_matrix.js` | README.md · .agent/workflows · prompt_templates |
 | T1 | CHẶN | `ui:conformance` | "visual oracle" tự động. | `scripts/qa/ui_conformance_check.js` | prompt_templates |
 | T1 | CHẶN | `release:verify` | CHỨNG MINH bản phát hành chạy được từ con số 0. Đây là thước đo chính của cả luồng CD, | `scripts/qa/verify_release.js` | README.md · .github/workflows · .agent/skills · tests/fe/infra |
@@ -60,6 +61,7 @@ lịch sử, còn việc CHẶN nằm ở `dim:coverage` (chiều `bug_history` 
 | T1 | CHẶN | `test:task`, `test:task:fe`, `test:task:api` | const { spawn } = require('child_process'); | `scripts/utils/run_playwright_task.js` | README.md · USER_GUIDE.md · QUICKSTART.md · prompt_templates |
 | T1 | CHẶN | `sync:gitlab` | đẩy `main` sang nhánh GitLab, TRỪ những đường dẫn khai trong | `scripts/utils/sync_gitlab.js` | tests/fe/infra |
 | T0 | CHẶN (có cờ --enforce) | `auto:review`, `auto:review:enforce` | GATE chất lượng code automation, phần `lint:locator` KHÔNG gác. | `scripts/qa/automation_review.js` | RULE_GLOBAL.md · .agent/workflows · .agent/rules · .agent/skills · prompt_templates · tests/fe/infra |
+| T0 | CHẶN (có cờ --enforce) | `canonical:check` | GÁC MÔ HÌNH "MD CANONICAL, EXCEL/SHEET PHÁI SINH" (v2.8.0 §0c.4). | `scripts/qa/canonical_check.js` | USER_GUIDE.md · prompt_templates · tests/fe/infra |
 | T0 | CHẶN (có cờ --enforce) | `canonical:drift`, `canonical:drift:enforce` | ĐO ĐỘ TRÔI giữa Markdown canonical và bản xuất `.xlsx`. | `scripts/qa/canonical_drift.js` | RULE_GLOBAL.md · README.md · USER_GUIDE.md · .agent/workflows · .agent/rules · .agent/skills · prompt_templates · tests/fe/infra |
 | T1 | CHẶN (có cờ --enforce) | `xsurf:diff` | TRỤC 2: **cùng một giá trị, khác nơi hiển thị**. | `scripts/qa/cross_surface_diff.js` | RULE_GLOBAL.md · README.md · prompt_templates |
 | T1 | CHẶN (có cờ --enforce) | `decisions:check`, `decisions:index` | quản lý `knowledge/decisions/`: LÝ DO của những quyết định QA đã chốt. | `scripts/qa/decisions.js` | README.md · USER_GUIDE.md · .agent/workflows · .agent/skills · prompt_templates · tests/fe/infra |

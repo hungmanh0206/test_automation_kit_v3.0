@@ -201,9 +201,9 @@ test-automation-kit/
 
 | Phase | Input | Output | Gate |
 |---|---|---|---|
-| Phase 1 | Backlog, tài liệu nguồn, Figma, Swagger, file local | Testcase Markdown + Excel source of truth (khi gen/publish) + coverage summary + `### Setup Readiness` (mỗi cell `Tiền điều kiện` mang tag `[<method>]`) | Cột `Loại case` ∈ 9 type canonical; `Ưu tiên` ∈ Critical…Lowest; mọi precondition có tag cách dựng. |
-| Testcase Publish (Google Sheet) | Excel source of truth + QA confirmation | Sheet trên Drive (link lưu `GOOGLE_SHEET_URL`) + publish summary | Step riêng trong Phase 1; agent review nội dung `.xlsx` local trước khi ghi đè Sheet thật qua Drive MCP. |
-| Testcase Re-publish | Excel source of truth sau partial rerun + Human Review/QA confirmation | Sheet ghi đè lại toàn workbook, khớp đúng Excel hiện tại | Không cần lifecycle riêng — case rời Excel tự biến mất khỏi Sheet ở lần ghi đè kế tiếp; chỉ cần Human Review trước khi re-publish. |
+| Phase 1 | Backlog, tài liệu nguồn, Figma, Swagger, file local | Testcase Markdown canonical + bản xuất Excel (khi gen/publish) + coverage summary + `### Setup Readiness` (mỗi cell `Tiền điều kiện` mang tag `[<method>]`) | Cột `Loại case` ∈ 9 type canonical; `Ưu tiên` ∈ Critical…Lowest; mọi precondition có tag cách dựng. |
+| Testcase Publish (Google Sheet) | bản xuất Excel (sinh từ Markdown canonical) + QA confirmation | Sheet trên Drive (link lưu `GOOGLE_SHEET_URL`) + publish summary | Step riêng trong Phase 1; agent review nội dung `.xlsx` local trước khi ghi đè Sheet thật qua Drive MCP. |
+| Testcase Re-publish | bản xuất Excel sau partial rerun + Human Review/QA confirmation | Sheet ghi đè lại toàn workbook, khớp đúng Excel hiện tại | Không cần lifecycle riêng — case rời Excel tự biến mất khỏi Sheet ở lần ghi đè kế tiếp; chỉ cần Human Review trước khi re-publish. |
 | Phase 2 | Testcase canonical local (agent luôn tải bản Google Sheet mới nhất qua Drive MCP; Excel local là opt-out khi chưa publish) + tag `[<method>]` của từng precondition + env/app/API URLs/credentials | Playwright results, evidence, execution summary, cột `Result` trên Sheet | Sheet luôn tải MỚI trước mỗi lượt execute (không còn khái niệm mirror cũ/staleness); non-destructive UAT; evidence cho mọi case đã execute. |
 | Bug Triage | Failed testcase, logs, screenshot/video | Bug candidate hoặc non-product issue | Không log Backlog nếu fail do setup/prompt/test data. |
 | Backlog Logging | Confirmed product/API bug | Backlog sub-bug + ảnh/video evidence | Có expected, actual, reproduce steps và evidence rõ. |
@@ -227,7 +227,7 @@ flowchart TD
     Tab --> Result
 ```
 
-- **Excel là canonical, Sheet chỉ là bản đồng bộ hiển thị.** Mọi sửa nội dung case làm ở Excel rồi re-publish (ghi đè). Sửa thẳng trên Sheet sẽ mất ở lần ghi đè kế tiếp.
+- **Markdown canonical là nguồn sự thật; Excel và Sheet là bản phái sinh.** Mọi sửa nội dung case làm ở `*.md` rồi chạy `npm run sync:canonical` để toả ra Excel và Sheet. Sửa thẳng trên Excel hay Sheet sẽ mất ở lần ghi đè kế tiếp.
 - **Không có folder, tag, Cycle, Run hay custom field** như công cụ cũ. Nhóm chức năng thể hiện bằng **sheet-tab riêng** trong cùng workbook, dựng từ `md_to_xlsx.js`.
 - **Kết quả execute** ghi vào cột `Result` của đúng dòng (khớp `tcId`) qua `scripts/convert_excel/merge_execution_status.js`, rồi agent `update_file` đẩy lên Drive. Các ô khác không bị đụng, gồm `Test Type`, `Priority` và ghi chú QA đã sửa tay.
 - **Publish chỉ làm được trong phiên chat**, vì Drive MCP không gọi được từ script CLI hay CI headless. Đây là đánh đổi có chủ ý. Đổi lại, kit bỏ hẳn việc quản lý token và rate-limit của công cụ TMS trước đây. Chi tiết mô hình và lịch sử migrate: [`.agent/skills/shared/backlog_testcase_publisher/SKILL.md`](.agent/skills/shared/backlog_testcase_publisher/SKILL.md).

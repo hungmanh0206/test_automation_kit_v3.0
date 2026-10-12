@@ -165,6 +165,12 @@ const KEEP_FILES = [
    */
   '.agent/config/gate_code_pairs.json',
   /*
+   * `db-paths.allow.json` (v2.8.0 §0b.5): danh sách miễn trừ CÓ HẠN của `db:paths:check`. Thiếu nó trong
+   * gói thì máy mới đỏ ngay lượt đầu vì 9 file probe có sẵn của một task cũ — đỏ vì thiếu config, không
+   * vì có lỗi. Mà một gate đỏ-khi-vừa-cài thì bị bỏ qua chứ không được sửa.
+   */
+  '.agent/config/db-paths.allow.json',
+  /*
    * `judge_rubric.json` + `judge_calibration.json` (v2.7.0 §A11): thang chấm cho phần máy không đo được,
    * và bộ hiệu chuẩn. Thiếu thang thì `judge --check` không biết chấm những mục nào; thiếu bộ hiệu chuẩn
    * thì mọi lời chấm thành CHƯA ĐƯỢC GÁC — đúng hướng an toàn, nhưng vì lý do sai.

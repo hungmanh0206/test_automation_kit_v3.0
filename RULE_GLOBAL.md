@@ -200,7 +200,7 @@ việc khác, và không làm.
 ### Phase-Separated Story Execution
 
 - Mỗi story không bắt buộc chạy liền một mạch. Luồng chuẩn là:
-  `Requirement -> Generate Testcase -> Excel (source of truth) -> QA confirmation -> Auto Publish Google Sheet -> chờ Dev implement -> Phase 2 -> chờ Dev fix bug nếu có -> Re-run`.
+  `Requirement -> Generate Testcase (Markdown canonical) -> xuất Excel -> QA confirmation -> Auto Publish Google Sheet -> chờ Dev implement -> Phase 2 -> chờ Dev fix bug nếu có -> Re-run`.
 - Sau bước generate testcase, Excel trong `<TASK_OUTPUT_DIR>/test-cases/` là source of truth khi **gen và publish**. Nội dung testcase phải sửa ở Excel rồi re-publish — không sửa trực tiếp trên Google Sheet làm nguồn authoring (`PUT .../detail` ghi đè toàn phần nên bản sửa tay sẽ mất khi re-publish).
 - **Phase 2 execute mặc định đọc Markdown canonical** (`TESTCASE_SOURCE=md`): đọc thẳng `<TASK_OUTPUT_DIR>/test-cases/*.md`.
 

@@ -20,7 +20,7 @@ Publish bộ testcase đã được QA xác nhận, đi từ bản xuất Excel 
 | Tìm file đã tồn tại | `mcp__claude_ai_Google_Drive__search_files` theo tên chuẩn hoá từ `TASK_KEY` trong folder task trên Drive. |
 | Publish | Có rồi → `update_file` (ghi đè, giữ nguyên `fileId`/link, không tạo file trùng); chưa có → `create_file` (upload `.xlsx`, để Drive tự convert sang Google Sheets, không set `disableConversionToGoogleType`). |
 | Lưu link | Ghi `viewUrl`/link Drive trả về vào `profiles/<TASK_KEY>/task.env` field `GOOGLE_SHEET_URL`. |
-| Không có lifecycle riêng | Không có khái niệm Deprecated/case status trên Sheet — Excel là canonical, Sheet chỉ là bản hiển thị/đồng bộ. Excel bỏ TC nào thì lần `update_file` sau Sheet cũng mất TC đó. |
+| Không có lifecycle riêng | Không có khái niệm Deprecated/case status trên Sheet — Markdown canonical là nguồn; Excel và Sheet là bản phái sinh. Excel bỏ TC nào thì lần `update_file` sau Sheet cũng mất TC đó. |
 | No hard delete thủ công | Không tự xoá dòng trên Sheet qua UI — sửa ở **Markdown canonical** rồi xuất lại `.xlsx` và re-publish (`update_file`) để tránh lệch nguồn. |
 
 ## Inputs
@@ -56,7 +56,7 @@ rồi agent `update_file` đẩy bản đã merge lên Drive.
 
 ## Decision Rules
 
-- Không publish từ Markdown nếu Excel đã tồn tại; Excel là canonical source, Sheet chỉ là bản đồng bộ.
+- Publish LUÔN đi từ Markdown canonical qua bản xuất Excel (`sync:canonical`). Excel và Sheet là bản phái sinh, không phải nguồn.
 - Không publish thật nếu QA chưa xác nhận — publish là ghi đè file thật trên Drive, không có dry-run tách riêng (review trước khi `update_file`/`create_file` chính là bước soát).
 - **Luôn review nội dung `.xlsx` local trước khi ghi đè Sheet** — Drive MCP không có "sửa 1 ô", ghi đè là ghi đè cả file.
 - Sheet không có folder/tag/Cycle/Run/custom field như công cụ test-management cũ — đây là đổi mô hình dữ liệu, không phải đổi tên. Đừng đi tìm các khái niệm đó rồi kết luận "thiếu".
