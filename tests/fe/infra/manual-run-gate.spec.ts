@@ -235,9 +235,22 @@ test.describe('@infra manual-run — ranh giới `[manual]` và ủy quyền out
     expect(p.join(' '), 'và nó phải là chuyện thiếu evidence').toMatch(/evidence|ảnh|video/i);
   });
 
-  test('② verdict ngoài taxonomy cũng do output_gate bắt', () => {
+  test('② verdict ngoài taxonomy do output_gate bắt, và nó CHẶN chứ không cảnh báo', () => {
+    /*
+     * ĐỔI 12/10/2026 (v2.7.0 §A12): trước đây verdict tự chế chỉ là CẢNH BÁO, và test này khoá đúng
+     * hành vi yếu đó. Phép đo 5-lỗi-cài-sẵn của Execute Lite cho thấy hậu quả: `isExecuted("Đạt")` trả
+     * false nên case bị bỏ qua — không kiểm evidence, không kiểm tầng lỗi, không vào mẫu số — và gate in
+     * "0 case đã execute · 0 vi phạm chặn" rồi exit 0. Verdict tự chế không chỉ lọt, nó làm case TÀNG
+     * HÌNH với cả bộ máy.
+     *
+     * Nó cũng mâu thuẫn với lời khai của chính kit: `gate_codes.json` xếp `VERDICT_LA` vào tầng T0, mà
+     * T0 nghĩa là chặn ở mọi ngữ cảnh.
+     */
     const r = chay({ status: [{ ...tcOk('T_TC_001'), status: 'Đạt' }] });
-    expect(loc(r.warnings, /^\[output_gate\].*taxonomy/).length).toBe(1);
+    expect(loc(r.warnings, /^\[output_gate\].*taxonomy/).length, 'không còn là cảnh báo').toBe(0);
+    const p = loc(r.problems, /^\[output_gate\].*taxonomy/);
+    expect(p.length, 'phải là vi phạm CHẶN').toBe(1);
+    expect(p.join(' '), 'phải nói rõ hậu quả: case tàng hình với gate').toMatch(/TÀNG HÌNH|mẫu số/);
   });
 
   test('`laManual` đọc đúng tag, kể cả precondition nhiều dòng', () => {
