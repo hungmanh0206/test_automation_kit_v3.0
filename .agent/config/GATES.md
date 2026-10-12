@@ -7,7 +7,7 @@
 > **T1** chỉ chặn ở cửa ra, lúc đang làm thì cảnh báo và ghi `reports/gate-debt.json` · **T2** không
 > bao giờ chặn. T0 khai tay trong `.agent/config/gate_tiers.json`; không khai thì mặc định T1.
 
-Tổng **102** máy — **73 CHẶN** · 19 SINH (ghi artifact) · 10 BÁO CÁO (chỉ in).
+Tổng **110** máy — **76 CHẶN** · 21 SINH (ghi artifact) · 13 BÁO CÁO (chỉ in).
 
 SINH/BÁO CÁO **không phải gate bị nới** — chúng không kiểm vi phạm. Ví dụ `bugs:checklist` in brief bug
 lịch sử, còn việc CHẶN nằm ở `dim:coverage` (chiều `bug_history` §20).
@@ -28,11 +28,13 @@ lịch sử, còn việc CHẶN nằm ở `dim:coverage` (chiều `bug_history` 
 | T1 | CHẶN | `deps:check` | MỖI DEPENDENCY PHẢI CÓ NƠI DÙNG, HOẶC CÓ MỘT DÒNG GIẢI THÍCH. | `scripts/qa/deps_check.js` | .github/workflows · tests/fe/infra |
 | T1 | CHẶN | `design:gate` | round-3) — Gate CHẤT LƯỢNG THIẾT KẾ testcase (Phase 1), THỰC THI. | `scripts/qa/design_gate.js` | RULE_GLOBAL.md · README.md · USER_GUIDE.md · scripts/qa/README.md · .agent/workflows · .agent/skills · prompt_templates · partial-rerun · .claude/commands · tests/fe/infra |
 | T0 | CHẶN | `discover` | KHÁM PHÁ HỆ THỐNG (v2.6.0 §A1). Một lệnh, ba chế độ. | `scripts/qa/discover.js` | RULE_GLOBAL.md · README.md · USER_GUIDE.md · .agent/workflows · .agent/skills · prompt_templates · .claude/commands · tests/fe/infra |
-| T1 | CHẶN | `exit:gate` | BA CỬA RA (v2.7.0 §A2). | `scripts/qa/exit_gate.js` | prompt_templates · tests/fe/infra |
+| T1 | CHẶN | `exit:gate` | BA CỬA RA (v2.7.0 §A2). | `scripts/qa/exit_gate.js` | prompt_templates · .claude/commands · tests/fe/infra |
 | T1 | CHẶN | `expansion:audit` | ĐO ĐỘ PHỦ 5 TRỤC trên MỌI task đã execute, để quyết định siết gate bằng SỐ. | `scripts/qa/expansion_audit.js` | RULE_GLOBAL.md · .claude/commands · tests/fe/infra |
-| T0 | CHẶN | `expected:check`, `expected:snapshot` | CHẶN "đổi expected để case xanh" (non-negotiable §6, tầng T0). | `scripts/qa/expected_ledger.js` | RULE_GLOBAL.md · prompt_templates · tests/fe/infra |
-| T1 | CHẶN | `json:check` | kiểm MỌI file .json ĐANG ĐƯỢC TRACK có parse được không. | `scripts/qa/json_check.js` | .gitlab-ci.yml · .github/workflows |
-| T1 | CHẶN | `lane` | CHỌN LÀN theo risk, và CHẶN việc hạ làn ở chỗ rủi ro cao (v2.7.0 §A6). | `scripts/qa/lane.js` | .gitlab-ci.yml · RULE_GLOBAL.md · README.md · .github/workflows · .agent/rules · exploratory · tests/fe/infra |
+| T0 | CHẶN | `expected:check`, `expected:snapshot` | CHẶN "đổi expected để case xanh" (non-negotiable §6, tầng T0). | `scripts/qa/expected_ledger.js` | RULE_GLOBAL.md · prompt_templates · .claude/commands · tests/fe/infra |
+| T1 | CHẶN | `golden:check`, `golden:snapshot` | BỘ DỮ LIỆU VÀNG cho parser canonical, và HAI PHÉP ĐẾM ĐỘC LẬP (v2.7.0 §A10.4 + §A10.5). | `scripts/qa/golden_check.js` | .gitlab-ci.yml · RULE_GLOBAL.md · .github/workflows · tests/fe/infra |
+| T1 | CHẶN | `json:check` | kiểm MỌI file .json ĐANG ĐƯỢC TRACK có parse được không. | `scripts/qa/json_check.js` | .gitlab-ci.yml · .github/workflows · tests/fe/infra |
+| T1 | CHẶN | `judge` | CHẤM PHẦN MÁY KHÔNG ĐO ĐƯỢC, có lấy mẫu và có hiệu chuẩn (v2.7.0 §A11). | `scripts/qa/judge.js` | RULE_GLOBAL.md · prompt_templates · tests/fe/infra |
+| T1 | CHẶN | `lane` | CHỌN LÀN theo risk, và CHẶN việc hạ làn ở chỗ rủi ro cao (v2.7.0 §A6). | `scripts/qa/lane.js` | .gitlab-ci.yml · RULE_GLOBAL.md · README.md · .github/workflows · .agent/rules · prompt_templates · exploratory · tests/fe/infra |
 | T1 | CHẶN | `leak:report` | đo "kit đang rò bao nhiêu và rò kiểu gì" (baseline cho mọi cải tiến sau). | `scripts/qa/leak_report.js` | RULE_GLOBAL.md · README.md · .agent/workflows · prompt_templates · tests/fe/infra |
 | T1 | CHẶN | `learn:bugs`, `learn:bugs:apply` | nối mắt xích còn ĐỨT: bug đã log Backlog → knowledge/bugs/ (+ root_causes ref, index). | `scripts/qa/learn_bugs.js` | README.md · USER_GUIDE.md · QUICKSTART.md · scripts/qa/README.md · .agent/workflows · prompt_templates |
 | T1 | CHẶN | `library:drift` | CHẶN "thư viện thuật ngữ đã trôi khỏi repo". | `scripts/qa/library_drift.js` | .gitlab-ci.yml · README.md · .github/workflows |
@@ -41,6 +43,7 @@ lịch sử, còn việc CHẶN nằm ở `dim:coverage` (chiều `bug_history` 
 | T1 | CHẶN | `gate:policy` | giữ 1 NGUỒN policy duy nhất: RULE_GLOBAL.md là canonical. | `scripts/qa/policy_source_check.js` | .gitlab-ci.yml · RULE_GLOBAL.md · README.md · USER_GUIDE.md · .github/workflows · .agent/rules · .agent/skills · prompt_templates · .claude/commands · tests/fe/infra |
 | T0 | CHẶN | `preflight`, `preflight:lanes` | round-3) — CHẶN "miss đọc file / input hỏng" TRƯỚC khi workflow chạy. | `scripts/qa/preflight_gate.js` | .gitlab-ci.yml · README.md · USER_GUIDE.md · QUICKSTART.md · scripts/qa/README.md · .github/workflows · .agent/workflows · prompt_templates · .claude/commands · tests/fe/infra |
 | T1 | CHẶN | `probe:page` | biến artifact KHÁM PHÁ thành bản đồ field DÙNG ĐƯỢC cho spec. | `scripts/qa/probe_to_page.js` | **KHÔNG BỀ MẶT NÀO** |
+| T1 | CHẶN | `rule:coverage`, `rule:coverage:check` | BẢN ĐỒ LUẬT → GATE → SPEC (v2.7.0 §A10.7). | `scripts/qa/rule_coverage.js` | .gitlab-ci.yml · .github/workflows · tests/fe/infra |
 | T1 | CHẶN | `rule`, `rule:toc` | tra RULE_GLOBAL.md THEO MỤC, thay vì đọc cả file. | `scripts/qa/rule_lookup.js` | .gitlab-ci.yml · RULE_GLOBAL.md · CLAUDE.md · README.md · USER_GUIDE.md · scripts/qa/README.md · .github/workflows · .agent/workflows · .agent/rules · .agent/skills · prompt_templates · exploratory · partial-rerun · manual-run · .claude/commands · tests/fe/infra |
 | T0 | CHẶN | `secret:scan` | quet secret bi commit nham tren cac file DA TRACK trong git. | `scripts/qa/secret_scan.js` | .gitlab-ci.yml · RULE_GLOBAL.md · README.md · .github/workflows · .agent/rules · .agent/skills · tests/fe/infra |
 | T1 | CHẶN | `seed:knowledge`, `seed:knowledge:apply` | Seed Knowledge từ lịch sử Backlog (Suggest-only, DRY-RUN mặc định). | `scripts/qa/seed_knowledge_from_backlog.js` | README.md · scripts/qa/README.md |
@@ -74,11 +77,11 @@ lịch sử, còn việc CHẶN nằm ở `dim:coverage` (chiều `bug_history` 
 | T1 | CHẶN (có cờ --enforce) | `probe:persist` | TRỤC 3: chuỗi lưu trữ `form → payload → đọc lại (API) → UI`. | `scripts/qa/persistence_probe.js` | RULE_GLOBAL.md · README.md · prompt_templates |
 | T1 | CHẶN (có cờ --enforce) | `phase1:check`, `phase2:check` | BÓ các gate của một phase vào MỘT lượt gọi. | `scripts/qa/phase_check.js` | .agent/workflows · prompt_templates |
 | T1 | CHẶN (có cờ --enforce) | `prompt:budget` | ĐO TĨNH: mỗi điểm vào bảo AI đọc bao nhiêu token hướng dẫn. | `scripts/qa/prompt_budget.js` | .gitlab-ci.yml · RULE_GLOBAL.md · README.md · .github/workflows · .claude/commands · tests/fe/infra |
-| T1 | CHẶN (có cờ --enforce) | `release:summary`, `release:summary:enforce`, `release:summary:init` | KHUYẾN NGHỊ go/no-go, có căn cứ, và KHÔNG tự quyết. | `scripts/qa/release_summary.js` | .agent/rules · .agent/skills · tests/fe/infra |
+| T1 | CHẶN (có cờ --enforce) | `release:summary`, `release:summary:enforce`, `release:summary:init` | KHUYẾN NGHỊ go/no-go, có căn cứ, và KHÔNG tự quyết. | `scripts/qa/release_summary.js` | .agent/rules · .agent/skills · .claude/commands · tests/fe/infra |
 | T0 | CHẶN (có cờ --enforce) | `ledger:check`, `ledger:check:enforce`, `ledger:snapshot` | Chống MẤT KẾT QUẢ ÂM THẦM ở cột `Result` của bản xuất Excel. | `scripts/qa/result_ledger.js` | RULE_GLOBAL.md · .agent/workflows · prompt_templates |
 | T1 | CHẶN (có cờ --enforce) | `risk:gate`, `risk:gate:enforce` | ép Risk-Based Testing: đối chiếu testcase với depthPolicy theo band trong risk-register. | `scripts/qa/risk_gate.js` | README.md · USER_GUIDE.md · QUICKSTART.md · .github/workflows · .agent/workflows · .agent/skills · prompt_templates · .claude/commands · tests/fe/infra |
 | T1 | CHẶN (có cờ --enforce) | `rule:parity`, `rule:parity:enforce` | RÚT GỌN `core_rules.md` MÀ KHÔNG MẤT LUẬT NÀO. | `scripts/qa/rule_parity.js` | .github/workflows · tests/fe/infra |
-| T0 | CHẶN (có cờ --enforce) | `run:analysis`, `run:analysis:enforce` | LƯỢT CHẠY NÀY CÓ ĐƯỢC DÙNG ĐỂ KẾT LUẬN CHẤT LƯỢNG KHÔNG? | `scripts/qa/run_analysis.js` | .agent/workflows · .agent/rules · .agent/skills · tests/fe/infra |
+| T0 | CHẶN (có cờ --enforce) | `run:analysis`, `run:analysis:enforce` | LƯỢT CHẠY NÀY CÓ ĐƯỢC DÙNG ĐỂ KẾT LUẬN CHẤT LƯỢNG KHÔNG? | `scripts/qa/run_analysis.js` | .agent/workflows · .agent/rules · .agent/skills · .claude/commands · tests/fe/infra |
 | T1 | CHẶN (có cờ --enforce) | `scope:anchor`, `scope:anchor:enforce`, `scope:anchor:init` | NEO MẪU SỐ của Phase 1. | `scripts/qa/scope_anchor.js` | .agent/workflows · .agent/skills · prompt_templates · .claude/commands · tests/fe/infra |
 | T1 | CHẶN (có cờ --enforce) | `self-review`, `self-review:enforce` | Lượt 2: đối chiếu CHECKLIST trước finalize (ADVISORY). | `scripts/qa/self_review.js` | RULE_GLOBAL.md · README.md · USER_GUIDE.md · scripts/qa/README.md · .agent/workflows · prompt_templates · manual-run · .claude/commands · tests/fe/infra |
 | T1 | CHẶN (có cờ --enforce) | `skills:lint`, `skills:lint:enforce` | MÔ TẢ SKILL CÓ ĐỦ THÔNG TIN ĐỂ CHỌN HAY CHƯA? | `scripts/qa/skills_lint.js` | tests/fe/infra |
@@ -94,6 +97,8 @@ lịch sử, còn việc CHẶN nằm ở `dim:coverage` (chiều `bug_history` 
 | T2 | SINH | `explore:charter` | CHỌN VÙNG DÒ BẰNG DỮ LIỆU, không bằng cảm tính. | `scripts/qa/explore_charter.js` | exploratory · .claude/commands |
 | T2 | SINH | `ui:contract` | biến DESIGN thành ORACLE MÁY ĐỌC ĐƯỢC (`knowledge/system/UI-*.json`). | `scripts/qa/figma_to_ui_contract.js` | RULE_GLOBAL.md · README.md · .agent/rules |
 | T2 | SINH | `gate:audit` | KIỂM KÊ GATE để phân tầng (v2.7.0 bước 1a). | `scripts/qa/gate_audit.js` | tests/fe/infra |
+| T2 | SINH | `gate:friction` | SỔ MA SÁT của gate, và quy tắc dọn (v2.7.0 §A9). | `scripts/qa/gate_friction.js` | RULE_GLOBAL.md · tests/fe/infra |
+| T2 | SINH | `gate:selfmutate` | ĐỘT BIẾN CHÍNH CODE CỦA GATE, rồi đòi spec của nó phải ĐỎ (v2.7.0 §A10.6). | `scripts/qa/gate_selfmutate.js` | tests/fe/infra |
 | T2 | SINH | `knowledge:backup` | sao lưu / khôi phục các store knowledge KHÔNG NẠP LẠI ĐƯỢC. | `scripts/qa/knowledge_backup.js` | .gitlab-ci.yml · README.md · QUICKSTART.md · .github/workflows · .agent/workflows · prompt_templates · tests/fe/infra |
 | T2 | SINH | `knowledge:bootstrap` | DỰNG KHUNG `domain/` ở trạng thái `draft`, để kho không ở lại rỗng. | `scripts/qa/knowledge_bootstrap.js` | tests/fe/infra |
 | T2 | SINH | `learn:report` | trả lời câu "chạy task này thì đã HỌC được gì?". | `scripts/qa/learn_report.js` | README.md · prompt_templates |
@@ -109,8 +114,11 @@ lịch sử, còn việc CHẶN nằm ở `dim:coverage` (chiều `bug_history` 
 | T2 | BÁO CÁO | `docs:health` | trả lời "tài liệu tôi đang đọc có còn đúng không" bằng MỘT LỆNH. | `scripts/phase1/docs_health.js` | prompt_templates |
 | T2 | BÁO CÁO | `bug:tc-match` | ĐỀ XUẤT (không tự ghi) TC canonical cho bug đang `module: "(unmapped)"`. | `scripts/qa/bug_tc_matcher.js` | README.md · .claude/commands |
 | T2 | BÁO CÁO | `bugs:checklist` | biến `knowledge/bugs/` thành CHECKLIST lúc SINH CASE (chiều §20 Error Guessing). | `scripts/qa/bugs_checklist.js` | .agent/workflows · prompt_templates · .claude/commands · tests/fe/infra |
+| T2 | BÁO CÁO | `cleanup:check`, `cleanup:check:enforce` | QUÉT FILE DUMP LỌT Ở ROOT REPO (§Cleanup Rules của RULE_GLOBAL). | `scripts/qa/cleanup_check.js` | .gitlab-ci.yml · .github/workflows · tests/fe/infra |
 | T2 | BÁO CÁO | `docs:budget` | đo TÀI LIỆU đầu vào của task rồi nói rõ: đọc trực tiếp, hay GIAO SUBAGENT trích ra rồi chỉ | `scripts/qa/doc_budget.js` | README.md · prompt_templates |
+| T2 | BÁO CÁO | `gate:code-pair`, `gate:code-pair:enforce` | MỖI MÃ GATE PHẢI CÓ MỘT CẶP BẨN/SẠCH, VÀ PHẢI ĐỊNH TUYẾN ĐÚNG (v2.7.0 §A10.3). | `scripts/qa/gate_code_pair.js` | .gitlab-ci.yml · .github/workflows · tests/fe/infra |
 | T2 | BÁO CÁO | `(không npm — đăng ký ở playwright.config.js)` | Playwright reporter TỰ ĐỘNG thu learning data sau MỖI lần chạy test. | `scripts/qa/learn_reporter.js` | playwright.config.js (tự động) |
+| T2 | BÁO CÁO | `next` | LỆNH TIẾP THEO, suy từ TRẠNG THÁI ARTIFACT (v2.7.0 §A7). | `scripts/qa/next_command.js` | README.md · .agent/workflows · .agent/rules · prompt_templates · partial-rerun · .claude/commands · tests/fe/infra |
 | T2 | BÁO CÁO | `quality:decision` | Quality Decision Engine, capstone). Gộp tín hiệu chất lượng → 1 quyết định | `scripts/qa/quality_decision.js` | README.md · scripts/qa/README.md |
 | T2 | BÁO CÁO | `rerun:failed` | chạy lại ĐÚNG case đỏ của lượt vừa rồi, bằng MỘT lệnh. | `scripts/qa/rerun_failed.js` | RULE_GLOBAL.md · .agent/workflows · .agent/rules · .agent/skills · prompt_templates · tests/fe/infra |
 | T2 | BÁO CÁO | `select:tests` | Intelligent Test Selection từ git diff. | `scripts/qa/select_tests.js` | README.md · USER_GUIDE.md |
@@ -122,3 +130,4 @@ lịch sử, còn việc CHẶN nằm ở `dim:coverage` (chiều `bug_history` 
 Không hẳn là lỗi — có thể là thư viện dùng chung. Nhưng nếu là gate thì nó đang chết.
 
 - `scripts/qa/autofix.js`
+- `scripts/qa/override.js`
