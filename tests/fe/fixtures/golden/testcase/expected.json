@@ -1,0 +1,248 @@
+{
+  "_y": "MỐC ĐÓNG BĂNG đầu ra parser canonical trên bộ fixture vàng (v2.7.0 §A10.4). Lệch mốc = CHẶN.",
+  "_sinh_boi": "node scripts/qa/golden_check.js --write --toi-da-doi-parser",
+  "_canh_bao": "Sinh lại file này là LỜI KHAI rằng parser đã đổi có chủ đích. Mốc tự ghi lại thì nó không còn là mốc.",
+  "bo": {
+    "01-toi-thieu.md": {
+      "so_case": 3,
+      "so_warning": 0,
+      "headers": [
+        "TC ID",
+        "Loại case",
+        "Tag",
+        "Module",
+        "Trường hợp kiểm thử",
+        "Tiền điều kiện",
+        "Dữ liệu Test",
+        "Các bước thực hiện",
+        "Kết quả mong đợi",
+        "Ưu tiên",
+        "Mức độ rủi ro"
+      ],
+      "case": [
+        {
+          "tcId": "GOLD_TC_001",
+          "module": "Hồ sơ trường",
+          "title": "Mở màn hồ sơ trường",
+          "caseType": "Functional",
+          "tags": "[Positive]",
+          "techniques": [],
+          "oracleRefs": [],
+          "dimensions": [
+            "positive"
+          ],
+          "precondition": "[ui] Đã đăng nhập cấp THCS",
+          "data": "n/a",
+          "stepsRaw": "1. Mở menu Hồ sơ trường",
+          "expectedRaw": "1. Màn hiện 4 tab",
+          "so_buoc": 1,
+          "so_ky_vong": 1,
+          "priority": "Medium",
+          "risk": "Medium"
+        },
+        {
+          "tcId": "GOLD_TC_002",
+          "module": "Hồ sơ trường",
+          "title": "Bỏ trống Tên trường rồi Ghi",
+          "caseType": "Functional",
+          "tags": "[Negative][BR-HS-004]",
+          "techniques": [],
+          "oracleRefs": [
+            "BR-HS-004"
+          ],
+          "dimensions": [
+            "negative"
+          ],
+          "precondition": "[ui] Đang ở form Sửa",
+          "data": "Tên trường = rỗng",
+          "stepsRaw": "1. Xoá ô Tên trường\n2. Bấm Ghi",
+          "expectedRaw": "1. Chặn lưu\n2. Báo \"Tên trường là bắt buộc\"",
+          "so_buoc": 2,
+          "so_ky_vong": 2,
+          "priority": "High",
+          "risk": "High"
+        },
+        {
+          "tcId": "GOLD_TC_003",
+          "module": "Hồ sơ trường",
+          "title": "Hiển thị mã trường chỉ-đọc",
+          "caseType": "Functional",
+          "tags": "[Display][EP]",
+          "techniques": [
+            "EP"
+          ],
+          "oracleRefs": [],
+          "dimensions": [
+            "display"
+          ],
+          "precondition": "[pre_existing] Trường đã có mã",
+          "data": "n/a",
+          "stepsRaw": "1. Mở tab Thông tin chung",
+          "expectedRaw": "1. Ô Mã trường ở trạng thái chỉ-đọc",
+          "so_buoc": 1,
+          "so_ky_vong": 1,
+          "priority": "Low",
+          "risk": "Low"
+        }
+      ]
+    },
+    "02-danh-so.md": {
+      "so_case": 3,
+      "so_warning": 0,
+      "headers": [
+        "TC ID",
+        "Loại case",
+        "Tag",
+        "Module",
+        "Trường hợp kiểm thử",
+        "Tiền điều kiện",
+        "Dữ liệu Test",
+        "Các bước thực hiện",
+        "Kết quả mong đợi",
+        "Ưu tiên",
+        "Mức độ rủi ro"
+      ],
+      "case": [
+        {
+          "tcId": "GOLD_TC_010",
+          "module": "Lớp học",
+          "title": "Ba bước đánh số liên tục",
+          "caseType": "Functional",
+          "tags": "[Positive]",
+          "techniques": [],
+          "oracleRefs": [],
+          "dimensions": [
+            "positive"
+          ],
+          "precondition": "[ui] Đã đăng nhập",
+          "data": "n/a",
+          "stepsRaw": "1. Mở màn\n2. Bấm Thêm\n3. Bấm Ghi",
+          "expectedRaw": "1. Màn mở\n2. Form hiện\n3. Lưu thành công",
+          "so_buoc": 3,
+          "so_ky_vong": 3,
+          "priority": "Medium",
+          "risk": "Medium"
+        },
+        {
+          "tcId": "GOLD_TC_011",
+          "module": "Lớp học",
+          "title": "Bước KHÔNG đánh số",
+          "caseType": "Functional",
+          "tags": "[Positive]",
+          "techniques": [],
+          "oracleRefs": [],
+          "dimensions": [
+            "positive"
+          ],
+          "precondition": "[ui] Đã đăng nhập",
+          "data": "n/a",
+          "stepsRaw": "Mở màn rồi bấm Thêm",
+          "expectedRaw": "Form hiện ra",
+          "so_buoc": 1,
+          "so_ky_vong": 1,
+          "priority": "Medium",
+          "risk": "Low"
+        },
+        {
+          "tcId": "GOLD_TC_012",
+          "module": "Lớp học",
+          "title": "Số KHÔNG liên tục (1, 3, 4)",
+          "caseType": "Functional",
+          "tags": "[Negative]",
+          "techniques": [],
+          "oracleRefs": [],
+          "dimensions": [
+            "negative"
+          ],
+          "precondition": "[ui] Đã đăng nhập",
+          "data": "n/a",
+          "stepsRaw": "1. Mở màn\n3. Bấm Thêm\n4. Bấm Ghi",
+          "expectedRaw": "1. Màn mở\n3. Form hiện\n4. Lưu",
+          "so_buoc": 3,
+          "so_ky_vong": 3,
+          "priority": "Low",
+          "risk": "Low"
+        }
+      ]
+    },
+    "03-ky-tu.md": {
+      "so_case": 3,
+      "so_warning": 0,
+      "headers": [
+        "TC ID",
+        "Loại case",
+        "Tag",
+        "Module",
+        "Trường hợp kiểm thử",
+        "Tiền điều kiện",
+        "Dữ liệu Test",
+        "Các bước thực hiện",
+        "Kết quả mong đợi",
+        "Ưu tiên",
+        "Mức độ rủi ro"
+      ],
+      "case": [
+        {
+          "tcId": "GOLD_TC_020",
+          "module": "Ghi chú",
+          "title": "Ô có icon cảnh báo",
+          "caseType": "Functional",
+          "tags": "[Positive]",
+          "techniques": [],
+          "oracleRefs": [],
+          "dimensions": [
+            "positive"
+          ],
+          "precondition": "[ui] Đã đăng nhập",
+          "data": "n/a",
+          "stepsRaw": "1. Mở màn",
+          "expectedRaw": "1. Hiện cảnh báo, không cho lưu",
+          "so_buoc": 1,
+          "so_ky_vong": 1,
+          "priority": "Medium",
+          "risk": "Medium"
+        },
+        {
+          "tcId": "GOLD_TC_021",
+          "module": "Ghi chú",
+          "title": "Mũi tên là chữ nghĩa, KHÔNG phải trang trí",
+          "caseType": "Functional",
+          "tags": "[Positive]",
+          "techniques": [],
+          "oracleRefs": [],
+          "dimensions": [
+            "positive"
+          ],
+          "precondition": "[ui] Đã đăng nhập",
+          "data": "n/a",
+          "stepsRaw": "1. Đi từ màn A → màn B",
+          "expectedRaw": "1. Giá trị ở A ⇒ hiện đúng ở B",
+          "so_buoc": 1,
+          "so_ky_vong": 1,
+          "priority": "Medium",
+          "risk": "Medium"
+        },
+        {
+          "tcId": "GOLD_TC_022",
+          "module": "Ghi chú",
+          "title": "Ô có khoảng trắng không ngắt và zero-width",
+          "caseType": "Functional",
+          "tags": "[Positive]",
+          "techniques": [],
+          "oracleRefs": [],
+          "dimensions": [
+            "positive"
+          ],
+          "precondition": "[ui] Đã đăng nhập",
+          "data": "n/a",
+          "stepsRaw": "1. Nhập giá trị​ có khoảng trắng lạ",
+          "expectedRaw": "1. Hệ thống chuẩn hoá về khoảng trắng thường",
+          "so_buoc": 1,
+          "so_ky_vong": 1,
+          "priority": "Low",
+          "risk": "Low"
+        }
+      ]
+    }
+  }
+}

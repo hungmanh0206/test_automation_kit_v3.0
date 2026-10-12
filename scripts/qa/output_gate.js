@@ -82,9 +82,23 @@ function gateTestExecution(doc, { fix = false } = {}) {
 
   for (const t of tests) {
     const id = t.testKey || t.tcId || t.id || '(no-id)';
-    // G4: verdict ∈ taxonomy (mọi status, kể cả chưa execute) — verdict tự chế = cảnh báo.
+    /*
+     * VERDICT NGOÀI TAXONOMY = CHẶN, không phải cảnh báo. Đổi 12/10/2026 (v2.7.0 §A12).
+     *
+     * Phép đo 5-lỗi-cài-sẵn của Execute Lite tìm ra chuyện này. Một case khai `status: "DONE"` trước đây
+     * chỉ nhận một dòng cảnh báo, rồi `isExecuted("DONE")` trả false nên case bị `continue` — tức nó
+     * KHÔNG được kiểm evidence, KHÔNG được kiểm tầng lỗi, và KHÔNG vào mẫu số. Gate in ra
+     * "0 case đã execute · 0 vi phạm chặn" và exit 0.
+     *
+     * Nên một verdict tự chế không chỉ lọt: nó làm case TÀNG HÌNH với cả bộ máy. Đó là đúng lớp lỗi mà
+     * §A10.1 dựng `CHUA_KIEM` để chặn — mẫu số teo đi mà không ai thấy.
+     *
+     * Và nó còn MÂU THUẪN với lời khai của chính kit: `.agent/config/gate_codes.json` xếp `VERDICT_LA`
+     * vào tầng T0. T0 nghĩa là chặn ở mọi ngữ cảnh. Một mã khai T0 mà máy chỉ cảnh báo thì bảng tầng
+     * đang nói về một thứ không xảy ra.
+     */
     if (String(t.status || '').trim() && !canonStatus(t.status)) {
-      warnings.push(`${id}: status "${t.status}" không thuộc verdict taxonomy — dùng PASS/FAIL/SKIP/BLOCKED_SETUP/SKIP_SETUP/TODO (.agent/config/verdict_taxonomy.json)`);
+      problems.push(`${id}: status "${t.status}" không thuộc verdict taxonomy — dùng PASS/FAIL/SKIP/BLOCKED_SETUP/SKIP_SETUP/TODO (.agent/config/verdict_taxonomy.json). Verdict tự chế làm case TÀNG HÌNH với gate: nó không vào mẫu số, nên evidence và tầng lỗi đều không được kiểm.`);
     }
     if (!isExecuted(t.status)) continue;
     executed++;

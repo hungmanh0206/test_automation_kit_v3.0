@@ -18,6 +18,22 @@
  *   | credential trong code| KHÔNG CÓ cho file này (xem ghi chú `cred-literal`)        |
  *   | data task-specific  | KHÔNG CÓ (non-negotiable §6 chỉ nói bằng chữ)              |
  *
+ * BẢNG TRÊN LÀ PHÉP ĐO LÚC LẬP KẾ HOẠCH (v2.5.0 G1.4), KHÔNG phải trạng thái hiện tại — giữ nguyên để
+ * còn đọc được lý do từng hạng mục được chọn. Trạng thái hiện tại nằm ở `RULES` bên dưới, và nó đã
+ * VƯỢT bảng ở hai dòng: `test không assertion` nay là rule `no-assert` (P0, CHẶN), và `console.log sót`
+ * nay là rule `console-log`.
+ *
+ * Phải ghi chú thêm dòng này vì bảng cũ đã làm tôi kết luận sai ngày 11/10/2026: khi xếp tầng gate cho
+ * v2.7.0 tôi đọc bảng rồi kết luận "§6 không có máy nào thi hành", trong khi `no-assert` chính là ruột
+ * của §6 — một test không có khẳng định nào thì luôn xanh kể cả khi sản phẩm sai. Một bảng đo cũ không
+ * ghi rõ là bản cũ sẽ bị đọc như trạng thái hiện tại.
+ *
+ * PHẦN CỦA §6 VẪN CHƯA CÓ MÁY, nói thẳng để không ai tưởng §6 đã kín:
+ *   · "đổi expected để pass" — không máy nào so expected với bản trước, nên sửa expected rồi chạy lại
+ *     thì không gì báo. Muốn gác thì phải so với bản đã commit, tức một gate dựa trên git diff.
+ *   · "hardcode data task-specific vào template chung" — `package:kit` có cảnh báo khi gói mang tên
+ *     bảng hoặc host của dự án, nhưng đó là cửa phát hành, không phải lúc đang sửa template.
+ *
  * NÊN FILE NÀY KHÔNG CHÉP LUẬT LOCATOR. Chiều locator được GỌI (`--with-locator` spawn
  * `locator_lint.js`), không viết lại: hai bản cùng một luật là nguồn trôi, và kit đã trả giá đúng chuyện
  * đó ở hai bản lint SQL (`guard.ts` thiếu `EXEC` trong khi `uatDbClient.ts` có — vá 10/10/2026).

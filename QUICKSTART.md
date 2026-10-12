@@ -38,14 +38,16 @@ Trước đây nhánh GitLab cố ý bị gỡ 2 file so với GitHub. Hai file 
 hai cây **hết phân kỳ**. Cơ chế strip vẫn giữ: lần sau có đường dẫn nào chỉ được nằm ở một nhánh thì khai
 vào file đó, đừng gỡ tay.
 
-Đo ngày 11/10/2026 (v2.6.1) trên **worktree sạch ở HEAD** (`git worktree add --detach`), không đo trên cây làm việc:
-cây làm việc có file chưa track và chúng đẩy số test lên (đo cùng lúc: 1.271 trên cây làm việc, 1.258 trên cây sạch).
+Đo ngày 12/10/2026 (v2.7.0 §D) trên **worktree sạch ở HEAD** (`git worktree add --detach`). Không đo trên cây làm việc:
+cây làm việc có file chưa track và chúng đẩy số test lên. Lượt này cây sạch còn bắt được một chuyện khác hẳn —
+`scripts/qa/check.js` mang nguyên phần §A10.1 mà chưa bao giờ được commit, nên ba test xanh ở cây làm việc và
+ĐỎ ở HEAD. Chạy bộ test trên cây làm việc KHÔNG trả lời được câu "bản sẽ phát hành có chạy không".
 
 | | GitHub | GitLab |
 |---|---|---|
-| file được track | 598 | 598 |
-| `npx playwright test tests/fe/infra` | **1.258 test · 0 đỏ** (1.248 chạy · 10 bỏ qua) | **1.258 test · 0 đỏ** |
-| `npm run ci:scope` đếm | 101 spec | 101 spec |
+| file được track | 653 | 653 |
+| `npx playwright test tests/fe/infra` | **1.590 test · 0 đỏ** (1.580 chạy · 10 bỏ qua) | **1.590 test · 0 đỏ** |
+| `npm run ci:scope` đếm | 121 spec | 121 spec |
 
 > 10 test bỏ qua trên cây sạch là đúng: chúng cần dữ liệu ở `knowledge/**` hoặc `outputs/**` — hai lớp PROJECT
 > bị gitignore. Mỗi test tự in lý do khi bỏ qua.
@@ -202,7 +204,7 @@ npm run domain:trace-back                 # case có oracle nghiệp vụ mà kh
 
 Bộ testcase có **hai trục**: *module* = test **ở đâu**, *chiều* = hỏi **loại câu hỏi nào** (validate · hiển thị · công thức · BE conformance · guard · bảo mật · perf · change-impact). Phủ kín module mà trống một chiều thì bộ vẫn *trông* đầy đủ. Mỗi case gắn **tag chiều** trong tiêu đề (`[Positive][Display] …`); 20 chương nội dung ở [`prompt_templates/phase1/dimensions/`](prompt_templates/phase1/dimensions/); luật đầy đủ ở [RULE_GLOBAL §Chiều coverage](RULE_GLOBAL.md).
 
-Auto Publish là step riêng trong phạm vi Phase 1. Excel là source of truth khi gen/publish. Khi chạy Phase 2, agent **luôn tải bản Google Sheet mới nhất qua Drive MCP** về canonical local (`test-cases/from-sheet/*.xlsx`) rồi execute từ đó; `TESTCASE_SOURCE=excel` là opt-out khi chưa publish.
+Auto Publish là step riêng trong phạm vi Phase 1. Markdown canonical là source of truth cho nội dung case. `.xlsx` là bản xuất bắt buộc của bước gen, và cũng là file đem upload. Khi chạy Phase 2, agent **luôn tải bản Google Sheet mới nhất qua Drive MCP** về canonical local (`test-cases/from-sheet/*.xlsx`) rồi execute từ đó; `TESTCASE_SOURCE=excel` là opt-out khi chưa publish.
 
 ## Phase 1 - Auto Publish Testcase (Google Sheet)
 

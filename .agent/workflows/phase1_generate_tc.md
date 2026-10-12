@@ -53,7 +53,7 @@ Sinh bộ testcase chi tiết, có trace requirement, có phân nhóm chức nă
 | 1 | [phase1_01_prepare_context.md](phase1_01_prepare_context.md) | Xác nhận scope, đọc artifact local, fetch tài liệu còn thiếu, và chạy **Ambiguity Gate**. |
 | 2 | [phase1_02_generate_testcases.md](phase1_02_generate_testcases.md) | Sinh testcase theo template **10 cột canonical**, phân nhóm và risk. **KHÔNG vào bước này nếu `AMBIGUITY_GATE` chưa `RESOLVED`.** |
 | 3 | [phase1_03_validate_export_report.md](phase1_03_validate_export_report.md) | Validate chất lượng, export Excel và ghi report Phase 1. |
-| 4 | [phase1_04_auto_publish_backlog.md](phase1_04_auto_publish_backlog.md) | Sau khi QA xác nhận, đọc Excel canonical và publish testcase lên Backlog. |
+| 4 | [phase1_04_auto_publish_backlog.md](phase1_04_auto_publish_backlog.md) | Sau khi QA xác nhận, đọc bản xuất Excel (sinh từ Markdown canonical) và publish testcase lên Google Sheet. |
 
 ## Rules
 
@@ -61,7 +61,7 @@ Sinh bộ testcase chi tiết, có trace requirement, có phân nhóm chức nă
 - Không paste toàn bộ requirement/testcase vào chat nếu đã lưu file local.
 - Requirement chỉ được tính covered khi testcase có trace rõ, assertion đúng behavior và không bị skip.
 - Nếu còn gap Critical/High thì không kết luận PASS dù coverage số học >= 80%.
-- Excel trong `test-cases/` là source of truth khi gen/publish (Phase 1). Sau publish, **Phase 2 execute LUÔN tải bản Google Sheet mới nhất** về `from-sheet/*.xlsx` qua Drive MCP trước mỗi lượt. Sửa nội dung testcase ở Excel rồi re-publish, không sửa thẳng trên Sheet.
+- **Markdown trong `test-cases/` là source of truth** cho nội dung case; xuất `.xlsx` là output BẮT BUỘC của bước gen. Sau publish, **Phase 2 execute đọc `*.md`** (Markdown rẻ token hơn `.xlsx` (lý do đầy đủ: RULE_GLOBAL §"Phase-Separated Story Execution").). Sửa nội dung testcase ở Markdown rồi xuất lại và re-publish, không sửa thẳng trên Sheet.
 - Không chạy step Auto Publish Testcase nếu chưa có QA confirmation rõ ràng trên Excel/testcase.
 - Nếu Excel thay đổi sau publish, không cleanup trong Phase 1 chính; chuyển sang `partial-rerun/run_testcase_cleanup.md` sau Human Review approval.
 - Nếu source đổi nội dung sau baseline, không tự đổi luồng chính; chuyển sang `partial-rerun` khi user yêu cầu.

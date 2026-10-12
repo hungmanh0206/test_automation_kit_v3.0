@@ -897,6 +897,44 @@ async function buildXlsx(tables, contractTables, outputPath) {
   const nGiu = datLaiResult(workbook, resultDaCo);
   if (nGiu) console.log(`  giữ lại ${nGiu} ô kết quả execute từ file .xlsx trước đó (Markdown không mang verdict).`);
 
+  /*
+   * CHẶN: case CÓ KẾT QUẢ trong .xlsx cũ mà .md không còn.
+   *
+   * `datLaiResult` ghép theo ID, nên một case chỉ tồn tại trong .xlsx (thêm ở Phase 2, chưa về .md)
+   * sẽ KHÔNG có hàng để ghép — nó biến mất cùng toàn bộ verdict của nó, và dòng log "giữ lại N ô"
+   * vẫn xanh vì N chỉ đếm những ô ghép được. Đo 10/10/2026 trên CSDL-9001: `TC_211` mất hẳn, log báo
+   * "giữ lại 524" trong khi file có 526 — chênh 2 ô, không ai thấy.
+   *
+   * Đây KHÔNG phải cảnh báo: mất verdict là mất bằng chứng đã chạy thật trên UAT, và Markdown không
+   * có đường nào dựng lại. Dừng để người quyết, thay vì ghi đè rồi mới biết.
+   */
+  const idMoi = new Set();
+  for (const ws of workbook.worksheets) {
+    const hdr = [];
+    for (let i = 1; i <= 40; i += 1) hdr.push(String(ws.getRow(FUNC_HEADER_ROW).getCell(i).value ?? '').trim());
+    const iId = hdr.findIndex((h) => /^ID_TC$/i.test(h));
+    if (iId < 0) continue;
+    for (let r = FUNC_DATA_START_ROW; r <= FUNC_DATA_END_ROW; r += 1) {
+      const v = String(ws.getRow(r).getCell(iId + 1).value ?? '').trim();
+      if (v) idMoi.add(v);
+    }
+  }
+  const mat = [...resultDaCo.keys()].filter((id) => !idMoi.has(id));
+  if (mat.length) {
+    const soO = mat.reduce((s, id) => s + resultDaCo.get(id).size, 0);
+    const msg = `${mat.length} case có kết quả trong .xlsx nhưng KHÔNG còn trong .md `
+      + `(${soO} ô verdict sẽ mất): ${mat.join(', ')}`;
+    if (!process.argv.includes('--cho-phep-mat-case')) {
+      console.error(`\n✗ CHẶN lượt xuất: ${msg}`);
+      console.error('  Chúng được thêm ở Phase 2 và chưa về .md. Đồng bộ .md trước, hoặc chạy lại kèm');
+      console.error('  --cho-phep-mat-case nếu THẬT SỰ muốn bỏ chúng (verdict không dựng lại được).');
+      const e = new Error('mat-case-co-ket-qua');
+      e.chan = true;
+      throw e;
+    }
+    console.warn(`\n⚠ BỎ QUA CẢNH BÁO (--cho-phep-mat-case): ${msg}`);
+  }
+
   fs.mkdirSync(path.dirname(outputPath), { recursive: true });
   await workbook.xlsx.writeFile(outputPath);
   await normalizeXlsxForExcel(outputPath);
@@ -1010,6 +1048,42 @@ async function main() {
   }
 
   const outputPath = args[1] ? path.resolve(args[1]) : inputPath.replace(/\.md$/i, ".xlsx");
+
+  /*
+   * ── `--for-publish`: CHẶN Ở ARTIFACT (v2.7.0 §A2) ──────────────────────────────────────────────
+   *
+   * VÌ SAO Ở ĐÂY. Publish lên Google Sheet là agent gọi Google Drive MCP trực tiếp, không qua script
+   * nào của kit, nên KHÔNG có chỗ nào chèn kiểm cửa ra vào chính bước publish. Đó là một đường né
+   * cửa, và §B.3 đòi chứng minh không còn đường nào.
+   *
+   * Cách bịt: chuyển điểm chặn từ HÀNH ĐỘNG sang ARTIFACT. Bản `.xlsx` đem publish phải được xuất
+   * bằng `--for-publish`, và nhánh đó đòi dấu vết cửa `publish` còn hiệu lực. Muốn publish thì phải
+   * có bản xuất mới, mà bản xuất mới chỉ sinh được sau khi qua cửa.
+   *
+   * KẼ CÒN LẠI, nói thẳng: upload một `.xlsx` CŨ. Lớp này không đóng được kẽ đó — nó làm cho việc
+   * publish một bộ chưa qua cửa phải là một hành động CỐ Ý (đi tìm file cũ), chứ không còn là chuyện
+   * xảy ra vì không ai nhớ chạy cửa. Chỗ đó khai trong `_con_ho` của `exit_gates.json`.
+   *
+   * KHÔNG áp cho lượt xuất thường. Xuất `.xlsx` để tự xem là việc làm suốt Phase 1; bắt mọi lượt xuất
+   * qua cửa thì người ta mất đường xem trước, và một gate làm mất đường xem trước là gate tự tạo động
+   * cơ để bị né.
+   */
+  if (args.includes("--for-publish")) {
+    /* eslint-disable-next-line global-require */
+    const exitGate = require(path.resolve(__dirname, "..", "qa", "exit_gate.js"));
+    const taskDir = path.dirname(path.dirname(outputPath));
+    const kq = exitGate.kiemDauVet(taskDir, "publish");
+    if (!kq.ok) {
+      console.error(`\n✗ CHẶN lượt xuất --for-publish: ${kq.vi_sao}`);
+      console.error("  Bản .xlsx đem publish phải xuất SAU khi qua cửa ra, vì publish qua Drive MCP");
+      console.error("  không có chỗ nào chèn kiểm cửa được. Chạy:");
+      console.error("    npm run exit:gate -- --cua publish");
+      console.error("  Chỉ muốn xuất để tự xem thì bỏ `--for-publish` — lượt đó không cần qua cửa.");
+      process.exit(1);
+    }
+    console.log(`Cửa ra "publish": ✓ đã qua lúc ${String(kq.luc).slice(0, 19)} (băm đầu vào ${kq.bam}).`);
+  }
+
   const tables = parseMdTables(inputPath);
   if (tables.length === 0) {
     console.error("No testcase markdown table found.");

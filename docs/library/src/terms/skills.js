@@ -131,7 +131,7 @@ const TERMS_SKILL = [
   src:'.agent/skills/shared/backlog_integration/SKILL.md', rel:['sk-backlog_testcase_publisher','f-phase1'] },
 
 { id:'sk-backlog_testcase_publisher', t:'backlog_testcase_publisher', cat:'skill', phase:'Dùng chung',
-  def:'Đẩy testcase từ Excel canonical lên Google Sheet sau khi QA xác nhận.',
+  def:'Đẩy testcase từ bản xuất Excel lên Google Sheet sau khi QA xác nhận.',
   detail:'Tạo hoặc cập nhật case trên Google Sheet, nhóm chức năng bằng folder 2 cấp, TC ID ở automationKey (Google Sheet không lưu tags). Dedup theo automationKey nên chạy lại là UPDATE, không tạo trùng.',
   why:'Testcase phải nằm trên Google Sheet thì cả team mới nhìn thấy và Phase 2 mới kéo về execute được. Cleanup đi kèm (Deprecate) là để repo testcase không phình ra vì case đã bỏ.',
   how:['Luôn dry-run trước.','Bộ testcase lớn thì tạo sẵn issue Test Execution rồi push theo batch để tránh lỗi 413.'],

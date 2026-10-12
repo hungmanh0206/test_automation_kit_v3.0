@@ -39,7 +39,7 @@ function findHeader(ws, predicate) {
  * từ khi export chuyển sang layout dashboard + 1 sheet/nhóm chức năng (không còn sheet phẳng "Test Cases"
  * duy nhất), đọc 1 sheet là mất âm thầm mọi nhóm còn lại — xem `scripts/convert_excel/md_to_xlsx.js`.
  * @param {string} filePath
- * @returns {Promise<import('./model').TestCaseDoc>}
+ * @returns {Promise<import('./testcase').TestCaseDoc>}
  */
 async function parseXlsx(filePath, opts = {}) {
   const wb = new ExcelJS.Workbook();

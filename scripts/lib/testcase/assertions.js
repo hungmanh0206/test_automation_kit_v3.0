@@ -38,7 +38,10 @@ const emptyish = (v) => !String(v == null ? '' : v).trim();
 
 /**
  * Kiểm một case: assertion nào chưa có verification/bằng chứng.
- * @returns {{blocking: string[], warnings: string[], covered: number, total: number}}
+ * `hasData` KHÔNG phải cờ phụ: nó phân biệt "case KHÔNG khai assertion nào" với "case khai mà chưa
+ * phủ cái nào". Gộp hai thứ đó lại thì một bộ không khai gì sẽ đọc thành 0/0 tức đã phủ hết. Nó bị
+ * khai thiếu trong `@returns` cho tới 12/10/2026, và chỉ lộ ra khi `checkJs` được bật lần đầu.
+ * @returns {{blocking: string[], warnings: string[], covered: number, total: number, hasData: boolean}}
  */
 function auditCase(c, opts = {}) {
   const blocking = [];

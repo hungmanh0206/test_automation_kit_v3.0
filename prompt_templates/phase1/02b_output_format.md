@@ -140,7 +140,7 @@ Sau khi lưu file Markdown testcase:
 4. Nếu có nhiều file Markdown testcase, export từng file có bảng `TC ID` sang một file `.xlsx` tương ứng.
 5. Sau khi export, kiểm tra file `.xlsx` tồn tại và cập nhật đường dẫn Excel vào `task.md` hoặc summary output.
 6. Nếu thiếu dependency `exceljs`, báo rõ blocker; không bỏ qua bước Excel và không coi Phase 1 hoàn tất.
-7. Sau khi export Excel, coi file Excel là source of truth **khi gen và khi publish**. Đây cũng là nội dung sẽ upload lên Google Sheet, agent tự làm qua Drive MCP, xem bước Auto Publish bên dưới. Phase 2 execute luôn tải bản Sheet mới nhất về trước khi chạy.
+7. Export Excel là bước **BẮT BUỘC** của gen, nhưng nguồn sự thật của nội dung case là **Markdown canonical**: lệch nhau thì Markdown thắng, và sửa thì sửa ở Markdown rồi xuất lại. Đây cũng là nội dung sẽ upload lên Google Sheet, agent tự làm qua Drive MCP, xem bước Auto Publish bên dưới. Phase 2 execute luôn tải bản Sheet mới nhất về trước khi chạy.
 8. Không upload lên Google Sheet trong prompt sinh testcase. Ghi trạng thái `Google Sheet publish: Pending QA confirmation`; Auto Publish là step riêng trong phạm vi Phase 1 và chỉ chạy bằng `prompt_templates/phase1/04_auto_publish_backlog.md` (tên file giữ nguyên, nội dung đã đổi sang Google Sheet) sau khi QA xác nhận Excel.
 9. Sau khi export Excel, tạo/cập nhật `reports/phase1-summary.md` theo format Phase 1 Summary Report ở trên.
 10. Cập nhật `task.md` với đường dẫn Markdown testcase, Excel testcase, trạng thái chờ QA xác nhận publish Backlog và Phase 1 summary report.
@@ -188,4 +188,4 @@ Sau khi lưu file Markdown testcase:
 16. Không coi Phase 1 hoàn tất nếu còn cell `Tiền điều kiện` thiếu tag `[<method>]`, hoặc `Setup Source` chung chung không đủ để Phase 2 setup/manual rõ
 17. `Setup Source` cho strategy `api` phải dựa trên Swagger đã fetch ở `requirements/swagger/`; nếu không có cách setup thì đánh dấu `Needs hook` hoặc `Manual-only` thay vì bịa endpoint
 18. Sau khi Excel tạo thành công, KHÔNG publish trong prompt này. Ghi `Pending QA confirmation`. Auto Publish testcase chạy bằng prompt riêng sau khi QA xác nhận.
-    Excel là source of truth khi gen và khi publish. Phase 2 execute LUÔN tải bản Google Sheet mới nhất về `test-cases/from-sheet/*.xlsx` qua Drive MCP trước khi chạy. Không còn khái niệm nguồn `excel` local opt-out như trước, vì Sheet giờ chính là nơi lưu Excel canonical.
+    **Markdown canonical** là nguồn sự thật của nội dung; `.xlsx` và Sheet là bản xuất, và gen vẫn BẮT BUỘC xuất `.xlsx`. Phase 2 execute đọc thẳng `test-cases/*.md` (`TESTCASE_SOURCE=md`, mặc định) vì rẻ token hơn: `.xlsx` là nhị phân nên phải qua một script in bảng ra mới vào được ngữ cảnh. Kéo Sheet về `test-cases/from-sheet/*.xlsx` là opt-in, dùng khi QA vừa sửa tay trên Sheet. Điều kiện để được đọc Markdown: `npm run canonical:drift` không báo trôi — sửa trên Sheet mà không mang về thì lượt đó chạy bộ CŨ.

@@ -36,7 +36,7 @@ Framework:
 - Testcase output: cập nhật `Status` = PASS/FAIL/SKIP và `Actual Result` sau execution.
 
 Input:
-- Test Cases: nguồn canonical local `<PROJECT_OUTPUT_DIR>/tasks/[TASK_KEY]/test-cases/from-sheet/*.xlsx`. Agent tải bản MỚI NHẤT về từ Google Sheet qua Drive MCP ở Bước 0, TRƯỚC mỗi lượt execute. Luôn tải lại. Execute đọc file local — không gọi Drive/Backlog cho từng case.
+- Test Cases: **Markdown canonical** `<PROJECT_OUTPUT_DIR>/tasks/[TASK_KEY]/test-cases/*.md`. Markdown rẻ token hơn `.xlsx` (lý do đầy đủ: RULE_GLOBAL §"Phase-Separated Story Execution"). Bước 0 chạy `canonical:drift` trước; trôi thì kéo Sheet về `from-sheet/*.xlsx` và đọc bản đó. Execute đọc file local — không gọi Drive/Backlog cho từng case.
 - URL: [URL staging]
 - Credentials: lấy từ env variables, không hardcode credential.
   - **Login helper dùng chung**: mỗi app 1 helper ở `tests/fe/support/<app>Login.ts` (+ `support/auth/` cho reuse-session). Login ĐÚNG 1 LẦN/worker rồi cache/reuse — nhiều hệ thống khoá theo SỐ LẦN đăng nhập (throttle/lockout).
@@ -60,7 +60,7 @@ Input:
 
 Cho toàn bộ selected TC, chạy pass này trước khi sinh hoặc chạy bất kỳ spec nào:
 
-1. Đọc selected TC từ nguồn canonical local `test-cases/from-sheet/*.xlsx` (đã tải từ Google Sheet ở Bước 0). Cách dựng precondition lấy từ **tag `[<method>]`** ở đầu cell `Tiền điều kiện`; chi tiết (endpoint/payload/fixture id · verification · cleanup) đọc `### Setup Readiness` trong `reports/phase1-summary.md`, và tra `knowledge/setup_recipes/` trước khi tự mò. Bộ testcase CŨ chưa có tag thì đọc `### Precondition Execution Matrix` như trước.
+1. Đọc selected TC từ `test-cases/*.md` (hoặc `from-sheet/*.xlsx` nếu Bước 0 phải kéo Sheet về). Cách dựng precondition lấy từ **tag `[<method>]`** ở đầu cell `Tiền điều kiện`; chi tiết (endpoint/payload/fixture id · verification · cleanup) đọc `### Setup Readiness` trong `reports/phase1-summary.md`, và tra `knowledge/setup_recipes/` trước khi tự mò. Bộ testcase CŨ chưa có tag thì đọc `### Precondition Execution Matrix` như trước.
 2. Với mỗi selected TC, lấy `Setup Method` **từ tag `[<method>]` ở đầu cell `Tiền điều kiện`** (bộ cũ chưa có tag thì đọc `### Precondition Execution Matrix` của `phase1-summary.md`), rồi map:
    - `api` → gọi business/public test API theo `Setup Source`.
    - `factory`/`test_hook` → dùng factory/hook tương ứng.
@@ -77,7 +77,7 @@ Nếu precondition chỉ có thể DỰNG bằng DB hoặc backend internal stat
 
 # Các bước thực thi
 1. Echo `PROJECT_OUTPUT_DIR`, `TASK_KEY`, `TASK_OUTPUT_DIR`, `RUN_ID` nếu có; nếu sai task thì dừng.
-2. Đọc `.agent/config/project_context.md` và testcase từ nguồn canonical local `test-cases/from-sheet/*.xlsx`.
+2. Đọc `.agent/config/project_context.md` và testcase từ `test-cases/*.md`.
 3. Chạy `Precondition Resolution Pass` (section ở trên) cho toàn bộ selected TC trước khi generate/execute. KHÔNG tự đoán endpoint/payload/fixture nếu contract đã có; nếu contract sai/khác thực tế thì sửa contract và ghi rõ, không đoán ngầm.
 4. Generate/update Playwright script nếu missing/stale. Mặc định ghi spec/helper story-specific dưới `<PROJECT_OUTPUT_DIR>/tasks/[TASK_KEY]/automation/`; chỉ ghi vào `tests/fe/` khi cần core suite và file đã namespace theo `[TASK_KEY]`.
 5. Execute testcase thật theo đúng steps/expected, không được skip để tăng pass rate.
@@ -98,7 +98,7 @@ Nếu precondition chỉ có thể DỰNG bằng DB hoặc backend internal stat
    không" thành "ô có trong DOM không" ⇒ một case báo PASS giả; `f.value` luôn `undefined` ⇒ một case
    khác chấm FAIL oan. Thêm một biến không khai (`MA`) ném ReferenceError làm case chết không ghi
    verdict. Cả ba đều là lỗi `tsc` bắt được trong một giây.
-12b. **Đối soát Excel canonical với file status — BẮT BUỘC sau mỗi lượt ghi kết quả vào Excel:**
+12b. **Đối soát bản xuất Excel với file status — BẮT BUỘC sau mỗi lượt ghi kết quả vào Excel:**
    `npm run ledger:check:enforce -- --task <TASK_KEY>`
    Gate so cột `Result` trong Excel với (a) mốc đã chụp lần trước và (b) MỌI `testcase-status*.json`
    dưới thư mục task, kể cả shard và archive. Nó CHẶN khi có ô mất giá trị, hoặc khi một case từng có

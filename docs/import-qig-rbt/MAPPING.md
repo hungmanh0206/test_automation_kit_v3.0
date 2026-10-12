@@ -243,7 +243,7 @@ máy dù nó là nhánh TRỰC TIẾP chuyển bug sang Done"*. Ba máy `applies
 
 | Thứ | Lý do |
 |---|---|
-| Markdown canonical | Kit dùng **Excel canonical + Google Sheet**. Đổi nguồn sự thật là đổi cả pipeline publish |
+| Markdown canonical | **Kit đã dùng Markdown canonical** từ v2.7.0; `.xlsx` và Google Sheet là bản xuất |
 | Bảng 19 cột tiếng Anh | Luật 0.5: không thêm cột vào template 10 cột |
 | Mã kỹ thuật trong `TC ID` | Hàng nghìn case đã publish; đổi `TC ID` là mất truy vết và làm hỏng chống trùng |
 | "Ảnh thắng tài liệu" làm oracle | app==app, `CLAUDE.md` §3 cấm. Đã chỉnh ở H3 |

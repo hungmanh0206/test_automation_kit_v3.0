@@ -70,7 +70,7 @@ const TERMS_RULE = [
 
 { id:'r-nocheat', t:'Không gian lận để PASS', cat:'rule',
   def:'Không nới assertion, không sửa expected cho khớp build, không skip case để pass rate đẹp.',
-  detail:'Cấm bốn hành vi: xoá hoặc làm lỏng assertion cho test hết đỏ. Đổi expected result khi chưa có requirement/API/design xác nhận. Skip case chỉ để tăng tỉ lệ pass. Và hardcode dữ liệu riêng của một task vào template dùng chung. Nguồn sự thật của testcase là Excel canonical và Google Sheet. Mỗi phase phải đọc lại artifact đó, không dựa vào trí nhớ hội thoại.',
+  detail:'Cấm bốn hành vi: xoá hoặc làm lỏng assertion cho test hết đỏ. Đổi expected result khi chưa có requirement/API/design xác nhận. Skip case chỉ để tăng tỉ lệ pass. Và hardcode dữ liệu riêng của một task vào template dùng chung. Nguồn sự thật của testcase là bản xuất Excel và Google Sheet. Mỗi phase phải đọc lại artifact đó, không dựa vào trí nhớ hội thoại.',
   why:'Report tồn tại để phản ánh chất lượng thật. Một suite 100% xanh vì đã nới hết assertion còn nguy hiểm hơn suite 70% xanh trung thực, vì nó tạo cảm giác an toàn giả và bug đi thẳng ra production.',
   how:[
     'Expected sai thì đi hỏi BA/Dev để sửa tài liệu, rồi mới sửa testcase, theo thứ tự đó.',

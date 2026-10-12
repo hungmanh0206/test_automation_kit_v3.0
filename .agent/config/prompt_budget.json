@@ -8,7 +8,8 @@
     "phase2": 32000,
     "publish": 9000,
     "rerun": 12000,
-    "start": 5000
+    "start": 5000,
+    "phase2_lite": 20000
   },
   "_tran_start": "Trần luồng `start` (v2.5.0 G3.5) đặt 5k, không phải 2k như ước ban đầu — vì con số đo được là NỀN + file lệnh, không phải chi phí riêng của lệnh. Xem `_moc_start`.",
   "_moc_la_gi": "MỐC = số token của phần NẠP BẮT BUỘC ĐÃ ĐO tại thời điểm chốt. Trần (`luong`) chặn chuyện phình TO; mốc chặn chuyện phình DẦN. Đo 10/10/2026: phase1 còn 1,2k và phase2 còn 1,5k chỗ trống dưới trần, tức một đợt thêm chữ vẫn đi qua gate mà vẫn làm mọi phiên đắt hơn. Phần bắt buộc TĂNG so với mốc là CHẶN, dù còn dưới trần.",
@@ -19,7 +20,8 @@
     "phase2": 29006,
     "publish": 6561,
     "rerun": 9240,
-    "start": 4575
+    "start": 4575,
+    "phase2_lite": 18765
   },
   "_moc_start": "Luồng `start` = NỀN (CLAUDE.md + core_rules — thứ MỌI luồng đều mang) + chính `.claude/commands/start.md`. 4.575 KHÔNG phải chi phí mới: phần riêng của `/start` là **694 token**, còn lại là nền mà mọi phiên đã trả sẵn. Kế hoạch ước +0,3k cho phần riêng; đo thật là 0,7k, vì bảng 5 câu hỏi mang cả cột VÌ SAO — và cột đó là phần đáng giá nhất của lệnh, bỏ nó thì người mới trả lời cho xong.",
   "_nguong_mot_luot_la_gi": "Ngưỡng cho MỘT LƯỢT CHẠY TASK, đo bằng `npm run token:audit`. Khác hẳn `moc`: `moc` đo HƯỚNG DẪN (tĩnh, đếm được trước khi chạy), còn đây đo CÁCH CHẠY (động, chỉ biết sau khi chạy xong). Nên đây là CẢNH BÁO chứ không CHẶN — chặn một lượt đã chạy xong thì không cứu được gì.",
@@ -55,5 +57,6 @@
     "system": 4000
   },
   "_tran_tom_tat_discover": "Trần token của BẢN TÓM TẮT mà `npm run discover` in ra — thứ DUY NHẤT agent đọc từ Bước 0 (v2.6.0 §T.3). Script tự rút gọn cho vừa trần, và cắt theo thứ tự ưu tiên: bảng màn cắt trước, còn vùng mù / bề mặt injection / câu hỏi thì KHÔNG BAO GIỜ cắt — đó là thứ duy nhất agent buộc phải hành động theo. Khai ở đây vì file này là NGUỒN DUY NHẤT của mọi ngưỡng token trong kit; đóng cứng trong code thì sớm muộn hai chỗ lệch nhau.",
-  "_tran_do_o_dau": "Kiểm bằng `tests/fe/infra/discovery-cli.spec.ts` trên fixture 120 màn (đúng `so_trang_toi_da` mặc định), KHÔNG chỉ trên fixture 7 màn — một trần chỉ đo trên dữ liệu nhỏ thì nó chưa được gác."
+  "_tran_do_o_dau": "Kiểm bằng `tests/fe/infra/discovery-cli.spec.ts` trên fixture 120 màn (đúng `so_trang_toi_da` mặc định), KHÔNG chỉ trên fixture 7 màn — một trần chỉ đo trên dữ liệu nhỏ thì nó chưa được gác.",
+  "_phase2_lite": "Luồng Lite của v2.7.0 §A12. Số đo thật: prompt execute rẻ hơn 88% (11.760 còn 1.383 token), nhưng ở MỨC LUỒNG chỉ rẻ 35% (29.006 còn 18.765) vì `run_phase2_template.md` nặng 13,4k vẫn phải nạp. Ghi cả hai con số, vì '88%' đứng một mình sẽ được đọc thành tiết kiệm của cả lượt chạy. Mốc chốt ở 18.765 chứ không phải 18.726 ghi giữa chừng: bản cuối dài thêm 39 token vì `writing:lint` đòi thay ký hiệu bằng chữ (ký hiệu 30/1k còn 2,8/1k). Mốc phải là số của bản PHÁT HÀNH, không phải của một bản nháp."
 }

@@ -36,39 +36,39 @@
 | 1 | [Purpose](#purpose) | 74-77 | 30 | npm run rule -- 1 |
 | 2 | [When To Use](#when-to-use) | 78-89 | 61 | npm run rule -- 2 |
 | 3 | [Inputs](#inputs) | 90-102 | 332 | npm run rule -- 3 |
-| 4 | [Outputs](#outputs) | 103-147 | 743 | npm run rule -- 4 |
+| 4 | [Outputs](#outputs) | 103-147 | 765 | npm run rule -- 4 |
 | 5 | &nbsp;&nbsp;[Giọng văn output](#giọng-văn-output) | 115-147 | 451 | npm run rule -- 5 |
-| 6 | [Rules](#rules) | 148-723 | 13649 | npm run rule -- 6 |
+| 6 | [Rules](#rules) | 148-771 | 14887 | npm run rule -- 6 |
 | 7 | &nbsp;&nbsp;[Language](#language) | 150-156 | 80 | npm run rule -- 7 |
 | 8 | &nbsp;&nbsp;[Security](#security) | 157-170 | 498 | npm run rule -- 8 |
 | 9 | &nbsp;&nbsp;[Project And Output](#project-and-output) | 171-182 | 284 | npm run rule -- 9 |
 | 10 | &nbsp;&nbsp;[Parallel Story Safety](#parallel-story-safety) | 183-199 | 260 | npm run rule -- 10 |
-| 11 | &nbsp;&nbsp;[Phase-Separated Story Execution](#phase-separated-story-execution) | 200-226 | 2062 | npm run rule -- 11 |
-| 12 | &nbsp;&nbsp;[Task-Scoped Automation Code](#task-scoped-automation-code) | 227-237 | 314 | npm run rule -- 12 |
-| 13 | &nbsp;&nbsp;[Shared Change Gate](#shared-change-gate) | 238-252 | 391 | npm run rule -- 13 |
-| 14 | &nbsp;&nbsp;[Automation Promote Review](#automation-promote-review) | 253-261 | 160 | npm run rule -- 14 |
-| 15 | &nbsp;&nbsp;[Analysis & Ambiguity Gate (Phase 1 — đọc kỹ, hỏi trước khi gen)](#analysis-ambiguity-gate-phase-1-đọc-kỹ-hỏi-trước-khi-gen) | 262-267 | 500 | npm run rule -- 15 |
-| 16 | &nbsp;&nbsp;[Chiều coverage (Phase 1 — khai phạm vi, gắn tag, có máy đếm)](#chiều-coverage-phase-1-khai-phạm-vi-gắn-tag-có-máy-đếm) | 268-288 | 544 | npm run rule -- 16 |
-| 17 | &nbsp;&nbsp;[Execution Discipline (Kỷ luật thực thi — chạy thông suốt)](#execution-discipline-kỷ-luật-thực-thi-chạy-thông-suốt) | 289-298 | 452 | npm run rule -- 17 |
-| 18 | &nbsp;&nbsp;[5 trục mở rộng quanh case + luật đóng vòng (Phase 2 — có máy đứng sau)](#5-trục-mở-rộng-quanh-case-luật-đóng-vòng-phase-2-có-máy-đứng-sau) | 299-525 | 4173 | npm run rule -- 18 |
-| 19 | &nbsp;&nbsp;[Execute Results](#execute-results) | 526-545 | 224 | npm run rule -- 19 |
-| 20 | &nbsp;&nbsp;[Phân tầng lỗi FE hay BE — bắt buộc kiểm API trước khi kết luận](#phân-tầng-lỗi-fe-hay-be-bắt-buộc-kiểm-api-trước-khi-kết-luận) | 546-560 | 307 | npm run rule -- 20 |
-| 21 | &nbsp;&nbsp;[Evidence — Quy chuẩn bắt buộc](#evidence-quy-chuẩn-bắt-buộc) | 561-572 | 629 | npm run rule -- 21 |
-| 22 | &nbsp;&nbsp;[Comment kết quả (Test Execution) — Quy chuẩn trình bày](#comment-kết-quả-test-execution-quy-chuẩn-trình-bày) | 573-584 | 396 | npm run rule -- 22 |
-| 23 | &nbsp;&nbsp;[Bug Claim Gate — kiểm chứng phải đi TRƯỚC lời nói](#bug-claim-gate-kiểm-chứng-phải-đi-trước-lời-nói) | 585-649 | 1059 | npm run rule -- 23 |
-| 24 | &nbsp;&nbsp;[Backlog Bug Gate](#backlog-bug-gate) | 650-659 | 154 | npm run rule -- 24 |
-| 25 | &nbsp;&nbsp;[Executable QA capabilities (autonomy & safety)](#executable-qa-capabilities-autonomy-safety) | 660-672 | 397 | npm run rule -- 25 |
-| 26 | &nbsp;&nbsp;[Automation quality](#automation-quality) | 673-686 | 215 | npm run rule -- 26 |
-| 27 | &nbsp;&nbsp;[Reporting](#reporting) | 687-697 | 170 | npm run rule -- 27 |
-| 28 | &nbsp;&nbsp;[Setup Strategy](#setup-strategy) | 698-711 | 207 | npm run rule -- 28 |
-| 29 | &nbsp;&nbsp;[Push execution](#push-execution) | 712-723 | 167 | npm run rule -- 29 |
-| 30 | [Workflow](#workflow) | 724-737 | 43 | npm run rule -- 30 |
-| 31 | [Chi phí một lượt chạy — đếm SỐ LƯỢT, không đếm độ dài](#chi-phí-một-lượt-chạy-đếm-số-lượt-không-đếm-độ-dài) | 738-768 | 477 | npm run rule -- 31 |
-| 32 | [Cleanup Rules](#cleanup-rules) | 769-796 | 388 | npm run rule -- 32 |
-| 33 | [Examples](#examples) | 797-804 | 80 | npm run rule -- 33 |
-| 34 | [References](#references) | 805-813 | 84 | npm run rule -- 34 |
+| 11 | &nbsp;&nbsp;[Phase-Separated Story Execution](#phase-separated-story-execution) | 200-249 | 2788 | npm run rule -- 11 |
+| 12 | &nbsp;&nbsp;[Task-Scoped Automation Code](#task-scoped-automation-code) | 250-260 | 314 | npm run rule -- 12 |
+| 13 | &nbsp;&nbsp;[Shared Change Gate](#shared-change-gate) | 261-275 | 391 | npm run rule -- 13 |
+| 14 | &nbsp;&nbsp;[Automation Promote Review](#automation-promote-review) | 276-284 | 160 | npm run rule -- 14 |
+| 15 | &nbsp;&nbsp;[Analysis & Ambiguity Gate (Phase 1 — đọc kỹ, hỏi trước khi gen)](#analysis-ambiguity-gate-phase-1-đọc-kỹ-hỏi-trước-khi-gen) | 285-290 | 500 | npm run rule -- 15 |
+| 16 | &nbsp;&nbsp;[Chiều coverage (Phase 1 — khai phạm vi, gắn tag, có máy đếm)](#chiều-coverage-phase-1-khai-phạm-vi-gắn-tag-có-máy-đếm) | 291-311 | 544 | npm run rule -- 16 |
+| 17 | &nbsp;&nbsp;[Execution Discipline (Kỷ luật thực thi — chạy thông suốt)](#execution-discipline-kỷ-luật-thực-thi-chạy-thông-suốt) | 312-321 | 452 | npm run rule -- 17 |
+| 18 | &nbsp;&nbsp;[5 trục mở rộng quanh case + luật đóng vòng (Phase 2 — có máy đứng sau)](#5-trục-mở-rộng-quanh-case-luật-đóng-vòng-phase-2-có-máy-đứng-sau) | 322-548 | 4173 | npm run rule -- 18 |
+| 19 | &nbsp;&nbsp;[Execute Results](#execute-results) | 549-568 | 224 | npm run rule -- 19 |
+| 20 | &nbsp;&nbsp;[Phân tầng lỗi FE hay BE — bắt buộc kiểm API trước khi kết luận](#phân-tầng-lỗi-fe-hay-be-bắt-buộc-kiểm-api-trước-khi-kết-luận) | 569-583 | 307 | npm run rule -- 20 |
+| 21 | &nbsp;&nbsp;[Evidence — Quy chuẩn bắt buộc](#evidence-quy-chuẩn-bắt-buộc) | 584-595 | 629 | npm run rule -- 21 |
+| 22 | &nbsp;&nbsp;[Comment kết quả (Test Execution) — Quy chuẩn trình bày](#comment-kết-quả-test-execution-quy-chuẩn-trình-bày) | 596-607 | 396 | npm run rule -- 22 |
+| 23 | &nbsp;&nbsp;[Bug Claim Gate — kiểm chứng phải đi TRƯỚC lời nói](#bug-claim-gate-kiểm-chứng-phải-đi-trước-lời-nói) | 608-672 | 1059 | npm run rule -- 23 |
+| 24 | &nbsp;&nbsp;[Backlog Bug Gate](#backlog-bug-gate) | 673-682 | 154 | npm run rule -- 24 |
+| 25 | &nbsp;&nbsp;[Executable QA capabilities (autonomy & safety)](#executable-qa-capabilities-autonomy-safety) | 683-695 | 397 | npm run rule -- 25 |
+| 26 | &nbsp;&nbsp;[Automation quality](#automation-quality) | 696-734 | 728 | npm run rule -- 26 |
+| 27 | &nbsp;&nbsp;[Reporting](#reporting) | 735-745 | 170 | npm run rule -- 27 |
+| 28 | &nbsp;&nbsp;[Setup Strategy](#setup-strategy) | 746-759 | 207 | npm run rule -- 28 |
+| 29 | &nbsp;&nbsp;[Push execution](#push-execution) | 760-771 | 167 | npm run rule -- 29 |
+| 30 | [Workflow](#workflow) | 772-785 | 43 | npm run rule -- 30 |
+| 31 | [Chi phí một lượt chạy — đếm SỐ LƯỢT, không đếm độ dài](#chi-phí-một-lượt-chạy-đếm-số-lượt-không-đếm-độ-dài) | 786-816 | 477 | npm run rule -- 31 |
+| 32 | [Cleanup Rules](#cleanup-rules) | 817-844 | 388 | npm run rule -- 32 |
+| 33 | [Examples](#examples) | 845-852 | 80 | npm run rule -- 33 |
+| 34 | [References](#references) | 853-861 | 84 | npm run rule -- 34 |
 
-> Cả file ~17481 token. Tra MỘT mục thay vì đọc cả file: npm run rule -- <số|từ khoá>
+> Cả file ~18742 token. Tra MỘT mục thay vì đọc cả file: npm run rule -- <số|từ khoá>
 <!-- MỤC-LỤC:KẾT-THÚC -->
 
 ## Purpose
@@ -108,7 +108,7 @@ Tài liệu này định nghĩa các rule chung áp dụng cho mọi workflow, p
 | Markdown/report | Tiếng Việt chuẩn có dấu, UTF-8, không lộ secret. |
 | Test results | Nằm dưới `<PROJECT_OUTPUT_DIR>/tasks/<TASK_KEY>/test-results/`. |
 | Evidence | Chỉ **ảnh/video** làm evidence (xem §"Evidence — Quy chuẩn bắt buộc"); `trace/log` là diagnostic local, KHÔNG phải evidence. Lưu đúng scope task. |
-| Testcase publish (Google Sheet) | Step riêng trong phạm vi Phase 1; chỉ publish từ Excel canonical sau khi QA xác nhận (publish qua Google Drive MCP). Excel là source of truth khi gen/publish; **Phase 2 execute mặc định lấy nguồn từ Google Sheet** (`TESTCASE_SOURCE=sheet`, kéo về canonical local `from-sheet/*.xlsx`), `excel` là opt-out. |
+| Testcase publish (Google Sheet) | Step riêng trong phạm vi Phase 1; publish đi TỪ **Markdown canonical** qua bản xuất `.xlsx` (Google Drive MCP), sau khi QA xác nhận. **Markdown là source of truth cho NỘI DUNG case**; `.xlsx` và Sheet là **bản xuất**. **Phase 2 execute đọc `test-cases/*.md`** (`TESTCASE_SOURCE=md`, mặc định) vì đọc Markdown rẻ token hơn hẳn; `sheet` và `excel` là opt-in cho lượt cần đúng bộ QA vừa sửa tay. |
 | Backlog bug | Chỉ tạo khi fail đã được xác nhận là product/API bug. |
 | Testcase (md/Excel) | Cột "Kết quả mong đợi" đánh số **KHỚP từng bước** (bước 1→KQ 1, 2→2…), xuống dòng `<br>`; **CẤM gộp range** kiểu `1-2.`/`2-3.`; không ghi chung chung ("thành công"/"đúng"). Áp cả khi gen VÀ khi chỉnh sửa TC thủ công. Chi tiết: prompt gen Phase 1 §6. |
 
@@ -202,10 +202,33 @@ việc khác, và không làm.
 - Mỗi story không bắt buộc chạy liền một mạch. Luồng chuẩn là:
   `Requirement -> Generate Testcase -> Excel (source of truth) -> QA confirmation -> Auto Publish Google Sheet -> chờ Dev implement -> Phase 2 -> chờ Dev fix bug nếu có -> Re-run`.
 - Sau bước generate testcase, Excel trong `<TASK_OUTPUT_DIR>/test-cases/` là source of truth khi **gen và publish**. Nội dung testcase phải sửa ở Excel rồi re-publish — không sửa trực tiếp trên Google Sheet làm nguồn authoring (`PUT .../detail` ghi đè toàn phần nên bản sửa tay sẽ mất khi re-publish).
-- **Phase 2 execute mặc định lấy nguồn từ Google Sheet** (`TESTCASE_SOURCE=sheet`): tải bản Sheet mới nhất qua Drive MCP về canonical local `<TASK_OUTPUT_DIR>/test-cases/from-sheet/*.xlsx` rồi execute từ đó. Nhất quán vì publish đi TỪ Excel, và parser canonical không phân biệt nguồn do hai bên cùng bộ cột và định dạng. `TESTCASE_SOURCE=excel` (opt-out) đọc `<TASK_OUTPUT_DIR>/test-cases/*.xlsx`. Dù nguồn nào, execute đọc file canonical LOCAL — không gọi Sheet/Backlog cho từng case.
+- **Phase 2 execute mặc định đọc Markdown canonical** (`TESTCASE_SOURCE=md`): đọc thẳng `<TASK_OUTPUT_DIR>/test-cases/*.md`.
+
+  **Vì sao Markdown, và đây là lý do về CHI PHÍ chứ không phải sở thích:** `.xlsx` là định dạng nhị phân nên agent không đọc trực tiếp được — phải chạy một script, script in bảng ra, rồi bảng đó mới vào ngữ cảnh. Thêm một lượt shell và thêm toàn bộ phần in. Đọc `.md` thì agent đọc thẳng file, không qua tầng nào. Cùng một bộ case, đường Markdown rẻ hơn đúng phần chuyển đổi đó.
+
+  `TESTCASE_SOURCE=sheet` (opt-in) tải bản Sheet mới nhất qua Drive MCP về `<TASK_OUTPUT_DIR>/test-cases/from-sheet/*.xlsx` rồi execute từ đó; `excel` đọc `<TASK_OUTPUT_DIR>/test-cases/*.xlsx`. Dùng hai nguồn này khi QA vừa sửa tay trên Sheet và lượt chạy phải đúng bộ đó. Dù nguồn nào, execute đọc file LOCAL — không gọi Sheet/Backlog cho từng case.
+
+  **Điều kiện để được đọc Markdown:** `npm run canonical:drift` không báo trôi. Markdown rẻ hơn nhưng chỉ đúng khi nó còn là bộ mới nhất; QA sửa trên Sheet mà Phase 2 vẫn đọc Markdown thì lượt đó chạy bộ CŨ, và mọi verdict của nó nói về một bộ case không còn tồn tại. Trôi thì kéo Sheet về, mang phần sửa vào Markdown, rồi mới chạy.
+- **Ba lớp nguồn sự thật, đừng lẫn.** Lẫn chúng là gốc của hai sự cố đã đo được, nên khai rõ ở đây:
+
+  | Thứ | Nguồn sự thật | Bản xuất |
+  |---|---|---|
+  | Nội dung case (10 cột) | `test-cases/*.md` — **Markdown canonical** | `.xlsx`, Google Sheet |
+  | Verdict của một lượt chạy | `test-results/testcase-status.json` | cột `Result` trong `.xlsx` |
+  | Evidence | ảnh và video trong `evidence/` | đường dẫn nhắc trong report |
+
+  **Bản xuất KHÔNG phải thứ tuỳ chọn.** Phase 1 gen xong **vẫn phải xuất `.xlsx`** — đó là output bắt buộc của bước gen, vì người đọc và chạy case làm việc trên Excel hoặc Sheet, không đọc Markdown. "Markdown canonical" nói về nguồn sự thật khi hai bên lệch nhau, KHÔNG phải lý do bỏ bước xuất.
+
+  Chiều ghi của verdict chỉ có MỘT: `testcase-status.json` → cột `Result`, bằng `npm run merge:execution-status`. **Không có đường ngược.** Đọc verdict từ `.xlsx` để kết luận là đọc bản xuất, và bản xuất có thể đã bị sinh lại đè mất — đúng chuyện ngày 08/10/2026 ở CSDL-9001, **mất 129 ô kết quả**. `npm run ledger:check` tồn tại để đối soát đúng chỗ đó.
+- **Đổi `Kết quả mong đợi` phải KHAI LÝ DO.** Mốc chụp ở cửa publish (`npm run expected:snapshot`); từ
+  đó `npm run expected:check` CHẶN mọi case đổi expected mà không có một dòng lý do trong
+  `reports/expected-changes.md`. Luật KHÔNG cấm đổi — expected đổi vì spec đổi là chuyện bình thường.
+  Thứ bị chặn là đổi mà không ai biết, vì đó là cách gian lận rẻ nhất để một case đỏ thành xanh: một
+  ô, không cần sửa code. Lý do phải nói được điều người đọc sau không tự đoán ra; "sửa lại" không tính.
+- **Sửa tay trên Sheet thì phải mang về Markdown.** Markdown là nguồn sự thật của nội dung, nên một ô sửa trên Sheet mà không mang về là Markdown đã thôi làm nguồn sự thật — im lặng. Đo độ trôi bằng `npm run canonical:drift`: nó **sinh lại** bản xuất từ Markdown rồi so với `.xlsx` đang có, theo các cột NỘI DUNG (không so cột `Result`, vì cột đó vốn đến từ status). So bằng cách sinh lại chứ không so chuỗi thô, vì bản xuất có bóc Markdown nội dòng và bóc emoji nên hai bên không bao giờ giống từng ký tự.
 - Auto Publish testcase là step riêng trong phạm vi Phase 1, chạy bằng prompt riêng sau khi QA xác nhận Excel/testcase. Không publish thật khi chưa có QA confirmation rõ ràng. Sheet ghi đè toàn bộ mỗi lần sync, nên phải soi bản Excel trước khi upload.
-- **Test management tool là Google Sheet** — công cụ DUY NHẤT của kit. Không có tầng script tích hợp riêng: Excel canonical dựng bằng `scripts/convert_excel/md_to_xlsx.js`, đưa lên và tải về đều qua Drive MCP, kết quả execution ghép lại bằng `npm run merge:execution-status`. Tức publish là thao tác NGƯỜI bấm, không có lệnh tự ghi. Gate `gate:policy` CHẶN mọi tài liệu nhắc lại công cụ cũ, kể cả dạng lệnh viết thường.
-- Publish testcase lên **Google Sheet** phải đọc từ Excel canonical. (Sửa 10/10/2026: câu này ghi "lên Backlog" và **mâu thuẫn với chính gạch đầu dòng ngay trên** — "Test management tool là Google Sheet, công cụ DUY NHẤT". Ranh giới thật: **testcase đi Google Sheet, bug đi Backlog**. Backlog vẫn là công cụ sống của kit, nên nó KHÔNG thuộc `NO-LEGACY-TOOLS` và `gate:policy` không bắt được chỗ này.) Chạy dry-run trước nếu cần preview; publish thật chỉ khi QA/user approve. Ghi kết quả vào `<TASK_OUTPUT_DIR>/reports/backlog-testcase-publish-summary.md`.
+- **Test management tool là Google Sheet** — công cụ DUY NHẤT của kit. Không có tầng script tích hợp riêng: bản xuất `.xlsx` dựng từ Markdown canonical bằng `scripts/convert_excel/md_to_xlsx.js`, đưa lên và tải về đều qua Drive MCP, kết quả execution ghép lại bằng `npm run merge:execution-status`. Tức publish là thao tác NGƯỜI bấm, không có lệnh tự ghi. Gate `gate:policy` CHẶN mọi tài liệu nhắc lại công cụ cũ, kể cả dạng lệnh viết thường.
+- Publish testcase lên **Google Sheet** phải đi từ **Markdown canonical**, qua bản xuất `.xlsx` do `md_to_xlsx.js` sinh — không gõ case trực tiếp lên Sheet. (Sửa 10/10/2026: câu này ghi "lên Backlog" và **mâu thuẫn với chính gạch đầu dòng ngay trên** — "Test management tool là Google Sheet, công cụ DUY NHẤT". Ranh giới thật: **testcase đi Google Sheet, bug đi Backlog**. Backlog vẫn là công cụ sống của kit, nên nó KHÔNG thuộc `NO-LEGACY-TOOLS` và `gate:policy` không bắt được chỗ này.) Chạy dry-run trước nếu cần preview; publish thật chỉ khi QA/user approve. Ghi kết quả vào `<TASK_OUTPUT_DIR>/reports/backlog-testcase-publish-summary.md`.
 - **KHÔNG có cột `Severity`/`Mức độ rủi ro` trong bộ testcase** (bỏ 21/08/2026). Severity là thuộc tính của **BUG**, không phải của testcase. Chấm nó lúc viết case là đoán trước hậu quả của một lỗi chưa xảy ra, nên nó luôn được chấm bằng cảm tính. Bug thật vẫn có Severity, lấy lúc log bug chứ không lấy từ testcase. Việc duy nhất cột này còn gánh trong kit là **risk band**, thứ quyết định độ sâu mở rộng 5 trục. Mà `bandOf()` lấy `max(risk, priority)`. Sau khi vá `PRIO_RANK` thiếu khoá `critical`, đo trên **1977 case toàn repo: bỏ cột này làm đổi band 0 case**. `Ưu tiên` (`Critical|High|Medium|Low|Lowest`) một mình đủ quyết band. `COL.risk` vẫn giữ trong `model.js` để 17 bộ TC cũ còn cột đó parse không lỗi, và các cross-check ma trận §7b tự bỏ qua khi cột vắng.
 - **Tiêu đề case = NỘI DUNG, tag ở cột `Tag`** — template testcase là **10 cột**: `TC ID | Loại case | Tag | Module | Trường hợp kiểm thử | Tiền điều kiện | Dữ liệu Test | Các bước thực hiện | Kết quả mong đợi | Ưu tiên`. Khối `[<Loại>][<Chiều>][<Oracle-ref>]` (vd `[Positive][Calc][BR-SAPSYNC-004]`) ghi ở cột `Tag`, **KHÔNG** ghi vào `Trường hợp kiểm thử`. Tiêu đề phải **tự đủ nghĩa** khi không có tag, tức chở đủ **ba thông tin**: *đối tượng hoặc màn*, *hành động hoặc điều kiện*, *kết quả cụ thể đo được*. Thường gói trong **2 đoạn** nối ` - `, vì đối tượng và hành động hay dính liền. Ví dụ: `Tạo Business Partner - Sinh mã KH đúng cú pháp C + CCCD khi khách Cá nhân chưa có BP`. **KHÔNG** đòi đúng 3 đoạn: bản đầu của luật này viết "3 đoạn" trong khi đoạn thứ nhất của ví dụ chính là `Cross-app` — tức cái tiền tố hằng số mà cùng luật đó CẤM. Hai câu tự đá nhau; đếm đoạn không phải thước đo, **đủ ba thông tin** mới là. CẤM **tiền tố hằng số**. Đo thật: `Cross-app - ` gắn cho 101/101 case của CSDL-26878 nên không phân biệt được gì, mà thông tin đó đã nằm ở `Loại case` và tên folder. Cũng cấm đoạn kết quả chung chung kiểu "hoạt động đúng", và cấm để nghĩa của case phụ thuộc vào tag. Giữ được `[...]` GIỮA câu khi đó là tên trường thật (`Kiểm [FBP] Ngày ghi nhận…`) — chỉ khối ngoặc **liền nhau ở đầu** mới bị coi là tag. Bộ TC cũ **không phải sửa**: `scripts/lib/testcase/model.js` lấy HỢP của cột `Tag` và tiêu đề nên cả hai đời đều đo được, còn `displayTitle()` ở `publish qua Drive MCP.js` cắt khối tag đầu chuỗi trước khi đẩy Google Sheet. Máy kiểm: `tests/fe/infra/publish-field-mapping.spec.ts`.
 - **Case sinh mới phải TỰ KHAI `Loại case`** — đúng một trong **9 loại** đã chốt: `Security` · `Accessibility` · `Performance` · `Database` · `API` · `UI` · `E2E` · `Integration` · `Functional`. Định nghĩa, tag đi kèm và bảng **"chọn khi / KHÔNG chọn khi"** của từng loại nằm ở [`.agent/config/case_types.json`](.agent/config/case_types.json) — **nguồn duy nhất**, mọi nơi khác đọc file đó. Xét CHUYÊN BIỆT trước, `Functional` là mặc định cuối; một case mang ĐÚNG MỘT loại, hợp 2 loại nghĩa là case đang gộp 2 mục đích ⇒ tách case. Đây là trục KHÁC `Nhóm chức năng` (nhóm = *"thuộc mảng nghiệp vụ nào"* → thư mục; loại = *"kiểm thử kiểu gì"* → Case Type, dùng để lọc và báo cáo). Bỏ trống thì máy phải ĐOÁN: đo trên 1.399 case đã publish, cách suy từ tên nhóm đẩy **96% về `Functional`**, `Integration` và `Performance` = **0** — lọc theo Case Type trên Google Sheet thành vô dụng.
@@ -683,6 +706,31 @@ Các năng lực chạy thật trong `scripts/qa/` + `exploratory/` phải khai 
 - **Không hardcode dữ liệu task-specific** vào template dùng chung. Dữ liệu riêng của một task thì ở
   trong task đó.
 - **Test data unique và rollback được.** Dữ liệu trùng giữa hai lượt chạy là nguồn flaky khó tìm nhất.
+- **Đổi parser canonical thì phải sinh lại MỐC VÀNG.** `scripts/lib/testcase` là chỗ 30 gate cùng
+  dùng. Một thay đổi ở đó đổi đầu ra của cả 30 cùng lúc. `golden:check` đóng băng đầu ra trên bộ fixture
+  vàng và chạy ở cả hai CI.
+- **Sinh lại mốc vàng là một LỜI KHAI.** Lệch mốc mà bạn KHÔNG chủ ý đổi parser thì đi tìm cái gì đã
+  đổi, đừng ghi lại mốc. Chủ ý đổi thì chạy `npm run golden:snapshot`. Lệnh đó đòi cờ
+  `--toi-da-doi-parser` đúng vì nó là lời khai, không phải một lệnh dọn dẹp. Mốc tự ghi lại được thì nó
+  không còn là mốc.
+- **Phần luật KHÔNG đo được bằng máy vẫn phải được chấm.** `docs/RULE_COVERAGE.md` phân loại mọi mục
+  luật. Mục nào ghi `khong_do_duoc_bang_may` thì thuộc tầng chấm `npm run judge`. Thang chấm nằm ở
+  `.agent/config/judge_rubric.json`. Mỗi mục kèm ba thứ: lý do nó không có máy, nhìn vào đâu, và bằng
+  chứng nào phải nêu.
+- **Ba luật của tầng chấm, không đổi được.** Chấm chưa hiệu chuẩn là **CHƯA ĐƯỢC GÁC**, không phải
+  "đạt". Mỗi lời chấm phải nêu neo cụ thể: TC ID, đường dẫn, hoặc số dòng. Không neo thì nó là
+  `OBSERVATION`. Và tầng chấm **KHÔNG** được ghi đè verdict của gate T0.
+- **Mẫu lấy tất định theo hạt giống ghi lại được.** Mẫu chọn tuỳ ý thì tỉ lệ đạt nói về cách chọn mẫu,
+  không nói về bộ case. Người chấm trùng người viết nhãn hiệu chuẩn thì lượt đó bị đánh dấu `tu_cham`,
+  và con số của nó không đo gì.
+- **Gate chặn oan thì phải để lại dấu vết.** `npm run gate:friction` ghi sổ append-only mọi lượt chặn,
+  ghi nợ, miễn trừ và báo oan. Một gate bị báo oan nhiều lần là một gate cần sửa. Không có sổ thì chuyện
+  đó chỉ sống trong trí nhớ của người vừa bị chặn.
+- **Một bộ đo không được kiểm chính nó bằng chính nó.** `golden:check` đếm số case bằng HAI đường độc
+  lập: model canonical, và một phép đếm thô không đi qua model. Lệch nhau thì nó báo `NGHI GATE SAI`.
+  Lúc đó chưa biết tin bên nào, mà "chưa biết tin bên nào" KHÔNG phải "đạt" (non-negotiable §3). Nếu
+  phép đo thứ hai cũng gọi `parseMarkdown` thì hai đường cùng sai một lúc, và phép đối chiếu không phát
+  hiện gì.
 
 ### Reporting
 

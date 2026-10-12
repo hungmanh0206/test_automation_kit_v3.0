@@ -3,7 +3,7 @@ const TERMS_FLOW = [
 
 { id:'f-phase1', t:'Phase 1 — Thiết kế testcase', cat:'flow',
   def:'Từ requirement ra bộ testcase canonical, validate, rồi publish lên Google Sheet.',
-  detail:'Chuỗi năm bước: xác định phạm vi (kèm risk register) → chuẩn bị ngữ cảnh (có Ambiguity Gate) → sinh testcase → validate và export report → auto publish Backlog. Output chính gồm testcase Markdown, Excel canonical, coverage summary, Setup Strategy contract dạng PRE-NN, Precondition Execution Matrix và task.md.',
+  detail:'Chuỗi năm bước: xác định phạm vi (kèm risk register) → chuẩn bị ngữ cảnh (có Ambiguity Gate) → sinh testcase → validate và export report → auto publish Backlog. Output chính gồm testcase Markdown, bản xuất Excel, coverage summary, Setup Strategy contract dạng PRE-NN, Precondition Execution Matrix và task.md.',
   why:'Tách hẳn khỏi execute vì hai việc cần hai loại tập trung khác nhau, và vì bộ case sai thiết kế mà lọt xuống Phase 2 thì công sức chạy đổ đi hết.',
   how:['Trước khi gen phải gộp câu hỏi làm rõ hỏi người ra yêu cầu, không đoán chỗ mơ hồ.','Gate ra: coverage/risk đủ rõ, mọi precondition có hợp đồng auto hay manual rõ ràng.'],
   src:'.agent/workflows/phase1_generate_tc.md', rel:['g-design_gate','g-dimension_coverage','f-excel-canonical','c-ambiguity-gate'] },
@@ -51,7 +51,7 @@ const TERMS_FLOW = [
   cmd:'TASK_ENV=profiles/<TASK_KEY>/task.env node scripts/qa/...',
   src:'profiles/', rel:['r-scope','c-db-readonly','g-ui_conformance_check','f-task-key'] },
 
-{ id:'f-excel-canonical', t:'Excel canonical', cat:'flow',
+{ id:'f-excel-canonical', t:'bản xuất Excel', cat:'flow',
   def:'Bộ testcase gốc, nguồn sự thật khi sinh và publish testcase.',
   detail:'Nằm trong test-cases/. Bảy cột BẮT BUỘC: TC ID · Module · Trường hợp kiểm thử · Tiền điều kiện · Các bước thực hiện · Kết quả mong đợi · Ưu tiên. Là nguồn khi GEN và PUBLISH; còn khi EXECUTE thì Phase 2 mặc định kéo từ Google Sheet về.',
   why:'Có một bản gốc nghĩa là mọi phase đọc lại cùng một thứ thay vì dựa vào hội thoại cũ, và mọi công cụ phía sau parse được vì tên cột ổn định.',
@@ -68,11 +68,11 @@ const TERMS_FLOW = [
 
 { id:'f-sheet', t:'Google Sheet', cat:'flow',
   def:'Công cụ test-management DUY NHẤT của kit. Lưu test là thực thể riêng của app, không phải Backlog issue.',
-  detail:'Ba đường đi: Excel canonical → publish qua Drive MCP → dòng trong Google Sheet · kết quả Phase 2 → merge_execution_status → Cycle + Run + evidence theo từng bước · dòng trong Google Sheet → pull_testcases_aio → test-cases/from-sheet/*.xlsx làm nguồn execute. Model canonical dùng chung ở scripts/lib/testcase, chỉ khác tầng gọi API.',
+  detail:'Ba đường đi: bản xuất Excel → publish qua Drive MCP → dòng trong Google Sheet · kết quả Phase 2 → merge_execution_status → Cycle + Run + evidence theo từng bước · dòng trong Google Sheet → pull_testcases_aio → test-cases/from-sheet/*.xlsx làm nguồn execute. Model canonical dùng chung ở scripts/lib/testcase, chỉ khác tầng gọi API.',
   why:'Vì test không phải Backlog issue nên phải có tầng tích hợp riêng, không dùng lại được đường Backlog. Đổi lại, evidence gắn được vào TỪNG BƯỚC của case chứ không chỉ vào cả case.',
   how:[
     'Env cần: GOOGLE_SHEET_URL trong profiles/<TASK_KEY>/task.env. Đọc và ghi Sheet đi qua Drive MCP.',
-    'Publish là thao tác NGƯỜI bấm: upload Excel canonical lên Drive sau khi QA duyệt, không có lệnh tự ghi.',
+    'Publish là thao tác NGƯỜI bấm: upload bản xuất Excel lên Drive sau khi QA duyệt, không có lệnh tự ghi.',
     'Sau mỗi lượt publish BẮT BUỘC mở Sheet đối soát lại từng trường — 2xx không chứng minh mapping đúng.'
   ],
   trap:'Sheet ghi đè toàn bộ mỗi lần sync. Publish nhầm thì không rút lại được, chỉ chuyển Deprecated. Nên dry-run là bắt buộc chứ không phải cẩn thận thừa.',

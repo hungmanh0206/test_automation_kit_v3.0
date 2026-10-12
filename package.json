@@ -1,6 +1,6 @@
 {
   "name": "test-automation-kit",
-  "version": "2.6.1",
+  "version": "2.7.0",
   "private": true,
   "engines": {
     "node": ">=20"
@@ -52,6 +52,7 @@
     "audit:ci": "node scripts/qa/audit_ci.js",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
+    "typecheck:scripts": "tsc -p tsconfig.scripts.json",
     "trace:matrix": "node scripts/qa/traceability_matrix.js",
     "select:tests": "node scripts/qa/select_tests.js",
     "metrics:collect": "node scripts/qa/metrics_collect.js",
@@ -153,7 +154,27 @@
     "ledger:check:enforce": "node scripts/qa/result_ledger.js --enforce",
     "ledger:snapshot": "node scripts/qa/result_ledger.js --snapshot",
     "typecheck:task": "node scripts/qa/typecheck_task.js",
-    "typecheck:task:enforce": "node scripts/qa/typecheck_task.js --enforce"
+    "typecheck:task:enforce": "node scripts/qa/typecheck_task.js --enforce",
+    "canonical:drift": "node scripts/qa/canonical_drift.js",
+    "canonical:drift:enforce": "node scripts/qa/canonical_drift.js --enforce",
+    "gate:audit": "node scripts/qa/gate_audit.js",
+    "expected:check": "node scripts/qa/expected_ledger.js",
+    "expected:snapshot": "node scripts/qa/expected_ledger.js --snapshot",
+    "exit:gate": "node scripts/qa/exit_gate.js",
+    "check": "node scripts/qa/check.js",
+    "lane": "node scripts/qa/lane.js",
+    "next": "node scripts/qa/next_command.js",
+    "gate:friction": "node scripts/qa/gate_friction.js",
+    "gate:selfmutate": "node scripts/qa/gate_selfmutate.js",
+    "gate:code-pair": "node scripts/qa/gate_code_pair.js",
+    "gate:code-pair:enforce": "node scripts/qa/gate_code_pair.js --enforce",
+    "judge": "node scripts/qa/judge.js",
+    "cleanup:check": "node scripts/qa/cleanup_check.js",
+    "cleanup:check:enforce": "node scripts/qa/cleanup_check.js --enforce",
+    "golden:check": "node scripts/qa/golden_check.js",
+    "golden:snapshot": "node scripts/qa/golden_check.js --write --toi-da-doi-parser",
+    "rule:coverage": "node scripts/qa/rule_coverage.js --write",
+    "rule:coverage:check": "node scripts/qa/rule_coverage.js --check"
   },
   "dependencies": {
     "axe-core": "^4.12.1",

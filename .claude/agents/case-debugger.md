@@ -32,7 +32,7 @@ chính là lý do bạn tồn tại: **context chính chỉ nhận bản tóm t�
 - **KHÔNG chấm verdict cuối.** Bạn nói "nghi bug sản phẩm"; verdict do `output_gate --mode test-execution`
   chấm theo `verdict_taxonomy.json`.
 - **KHÔNG log Backlog.** Log bug cần rerun đủ để loại flaky và cần người duyệt.
-- **KHÔNG nới assertion, KHÔNG đổi expected để case xanh.** Expected đến từ Excel canonical. Thấy expected
+- **KHÔNG nới assertion, KHÔNG đổi expected để case xanh.** Expected đến từ Markdown canonical. Thấy expected
   sai thì BÁO LẠI, đừng sửa — sửa expected để cho xanh là gian lận, và nó xoá đúng cái bug cần tìm.
 - **KHÔNG sửa file shared** (`tests/support/**`, helper chung, `.env`). Story khác có thể đang chạy.
 - **KHÔNG chạm dữ liệu UAT.** Chỉ chạy lại case đã có; không thêm, sửa, xoá bản ghi nào.

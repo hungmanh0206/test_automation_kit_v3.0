@@ -1,0 +1,63 @@
+{
+  "_y": "THANG CHẤM cho phần máy KHÔNG đo được (v2.7.0 §A11). Mỗi mục là một thuộc tính mà `rule:coverage` xếp vào loại `khong_do_duoc_bang_may`, hoặc một thuộc tính mà máy chỉ chạm được phần vỏ.",
+  "_vi_sao_can": "Bản đồ luật → gate → spec (§A10.7) trả lời được 'luật nào có máy'. Phần còn lại KHÔNG được để trống: một mục ghi 'không đo được bằng máy' mà rồi không ai chấm thì nó chỉ là một lời miễn trừ. Tầng này chấm nó bằng phán đoán có thang, có lấy mẫu, và có hiệu chuẩn.",
+  "_ai_cham": "Agent (hoặc subagent). Máy `judge.js` KHÔNG chấm — nó chọn mẫu, giữ thang, kiểm lời chấm có đủ neo, và đo xem người chấm có hiệu chuẩn hay không. Lẫn hai việc đó là lý do một 'LLM judge' hay được tin hơn mức nó đáng.",
+  "_luat_khong_doi_duoc": [
+    "Chấm chưa hiệu chuẩn ⇒ CHƯA ĐƯỢC GÁC (exit 2), KHÔNG phải 'đạt'.",
+    "Mỗi lời chấm phải nêu BẰNG CHỨNG cụ thể (TC ID, đường dẫn, hoặc số dòng). Không có neo thì là OBSERVATION, không phải verdict.",
+    "Tầng này KHÔNG được ghi đè verdict của máy T0. Nó chấm thứ máy không chạm tới, không chấm lại thứ máy đã chặn."
+  ],
+  "_do_ngay": "2026-10-12",
+  "muc": [
+    {
+      "id": "BATCH",
+      "ten": "Batch tối đa mỗi lượt, không lắt nhắt",
+      "nguon_luat": "RULE_GLOBAL §Execution Discipline, mục 1",
+      "vi_sao_khong_co_may": "Không artifact nào ghi lại 'lẽ ra gom được bao nhiêu case vào một lượt', nên không có mẫu số để chia. Máy chỉ đếm được số lượt đã chạy, mà một lượt nhiều case và một lượt một case trông giống nhau trong file status.",
+      "nhin_vao_dau": "Số lượt chạy trong `test-results/` so với số case đã execute, và nhóm case nào đi cùng nhau trong một lượt.",
+      "dat": "Các case độc lập cùng màn/cùng khối được gom vào cùng một lượt; số lượt xấp xỉ số NHÓM tiền điều kiện khác nhau, không xấp xỉ số case.",
+      "khong_dat": "Mỗi case một lượt, hoặc một lượt chạy 1-2 case rồi dừng-báo trong khi còn case cùng tiền điều kiện chưa chạy.",
+      "bang_chung_phai_neu": "Danh sách lượt chạy kèm số case mỗi lượt, và ít nhất một cặp case lẽ ra gom được mà không gom."
+    },
+    {
+      "id": "SKIP_LY_DO",
+      "ten": "SKIP phải nêu ĐIỀU KIỆN để chạy được",
+      "nguon_luat": "RULE_GLOBAL §Reporting",
+      "vi_sao_khong_co_may": "`gate:output` đòi SKIP có lý do, nhưng không đòi lý do đó nêu được điều kiện. 'Chưa có dữ liệu' lọt qua máy trong khi nó không cho ai biết phải làm gì để chạy được.",
+      "nhin_vao_dau": "Trường `comment` của mọi case SKIP/BLOCKED_SETUP trong `testcase-status.json`.",
+      "dat": "Lý do nêu được thứ CỤ THỂ còn thiếu và ai/cái gì cấp được nó: tên tài khoản, tên bảng, một màn chưa có, một quyền chưa cấp.",
+      "khong_dat": "Lý do chỉ mô tả trạng thái ('chưa chạy', 'không có dữ liệu', 'môi trường lỗi') mà không nêu điều kiện để chạy được.",
+      "bang_chung_phai_neu": "TC ID kèm nguyên văn lý do."
+    },
+    {
+      "id": "PRECONDITION_THAT",
+      "ten": "Precondition dựng ĐÚNG method đã khai",
+      "nguon_luat": "RULE_GLOBAL §Setup Strategy + non-negotiable §2",
+      "vi_sao_khong_co_may": "`validate.js` kiểm KHUÔN `[<method>]` của ô Tiền điều kiện, còn `uatDbClient` chỉ chặn câu không phải SELECT. Một precondition khai `[api]` mà thật ra chỉ SELECT rồi giả định state đã đúng thì lọt cả hai máy.",
+      "nhin_vao_dau": "Ô `Tiền điều kiện` của case, đối chiếu với thao tác thật trong spec hoặc trong log lượt chạy.",
+      "dat": "Method đã khai khớp thao tác thật, và state được VERIFY sau khi dựng trước khi assert điều chính.",
+      "khong_dat": "Khai `[api]`/`[factory]` mà thực tế chỉ đọc DB rồi giả định; hoặc dựng xong không kiểm, nên một setup hỏng sẽ hiện ra dưới dạng FAIL nghiệp vụ và tầng lỗi bị gán sai.",
+      "bang_chung_phai_neu": "TC ID, nguyên văn ô Tiền điều kiện, và dòng code/log cho thấy thao tác thật."
+    },
+    {
+      "id": "COMMENT_NGUOI_DOC",
+      "ten": "Comment viết cho NGƯỜI ĐỌC hiểu kết quả",
+      "nguon_luat": "RULE_GLOBAL §Comment kết quả",
+      "vi_sao_khong_co_may": "`output_rules` bắt được dấu vết kỹ thuật (`key=value`, dump state, selector) vì chúng có khuôn. Nó không bắt được một câu sạch khuôn mà rỗng nghĩa — 'Đã kiểm tra, kết quả đúng như mong đợi' qua mọi máy.",
+      "nhin_vao_dau": "Trường `comment` của case PASS và FAIL.",
+      "dat": "Một tới hai câu nói ĐƯỢC CÁI GÌ ĐÃ QUAN SÁT: giá trị nào, ở màn nào, so với gì.",
+      "khong_dat": "Câu chỉ lặp lại verdict ('đúng như mong đợi', 'hoạt động bình thường') mà không nêu quan sát nào kiểm lại được.",
+      "bang_chung_phai_neu": "TC ID kèm nguyên văn comment."
+    },
+    {
+      "id": "ORACLE_DOC_LAP",
+      "ten": "Expected đến từ SPEC, không từ app đang kiểm",
+      "nguon_luat": "non-negotiable §3 + RULE_GLOBAL §5 trục mở rộng",
+      "vi_sao_khong_co_may": "`output_gate.looksTautology` bắt được dạng lộ nhất (expected nhắc lại chính câu trong app). Nó không bắt được trường hợp người viết MỞ app, đọc giá trị, rồi viết giá trị đó thành expected — văn bản trông như một kỳ vọng độc lập.",
+      "nhin_vao_dau": "Ô `Kết quả mong đợi` của case, đối chiếu với `oracle_ref` và với nguồn spec mà ref đó trỏ tới.",
+      "dat": "Expected nêu giá trị/URL/element CỤ THỂ và truy được về một nguồn ngoài app: mã `BR-`/`SM-`/`UI-` có thật trong `knowledge/domain/`, một dòng trong FSD, hoặc một ảnh Figma.",
+      "khong_dat": "Expected mô tả hành vi hiện tại của app mà không neo được vào nguồn nào; hoặc neo vào một mã KHÔNG tồn tại trong knowledge store (oracle ma).",
+      "bang_chung_phai_neu": "TC ID, ô expected, mã oracle_ref, và dòng nguồn mà mã đó trỏ tới."
+    }
+  ]
+}

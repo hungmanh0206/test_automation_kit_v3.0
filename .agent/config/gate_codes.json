@@ -1,36 +1,201 @@
 {
   "_doc": "Mã ổn định cho từng HỌ vi phạm của gate. NGUỒN DUY NHẤT — `gate_engine.js` dùng để in chế độ `--compact`.",
-
   "_vi_sao": "Đo bằng `npm run token:audit` trên 4 lượt chạy task thật: `output gate` chiếm 4,3 đến 8,9% khối lượng kết quả tool, khoảng 54k token mỗi lượt. Phần lớn là lời giải thích DÀI lặp lại cho từng case vi phạm. Lời giải thích đó cần thiết lần đầu; từ lần thứ hai nó là bản sao.",
-
   "_cach_lam_va_vi_sao_KHONG_sua_thong_diep": "Mã được gán bằng cách KHỚP vào thông điệp hiện có, không phải bằng cách viết lại thông điệp. Lý do: hàng chục spec đang khớp theo chữ trong thông điệp, và sửa thông điệp để thêm mã sẽ làm đỏ chúng hàng loạt — một thay đổi trình bày không được phép kéo theo rủi ro đó. Chế độ đầy đủ giữ nguyên từng chữ.",
-
   "_khong_khop_thi_KHAC": "Thông điệp không khớp mã nào thì nhận mã `KHAC` và vẫn được in. TUYỆT ĐỐI không bỏ dòng nào: `--compact` là cách in khác, không phải cách lọc. Spec tương đương khoá đúng chuyện đó.",
-
   "nguong_gop": 5,
   "_nguong_gop": "Cùng một mã xuất hiện quá ngưỡng này thì gộp phần còn lại thành một dòng \"và X case cùng lỗi\". Danh sách TC ID vẫn in đủ ở dòng gộp, nên không mất case nào.",
-
   "codes": [
-    { "code": "EVID_THIEU", "khop": "thiếu evidence|không có (ảnh|evidence)|evidence rỗng", "y": "Case đã execute mà thiếu ảnh hoặc video" },
-    { "code": "EVID_SAI_LOAI", "khop": "không phải (ảnh|video)|đuôi .* không được dùng làm evidence|\\.(json|md|txt|log|html|csv)\\b.*evidence", "y": "Dùng file không phải ảnh hoặc video làm evidence" },
-    { "code": "EVID_VIDEO", "khop": "cần video|phải có video|case phức tạp", "y": "Case nhiều thao tác mà chỉ có ảnh tĩnh" },
-    { "code": "STEP_THIEU", "khop": "step .*(thiếu|chưa)|mọi step|từng step", "y": "Step chưa có trạng thái hoặc chưa có ảnh riêng" },
-    { "code": "FAIL_CHUA_PHAN_TANG", "khop": "failureLayer|chưa phân tầng|phân tầng lỗi", "y": "FAIL không nêu tầng lỗi nên không route được owner" },
-    { "code": "RERUN_THIEU", "khop": "rerun|chạy lại .* lần", "y": "FAIL chưa rerun đủ ngưỡng để loại flaky" },
-    { "code": "COMMENT_RAC", "khop": "comment|run-on|debug key=value|key=value", "y": "Comment lẫn chuỗi debug hoặc dồn nhiều ý một dòng" },
-    { "code": "VERDICT_LA", "khop": "không thuộc verdict taxonomy|status \".*\" không", "y": "Verdict ngoài `verdict_taxonomy.json`" },
-    { "code": "ORACLE_TAUTOLOGY", "khop": "tautolog|app ?== ?app|build ?== ?build|lấy từ chính (app|build)", "y": "Expected lấy từ chính hệ đang kiểm" },
-    { "code": "ORACLE_THIEU_NEO", "khop": "oracle_ref|thiếu neo|không có neo|oracle ma", "y": "Kết luận mở rộng mà không có neo oracle" },
-    { "code": "O_LOI_RONG", "khop": "rỗng|để trống|bỏ trống", "y": "Ô lõi của testcase bị rỗng" },
-    { "code": "COT_CANONICAL", "khop": "cột canonical|thiếu cột|đủ \\d+ cột", "y": "Bảng testcase không đủ cột canonical" },
-    { "code": "TAG_THIEU", "khop": "THIẾU tag|thiếu tag|tag kỹ thuật|tag chiều", "y": "Case thiếu tag mà quy ước đòi" },
-    { "code": "TAG_LA", "khop": "KHÔNG có trong|mã .* lạ|không thuộc", "y": "Tag hoặc mã không có trong danh mục" },
-    { "code": "PII", "khop": "PII|email khách|số điện thoại|mask", "y": "Dữ liệu cá nhân chưa mask" },
-    { "code": "SQL_CAM", "khop": "chỉ `?SELECT|SQL|câu lệnh ghi", "y": "Câu SQL trong testcase vi phạm luật read-only" },
-    { "code": "UI_CATALOG", "khop": "ui_catalog", "y": "Bộ có case hiển thị mà thiếu kiểm kê field hoặc cột" },
-    { "code": "NEEDS_VERIFY", "khop": "NeedsVerify", "y": "Case chưa có nguồn chống lưng, không được publish" },
-    { "code": "QUY_MO", "khop": "vượt ngưỡng|vượt mốc|dưới ngưỡng", "y": "Số lượng vượt hoặc dưới ngưỡng đã khai" },
-    { "code": "KHAI_THIEU", "khop": "CHƯA KHAI|chưa khai|thiếu khai|na_reasons", "y": "Thiếu lời khai bắt buộc trong manifest" },
-    { "code": "XUNG_DOT", "khop": "XUNG ĐỘT|trái artifact|chống nhau", "y": "Lời khai trái với artifact có thật" }
-  ]
+    {
+      "code": "EVID_THIEU",
+      "khop": "thiếu evidence|không có (ảnh|evidence)|evidence rỗng",
+      "y": "Case đã execute mà thiếu ảnh hoặc video",
+      "tang": "T0",
+      "vi_sao": "Một verdict không có ảnh hoặc video là một kết luận KHÔNG AI KIỂM LẠI ĐƯỢC. Người đọc báo cáo chỉ còn cách tin, và sáu tháng sau thì chính người chạy cũng không dựng lại được mình đã thấy gì.",
+      "sua": "Chạy lại case đó rồi chụp đúng màn có kết quả, highlight element liên quan, mask PII, và trỏ đường dẫn vào cột evidence của case. Chưa chạy lại được thì để verdict là BLOCKED kèm lý do, KHÔNG để PASS.",
+      "vi_du": "SAI: `Result = Pass`, evidence rỗng → ĐÚNG: `Result = Pass`, evidence `evidence/TC_012/step-03-ket-qua.png`"
+    },
+    {
+      "code": "EVID_SAI_LOAI",
+      "khop": "không phải (ảnh|video)|đuôi .* không được dùng làm evidence|\\.(json|md|txt|log|html|csv)\\b.*evidence",
+      "y": "Dùng file không phải ảnh hoặc video làm evidence",
+      "tang": "T0",
+      "vi_sao": "File `.json`, `.md`, `.log`, `.html`, `trace.zip` chứng minh SCRIPT ĐÃ CHẠY, không chứng minh MÀN HÌNH ĐÃ ĐÚNG. Chúng là dấu vết của công cụ, còn evidence phải là thứ người đọc nhìn thấy được như người dùng nhìn thấy.",
+      "sua": "Thay bằng `.png`, `.jpg`, `.jpeg`, `.webp`, `.mp4` hoặc `.webm`. Giữ file log nếu cần, nhưng để ở chỗ khác và đừng khai nó là evidence.",
+      "vi_du": "SAI: `evidence/TC_012/trace.zip` → ĐÚNG: `evidence/TC_012/step-03-ket-qua.png`"
+    },
+    {
+      "code": "EVID_VIDEO",
+      "khop": "cần video|phải có video|case phức tạp",
+      "y": "Case nhiều thao tác mà chỉ có ảnh tĩnh",
+      "tang": "T1",
+      "vi_sao": "Case nhiều thao tác liên tiếp thì ảnh tĩnh chỉ chứng minh trạng thái CUỐI. Chuỗi dẫn tới đó là phần người đọc cần để tin, và nó không nằm trong một tấm ảnh.",
+      "sua": "Bật `video: \"on\"` cho lượt chạy case đó, hoặc chụp ảnh TỪNG bước. Mức \"phức tạp\" theo risk band ở `RULE_GLOBAL §5 trục`.",
+      "vi_du": "SAI: case 9 bước, một ảnh `ket-qua.png` → ĐÚNG: `TC_012.webm`, hoặc 9 ảnh `step-01..09`"
+    },
+    {
+      "code": "STEP_THIEU",
+      "khop": "step .*(thiếu|chưa)|mọi step|từng step",
+      "y": "Step chưa có trạng thái hoặc chưa có ảnh riêng",
+      "tang": "T0",
+      "vi_sao": "Case xanh ở mức tổng mà một bước giữa chừng không ai biết đã chạy chưa thì \"PASS\" nói về một chuỗi chưa đầy đủ. Bước thiếu trạng thái cũng là chỗ một lỗi lọt qua mà báo cáo vẫn xanh.",
+      "sua": "Điền trạng thái cho từng bước, và gắn ảnh riêng cho bước nào có kết quả quan sát được.",
+      "vi_du": "SAI: `steps: [{n:1,status:\"passed\"},{n:2}]` → ĐÚNG: cả hai bước đều có `status` và `evidence`"
+    },
+    {
+      "code": "FAIL_CHUA_PHAN_TANG",
+      "khop": "failureLayer|chưa phân tầng|phân tầng lỗi|FAIL .*không nêu tầng",
+      "y": "FAIL không nêu tầng lỗi nên không route được owner",
+      "tang": "T0",
+      "vi_sao": "FAIL không nêu tầng lỗi thì không ai biết nó thuộc về ai: lỗi sản phẩm, lỗi dựng state, hay lỗi của chính spec. Mỗi tầng đi một đường xử lý khác, và đoán sai tầng là log một bug không tồn tại.",
+      "sua": "Khai `failureLayer` theo `.agent/config/verdict_taxonomy.json`: `product_bug` · `setup_failure` · `test_bug` · `env_issue` · `data_issue`. Chưa phân được tầng thì chưa đủ cơ sở gọi là FAIL.",
+      "vi_du": "SAI: `{status:\"failed\"}` → ĐÚNG: `{status:\"failed\", failureLayer:\"product_bug\"}`"
+    },
+    {
+      "code": "RERUN_THIEU",
+      "khop": "chưa rerun|thiếu rerun|rerun .*(chưa|thiếu|không đủ)|để loại flaky|chạy lại .* lần|cần ít nhất .* lượt",
+      "y": "FAIL chưa rerun đủ ngưỡng để loại flaky",
+      "tang": "T0",
+      "vi_sao": "Một lượt đỏ chưa phân biệt được bug thật với flaky hay lỗi dựng state. Log bug từ một lượt là cách nhanh nhất để đốt thời gian của dev, và cũng làm người ta thôi tin bug do QA báo.",
+      "sua": "Chạy lại ĐÚNG case đó 2–3 lần (`npm run rerun:failed`). Đỏ ổn định thì mới là bug; đỏ bập bênh thì ghi `SUSPECT_REAL_BUG` và soi tiếp, đừng gọi là flaky rồi bỏ qua.",
+      "vi_du": "SAI: `{status:\"failed\", reruns:0}` → ĐÚNG: `{status:\"failed\", reruns:2, failureLayer:\"product_bug\"}`"
+    },
+    {
+      "code": "COMMENT_RAC",
+      "khop": "comment .{0,30}(debug|rác|run-on|nhiều ý|key=value)|run-on|key=value|dán debug",
+      "y": "Comment lẫn chuỗi debug hoặc dồn nhiều ý một dòng",
+      "tang": "T1",
+      "vi_sao": "Comment đi ra ngoài kit: nó vào Google Sheet và vào Backlog, nơi người không chạy test đọc nó. Chuỗi debug và nhiều ý dồn một dòng làm người đọc phải giải mã trước khi hiểu.",
+      "sua": "Một ý một dòng, bỏ chuỗi debug và đường dẫn tạm. Giữ lại số đo và giá trị cụ thể — đó là phần có giá trị.",
+      "vi_du": "SAI: `console.log ra 12; thử lại ok; TODO xem sau` → ĐÚNG: `Lưới trả 12 dòng, kỳ vọng 10 (BR-HS-004)`"
+    },
+    {
+      "code": "VERDICT_LA",
+      "khop": "không thuộc verdict taxonomy|status \".*\" không",
+      "y": "Verdict ngoài `verdict_taxonomy.json`",
+      "tang": "T0",
+      "vi_sao": "Verdict ngoài danh mục thì mọi máy đếm sau đó bỏ qua nó ÂM THẦM — case không vào PASS, không vào FAIL, và biến mất khỏi mọi tỉ lệ. Một case biến mất khỏi mẫu số là một lỗ trong báo cáo độ phủ.",
+      "sua": "Dùng đúng giá trị trong `.agent/config/verdict_taxonomy.json`. Trạng thái bạn cần mà danh mục chưa có thì bổ sung vào config kèm lý do, đừng tự đặt tên tại chỗ.",
+      "vi_du": "SAI: `status: \"chưa rõ\"` → ĐÚNG: `status: \"blocked\"`, kèm `blockedReason`"
+    },
+    {
+      "code": "ORACLE_TAUTOLOGY",
+      "khop": "tautolog|app ?== ?app|build ?== ?build|lấy từ chính (app|build)",
+      "y": "Expected lấy từ chính hệ đang kiểm",
+      "tang": "T0",
+      "vi_sao": "Lấy kỳ vọng từ chính hệ đang kiểm là so app với app: phép so đó LUÔN đúng, kể cả khi app sai. Nó không phải một phép kiểm yếu — nó không phải một phép kiểm.",
+      "sua": "Lấy kỳ vọng từ đặc tả: giá trị cụ thể, URL cụ thể, element cụ thể, kèm `oracle_ref` trỏ `BR-`/`SM-`/`UI-`. Đặc tả không nói thì ghi `OBSERVATION`, không phán PASS/FAIL.",
+      "vi_du": "SAI: `Kỳ vọng: hiển thị đúng giá trị trong DB` → ĐÚNG: `Kỳ vọng: cột Cấp học = \"THCS\" (BR-HS-004)`"
+    },
+    {
+      "code": "ORACLE_THIEU_NEO",
+      "khop": "oracle_ref|thiếu neo|không có neo|oracle ma",
+      "y": "Kết luận mở rộng mà không có neo oracle",
+      "tang": "T0",
+      "vi_sao": "Mở rộng quanh case mà không có neo thì \"nhất quán\" bị đọc thành \"đúng\". Hai màn cùng hiện một giá trị sai vẫn nhất quán, và kết luận PASS ở đó là một kết luận sai có vẻ chắc chắn.",
+      "sua": "Trỏ `oracle_ref` tới một mã có thật trong `knowledge/domain/` hoặc `knowledge/system/`. Không có neo thì verdict là `OBSERVATION` — nó vẫn đáng ghi, chỉ không được tính là PASS hay FAIL.",
+      "vi_du": "SAI: `mở rộng: màn B cũng hiện 12 → PASS` → ĐÚNG: `OBSERVATION: màn B hiện 12, chưa có BR- nào nói con số đúng là bao nhiêu`"
+    },
+    {
+      "code": "O_LOI_RONG",
+      "khop": "ô lõi|rỗng ô lõi|ô .{0,24}(rỗng|trống)|để trống|bỏ trống|(giá trị|nội dung|cột) .{0,16}rỗng",
+      "y": "Ô lõi của testcase bị rỗng",
+      "tang": "T1",
+      "vi_sao": "Ô lõi rỗng làm Phase 2 phải ĐOÁN: đoán cách dựng state, đoán kỳ vọng, đoán dữ liệu. Đoán sai ở tầng setup thì mọi verdict sau đó vô nghĩa.",
+      "sua": "Điền đủ `Tiền điều kiện` (mở đầu bằng tag cách dựng), `Dữ liệu Test`, `Các bước thực hiện`, `Kết quả mong đợi`. Chưa biết thì để case ở trạng thái nháp, đừng đẩy sang Phase 2.",
+      "vi_du": "SAI: `Tiền điều kiện` rỗng → ĐÚNG: `[ui] Đã đăng nhập cấp trường, năm học 2026-2027`"
+    },
+    {
+      "code": "COT_CANONICAL",
+      "khop": "cột canonical|thiếu cột|đủ \\d+ cột",
+      "y": "Bảng testcase không đủ cột canonical",
+      "tang": "T1",
+      "vi_sao": "Mọi consumer đọc bảng THEO TÊN CỘT. Thiếu một cột thì consumer đó im lặng nhận giá trị rỗng, và cả một chiều kiểm biến mất mà không gì báo.",
+      "sua": "Dùng đủ 10 cột canonical: TC ID · Loại case · Tag · Module · Trường hợp kiểm thử · Tiền điều kiện · Dữ liệu Test · Các bước thực hiện · Kết quả mong đợi · Ưu tiên.",
+      "vi_du": "SAI: bảng 8 cột, thiếu `Loại case` và `Tag` → ĐÚNG: đủ 10 cột, ô chưa có thì để trống chứ không bỏ cột"
+    },
+    {
+      "code": "TAG_THIEU",
+      "khop": "THIẾU tag|thiếu tag|tag kỹ thuật|tag chiều",
+      "y": "Case thiếu tag mà quy ước đòi",
+      "tang": "T1",
+      "vi_sao": "Tag là thứ MÁY đọc để đếm độ phủ theo chiều và theo kỹ thuật. Case không tag thì nó không vào mẫu số nào, và mọi con số coverage sau đó thiếu đúng case đó.",
+      "sua": "Gắn tag chiều và kỹ thuật vào cột `Tag`: `[Positive][Display][BR-HS-004]`. Xem §0 của prompt gen để biết chiều nào task này bắt buộc.",
+      "vi_du": "SAI: `Tag` rỗng → ĐÚNG: `[Negative][Validation][BVA]`"
+    },
+    {
+      "code": "TAG_LA",
+      "khop": "KHÔNG có trong|mã .* lạ|không thuộc",
+      "y": "Tag hoặc mã không có trong danh mục",
+      "tang": "T1",
+      "vi_sao": "Tag ngoài danh mục bị mọi máy đếm bỏ qua âm thầm — nó trông như đã khai một chiều, nhưng không chiều nào nhận nó. Và `BR-` không có thật trong `knowledge/` là một NEO MA: case trỏ tới một luật không tồn tại.",
+      "sua": "Dùng tag trong `.agent/config/design_techniques.json` và danh mục chiều. Mã `BR-`/`SM-` phải có thật trong `knowledge/domain/` hoặc `knowledge/system/` — chưa có thì thêm vào đó trước.",
+      "vi_du": "SAI: `[Bien]` → ĐÚNG: `[BVA]`. SAI: `[BR-TU-NGHI-01]` → ĐÚNG: `[BR-HSTRUONG-004]` (có trong knowledge)"
+    },
+    {
+      "code": "PII",
+      "khop": "PII|email khách|số điện thoại|mask",
+      "y": "Dữ liệu cá nhân chưa mask",
+      "tang": "T0",
+      "vi_sao": "Evidence, report và Backlog đi ra ngoài kit và nằm lại rất lâu. Một email hay số điện thoại khách lọt vào đó là một lần rò dữ liệu, và nó không rút lại được — ảnh đã vào backup, vào index của trình đồng bộ, vào tay người khác.",
+      "sua": "Mask trước khi ghi: che ở LÚC CHỤP (`page.screenshot({ mask })`), không chụp xong rồi bôi. Và KHÔNG tạo file Excel hay CSV chứa email, số điện thoại khách từ bất kỳ nguồn nào.",
+      "vi_du": "SAI: ảnh có `nguyen.van.a@gmail.com` → ĐÚNG: ô đó bị tô đè ngay lúc chụp"
+    },
+    {
+      "code": "SQL_CAM",
+      "khop": "chỉ `?SELECT|SQL|câu lệnh ghi",
+      "y": "Câu SQL trong testcase vi phạm luật read-only",
+      "tang": "T0",
+      "vi_sao": "DB UAT là môi trường thật có dữ liệu thật. Một câu ghi chạy ở đó là một thay đổi không ai xác nhận trước, và không có bản lùi. Dựng state bằng DB cũng làm precondition không còn giống đường người dùng đi.",
+      "sua": "Chỉ SELECT, và chỉ qua `tests/support/setup/db/uatDbClient.ts`. Dựng state bằng UI, API, factory hoặc test hook. DB dùng để VERIFY khi UI và API không expose, và nó không phải evidence.",
+      "vi_du": "SAI: `UPDATE DM_TRUONG SET ... WHERE ...` → ĐÚNG: `SELECT MA_TRUONG, TEN FROM DM_TRUONG WHERE ...`"
+    },
+    {
+      "code": "UI_CATALOG",
+      "khop": "ui_catalog",
+      "y": "Bộ có case hiển thị mà thiếu kiểm kê field hoặc cột",
+      "tang": "T1",
+      "vi_sao": "Case hiển thị mà không có kiểm kê field thì \"hiển thị đúng\" được chấm bằng mắt, và mắt bỏ sót đúng những field không ai nghĩ tới. Mẫu số của chiều hiển thị khi đó là số field người chạy tình cờ nhìn thấy.",
+      "sua": "Sinh kiểm kê bằng `npm run discover` (Bước 0) hoặc `npm run probe:page`, rồi đối chiếu từng field và từng cột với nó.",
+      "vi_du": "SAI: `Kỳ vọng: lưới hiển thị đúng` → ĐÚNG: `Kỳ vọng: đủ 14 cột theo ui_catalog, cột Cấp học = \"THCS\"`"
+    },
+    {
+      "code": "NEEDS_VERIFY",
+      "khop": "NeedsVerify",
+      "y": "Case chưa có nguồn chống lưng, không được publish",
+      "tang": "T1",
+      "vi_sao": "Case chưa có nguồn chống lưng là một kỳ vọng do người viết tự đặt. Publish nó nghĩa là cả team bắt đầu chạy theo một con số chưa ai xác nhận, và sửa về sau thì mọi verdict cũ nói về bộ khác.",
+      "sua": "Tìm nguồn trong `knowledge/` hoặc tài liệu đặc tả rồi gắn `oracle_ref`. Không tìm được thì đưa câu hỏi vào `requirements/phase1-clarifications.md` và giữ `AMBIGUITY_GATE: PENDING`.",
+      "vi_du": "SAI: publish case `[NeedsVerify]` → ĐÚNG: gắn `[BR-HSTRUONG-004]`, hoặc hỏi user rồi mới publish"
+    },
+    {
+      "code": "QUY_MO",
+      "khop": "vượt ngưỡng|vượt mốc|dưới ngưỡng",
+      "y": "Số lượng vượt hoặc dưới ngưỡng đã khai",
+      "tang": "T1",
+      "vi_sao": "Số lượng lệch khỏi ngưỡng đã khai là dấu hiệu bộ đã TRÔI: thêm case mà không khai, hoặc mất case mà không ai thấy. Đã xảy ra thật: một bộ mất 129 ô kết quả và chuyện chỉ lộ vì có người tình cờ hỏi.",
+      "sua": "Đối chiếu với con số đã neo trong `requirements/scope_inventory.md`. Lệch có lý do thì cập nhật lời khai kèm lý do; lệch không giải thích được thì dừng và tìm cho ra.",
+      "vi_du": "SAI: manifest khai 210 case, file có 213, không ai nhắc → ĐÚNG: khai 213 kèm \"thêm 3 case ranh giới sau lượt rà BR-HS-004\""
+    },
+    {
+      "code": "KHAI_THIEU",
+      "khop": "CHƯA KHAI|chưa khai|thiếu khai|na_reasons",
+      "y": "Thiếu lời khai bắt buộc trong manifest",
+      "tang": "T1",
+      "vi_sao": "Manifest là chỗ NGƯỜI khai chiều nào bắt buộc và chiều nào `n/a`. Thiếu lời khai thì gate không biết phải đòi gì, nên nó im — và \"không gate nào kêu\" bị đọc thành \"đã đủ\".",
+      "sua": "Chạy gate không kèm `--enforce` để lấy khung manifest, rồi khai từng chiều là `required` hoặc `n/a` KÈM LÝ DO. Lý do `n/a` phải nói được vì sao chiều đó không áp dụng cho task này.",
+      "vi_du": "SAI: `dimension_manifest.json` thiếu `security` → ĐÚNG: `\"security\": {\"required\": false, \"ly_do\": \"màn chỉ-xem, không có ô nhập nào\"}`"
+    },
+    {
+      "code": "XUNG_DOT",
+      "khop": "XUNG ĐỘT|trái artifact|chống nhau",
+      "y": "Lời khai trái với artifact có thật",
+      "tang": "T1",
+      "vi_sao": "Lời khai trái với artifact có thật nghĩa là một trong hai sai, và artifact thắng. Khai `n/a` cho một chiều mà thư mục của chiều đó có file là tự tắt một chiều kiểm bằng một dòng config.",
+      "sua": "Sửa lời khai cho khớp artifact, rồi mở đúng file hướng dẫn của chiều đó và bổ sung case. Nếu artifact kia là rác còn sót thì xoá nó, đừng để lại rồi khai ngược.",
+      "vi_du": "SAI: khai `design: n/a` trong khi có `requirements/figma/**` → ĐÚNG: khai `design: required` rồi đối chiếu với thiết kế"
+    }
+  ],
+  "_truong_bat_buoc": "Mỗi mã phải có: `y` (một câu nói nó là gì) · `vi_sao` · `sua` · `vi_du` (sai → đúng) · `tang`. `gates:index --check` CHẶN mã nào thiếu. Thiếu \"sửa thế nào\" thì mã chỉ là một nhãn, và người đọc vẫn phải tự đi tìm.",
+  "_tang_cua_ma": "T0 chỉ dành cho chỗ mà vi phạm tạo ra NGAY một kết luận sai, làm hỏng dữ liệu, hoặc lộ thông tin. Mọi thứ về chất lượng sản phẩm QA là T1 — chặn ở cửa ra. Xếp rộng tay T0 là đi ngược cả mục đích v2.7.0: nó đưa việc chặn về lại giữa lúc đang làm."
 }

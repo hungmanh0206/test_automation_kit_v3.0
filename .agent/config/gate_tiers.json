@@ -1,0 +1,102 @@
+{
+  "_trang_thai": "ĐÃ DUYỆT — chủ repo duyệt cả 12 dòng T0 ngày 11/10/2026, gồm `canonical:drift`. `gate_engine` được đọc file này.",
+  "_vi_sao_khai_tay_chu_khong_suy": "Đã thử suy tầng bằng từ khoá, HAI LẦN, và cả hai đều không dùng được. Suy từ MỘT DÒNG mô tả: 66/98 máy ra 'không dấu hiệu nào khớp', và `prompt:budget` bị xếp T0 'lộ secret' vì chữ *token* trong mô tả nó nghĩa là token của prompt. Suy từ CẢ KHỐI HEADER: T0 phình lên 40 máy, với `ci:scope` và `auto:review` gán 'lộ secret' và `decisions:check` gán 'lộ PII' — header dài 60 dòng nhắc những chữ đó TRONG KHI GIẢI THÍCH, nên khớp ở đâu cũng khớp. Một bảng phân tầng sai 40% sẽ được dùng để quyết định hạ tầng một gate, tức nó biến thành một lỗ thật trong bộ kiểm. Nên T0 là danh sách KHAI TAY, và từ khoá chỉ còn là cột gợi ý trong `gate:audit`.",
+  "_khong_duoc_ghi_de": "Khối `T0` dưới đây là NGƯỜI viết. `gate:audit --write-tiers` phải TỪ CHỐI ghi đè file này; nó chỉ được dựng khung khi file chưa tồn tại. Lý do cụ thể: lượt đầu của cờ đó đã ghi đè và xoá sạch khối T0, tức một cờ tiện tay xoá mất nguồn sự thật do người viết — không có gì báo, và nếu không ai kiểm lại thì bảng phân tầng mất cả 12 dòng T0.",
+  "_luat": {
+    "T0": "Không thương lượng. Luôn exit 1 ở MỌI ngữ cảnh (write · phase · exit · ci). KHÔNG có cờ override nào.",
+    "T1": "Chặn ở CỬA RA (ngữ cảnh exit và ci). Ở write và phase thì chỉ cảnh báo, nhưng ghi vào sổ nợ `reports/gate-debt.json`.",
+    "T2": "Không bao giờ exit 1."
+  },
+  "_mac_dinh": "Gate KHÔNG có mặt trong `T0` dưới đây thì mặc định T1 nếu nó có đường exit 1, và T2 nếu không. Mức CHẶN/SINH/BÁO CÁO suy từ code bởi `gate_index.js`, không khai tay — một gate bị nới từ CHẶN thành cảnh báo là sửa một dòng, và bảng khai tay sẽ không biết.",
+  "_non_negotiable": {
+    "1": "Bảo mật tuyệt đối (secret · PII)",
+    "2": "UAT non-destructive + DB read-only",
+    "3": "Verify thật trước khi kết luận",
+    "4": "Evidence bắt buộc",
+    "5": "Scope & isolation",
+    "6": "Không gian lận để PASS"
+  },
+  "T0": {
+    "secret:scan": {
+      "non_negotiable": 1,
+      "vi_sao": "Quét secret bị commit nhầm trên file ĐÃ TRACK. Secret đã vào git là đã phát ra ngoài, và không có cửa ra nào để chặn muộn hơn.",
+      "do_tin": "cao"
+    },
+    "package:kit": {
+      "non_negotiable": 1,
+      "vi_sao": "Gói phát hành không được mang secret, PII, hay dữ liệu dự án. Gói đã gửi đi thì không rút lại được.",
+      "do_tin": "cao"
+    },
+    "ci:scope": {
+      "non_negotiable": 2,
+      "vi_sao": "Máy đứng sau luật \"CI generic KHÔNG tự chạm UAT\". Một lượt CI chạm UAT là một lượt ghi lên môi trường thật mà không ai xác nhận trước.",
+      "do_tin": "cao"
+    },
+    "discover": {
+      "non_negotiable": 2,
+      "vi_sao": "Từ chối bò khi host không khớp dấu hiệu non-prod, và tường lửa abort mọi request ghi. Hai thứ đó là điều kiện để được phép chạm UAT.",
+      "do_tin": "cao"
+    },
+    "gate:output": {
+      "non_negotiable": 4,
+      "vi_sao": "Evidence phải là ảnh hoặc video đúng màn; FAIL phải có tầng lỗi; oracle không được rỗng hay tautology. Đây là máy gác §4, và nó gác cả phần oracle của §3.",
+      "do_tin": "cao"
+    },
+    "auto:review": {
+      "non_negotiable": 6,
+      "vi_sao": "Rule `no-assert` (P0, CHẶN) bắt test KHÔNG có khẳng định nào — loại test luôn xanh kể cả khi sản phẩm sai, tức false-green nặng nhất ở tầng spec. Cộng `vacuous-url` và `vacuous-count` bắt khẳng định rỗng nghĩa (`toHaveURL(/./)` khớp mọi url). Đó là ruột của §6, và không máy nào khác gác nó.",
+      "do_tin": "cao",
+      "_thi_hanh_mot_phan": "Chỉ phủ vế \"test không có/có khẳng định rỗng nghĩa\". Hai vế còn lại của §6 chưa có máy — xem `_non_negotiable_con_ho`.",
+      "_toi_da_ket_luan_sai_cho_nay": "Lượt đầu tôi đọc bảng đo CŨ trong header của `automation_review.js` (bảng ghi \"test không assertion | KHÔNG CÓ\") rồi kết luận §6 không có máy nào. Bảng đó là phép đo lúc lập kế hoạch v2.5.0, và `no-assert` đã được cài sau đó. Đã thêm ghi chú vào header để không ai đọc bảng cũ như trạng thái hiện tại."
+    },
+    "ledger:check": {
+      "non_negotiable": 3,
+      "vi_sao": "Chống mất kết quả âm thầm ở cột Result. Ngày 08/10/2026 một task mất 129 ô kết quả và chuyện chỉ lộ vì có người tình cờ hỏi — tức nếu không ai hỏi thì mọi báo cáo độ phủ sau đó đều sai mà vẫn trông bình thường.",
+      "do_tin": "cao",
+      "_no": "CHƯA có cặp đối chứng (§A10.3): không spec nào nhắc máy này với cả hai chiều lỗi-đỏ và sạch-xanh."
+    },
+    "unit:stamp": {
+      "non_negotiable": 3,
+      "vi_sao": "Mọi verdict đã chạy phải khai ĐƠN VỊ đã đo. Một task trải trên nhiều đơn vị thì kỳ vọng của đơn vị này không chấm được case của đơn vị khác, và verdict không khai đơn vị là verdict không truy được về đâu.",
+      "do_tin": "cao",
+      "_no": "CHƯA có cặp đối chứng (§A10.3)."
+    },
+    "run:analysis": {
+      "non_negotiable": 3,
+      "vi_sao": "Trả lời \"lượt chạy này có được dùng để kết luận chất lượng không\". Dùng một lượt không đủ điều kiện để kết luận là sai ở gốc, không phải sai ở chất lượng.",
+      "do_tin": "cao"
+    },
+    "bug:claim": {
+      "non_negotiable": 3,
+      "vi_sao": "Một phát hiện bug phải qua máy trước khi được nói thành lời. Bug bịa ra từ tình huống không tồn tại đã xảy ra, và nó tốn thời gian của cả dev.",
+      "do_tin": "cao"
+    },
+    "preflight": {
+      "non_negotiable": 5,
+      "vi_sao": "Chặn thiếu TASK_KEY, thiếu PROJECT_OUTPUT_DIR, config hỏng, testcase canonical chưa có — TRƯỚC khi workflow chạy. Chạy trên nền sai thì mọi thứ sau đó vô nghĩa, nên đây là chỗ phải chặn ngay chứ không phải ở cửa ra.",
+      "do_tin": "cao"
+    },
+    "expected:check": {
+      "non_negotiable": 6,
+      "vi_sao": "Chặn \"đổi `Kết quả mong đợi` để case xanh\" — cách gian lận RẺ NHẤT trong cả kit: một ô, không cần sửa code, case đỏ thành xanh. So với mốc đã chụp (không dùng git diff được vì testcase nằm trong `outputs/**` đã gitignore). Luật không cấm đổi: đổi vì spec đổi là bình thường. Thứ bị chặn là đổi mà KHÔNG AI BIẾT, nên hợp đồng là khai một dòng lý do có nghĩa.",
+      "do_tin": "cao",
+      "_duong_ne": "Sửa expected rồi chụp lại mốc thì máy không ngăn được — mốc là file trong `outputs/`, người chạy có toàn quyền. Máy nói rõ chuyện đó ở cả lúc chụp và lúc báo lỗi, nhưng đây là giới hạn thật, không phải chỗ đã kín."
+    },
+    "canonical:drift": {
+      "non_negotiable": 3,
+      "vi_sao": "Phase 2 đọc Markdown canonical cho rẻ token. Markdown đã trôi mà vẫn đọc thì lượt đó chạy bộ CŨ, và mọi verdict của nó nói về một bộ case không còn tồn tại.",
+      "do_tin": "cao",
+      "_nguoi_chot": "Chủ repo duyệt T0 ngày 11/10/2026, sau khi được nêu rõ T1 cũng là lựa chọn hợp lý (đường chặn của nó hẹp: chỉ chặn khi bản xuất đi TRƯỚC Markdown)."
+    }
+  },
+  "_non_negotiable_con_ho": {
+    "_vi_sao_phai_ghi": "§B.4 chỉ đòi mỗi non-negotiable có ÍT NHẤT MỘT gate T0. Đạt điều kiện đó không có nghĩa là luật đã kín. Chỗ còn hở phải ghi ra, nếu không thì bảng \"6/6 non-negotiable đều có gate\" sẽ được đọc thành \"6/6 đã kín\".",
+    "§6 đổi expected để pass": "ĐÃ BỊT ở v2.7.0 bằng `expected:check` (T0). Ghi lại lý do chọn cách làm: `git diff` KHÔNG dùng được vì testcase nằm trong `outputs/**` đã gitignore, nên máy chụp mốc băm rồi so — cùng khuôn `result_ledger`. Và nó đòi KHAI LÝ DO chứ không cấm đổi, vì cấm đổi thì người ta tắt gate, và tắt gate thì mất luôn phần gác đúng.",
+    "§6 hardcode data task-specific vào template chung": "GÁC MỘT PHẦN, và ở sai chỗ. `package:kit` cảnh báo khi gói phát hành mang tên bảng hoặc host của dự án, nhưng đó là cửa phát hành — lúc đang sửa template thì không gì báo.",
+    "§2 DB read-only": "Gác bằng `uatDbClient.ts` (chỉ SELECT) và `db_verify_preflight`, nhưng cả hai nằm ở tầng thư viện, không phải một npm script để xếp tầng. `ci:scope` và `discover` phủ phần \"không tự chạm UAT\" và \"không ghi lên UAT\"."
+  },
+  "_con_thieu": {
+    "so_lan_chan_va_bao_oan": "chưa đo được — không nguồn nào trong repo ghi \"gate X đã chặn N lần\". Phải ghi sổ ở `gate_engine` (§A9: knowledge/metrics/gate-friction.jsonl) rồi dùng vài sprint mới có số.",
+    "trung_lap_giua_cac_gate": "chưa đo được — §1a khai cách đo là mutant của `mutation_check`, nhưng máy đó tiêm lỗi vào response ở tầng page.route(), cần session UAT thật, và nó đo bộ ASSERTION trong testcase chứ không chạy gate nào. Cách đo đúng là bộ fixture cặp đối chứng (§A10.3) cộng bộ dữ liệu vàng (§A10.4)."
+  }
+}

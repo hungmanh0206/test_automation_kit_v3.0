@@ -116,10 +116,10 @@ if (TASK) {
 }
 
 /*
- * 3b) Đối soát Excel canonical với file status (`result_ledger`).
+ * 3b) Đối soát bản xuất Excel với file status (`result_ledger`).
  *
  * Check #3 ở trên hỏi "kết quả đã execute có đạt chuẩn không" — nó đọc `testcase-status.json`. Nhưng thứ
- * người ta ĐỌC để kết luận độ phủ lại là Excel canonical, và hai nơi đó có thể phân kỳ mà không gì báo.
+ * người ta ĐỌC để kết luận độ phủ lại là bản xuất Excel, và hai nơi đó có thể phân kỳ mà không gì báo.
  * Đã xảy ra: CSDL-9001 mất 129 ô kết quả, chỉ lộ ra vì có người tình cờ hỏi "test hết case chưa".
  *
  * Chạy bằng tiến trình con vì `result_ledger` là async (ExcelJS) còn file này chạy đồng bộ. Đổi cả

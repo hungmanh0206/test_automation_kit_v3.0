@@ -625,13 +625,15 @@ Nguyên tắc Phase 2:
 
 ### 5.5.0 Mô hình Google Sheet (traceability) — team tham chiếu
 
-Một task chạy trọn bộ testcase cùng lúc. Testcase management giờ là **Google Sheet qua Drive MCP** — mô hình **phẳng**: Excel canonical → upload nguyên file → Sheet có 1 tab cho mỗi nhóm chức năng. Không còn Test Set, Test Plan, Precondition issue, folder, Cycle hay Run như công cụ TMS trước đây (lịch sử: kit từng dùng Google Sheet, migrate sang Sheet để không phụ thuộc app Backlog Marketplace).
+Một task chạy trọn bộ testcase cùng lúc. Testcase management giờ là **Google Sheet qua Drive MCP** — mô hình **phẳng**: Markdown canonical → xuất `.xlsx` → upload nguyên file → Sheet có 1 tab cho mỗi nhóm chức năng. Không còn Test Set, Test Plan, Precondition issue, folder, Cycle hay Run như công cụ TMS trước đây (lịch sử: kit từng dùng Google Sheet, migrate sang Sheet để không phụ thuộc app Backlog Marketplace).
 
 ![Mô hình Google Sheet — traceability](docs/user-guide-images/sheet-traceability.png)
 
 | Lớp | Vai trò | Kit làm gì |
 |---|---|---|
-| **Excel canonical** | Nguồn sự thật của testcase | `md_to_xlsx.js` xuất từ Markdown; sửa nội dung LUÔN làm ở đây rồi re-publish |
+| **Markdown canonical** | Nguồn sự thật của NỘI DUNG case (`test-cases/*.md`, 10 cột) | Sửa nội dung LUÔN làm ở đây |
+| **bản xuất Excel** | Bản để người đọc và chạy; output BẮT BUỘC của bước gen | `md_to_xlsx.js` xuất từ Markdown, rồi re-publish lên Sheet |
+| **`testcase-status.json`** | Nguồn sự thật của VERDICT một lượt chạy | Ghi ra cột `Result` một chiều bằng `merge:execution-status` |
 | **Sheet** | Bản đồng bộ hiển thị trên Drive | Agent `create_file`/`update_file` qua Drive MCP — ghi đè NGUYÊN file, không có API "sửa 1 ô" |
 | **Sheet-tab theo nhóm chức năng** | Tổ chức case theo nhóm | 1 tab/nhóm, dựng TỪ Excel (`md_to_xlsx.js`); TC ID nằm ở cột `ID_TC` |
 | **Tiền điều kiện** | Cách dựng state | Cột `Tiền điều kiện` ngay trong sheet, dạng `[<method>] <mô tả>` — không còn field/issue riêng như trước |
@@ -775,7 +777,7 @@ Rule:
 | Không chạy từ Phase 1 chính | Chỉ chạy sau khi baseline Excel thay đổi trong Partial Rerun. |
 | Không tự xoá gì trên Sheet | Ghi đè toàn workbook (ở Apply Approved) là cơ chế duy nhất; không có thao tác "xoá 1 dòng" riêng. |
 | Unlink là optional | Chỉ làm khi QA yêu cầu rõ — thao tác thủ công trên Backlog, không có script tự động đi kèm kit. |
-| Excel là source of truth | Sheet chỉ phản chiếu đúng Excel sau mỗi lần re-publish. |
+| Markdown là source of truth của nội dung | Sheet phản chiếu đúng bản xuất Excel sau mỗi lần re-publish, và bản xuất đó phải vừa sinh từ Markdown. Sửa tay trên Sheet thì mang về Markdown — `npm run canonical:drift` đo độ trôi. |
 
 ### 6.4 Rule bắt buộc
 
@@ -1103,7 +1105,7 @@ Chi tiết ở Mục 8.
 | Excel source of truth | File `.xlsx` trong `test-cases/` là nguồn chính khi GEN/PUBLISH testcase (Phase 1) — cũng chính là nội dung publish lên Sheet. Phase 2 execute thì luôn tải bản Google Sheet mới nhất. |
 | `TESTCASE_SOURCE` | Nguồn testcase cho Phase 2 execute/rerun: mặc định tải từ Google Sheet về `test-cases/from-sheet/`, `excel` (Excel local, khi chưa publish). |
 | Tải testcase (từ Sheet) | Agent `download_file_content` qua Drive MCP kéo bản Sheet mới nhất về canonical local để execute; lấy steps/expected từ đó. |
-| Google Sheet | Bản đồng bộ hiển thị của Excel canonical, publish qua Drive MCP. Đây là **nguồn execute** của Phase 2. Sheet không phải issue tracker nên không có field liên kết Story/Task riêng. |
+| Google Sheet | Bản đồng bộ hiển thị của bản xuất Excel (vốn sinh từ Markdown canonical), publish qua Drive MCP. Đây là **nguồn execute** của Phase 2. Sheet không phải issue tracker nên không có field liên kết Story/Task riêng. |
 | Cột `Result` | Kết quả execute (Pass/Fail/Pending) ghi vào đúng dòng khớp `tcId` trên Sheet, qua `merge_execution_status.js` rồi `update_file`. |
 | Sheet-tab theo nhóm | Không có Test Plan/thư mục cycle như trước — nhóm chức năng thể hiện bằng 1 tab riêng trong cùng workbook. |
 | Trạng thái Result | `Pass` / `Fail` / `Pending` — map từ verdict canonical trong `.agent/config/verdict_taxonomy.json` (cột `sheet`). |

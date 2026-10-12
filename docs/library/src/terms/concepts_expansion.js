@@ -75,7 +75,7 @@ const TERMS_CONCEPT2 = [
 
 { id:'c-sheet-ghi-de', t:'Sheet ghi đè toàn bộ mỗi lần sync', cat:'concept',
   def:'Dọn dẹp trên Google Sheet nghĩa là chuyển trạng thái Deprecated, không phải xoá.',
-  detail:'Case rời khỏi Excel canonical thì chuyển Deprecated. Quay lại thì chuyển Published.',
+  detail:'Case rời khỏi bản xuất Excel thì chuyển Deprecated. Quay lại thì chuyển Published.',
   why:'Ràng buộc của công cụ, nhưng hoá ra lại đúng hướng: giữ case nghĩa là giữ nguyên lịch sử các lượt chạy đã gắn vào nó. Xoá cho sạch là mất luôn phần lịch sử đó.',
   trap:'Vì không xoá được nên phải dry-run trước mọi lượt publish, đẩy nhầm thì không rút lại được.',
   src:'.agent/skills/shared/backlog_testcase_publisher/SKILL.md', rel:['f-sheet','sk-backlog_testcase_publisher'] },

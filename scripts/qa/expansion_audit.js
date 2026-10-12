@@ -139,5 +139,5 @@ function readExecuted(taskDir) {
   const pz = rows.filter((r) => r.provenZero.length);
   if (pz.length) console.log('\nBáo cáo có nhưng proven=0 (artefact rỗng nghĩa): ' + pz.map((r) => `${r.task}(${r.provenZero.join('/')})`).join(' · '));
   const totalHigh = rows.reduce((s, r) => s + r.high, 0);
-  console.log(`\nTổng: ${rows.reduce((s, r) => s + r.executed, 0)} case đã execute · ${totalHigh} case band high · ${rows.reduce((s, r) => s + r.unknown, 0)} case không tra được band (không thấy trong Excel canonical).`);
+  console.log(`\nTổng: ${rows.reduce((s, r) => s + r.executed, 0)} case đã execute · ${totalHigh} case band high · ${rows.reduce((s, r) => s + r.unknown, 0)} case không tra được band (không thấy trong bản xuất Excel).`);
 })().catch((e) => { console.error('LỖI:', e.message); process.exit(1); });

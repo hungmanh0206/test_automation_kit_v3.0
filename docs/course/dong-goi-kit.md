@@ -387,7 +387,7 @@ npm run gates                                            # phải ĐẠT hết t
 
 | Giai đoạn | Lệnh | Ra gì |
 |---|---|---|
-| Sinh testcase | `/phase1 <KEY>` | Excel canonical + kiểm cấu trúc |
+| Sinh testcase | `/phase1 <KEY>` | Markdown canonical + bản xuất Excel + kiểm cấu trúc |
 | Publish | `npm run tms:publish -- --apply --qa-approved` | case trên công cụ + đối soát trường |
 | Execute | `/phase2 <KEY>` | kết quả + bằng chứng + verdict |
 | Đẩy kết quả | `npm run tms:push-exec -- --apply` | cycle có lịch sử |

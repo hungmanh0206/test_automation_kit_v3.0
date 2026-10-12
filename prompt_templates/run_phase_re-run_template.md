@@ -46,7 +46,7 @@ Dùng prompt này khi cần chạy lại testcase fail trước đó hoặc veri
 | Bước | Hành động |
 |---:|---|
 | 1 | Echo scope `PROJECT_OUTPUT_DIR`, `TASK_KEY`, `TASK_OUTPUT_DIR`, `RUN_ID` nếu có; nếu sai task thì dừng. |
-| 1b | **Mặc định**: agent `download_file_content` Google Sheet mới nhất về local trước khi rerun (qua Drive MCP, dùng `GOOGLE_SHEET_URL` trong `profiles/<TASK_KEY>/task.env`). Dùng `test-cases/from-sheet/*.xlsx` làm nguồn expected. Nếu report cảnh báo TC thiếu steps thì dừng và báo user. Bỏ qua bước này nếu `TESTCASE_SOURCE=excel`. |
+| 1b | **Mặc định**: nguồn expected là `test-cases/*.md`. Chạy `npm run canonical:drift` trước; trôi thì `download_file_content` Sheet mới nhất về local (Drive MCP, `GOOGLE_SHEET_URL` trong `profiles/<TASK_KEY>/task.env`) và dùng `from-sheet/*.xlsx`. TC thiếu steps thì dừng và báo user. |
 | 2 | Xác định rerun type: failed testcase, fixed Backlog bug hoặc automation/setup issue trong phạm vi bug rerun. |
 | 3 | Đọc report/task artifact gần nhất theo file priority bên dưới. |
 | 4 | Rerun targeted scope trước, không chạy full suite nếu không cần. |

@@ -123,6 +123,33 @@
           "khi": "Người dùng trả lời câu 3 là Phase 2 — tương tự, chuyển hẳn sang luồng phase2."
         }
       ]
+    },
+    "phase2_lite": {
+      "_vi_sao": "Bản RÚT GỌN của phase2 (v2.7.0 §A12). Bản đầy đủ nặng ~11,8k token và phần lớn là hướng dẫn viết code mà agent đã biết. Bản Lite giữ nguyên 6 chốt và nguyên bộ máy gác, bỏ phần POM/mẫu code — 1,4k token. Dùng khi `npm run lane` nói làn gọn; làn đầy đủ vẫn nạp bản đầy đủ.",
+      "_may_kiem": "tests/fe/infra/execute-lite.spec.ts cài 5 lỗi vào output của một task giả rồi kiểm rằng ĐÚNG cái máy mà chốt tương ứng NÊU TÊN chặn từng lỗi. Cắt prompt execute rất dễ cắt luôn phần gác, và chuyện đó chỉ lộ ra ở lượt đầu tiên có bug thật lọt qua.",
+      "diem_vao": "prompt_templates/run_phase2_template.md",
+      "bat_buoc": [
+        "prompt_templates/phase2/04L_execute_lite.md"
+      ],
+      "co_dieu_kien": [
+        {
+          "file": "prompt_templates/phase2/04_execute_fe_playwright.md",
+          "khi": "Cần mẫu code Playwright/POM, hoặc `npm run lane` nói làn ĐẦY ĐỦ.",
+          "may_kiem": "npm run lane"
+        },
+        {
+          "file": "prompt_templates/phase2/05_execute_api_playwright.md",
+          "khi": "Bộ TC có case API."
+        },
+        {
+          "file": "prompt_templates/phase2/06_triage_review.md",
+          "khi": "Có case FAIL cần triage."
+        },
+        {
+          "file": "prompt_templates/phase2/08_log_bug_backlog.md",
+          "khi": "Đã có bug qua Bug Claim Gate."
+        }
+      ]
     }
   },
   "_bay_da_biet": "Một file nằm trong `co_dieu_kien` của luồng này vẫn có thể là `bat_buoc` của luồng khác — `04_execute_fe_playwright.md` bắt buộc ở phase2 nhưng có điều kiện ở rerun. Spec kiểm theo TỪNG luồng, không gộp.",

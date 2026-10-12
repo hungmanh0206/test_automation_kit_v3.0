@@ -60,6 +60,33 @@ const KEEP_FILES = [
   'LICENSE', '.agent/AUDIT_REFERENCES.md',
   'README.md', 'QUICKSTART.md', 'USER_GUIDE.md', 'RULE_GLOBAL.md', 'CHANGELOG.md', 'CLAUDE.md',
   /*
+   * BA FILE CỦA v2.7.0 BỊ BỎ SÓT KHỎI GÓI, và `release:verify` bắt được bằng cách CHẠY BỘ TEST TRONG GÓI:
+   * 13 test đỏ, không phải vì code sai mà vì file chúng đọc không có ở đó.
+   *
+   *   · `docs/CHEATSHEET.md` — trang §A7 nói "năm lệnh phải nhớ". `five-commands.spec.ts` đọc nó, và
+   *     `writing_lint` cũng gác nó. Thiếu file thì cả hai hỏng trong gói.
+   *   · `docs/RULE_COVERAGE.md` — bản đồ luật → gate → spec (§A10.7). `rule:coverage:check` CHẶN khi
+   *     thiếu file, nên gói không mang nó thì máy mới đỏ ngay lượt đầu vì thiếu config, không vì lỗi.
+   *   · `tsconfig.scripts.json` — `typecheck:scripts` (§A10.2) chạy theo file này. Thiếu nó thì lệnh
+   *     chết, và hợp đồng dữ liệu testcase thôi được kiểm trong gói.
+   *
+   * Bài học: thêm một file mà gate đọc thì phải thêm vào ĐÂY cùng lúc. Chỗ duy nhất bắt được là chạy bộ
+   * test TRONG gói — chạy ở repo thì file luôn có mặt.
+   */
+  'docs/CHEATSHEET.md', 'docs/RULE_COVERAGE.md', 'tsconfig.scripts.json',
+  /*
+   * `.claude/settings.json` — file ĐĂNG KÝ HOOK, tức lớp chặn mạnh nhất của kit (chạy tự động ở tầng
+   * harness, không phụ thuộc agent nhớ gọi). Nó ĐÃ được commit từ `98879ee`; thứ chặn nó khỏi gói là
+   * luật `DENY` cũ `/^.claude\/settings/`, vốn định chặn `settings.local.json` nhưng giết luôn cả hai.
+   *
+   * Lộ ra ở v2.7.0 vì §A5 làm `gates:index --check` CÓ RĂNG: nó chặn khi một source khai trong danh mục
+   * mà không có trên đĩa. Ở repo file có mặt nên không ai thấy; trong gói thì không, và ba test đỏ.
+   *
+   * File chỉ chứa tên event và đường dẫn script trong repo. Env, secret và đường dẫn cá nhân thuộc
+   * `.claude/settings.local.json`, vẫn bị chặn.
+   */
+  '.claude/settings.json',
+  /*
    * Danh mục 80 máy của kit. Hai lý do phải mang theo, cả hai đo được:
    *   · `README.md` trỏ tới file này, không mang là link hỏng ngay ở tài liệu đầu tiên;
    *   · `gate:policy` trong gói ĐỎ vì `writing:lint:docs` không bề mặt nào nhắc — GATES.md là nơi
@@ -108,6 +135,46 @@ const KEEP_FILES = [
    * Không chứa host, bảng DB, credential hay PII: chỉ là danh sách nhãn và ngưỡng.
    */
   '.agent/config/discovery.json',
+  /*
+   * `gate_tiers.json` (v2.7.0): T0 khai tay cùng luật ba tầng. Thiếu nó trong gói thì `gate:audit`
+   * xếp MỌI máy chặn thành T1 — tức 12 máy không-thương-lượng tụt xuống "chỉ chặn ở cửa ra" một
+   * cách im lặng. Lớp GENERIC, không mang mã task hay host.
+   */
+  '.agent/config/gate_tiers.json',
+  /*
+   * `exit_gates.json` (v2.7.0 §A2): bản đồ BA CỬA RA. Thiếu nó trong gói thì `exit:gate` không
+   * chạy được, và mọi vi phạm T1 đã hoãn ở §A1 không còn chỗ nào quay lại — tức người nhận kit
+   * được một bản đã nới 57 máy gác. Lớp GENERIC: chỉ tên lệnh và lý do, không mang host hay mã task.
+   */
+  '.agent/config/exit_gates.json',
+  /*
+   * `risk_lanes.json` (v2.7.0 §A6): hai làn theo risk, và `_luat_khong_doi_duoc` — bốn thứ giữ
+   * nguyên ở cả hai làn. Thiếu nó trong gói thì `lane` không chạy được, và người nhận kit mất
+   * luôn bản khai rằng làn KHÔNG nới được T0, evidence, rerun hay cửa ra.
+   */
+  '.agent/config/risk_lanes.json',
+  /*
+   * `rule_coverage_notes.json` (v2.7.0 §A10.7): lời khai của người cho các mục luật không nối được gate
+   * bằng tên lệnh. Thiếu nó trong gói thì `rule:coverage:check` thấy 6 mục trống và CHẶN ngay ở máy mới,
+   * trong khi chẳng có gì sai — và người cài kit sẽ đọc màu đỏ đó thành "kit thiếu 6 gate".
+   */
+  '.agent/config/rule_coverage_notes.json',
+  /*
+   * `gate_code_pairs.json` (v2.7.0 §A10.3): cặp bẩn/sạch của 21 mã T0/T1. Thiếu nó thì `gate:code-pair` báo cả
+   * 21 mã "không có cặp" — một màn CHẶN toàn bộ ở máy mới, vì thiếu config chứ không vì thiếu gate.
+   */
+  '.agent/config/gate_code_pairs.json',
+  /*
+   * `judge_rubric.json` + `judge_calibration.json` (v2.7.0 §A11): thang chấm cho phần máy không đo được,
+   * và bộ hiệu chuẩn. Thiếu thang thì `judge --check` không biết chấm những mục nào; thiếu bộ hiệu chuẩn
+   * thì mọi lời chấm thành CHƯA ĐƯỢC GÁC — đúng hướng an toàn, nhưng vì lý do sai.
+   *
+   * MỐC hiệu chuẩn (`.judge_calibration_moc.json`) KHÔNG vào gói, cố ý: nó nói về một NGƯỜI CHẤM cụ thể
+   * ở một thời điểm cụ thể. Đem mốc của máy này sang máy khác là khai rằng người chấm bên kia đã hiệu
+   * chuẩn, trong khi họ chưa chấm ca nào.
+   */
+  '.agent/config/judge_rubric.json',
+  '.agent/config/judge_calibration.json',
   '.agent/config/checklist_types.json',
   '.agent/config/gate_codes.json',
   '.agent/config/na_reasons_rejected.json',
@@ -132,7 +199,18 @@ const DENY = [
   /(^|\/)node_modules(\/|$)/,
   /^outputs\//, /^reports\//, /^test-results\//, /^dist\//, /(^|\/)\.git(\/|$)/,
   // `.env.example` PHẢI được giữ (nó là bản mẫu, lớp GENERIC). Luật cũ `/^\.env(\..*)?$/` giết luôn nó.
-  /^\.env$/, /^\.env\.(?!example$)/, /(^|\/)\.env$/, /^\.claude\/settings/,
+  /^\.env$/, /^\.env\.(?!example$)/, /(^|\/)\.env$/,
+  /*
+   * CHỈ chặn `settings.local.json`, KHÔNG chặn `settings.json`.
+   *
+   * Luật cũ `/^.claude\/settings/` giết cả hai, và nó giết đúng file quan trọng hơn:
+   * `settings.json` ĐĂNG KÝ HOOK, tức lớp chặn mạnh nhất của kit — chạy tự động ở tầng harness, không
+   * phụ thuộc agent nhớ gọi. Gói không mang nó thì người nhận phải tự bật, nghĩa là lớp chặn mạnh nhất
+   * lại là lớp DỄ KHÔNG CÓ NHẤT. `.gitignore` đã mở ngoại lệ cho nó từ round-3 với đúng lý lẽ này.
+   *
+   * `settings.local.json` mới là file cá nhân (env, đường dẫn máy) và vẫn bị chặn.
+   */
+  /^\.claude\/settings\.local\.json$/,
   /^profiles\/(?!task\.env\.example$)/,
   /^knowledge\/(?!SCHEMA\.md$)(?!.*\.gitkeep$)/,
   /^tests\/api\//, /^tests\/mobile-web\//,

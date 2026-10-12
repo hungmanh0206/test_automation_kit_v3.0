@@ -2,11 +2,27 @@
 
 > Bộ kit dùng để phân tích requirement, sinh testcase, execute automation, triage bug và quản lý evidence theo chuẩn QA automation.
 
+## Bắt đầu — đọc một trang này trước
+
+**[`docs/CHEATSHEET.md`](docs/CHEATSHEET.md)** là thứ duy nhất bạn cần đọc trước khi chạy: năm lệnh, ba
+cửa ra, cách đọc output của `/check`, và cách xin vượt qua cho hợp lệ.
+
+```
+/start  →  /phase1  →  /phase2  →  /rerun  →  /release        cộng /check lúc nào cũng được
+```
+
+Sáu lệnh còn lại KHÔNG cần nhớ — chúng được gợi ý đúng lúc ở dòng **Lệnh tiếp theo** trong output của
+`/check`. Xem thẳng bằng `npm run next -- --task <KEY>`.
+
+`docs/course/` và `docs/library/` là **tài liệu đào tạo**: chúng giải thích vì sao kit làm vậy và dùng
+để học, **không cần đọc để dùng kit**. [USER_GUIDE.md](USER_GUIDE.md) là bản tra chi tiết khi cần đi sâu
+một bước cụ thể.
+
 ## Overview
 
 Test Automation Kit hỗ trợ quy trình kiểm thử end-to-end cho nhiều project. Các bước: thu thập requirement, sinh testcase chi tiết, export Excel (nguồn chuẩn khi gen và khi publish), publish testcase lên Google Sheet qua Drive MCP, chạy Playwright hoặc API từ testcase canonical local, tổng hợp report, triage lỗi, và log Backlog bug khi đủ điều kiện. Phase 2 luôn tải bản Sheet mới nhất trước khi chạy.
 
-Tài liệu này là landing page của toàn bộ kit. Team QA nên đọc cùng [USER_GUIDE.md](USER_GUIDE.md) và [QUICKSTART.md](QUICKSTART.md) trước khi chạy Phase 1 hoặc Phase 2.
+Tài liệu này là landing page của toàn bộ kit. Cần đi sâu một bước thì đọc [USER_GUIDE.md](USER_GUIDE.md); cần dựng kit trên máy mới thì đọc [QUICKSTART.md](QUICKSTART.md). Để CHẠY thì một trang [CHEATSHEET](docs/CHEATSHEET.md) ở trên là đủ.
 
 ### Giới hạn — đọc trước khi chọn kit này
 
@@ -37,7 +53,7 @@ flowchart TD
 | Layer | Purpose |
 |---|---|
 | Bước 0 (Khám phá hệ thống) | Chạy TRƯỚC Phase 1. `npm run discover` bò app bằng script tất định rồi trả bản đồ màn, danh mục API, bản đồ phủ tài liệu và bản đồ điểm nhập injection. Mẫu số coverage của Phase 1 lấy từ đây, nên màn không có trong tài liệu vẫn vào phạm vi. Mọi bản ghi là `observed`, không phải oracle. |
-| Phase 1 | Đọc requirement/design/API và sinh testcase Markdown + Excel + coverage report + `### Setup Readiness` (mỗi cell `Tiền điều kiện` mang tag `[<method>]`); Excel là source of truth **khi gen/publish** và là input cho step publish sau QA confirmation (Phase 2 execute luôn tải bản Google Sheet mới nhất). |
+| Phase 1 | Đọc requirement/design/API và sinh testcase Markdown + Excel + coverage report + `### Setup Readiness` (mỗi cell `Tiền điều kiện` mang tag `[<method>]`); **Markdown là source of truth** cho nội dung case, `.xlsx` là bản xuất BẮT BUỘC của bước gen và là input cho step publish sau QA confirmation (Phase 2 execute đọc `*.md` vì rẻ token hơn; kéo Sheet về là opt-in khi `canonical:drift` báo trôi). |
 | Testcase Publish (Google Sheet) | Step riêng trong phạm vi Phase 1: sau khi QA xác nhận Excel, agent publish qua Google Drive MCP (`search_files` → `create_file`/`update_file`) — file `.xlsx` chính là nội dung Sheet, không ánh xạ field riêng. Nhóm chức năng thành **sheet riêng** trong workbook, TC ID ở cột `ID_TC`, tiền điều kiện trong cột `Tiền điều kiện`. Review nội dung local trước khi ghi đè Sheet thật. |
 | Testcase Re-publish | Khi Excel thay đổi sau publish (kể cả từ nhánh phụ `partial-rerun`): re-publish là ghi đè lại toàn workbook — không cần lifecycle/Deprecate riêng như trước, case bị bỏ khỏi Excel tự động biến mất khỏi Sheet ở lần ghi đè kế tiếp. |
 | Phase 2 | Đọc testcase từ nguồn canonical local (agent luôn tải bản Google Sheet mới nhất qua Drive MCP trước mỗi lượt execute; `excel` local là opt-out khi chưa publish), chạy Precondition Resolution Pass qua UI/API public-business, execute Playwright, thu evidence ảnh/video, đồng bộ kết quả vào cột `Result` của Sheet (`merge_execution_status.js`). |
@@ -199,7 +215,7 @@ Team chạy **toàn bộ testcase của 1 task cùng lúc**. Testcase management
 
 ```mermaid
 flowchart TD
-    Excel["Excel canonical<br/>(TASK_OUTPUT_DIR/test-cases/*.xlsx)"]
+    Excel["bản xuất Excel<br/>(TASK_OUTPUT_DIR/test-cases/*.xlsx)"]
     Sheet["Google Sheet<br/>(1 workbook, upload nguyên file qua Drive MCP)"]
     Tab["Sheet-tab theo nhóm chức năng<br/>(1 tab/nhóm, TC ID ở cột ID_TC)"]
     Pre["Tiền điều kiện<br/>(cột trong chính sheet)"]
@@ -375,7 +391,7 @@ Mọi artifact của task phải nằm dưới:
 - Với Phase 2 song song nhiều story, ưu tiên automation story-specific dưới `<PROJECT_OUTPUT_DIR>/tasks/<TASK_KEY>/automation/`.
 - Khi chạy Playwright cho task cụ thể, ưu tiên `npm run test:task* -- --project-output ... --task ...` thay vì gọi `npm test` trực tiếp.
 - Chạy từng story theo phase rời nhau: Phase 1, chờ Dev implement, Phase 2, chờ Dev fix nếu có, rồi Re-run.
-- Sau QA confirmation trong Phase 1, publish testcase lên Google Sheet qua Drive MCP từ Excel canonical. Phase 2 execute luôn tải bản Sheet mới nhất về canonical local. Dùng `excel` local là đường opt-out khi chưa publish.
+- Sau QA confirmation trong Phase 1, publish testcase lên Google Sheet qua Drive MCP, từ bản xuất Excel của Markdown canonical. Phase 2 execute luôn tải bản Sheet mới nhất về canonical local. Dùng `excel` local là đường opt-out khi chưa publish.
 - Chạy Auto Publish testcase bằng prompt riêng `prompt_templates/phase1/04_auto_publish_backlog.md` sau khi QA xác nhận Excel.
 - Nhóm chức năng lấy từ cột `Nhóm chức năng` (fallback `Module`) và thành sheet riêng trong workbook; không có Test Set để bật.
 - Khi testcase đã publish nhưng Excel bỏ bớt TC sau partial rerun, re-publish (ghi đè Sheet) là đủ. Không cần lifecycle riêng. Chỉ dùng prompt `partial-rerun/run_testcase_cleanup.md` nếu cần unlink Test với Story hoặc Task trên Backlog.

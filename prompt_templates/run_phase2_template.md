@@ -10,9 +10,9 @@ Chỉ cần đọc file này; nó chỉ ra mở file nào ở bước nào. **Kh
 
 | Prompt | Bắt buộc? | Mở khi nào |
 |---|---|---|
-| [`phase2/04_execute_fe_playwright.md`](phase2/04_execute_fe_playwright.md) | **BẮT BUỘC** khi có case UI | **Bước 3–5** — kỷ luật execute FE: phản xạ điều tra `qa_instincts`, khoanh tầng lỗi FE/BE, oracle mapping phải nêu CẢ HAI giá trị, bắt buộc chạy `ui_conformance_check`, **5 trục mở rộng quanh case + chiều ngược `spec:gap` + luật đóng vòng**, chuẩn evidence, quy tắc kỹ thuật Playwright |
+| [`phase2/04_execute_fe_playwright.md`](phase2/04_execute_fe_playwright.md) — làn **gọn** dùng [`04L_execute_lite.md`](phase2/04L_execute_lite.md) thay nó | **BẮT BUỘC** khi có case UI | **Bước 3–5** — kỷ luật execute FE: phản xạ điều tra `qa_instincts`, khoanh tầng lỗi FE/BE, oracle mapping phải nêu CẢ HAI giá trị, bắt buộc chạy `ui_conformance_check`, **5 trục mở rộng quanh case + chiều ngược `spec:gap` + luật đóng vòng**, chuẩn evidence, quy tắc kỹ thuật Playwright |
 | [`phase2/05_execute_api_playwright.md`](phase2/05_execute_api_playwright.md) | **BẮT BUỘC** khi có case API | **Bước 3–5** — kỷ luật execute API: verify GIÁ TRỊ chứ không chỉ status/schema, **5 trục mở rộng (payload↔response↔UI, nhánh/trạng thái)**, assertion discipline, anti-pattern |
-| [`phase2/06_triage_review.md`](phase2/06_triage_review.md) | khi cần | Sau generate/heal, muốn **review nhanh automation code** để soi rủi ro. Suite đã pass ổn và không đụng shared layer thì bỏ qua |
+| [`phase2/06_triage_review.md`](phase2/06_triage_review.md) | khi cần | Review nhanh automation code sau generate/heal. Bỏ qua nếu suite ổn và không đụng shared layer |
 | [`phase2/07_triage_flaky.md`](phase2/07_triage_flaky.md) | khi cần | Case FAIL **không ổn định** giữa các lần chạy — phân biệt flaky vs bug thật trước khi log |
 | [`phase1/dimensions/*.md`](phase1/dimensions/) | **mở đúng chiều đang assert** | **Bước 3–5, khi viết assertion** — 15 chương định nghĩa **assert cái gì mới đủ** cho từng chiều coverage. Phase 2 dùng nhiều nhất: [`12_display`](phase1/dimensions/12_display.md) (tên cột exact · format · số cột + thứ tự · field bắt buộc · **field dẫn xuất phải KHOÁ theo nguồn**) · [`14_be_conformance`](phase1/dimensions/14_be_conformance.md) (phân biệt `null`/rỗng/thiếu key/`0`, mapping BE→UI) · [`15_security`](phase1/dimensions/15_security.md) (IDOR/mass-assignment/injection) · [`10_guard`](phase1/dimensions/10_guard.md) (403/409, chuyển trạng thái bất hợp pháp) · [`08_resilience`](phase1/dimensions/08_resilience.md) (đồng thời, callback trùng, idempotency) · [`16_perf`](phase1/dimensions/16_perf.md). Nằm dưới `phase1/` vì **chủ sở hữu** là prompt gen, nhưng nội dung là **oracle dùng cho cả hai phase** |
 | [`phase2/08_log_bug_backlog.md`](phase2/08_log_bug_backlog.md) | **BẮT BUỘC** khi log bug | **Bước cuối** — chỉ mở sau khi FAIL đã qua rerun và xác nhận là product/API bug |
@@ -30,6 +30,8 @@ Luôn truyền `TASK_ENV=profiles/<TASK_KEY>/task.env`.
 | Khi nào | Lệnh | Nó chặn/sinh ra gì |
 |---|---|---|
 | **Bước 0 — trước MỌI thứ** | `node scripts/qa/preflight_gate.js --mode phase2 --task <TASK_KEY>` | **G1** CHẶN khi thiếu input/config hỏng/testcase canonical chưa có. Chạy trước để không execute trên nền sai |
+| **Bước 0 — trước khi đọc testcase** | `npm run expected:check` | **T0 §6** CHẶN khi cột `Kết quả mong đợi` đổi so với mốc chụp lúc chốt bộ case mà KHÔNG khai lý do. Execute trên một bộ có expected vừa bị sửa lặng lẽ thì mọi verdict của lượt đó nói về một kỳ vọng khác với bộ đã duyệt |
+| **Bước 0 — trước khi đọc testcase** | `npm run canonical:drift:enforce` | CHẶN khi bản xuất `.xlsx` đã đi TRƯỚC Markdown canonical (QA sửa tay trên Sheet, hoặc có case chỉ tồn tại ở bản xuất). Phase 2 đọc `*.md` cho rẻ token, nên Markdown trôi nghĩa là lượt này chạy bộ CŨ. Hướng ngược lại (Markdown mới hơn, chưa xuất lại) chỉ cảnh báo |
 | Sau khi có kết quả execute | `npm run unit:stamp` | Mọi verdict ĐÃ CHẠY phải khai ĐƠN VỊ đã đo. Một task trải trên nhiều đơn vị thì kỳ vọng của đơn vị này không chấm được case của đơn vị khác |
 | Sau khi có kết quả execute | `npm run gate:output` | **G2** CHẶN output sai chuẩn: FAIL thiếu tầng lỗi, oracle rỗng/tautology, evidence không phải ảnh/video, kết luận mapping ở mức "có dữ liệu" |
 | Trước khi log bug | `npm run decisions:check` | Tra `knowledge/decisions/` — triệu chứng này đã từng bị kết luận *không phải bug* chưa? Chống log lại đúng thứ đã Rejected |
@@ -74,7 +76,7 @@ Phạm vi:
 - Module/Feature: [MODULE_FEATURE]
 - Task key/scope folder: [TASK_KEY]
 - Site/ứng dụng liên quan: [TEN_SITE hoặc N/A]
-- Nguồn testcase: Google Sheet (agent tải bản mới nhất về `test-cases/from-sheet/*.xlsx` qua Drive MCP trước execute)
+- Nguồn testcase: `test-cases/*.md`
 - Đồng bộ kết quả lên Sheet sau execute: [PUSH_EXECUTION = confirm (mặc định, QA duyệt preview rồi mới ghi đè Sheet) | auto | 0]
 
 Input links: (lấy từ profile của task — profiles/[TASK_KEY].env; chỉ điền trực tiếp ở đây khi muốn override profile)
@@ -92,11 +94,11 @@ Run profile (chạy song song an toàn):
 - Chi tiết: QUICKSTART.md (mục Parallel Story Safety).
 
 Input artifacts:
-- Nguồn testcase: **Google Sheet** (đã publish ở Phase 1) → agent `download_file_content` qua Drive MCP TRƯỚC khi execute (dùng `GOOGLE_SHEET_URL` trong `profiles/[TASK_KEY]/task.env`), ghi vào canonical local `test-cases/from-sheet/*.xlsx`. Cột/định dạng giữ đúng Excel canonical nên parser không phân biệt nguồn tải về.
+- Nguồn testcase: `test-cases/*.md` — xem Bước 0.
 - Testcase folder:
   `<PROJECT_OUTPUT_DIR>/tasks/[TASK_KEY]/test-cases/`
-- Testcase Excel source of truth:
-  `<PROJECT_OUTPUT_DIR>/tasks/[TASK_KEY]/test-cases/from-sheet/*.xlsx` (tải về từ Google Sheet qua Drive MCP)
+- Testcase source of truth (nội dung):
+  `<PROJECT_OUTPUT_DIR>/tasks/[TASK_KEY]/test-cases/*.md`
 - Requirement/context folder:
   `<PROJECT_OUTPUT_DIR>/tasks/[TASK_KEY]/requirements/`
 - Phase 1 summary report:
@@ -132,7 +134,7 @@ Parallel story safety:
 
 Nguyên tắc tiết kiệm token:
 - Phase 2 dùng canonical local (`reports/phase1-summary.md`, `task.md`, Excel testcase từ Sheet) làm source of truth cho TC ID/steps/expected; chỉ fetch lại Backlog/tài liệu nguồn/Figma/Swagger khi cần xác minh expected/spec.
-- Nguồn execute: tải Google Sheet MỘT lần qua Drive MCP về canonical local `test-cases/from-sheet/*.xlsx`, rồi execute từ file đó y như Excel thường — không gọi Sheet/Backlog cho từng case lúc execute (token thấp + offline được sau khi đã tải).
+- Nguồn execute: `test-cases/*.md`, đọc file local — không gọi Sheet/Backlog cho từng case.
 - Đọc testcase theo index/TC ID/module trước, chỉ mở full file khi selected scope yêu cầu.
 - Không paste full Playwright report, trace, DOM, network log hoặc `results.json` vào chat/report; trích lỗi chính và lưu artifact local.
 - Chạy targeted test trước theo selected TC IDs/spec/endpoint. Chỉ chạy full suite khi `Execution mode = ALL_TESTCASES`, sửa shared helper/auth/setup, hoặc cần kiểm regression rộng.
@@ -199,10 +201,10 @@ Trước khi execute, phải rà soát prompt/template/executor hiện tại và
 
 ## Thứ tự Phase 2 bắt buộc
 
-0. **Nguồn testcase** — tải Google Sheet về canonical local trước khi execute:
-   Agent `mcp__claude_ai_Google_Drive__download_file_content` file Sheet theo `GOOGLE_SHEET_URL` trong `profiles/[TASK_KEY]/task.env` → ghi `test-cases/from-sheet/[TASK_KEY]_from_sheet.xlsx` → kiểm tra số TC/steps đúng kỳ vọng. Yêu cầu Phase 1 ĐÃ publish testcase lên Sheet (`GOOGLE_SHEET_URL` đã có trong profile); chưa có thì publish trước (`.agent/workflows/phase1_04_auto_publish_backlog.md`), hoặc tạm dùng `test-cases/*.xlsx` local nếu chưa cần publish. Nếu report cảnh báo TC thiếu steps thì DỪNG và báo user. Từ Bước 1 trở đi, "Excel canonical" = file `from-sheet/*.xlsx`.
+0. **Nguồn testcase** — đọc `test-cases/*.md` (Markdown canonical, rẻ token hơn `.xlsx`).
+   Chạy `npm run canonical:drift:enforce` TRƯỚC khi đọc. Không trôi thì đọc Markdown, đi tiếp. Bản xuất đi trước thì tải Sheet về `test-cases/from-sheet/[TASK_KEY]_from_sheet.xlsx` (`mcp__claude_ai_Google_Drive__download_file_content`, `GOOGLE_SHEET_URL` trong `profiles/[TASK_KEY]/task.env`), mang phần sửa về Markdown, rồi mới chạy: đọc Markdown đã trôi là chạy bộ CŨ, verdict sẽ nói về một bộ case không còn. TC thiếu steps thì DỪNG và báo user.
 1. Đọc `reports/phase1-summary.md` và `task.md` trước để xác định scope, coverage, testcase Excel files và rủi ro.
-2. Đọc reviewed testcase từ nguồn canonical local (`test-cases/from-sheet/*.xlsx`, hoặc `test-cases/*.xlsx` nếu chưa publish) theo selected TC IDs/module; nếu chạy toàn bộ thì lập danh sách TC trước rồi mở Markdown liên quan khi cần Setup Strategy chi tiết.
+2. Đọc reviewed testcase từ `test-cases/*.md` theo selected TC IDs/module (hoặc từ `test-cases/from-sheet/*.xlsx` nếu Bước 0 phải kéo Sheet về); nếu chạy toàn bộ thì lập danh sách TC trước rồi mở đúng phần cần khi cần Setup Strategy chi tiết.
 3. Generate/update Playwright automation scripts nếu missing hoặc stale; mặc định sinh task-scoped automation dưới `<PROJECT_OUTPUT_DIR>/tasks/[TASK_KEY]/automation/`, chỉ sửa/generate spec/helper bị ảnh hưởng.
    Nếu cần sửa shared file, áp dụng `Shared Change Gate` trước.
    **MỞ NGAY BÂY GIỜ** (không viết script trước rồi mới đọc): [`phase2/04_execute_fe_playwright.md`](phase2/04_execute_fe_playwright.md) nếu scope có case UI, và/hoặc [`phase2/05_execute_api_playwright.md`](phase2/05_execute_api_playwright.md) nếu có case API. Hai file đó là nơi chứa kỷ luật execute (khoanh tầng lỗi FE/BE, oracle mapping nêu cả hai giá trị, `ui_conformance_check`, **5 trục mở rộng quanh case**, chuẩn evidence) — thiếu chúng thì script vẫn chạy nhưng bug hiển thị/mapping sẽ lọt.

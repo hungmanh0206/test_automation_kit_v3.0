@@ -88,7 +88,7 @@ Mục tiêu:
 - Chỉ chạy khi có Human Review approve.
 - Merge testcase theo lifecycle đã approve.
 - Export/update Excel nếu testcase chính thay đổi.
-- **Re-publish Google Sheet**: Excel canonical đã merge TC `UPDATED` + `NEW` → agent `update_file` qua Drive MCP ghi đè toàn workbook (không cần dedup theo key riêng, không có khái niệm folder).
+- **Re-publish Google Sheet**: bản xuất Excel đã merge TC `UPDATED` + `NEW` → agent `update_file` qua Drive MCP ghi đè toàn workbook (không cần dedup theo key riêng, không có khái niệm folder).
 - Chọn subset execute: testcase `NEW`, `UPDATED`, và testcase bị ảnh hưởng. Execute từ bản Sheet mới nhất (tải lại qua Drive MCP về canonical local).
 - Không chạy full regression mặc định.
 - Execute thật subset đã chọn.
@@ -149,7 +149,7 @@ Nếu testcase baseline đã từng publish lên Google Sheet và Apply Approved
 
 - **Re-publish (Step 2b) chạy TRƯỚC bất kỳ cleanup nào** — `update_file` ghi đè toàn workbook nên TC mới/update đã có trong lần ghi đè đó; case bị bỏ khỏi Excel cũng tự động biến mất khỏi Sheet ngay lần ghi đè này, không cần bước "deprecate" riêng như công cụ test-management cũ.
 - Chạy `partial-rerun/run_testcase_cleanup.md` chỉ khi còn việc unlink Test khỏi Story/Task trên Backlog — không còn việc đổi trạng thái case trên TMS (Sheet không có `caseStatus`).
-- Không có khái niệm xoá/deprecate case trên Sheet — Excel canonical luôn là nguồn, Sheet chỉ phản chiếu đúng Excel sau mỗi lần re-publish.
+- Không có khái niệm xoá/deprecate case trên Sheet — Markdown canonical luôn là nguồn, bản xuất Excel sinh từ nó, và Sheet phản chiếu đúng bản xuất sau mỗi lần re-publish.
 - Unlink stale Test khỏi Story/Task là optional, chỉ bật khi QA yêu cầu.
 - Excel vẫn là source of truth khi cleanup; Sheet là bản đồng bộ hiển thị.
 

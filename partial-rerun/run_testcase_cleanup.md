@@ -4,7 +4,7 @@
 
 ## Purpose
 
-Trên Google Sheet trước đây, "cleanup" nghĩa là đổi `caseStatus` case bị bỏ khỏi Excel sang `Deprecated` (không có API xoá). **Trên Google Sheet, việc này không còn cần thiết**: mỗi lần re-publish (`update_file` qua Drive MCP) là ghi đè **toàn bộ workbook** theo đúng Excel canonical hiện tại — case nào không còn trong Excel thì tự động không còn trong Sheet ở lần ghi đè kế tiếp, không cần bước trung gian nào.
+Trên Google Sheet trước đây, "cleanup" nghĩa là đổi `caseStatus` case bị bỏ khỏi Markdown canonical sang `Deprecated` (không có API xoá). **Trên Google Sheet, việc này không còn cần thiết**: mỗi lần re-publish (`update_file` qua Drive MCP) là ghi đè **toàn bộ workbook** theo đúng Excel canonical hiện tại — case nào không còn trong Excel thì tự động không còn trong Sheet ở lần ghi đè kế tiếp, không cần bước trung gian nào.
 
 **Vì vậy: sau khi merge testcase đã approve (`partial-rerun/run_requirement_apply_approved.md` Step 2b), chỉ cần re-publish là đủ — không cần chạy prompt này để "dọn" case cũ.**
 
@@ -36,13 +36,13 @@ Nếu `TASK_KEY` không khớp yêu cầu user, dừng ngay.
 
 Kiểm tra:
 
-- `<TASK_OUTPUT_DIR>/test-cases/*.xlsx` (Excel canonical hiện tại)
+- `<TASK_OUTPUT_DIR>/test-cases/*.xlsx` (bản xuất Excel hiện tại) và `*.md` (Markdown canonical)
 - `GOOGLE_SHEET_URL` trong `profiles/<TASK_KEY>/task.env` (đã publish trước đó chưa)
 - `<TASK_OUTPUT_DIR>/change/regen/merge-summary.md` nếu cleanup đến từ partial rerun (danh sách TC bị bỏ)
 
 ### Step 2: Xác nhận Sheet đã đúng Excel
 
-- So `GOOGLE_SHEET_URL` (`search_files`/`read_file_content` qua Drive MCP) với Excel canonical hiện tại — nếu chưa re-publish, làm Step 2b của `run_requirement_apply_approved.md` trước.
+- So `GOOGLE_SHEET_URL` (`search_files`/`read_file_content` qua Drive MCP) với bản xuất Excel hiện tại — nếu chưa re-publish, làm Step 2b của `run_requirement_apply_approved.md` trước.
 - Case bị bỏ khỏi Excel mà vẫn còn trên Sheet ⇒ chưa re-publish, không phải lỗi cleanup.
 
 ### Step 3: Unlink (nếu QA yêu cầu)
@@ -51,7 +51,7 @@ Ghi rõ trong report: TC ID nào bị bỏ, có liên kết Story/Task nào cầ
 
 ## Rules
 
-- Excel là source of truth cho testcase active — Sheet chỉ phản chiếu đúng Excel sau mỗi lần re-publish.
+- Markdown canonical là source of truth cho testcase active — bản xuất Excel sinh từ nó, và Sheet phản chiếu đúng bản xuất đó sau mỗi lần re-publish.
 - Không "xoá" gì trên Sheet theo nghĩa API riêng — ghi đè toàn workbook là cơ chế duy nhất.
 - Không log Backlog bug từ partial rerun.
 
@@ -66,7 +66,7 @@ Ghi rõ trong report: TC ID nào bị bỏ, có liên kết Story/Task nào cầ
 
 Trả lời ngắn:
 
-- Sheet đã khớp Excel canonical hay chưa (đã re-publish chưa).
+- Sheet đã khớp bản xuất Excel hay chưa (đã re-publish chưa).
 - Unlink Backlog đã làm (nếu có) hoặc xác nhận không cần.
 - Đường dẫn cleanup summary nếu có.
 - Blocker nếu có.

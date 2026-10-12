@@ -289,18 +289,53 @@ if (fs.existsSync(SKILLS_DIR)) {
     if (st.isDirectory()) { for (const f of fs.readdirSync(p)) collect(path.join(p, f)); return; }
     if (!/\.(md|js|mjs|ts|json|ya?ml)$/.test(p)) return;
     if (path.basename(p) === 'package.json' || path.basename(p) === 'CHANGELOG.md') return;
-    try { corpus.push(fs.readFileSync(p, 'utf8')); } catch (e) { /* bỏ qua file đọc lỗi */ }
+    try { corpus.push({ p: path.relative(rc.REPO_ROOT, p).replace(/\\/g, '/'), txt: fs.readFileSync(p, 'utf8') }); } catch (e) { /* bỏ qua file đọc lỗi */ }
   };
   for (const r of SEARCH_ROOTS) collect(path.join(rc.REPO_ROOT, r));
   for (const f of SEARCH_FILES) collect(path.join(rc.REPO_ROOT, f));
   // Thân của script khác cũng tính (vd `pretest` được gọi bởi `test`) — nếu không thì báo oan hàng loạt.
   const bodies = Object.values(scripts).join('\n');
-  const blob = `${corpus.join('\n')}\n${bodies}`;
   // Script vòng đời npm do CHÍNH npm gọi, không tài liệu nào cần trỏ tới ⇒ miễn, nếu không thì báo oan ngay
   // lần đầu ai đó thêm `prepare`/`postinstall`. Đây là ca báo oan DUY NHẤT đoán trước được; ca khác thì để gate
   // kêu rồi xử lý theo từng ca, đừng nới allowlist cho êm.
   const LIFECYCLE = new Set(['prepare', 'preinstall', 'install', 'postinstall', 'prepublishOnly', 'prepack', 'postpack', 'start']);
-  const orphanNpm = Object.keys(scripts).filter((k) => !LIFECYCLE.has(k) && !blob.includes(k));
+  /*
+   * ĐIỂM MÙ ĐÃ SỬA 12/10/2026: trước đây so tên lệnh với `blob` gồm CẢ thân của chính nó.
+   *
+   * `"judge": "node scripts/qa/judge.js"` ⇒ chuỗi `judge` nằm trong thân của chính nó ⇒ luôn "có nơi
+   * nhắc tới", kể cả khi không tài liệu nào trỏ. Mọi tên lệnh MỘT TỪ trùng tên file đều tự thoả mãn như
+   * vậy, và đó đúng là nhóm tên dễ bị bỏ quên nhất. `golden:snapshot` bị bắt chỉ vì có dấu hai chấm.
+   *
+   * Nên mỗi lệnh được so với blob ĐÃ TRỪ thân của chính nó. Thân của lệnh KHÁC vẫn tính, vì `pretest`
+   * được gọi từ `test` là một đường gọi thật.
+   */
+  /*
+   * MỖI LỆNH ĐƯỢC SO VỚI NGỮ LIỆU ĐÃ TRỪ CHÍNH NÓ — cả thân lệnh lẫn FILE mà lệnh đó gọi.
+   *
+   * Điểm mù sửa 12/10/2026: `SEARCH_ROOTS` gồm `scripts/`, nên nội dung `scripts/qa/judge.js` nằm trong
+   * ngữ liệu, và tên lệnh `judge` khớp chính nó ⇒ luôn "có nơi nhắc tới" kể cả khi không tài liệu nào
+   * trỏ. Mọi lệnh MỘT TỪ trùng tên file đều tự thoả mãn như vậy, và đó đúng là nhóm dễ bị bỏ quên nhất.
+   * `golden:snapshot` bị bắt chỉ vì tên nó có dấu hai chấm nên không nằm trong file nào.
+   *
+   * Thân của lệnh KHÁC vẫn tính (`pretest` được gọi từ `test` là một đường gọi thật), và file của lệnh
+   * khác cũng tính.
+   */
+  const fileCua = (cmd) => {
+    const m = String(cmd).match(/(?:scripts|tests|tools)[^\s'"]*\.(?:js|mjs|ts)/);
+    return m ? m[0].replace(/\\/g, '/') : null;
+  };
+  const orphanNpm = Object.keys(scripts).filter((k) => {
+    if (LIFECYCLE.has(k)) return false;
+    const tu = fileCua(scripts[k]);
+    for (const c of corpus) {
+      if (tu && c.p === tu) continue;             /* file của CHÍNH lệnh này không tính */
+      if (c.txt.includes(k)) return false;
+    }
+    for (const [ten, v] of Object.entries(scripts)) {
+      if (ten !== k && String(v).includes(k)) return false;
+    }
+    return true;
+  });
   if (orphanNpm.length) {
     problems.push(`${orphanNpm.length} npm script KHÔNG nơi nào nhắc tới (không prompt/rule/skill/workflow/README/CI nào trỏ) ⇒ sẽ không ai chạy, và thứ nó gác sẽ lặng lẽ không xảy ra: ${orphanNpm.join(', ')}. Trỏ nó từ điểm vào đang cần, hoặc xoá nếu đã hết dùng.`);
   } else {
