@@ -110,6 +110,30 @@ test.describe('@infra expected:check — bắt được thay đổi expected', (
   });
 });
 
+test.describe('@infra expected:check — cờ `--task` phải THẮNG env', () => {
+  /*
+   * LỖ NÀY DO `gate:selfmutate` TÌM RA (§A10.6). Nó nới `i >= 0` trong hàm đọc cờ `val()` lên một ngưỡng
+   * không bao giờ chạm tới — tức MỌI cờ dòng lệnh bị bỏ qua — và cả bộ spec vẫn XANH.
+   *
+   * Nguyên nhân: mọi test ở đây truyền CẢ cờ `--task` LẪN env `TASK_KEY` cùng một giá trị, nên env gánh
+   * thay khi cờ chết. Hợp đồng thật là cờ THẮNG env (`val('task', process.env.TASK_KEY)`), và nó chưa
+   * từng được đo. Chuyện này có hệ quả thật: một shell còn `TASK_KEY` của task cũ thì `--task` của lượt
+   * mới bị bỏ qua, và gate đi gác task SAI mà không ai báo.
+   */
+  test('env trỏ task KHÔNG tồn tại, cờ trỏ task thật ⇒ gate gác theo CỜ', () => {
+    const t = dungTask(bo([{ id: 'CSDL_HSTRUONG_TC_001', expected: '1. Màn mở được' }]));
+    const r = spawnSync(process.execPath, [MAY, '--task', 'T-EXP', '--snapshot'], {
+      cwd: REPO, encoding: 'utf8',
+      env: { ...gateEnv(), PROJECT_OUTPUT_DIR: t.goc, TASK_KEY: 'T-KHONG-CO-THAT' },
+    });
+    const ra = `${r.stdout}${r.stderr}`;
+    expect(ra, 'cờ `--task` bị bỏ qua thì gate rơi về env và đi gác task không tồn tại')
+      .not.toContain('T-KHONG-CO-THAT');
+    expect(fs.existsSync(path.join(t.taskDir, 'test-results', 'expected-ledger.json')),
+      'chụp được mốc nghĩa là gate đã đọc đúng task từ cờ').toBe(true);
+  });
+});
+
 test.describe('@infra expected:check — "chưa gác được" KHÔNG thành "đạt"', () => {
   test('chưa có mốc ⇒ exit 2 ("không phán được"), KHÔNG phải exit 0', () => {
     /*

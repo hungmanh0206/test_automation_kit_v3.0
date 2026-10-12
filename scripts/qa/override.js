@@ -33,11 +33,28 @@ const VAI_TRO = ['QA-Lead', 'PO', 'Dev-Lead'];
 const TOI_THIEU_LY_DO = 20;
 const HAN_MAC_DINH_NGAY = 30;
 
-const docAn = (p) => { try { return fs.readFileSync(p, 'utf8'); } catch (e) { return ''; } };
+/*
+ * Đọc `gate_codes.json` — KHÔNG nuốt lỗi, cố ý.
+ *
+ * Chỗ này trước đây là một `docAn` nuốt im lặng và trả chuỗi rỗng. `gate:selfmutate` tìm ra nó: đổi nhánh
+ * `catch` mà cả bộ spec vẫn xanh. Vá đúng không phải là thêm một test cho nhánh chết, mà là BỎ nhánh đó —
+ * override cần biết tầng của mã để từ chối T0, nên không đọc được bảng mã thì phải DỪNG, không phải chạy
+ * tiếp với một bảng rỗng rồi báo "mã không có thật" (đúng hướng an toàn, nhưng vì lý do sai và lời báo sai).
+ */
+function docBangMa() {
+  const p = path.join(REPO, '.agent', 'config', 'gate_codes.json');
+  let txt;
+  try { txt = fs.readFileSync(p, 'utf8'); } catch (e) {
+    throw new Error(`override: KHÔNG đọc được .agent/config/gate_codes.json (${e.code || e.message}). Không biết tầng của mã thì không được cấp miễn trừ.`, { cause: e });
+  }
+  try { return JSON.parse(txt); } catch (e) {
+    throw new Error(`override: .agent/config/gate_codes.json SAI cú pháp JSON (${e.message}).`, { cause: e });
+  }
+}
 
 /** Tầng của một mã, đọc từ `gate_codes.json` — một nguồn với §A5. */
 function tangCuaMa(ma) {
-  const cfg = JSON.parse(docAn(path.join(REPO, '.agent', 'config', 'gate_codes.json')) || '{}');
+  const cfg = docBangMa();
   const ds = Array.isArray(cfg) ? cfg : (cfg.codes || []);
   const m = ds.find((x) => String(x.code).toUpperCase() === String(ma).toUpperCase());
   return m ? { tang: m.tang, y: m.y, co_that: true } : { tang: null, co_that: false };

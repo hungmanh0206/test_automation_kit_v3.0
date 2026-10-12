@@ -149,6 +149,54 @@ test.describe('@infra exit:gate — sổ nợ T1 quay lại ở cửa ra', () =>
   });
 });
 
+test.describe('@infra exit:gate — ĐƯỜNG CHẶN chạy end-to-end', () => {
+  /*
+   * LỖ NÀY DO `gate:selfmutate` TÌM RA (§A10.6). Nó đảo `if (chanVi.length)` thành `if (!chanVi.length)`
+   * — tức cửa ra CHO QUA khi có lý do chặn và CHẶN khi không có — và cả bộ spec của exit_gate vẫn XANH.
+   *
+   * Nguyên nhân: spec cũ chỉ kiểm config, `kiemDauVet` và `noConLai`. Hành vi QUAN TRỌNG NHẤT của cửa
+   * ra — rằng nó chặn — chưa từng được chạy end-to-end một lần nào.
+   */
+  test('sổ nợ còn món ⇒ cửa `publish` exit 1, và KHÔNG ghi dấu vết', () => {
+    const t = taskTam();
+    // eslint-disable-next-line @typescript-eslint/no-var-requires, global-require
+    const gt = require(path.join(REPO, 'scripts/qa/lib/gate_tier.js'));
+    gt.ghiSoNo(t.taskDir, 'dim:coverage', [{ ma: 'DIM_15', tcId: 'CSDL_HSTRUONG_TC_007', thong_diep: 'thiếu chiều Security' }], { nguCanh: 'phase' });
+
+    const r = chay(['--cua', 'publish', '--task', 'T-EXIT'], t.goc);
+    expect(r.status, 'sổ nợ còn món thì cửa PHẢI chặn').toBe(1);
+    expect(`${r.stdout}`).toContain('CHẶN ở cửa "publish"');
+    expect(fs.existsSync(path.join(t.taskDir, 'reports', 'exit-gate-publish.json')),
+      'bị chặn thì KHÔNG được ghi dấu vết qua cửa').toBe(false);
+  });
+
+  test('bảng sổ nợ in ĐÚNG TC ID của món nợ', () => {
+    /*
+     * Mutant `DOI_TEN_TRUONG` (`m.tcId` → `m.id`) sống sót vì không spec nào đọc dòng này. Một dòng sổ
+     * nợ không có TC ID thì người đọc không biết phải sửa case nào.
+     */
+    const t = taskTam();
+    // eslint-disable-next-line @typescript-eslint/no-var-requires, global-require
+    const gt = require(path.join(REPO, 'scripts/qa/lib/gate_tier.js'));
+    gt.ghiSoNo(t.taskDir, 'dim:coverage', [{ ma: 'DIM_15', tcId: 'CSDL_HSTRUONG_TC_042', thong_diep: 'thiếu chiều' }], { nguCanh: 'phase' });
+    const r = chay(['--cua', 'publish', '--task', 'T-EXIT'], t.goc);
+    expect(`${r.stdout}`, 'dòng sổ nợ phải nêu TC ID').toContain('CSDL_HSTRUONG_TC_042');
+  });
+
+  test('`--task` dạng CỜ hoạt động một mình, không cần env', () => {
+    /*
+     * Mutant `BO_NGUONG` nới `i >= 0` trong hàm đọc cờ `val()` lên một số không bao giờ chạm tới, tức
+     * MỌI cờ dòng lệnh bị bỏ qua. Nó sống sót ở `expected_ledger` và `canonical_drift` vì spec của
+     * chúng truyền CẢ cờ lẫn env, nên env gánh thay.
+     */
+    const t = taskTam();
+    const r = spawnSync(process.execPath, [MAY, '--liet-ke'], { cwd: REPO, encoding: 'utf8', env: gateEnv() });
+    expect(r.status).toBe(0);
+    expect(`${r.stdout}`, 'cờ `--liet-ke` phải được đọc').toContain('BA CỬA RA');
+    expect(fs.existsSync(t.taskDir)).toBe(true);
+  });
+});
+
 test.describe('@infra exit:gate — dấu vết qua cửa, và đường né thật', () => {
   function datDauVet(taskDir: string, ten: string, sua: Record<string, unknown> = {}) {
     const dauVao = eg.bamDauVao(taskDir);

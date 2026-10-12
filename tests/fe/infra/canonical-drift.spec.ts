@@ -64,6 +64,29 @@ function chay(goc: string, them: string[] = []) {
   });
 }
 
+test.describe('@infra canonical:drift — cờ `--task` phải THẮNG env', () => {
+  /*
+   * LỖ NÀY DO `gate:selfmutate` TÌM RA (§A10.6). Nó nới `i >= 0` trong hàm đọc cờ `val()` lên một ngưỡng
+   * không bao giờ chạm tới — tức MỌI cờ dòng lệnh bị bỏ qua — và cả bộ spec vẫn XANH.
+   *
+   * Nguyên nhân: mọi test ở đây truyền CẢ cờ `--task` LẪN env `TASK_KEY` cùng một giá trị, nên env gánh
+   * thay khi cờ chết. Hợp đồng thật là cờ THẮNG env (`val('task', process.env.TASK_KEY)`), và nó chưa
+   * từng được đo. Chuyện này có hệ quả thật: một shell còn `TASK_KEY` của task cũ thì `--task` của lượt
+   * mới bị bỏ qua, và gate đi gác task SAI mà không ai báo.
+   */
+  test('env trỏ task KHÔNG tồn tại, cờ trỏ task thật ⇒ gate gác theo CỜ', () => {
+    const t = dungTask(boMd([dongMd('CSDL_HSTRUONG_TC_001')]), null);
+    const r = spawnSync(process.execPath, [MAY, '--task', 'T-DRIFT', '--json'], {
+      cwd: REPO, encoding: 'utf8',
+      env: { ...gateEnv(), PROJECT_OUTPUT_DIR: t.goc, TASK_KEY: 'T-KHONG-CO-THAT' },
+    });
+    const ra = `${r.stdout}${r.stderr}`;
+    expect(ra, 'cờ `--task` bị bỏ qua thì gate rơi về env và đi gác task không tồn tại')
+      .not.toContain('T-KHONG-CO-THAT');
+    expect(ra, 'đọc được task từ cờ thì gate phải nói về task đó').toMatch(/T-DRIFT|CSDL_HSTRUONG_TC_001|CHUA_CO/);
+  });
+});
+
 test.describe('@infra canonical:drift — chuẩn hoá trước khi so, không so chuỗi thô', () => {
   test('`chuan` gộp khoảng trắng và NFC, nhưng KHÔNG đổi nội dung', () => {
     expect(drift.chuan('  a   b  ')).toBe('a b');
