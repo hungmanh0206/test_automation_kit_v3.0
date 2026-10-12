@@ -168,6 +168,8 @@
     "gate:selfmutate": "node scripts/qa/gate_selfmutate.js",
     "gate:code-pair": "node scripts/qa/gate_code_pair.js",
     "gate:code-pair:enforce": "node scripts/qa/gate_code_pair.js --enforce",
+    "cleanup:check": "node scripts/qa/cleanup_check.js",
+    "cleanup:check:enforce": "node scripts/qa/cleanup_check.js --enforce",
     "golden:check": "node scripts/qa/golden_check.js",
     "golden:snapshot": "node scripts/qa/golden_check.js --write --toi-da-doi-parser",
     "rule:coverage": "node scripts/qa/rule_coverage.js --write",

@@ -68,6 +68,11 @@ jobs:
       - name: Bộ dữ liệu vàng của parser canonical (golden:check)
         run: npm run golden:check
 
+      # §Cleanup Rules là mục luật DUY NHẤT mà `rule:coverage` xếp loại "đo được mà chưa có máy". Dump
+      # swagger/API sót ở root thường chứa email/SĐT trong giá trị mẫu — một lần `git add .` là lộ PII.
+      - name: Dump ad-hoc không còn ở root repo (cleanup:check --enforce)
+        run: npm run cleanup:check:enforce
+
       # Ngân sách token cho hướng dẫn của chính kit. Ngưỡng ở .agent/config/prompt_budget.json, đo theo
       # lời khai bat_buoc trong load_map.json. Chốt chống trôi: tài liệu phình lại bằng cách mỗi lần
       # thêm vài dòng hợp lý, và không gì ghi lại việc đó.

@@ -30,8 +30,8 @@
     },
     {
       "ten": "Cleanup Rules",
-      "loai": "do_duoc_ma_chua_co_may",
-      "ghi_chu": "ĐÂY LÀ LỖ THẬT, và là phát hiện đầu tiên của chính bản đồ này. Mục luật liệt kê hẳn một bảng pattern (`*_debug.txt`, `scratch_*`…) và nói rõ nó ĐÃ XẢY RA: nhiều file dump API và swagger sót ở root repo sau một task, chưa gitignore, và các dump đó thường chứa email/SĐT. Quét root repo theo bảng pattern là phép đo hiển nhiên, mà `grep -rl 'scratch_|_debug.txt' scripts/` không ra máy nào. `secret:scan` không thay được: nó tìm secret trong nội dung, không tìm file dump lọt chỗ."
+      "loai": "co_may_khong_nhac_ten",
+      "ghi_chu": "Mục này từng là mục DUY NHẤT thuộc loại `do_duoc_ma_chua_co_may`, và chính nhãn đó dẫn tới việc viết `cleanup:check` (v2.7.0). Máy quét root repo và subfolder CẤP 1 theo đúng bảng pattern của luật (`scratch_*`, `*_debug.txt`, `*.tmp`, `page_snapshot.md`…), bỏ qua đúng bảng \"Không xóa\" (`outputs/`, `node_modules/`, `*.config.ts`, `package.json`). Chạy `--enforce` ở cả hai CI. `secret:scan` không thay được: nó tìm secret trong NỘI DUNG, còn một dump swagger không chứa secret nào vẫn là rác lọt lưới mang email/SĐT trong giá trị mẫu. Mục luật không nhắc tên lệnh nên phép nối theo tên vẫn không thấy."
     },
     {
       "ten": "Examples",

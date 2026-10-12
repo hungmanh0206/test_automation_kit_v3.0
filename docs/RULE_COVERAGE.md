@@ -18,13 +18,13 @@ Ví dụ cụ thể: `secret:scan` chặn theo mục Security mà mục đó kh�
 không nhắc tên. Đã đo trên bản máy của `gate:policy`: đòi luật canonical nhắc TÊN mọi lệnh thì **19/24
 script báo oan**. Nên con số `chưa nối được` ở dưới là **việc cần rà**, không phải một lỗ đã chứng minh.
 
-Nguồn: `RULE_GLOBAL.md` (34 mục có nội dung) · 108 gate · 120 spec hạ tầng.
+Nguồn: `RULE_GLOBAL.md` (34 mục có nội dung) · 109 gate · 121 spec hạ tầng.
 
 ## Mục luật ĐÃ nối được gate (28)
 
 | Mục luật | Gate thi hành | Spec canh gate |
 |---|---|---|
-| Purpose | `rule` · `report` | `api-card.spec.ts` · `backlog-bug-images.spec.ts` · `bug-layer-gate.spec.ts` +51 |
+| Purpose | `rule` · `report` | `api-card.spec.ts` · `backlog-bug-images.spec.ts` · `bug-layer-gate.spec.ts` +52 |
 | When To Use | `report` | `autofix.spec.ts` · `backlog-bug-images.spec.ts` · `bug-claim.spec.ts` +34 |
 | Inputs | `profile:create` | `start-command.spec.ts` |
 | Outputs | `report` | `autofix.spec.ts` · `backlog-bug-images.spec.ts` · `bug-claim.spec.ts` +34 |
@@ -33,25 +33,25 @@ Nguồn: `RULE_GLOBAL.md` (34 mục có nội dung) · 108 gate · 120 spec hạ
 | Security | `gate:output` · `report` | `check-command.spec.ts` · `dimension-threshold.spec.ts` · `evidence-quality.spec.ts` +38 |
 | Project And Output | `report` | `autofix.spec.ts` · `backlog-bug-images.spec.ts` · `bug-claim.spec.ts` +34 |
 | Parallel Story Safety | `report` | `autofix.spec.ts` · `backlog-bug-images.spec.ts` · `bug-claim.spec.ts` +34 |
-| Phase-Separated Story Execution | `merge:execution-status` · `canonical:drift` · `check` · `expected:check` · `load` · `gate:policy` · `ledger:check` · `risk` · `report` | `canonical-drift.spec.ts` · `expansion-gates.spec.ts` · `manual-run-gate.spec.ts` +90 |
+| Phase-Separated Story Execution | `merge:execution-status` · `canonical:drift` · `check` · `expected:check` · `load` · `gate:policy` · `ledger:check` · `risk` · `report` | `canonical-drift.spec.ts` · `expansion-gates.spec.ts` · `manual-run-gate.spec.ts` +91 |
 | Task-Scoped Automation Code | `report` | `autofix.spec.ts` · `backlog-bug-images.spec.ts` · `bug-claim.spec.ts` +34 |
-| Shared Change Gate | `dim:coverage` · `domain:check` · `rule` · `secret:scan` | `config-presence.spec.ts` · `dimension-threshold.spec.ts` · `discovery-injection.spec.ts` +35 |
+| Shared Change Gate | `dim:coverage` · `domain:check` · `rule` · `secret:scan` | `config-presence.spec.ts` · `dimension-threshold.spec.ts` · `discovery-injection.spec.ts` +36 |
 | Automation Promote Review | `report` | `autofix.spec.ts` · `backlog-bug-images.spec.ts` · `bug-claim.spec.ts` +34 |
-| Analysis & Ambiguity Gate (Phase 1 — đọc kỹ, hỏi trước khi gen) | `rule` · `report` | `api-card.spec.ts` · `backlog-bug-images.spec.ts` · `bug-layer-gate.spec.ts` +51 |
-| Chiều coverage (Phase 1 — khai phạm vi, gắn tag, có máy đếm) | `dim:coverage` · `domain:check` · `rule` | `config-presence.spec.ts` · `dimension-threshold.spec.ts` · `discovery-injection.spec.ts` +34 |
-| 5 trục mở rộng quanh case + luật đóng vòng (Phase 2 — có máy đứng sau) | `check` · `xsurf:diff` · `design:gate` · `discover` · `expansion:audit` · `expansion:plan` · `ui:contract` · `fixture:matrix` · `lane` · `leak:report` · `load` · `mutation:check` · `probe:persist` · `risk` · `rule` · `self-review` · `spec:extract` · `spec:gap` · `report` | `autofix.spec.ts` · `bug-claim.spec.ts` · `bug-retest.spec.ts` +99 |
-| Execute Results | `rule` · `report` | `api-card.spec.ts` · `backlog-bug-images.spec.ts` · `bug-layer-gate.spec.ts` +51 |
+| Analysis & Ambiguity Gate (Phase 1 — đọc kỹ, hỏi trước khi gen) | `rule` · `report` | `api-card.spec.ts` · `backlog-bug-images.spec.ts` · `bug-layer-gate.spec.ts` +52 |
+| Chiều coverage (Phase 1 — khai phạm vi, gắn tag, có máy đếm) | `dim:coverage` · `domain:check` · `rule` | `config-presence.spec.ts` · `dimension-threshold.spec.ts` · `discovery-injection.spec.ts` +35 |
+| 5 trục mở rộng quanh case + luật đóng vòng (Phase 2 — có máy đứng sau) | `check` · `xsurf:diff` · `design:gate` · `discover` · `expansion:audit` · `expansion:plan` · `ui:contract` · `fixture:matrix` · `lane` · `leak:report` · `load` · `mutation:check` · `probe:persist` · `risk` · `rule` · `self-review` · `spec:extract` · `spec:gap` · `report` | `autofix.spec.ts` · `bug-claim.spec.ts` · `bug-retest.spec.ts` +100 |
+| Execute Results | `rule` · `report` | `api-card.spec.ts` · `backlog-bug-images.spec.ts` · `bug-layer-gate.spec.ts` +52 |
 | Phân tầng lỗi FE hay BE — bắt buộc kiểm API trước khi kết luận | `load` | `agent-routing.spec.ts` · `auth-session-lock.spec.ts` · `automation-review.spec.ts` +34 |
-| Evidence — Quy chuẩn bắt buộc | `load` · `rule` · `report` | `agent-routing.spec.ts` · `auth-session-lock.spec.ts` · `automation-review.spec.ts` +73 |
-| Bug Claim Gate — kiểm chứng phải đi TRƯỚC lời nói | `bug:claim` · `check` · `report` | `bug-claim.spec.ts` · `bug-retest.spec.ts` · `autofix.spec.ts` +71 |
-| Retest một bug đã log (thêm 10/10/2026, v2.5.0 G1.8) | `bug:claim` · `check` | `bug-claim.spec.ts` · `bug-retest.spec.ts` · `autofix.spec.ts` +55 |
+| Evidence — Quy chuẩn bắt buộc | `load` · `rule` · `report` | `agent-routing.spec.ts` · `auth-session-lock.spec.ts` · `automation-review.spec.ts` +74 |
+| Bug Claim Gate — kiểm chứng phải đi TRƯỚC lời nói | `bug:claim` · `check` · `report` | `bug-claim.spec.ts` · `bug-retest.spec.ts` · `autofix.spec.ts` +72 |
+| Retest một bug đã log (thêm 10/10/2026, v2.5.0 G1.8) | `bug:claim` · `check` | `bug-claim.spec.ts` · `bug-retest.spec.ts` · `autofix.spec.ts` +56 |
 | Backlog Bug Gate | `load` | `agent-routing.spec.ts` · `auth-session-lock.spec.ts` · `automation-review.spec.ts` +34 |
-| Executable QA capabilities (autonomy & safety) | `check` · `dashboard` · `learn` · `load` · `gate:output` · `perf` · `risk` · `rule` · `security` · `report` | `autofix.spec.ts` · `bug-claim.spec.ts` · `bug-retest.spec.ts` +95 |
-| Automation quality | `auto:review` · `check` · `golden:check` · `rule` | `automation-review.spec.ts` · `expected-ledger.spec.ts` · `gate-audit.spec.ts` +68 |
+| Executable QA capabilities (autonomy & safety) | `check` · `dashboard` · `learn` · `load` · `gate:output` · `perf` · `risk` · `rule` · `security` · `report` | `autofix.spec.ts` · `bug-claim.spec.ts` · `bug-retest.spec.ts` +96 |
+| Automation quality | `auto:review` · `check` · `golden:check` · `rule` | `automation-review.spec.ts` · `expected-ledger.spec.ts` · `gate-audit.spec.ts` +69 |
 | Push execution | `merge:execution-status` | `canonical-drift.spec.ts` · `expansion-gates.spec.ts` · `manual-run-gate.spec.ts` +2 |
 | Workflow | `report` | `autofix.spec.ts` · `backlog-bug-images.spec.ts` · `bug-claim.spec.ts` +34 |
 | Chi phí một lượt chạy — đếm SỐ LƯỢT, không đếm độ dài | `prompt:budget` · `rerun:failed` · `token:audit` | `agent-routing.spec.ts` · `discovery-cli.spec.ts` · `load-map.spec.ts` +8 |
-| References | `rule` | `api-card.spec.ts` · `backlog-bug-images.spec.ts` · `bug-layer-gate.spec.ts` +24 |
+| References | `rule` | `api-card.spec.ts` · `backlog-bug-images.spec.ts` · `bug-layer-gate.spec.ts` +25 |
 
 ## Mục luật CHƯA nối được gate bằng tên lệnh (6)
 
@@ -71,5 +71,5 @@ Một ô `CHƯA RÀ` nghĩa là mục luật đó mới xuất hiện và chưa 
 | Comment kết quả (Test Execution) — Quy chuẩn trình bày | 270 | `co_may_khong_nhac_ten` | `gate:output` (`scripts/qa/output_gate.js` + `scripts/qa/lib/output_rules.js`) thi hành đúng mục này: cấm dán `key=value`, cấm dump state, cấm mở đầu bằng `[PASS]`. Mục luật mô tả yêu cầu mà không nhắc tên lệnh, nên phép nối theo tên không thấy. |
 | Reporting | 141 | `co_may_khong_nhac_ten` | Phần 'FAIL phải ghi đủ năm thứ' nằm ở `.agent/config/verdict_taxonomy.json` (`failureLayer` bắt buộc) và được `gate:output` gác. Phần 'tiếng Việt có dấu, không trộn tiếng Anh' do `writing:lint` gác trên tập tài liệu đã khai. Phần 'SKIP phải ghi điều kiện để chạy được' là chỗ yếu nhất: máy đòi có lý do, không đòi lý do đó nêu được điều kiện. |
 | Setup Strategy | 132 | `co_may_khong_nhac_ten` | Khuôn `[<method>]` của ô `Tiền điều kiện` được `scripts/lib/testcase/validate.js` kiểm và `tc:review` báo. Luật 'KHÔNG dựng state bằng DB' thì không có máy: `uatDbClient` chỉ chặn câu lệnh không phải SELECT, nên một precondition khai `[api]` mà thật ra dựng bằng SELECT + giả định vẫn lọt — chỗ này thuộc §A11. |
-| Cleanup Rules | 247 | `do_duoc_ma_chua_co_may` | ĐÂY LÀ LỖ THẬT, và là phát hiện đầu tiên của chính bản đồ này. Mục luật liệt kê hẳn một bảng pattern (`*_debug.txt`, `scratch_*`…) và nói rõ nó ĐÃ XẢY RA: nhiều file dump API và swagger sót ở root repo sau một task, chưa gitignore, và các dump đó thường chứa email/SĐT. Quét root repo theo bảng pattern là phép đo hiển nhiên, mà `grep -rl 'scratch_ _debug.txt' scripts/` không ra máy nào. `secret:scan` không thay được: nó tìm secret trong nội dung, không tìm file dump lọt chỗ. |
+| Cleanup Rules | 247 | `co_may_khong_nhac_ten` | Mục này từng là mục DUY NHẤT thuộc loại `do_duoc_ma_chua_co_may`, và chính nhãn đó dẫn tới việc viết `cleanup:check` (v2.7.0). Máy quét root repo và subfolder CẤP 1 theo đúng bảng pattern của luật (`scratch_*`, `*_debug.txt`, `*.tmp`, `page_snapshot.md`…), bỏ qua đúng bảng "Không xóa" (`outputs/`, `node_modules/`, `*.config.ts`, `package.json`). Chạy `--enforce` ở cả hai CI. `secret:scan` không thay được: nó tìm secret trong NỘI DUNG, còn một dump swagger không chứa secret nào vẫn là rác lọt lưới mang email/SĐT trong giá trị mẫu. Mục luật không nhắc tên lệnh nên phép nối theo tên vẫn không thấy. |
 | Examples | 48 | `khong_phai_luat` | Bảng Good/Bad minh hoạ cho các mục khác (PROJECT_OUTPUT_DIR, đường evidence, Backlog bug gate). Không mang luật riêng nào, nên không có gate riêng là đúng. |
