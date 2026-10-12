@@ -196,6 +196,48 @@ function tenCua(row) {
   return [...row.npm, path.basename(row.file)].filter((x) => !x.startsWith('('));
 }
 
+/*
+ * SỐ TỪ SỔ MA SÁT (§A9). Sổ được mở ở v2.7.0 §A9 và nó RỖNG ở lượt đầu, nên hàm này trả hai dạng khác
+ * nhau tuỳ sổ có gì:
+ *   · sổ chưa có hoặc gate chưa có sự kiện ⇒ `'chưa đo được'` kèm điều kiện để đo;
+ *   · có sự kiện ⇒ con số THẬT.
+ * Gộp hai dạng thành một số 0 là biến "chưa đo" thành "không có", và đó là đúng chỗ sai mà cả §1 đi vá.
+ */
+function soMaSat(row) {
+  let s;
+  try {
+    /* eslint-disable-next-line global-require */
+    const fric = require(path.join(__dirname, 'gate_friction.js'));
+    s = fric.doc();
+    if (!s.co_so) {
+      return {
+        so_lan_chan: 'chưa đo được',
+        _vi_sao_chua_do_duoc_so_lan_chan:
+          'Sổ ma sát `knowledge/metrics/gate-friction.jsonl` chưa tồn tại. Nó được ghi TỰ ĐỘNG khi gate '
+          + 'chặn hoặc ghi sổ nợ, và khi có người miễn trừ — nhưng nó rỗng ở lượt đầu và phải chạy vài '
+          + 'sprint mới có gì để đọc.',
+      };
+    }
+    const ten = tenCua(row);
+    const cua = fric.gopTheoGate(s.su_kien).find((g) => ten.includes(g.gate));
+    if (!cua) {
+      return {
+        so_lan_chan: 'chưa đo được',
+        _vi_sao_chua_do_duoc_so_lan_chan: 'sổ ma sát có dữ liệu nhưng CHƯA có sự kiện nào của gate này — '
+          + 'chưa đo KHÁC không có.',
+      };
+    }
+    return {
+      so_lan_chan: cua.chan,
+      so_lan_ghi_so_no: cua.so_no,
+      so_lan_mien_tru: cua.mien_tru,
+      so_lan_khai_bao_oan: cua.bao_oan,
+    };
+  } catch (e) {
+    return { so_lan_chan: 'chưa đo được', _vi_sao_chua_do_duoc_so_lan_chan: `không đọc được sổ ma sát: ${e.message}` };
+  }
+}
+
 function lichSu(row, changelogDoan, reportVan) {
   const ten = tenCua(row);
   let oan = 0;
@@ -211,11 +253,7 @@ function lichSu(row, changelogDoan, reportVan) {
     so_lan_bao_oan_nhac_trong_changelog: oan,
     vi_du_bao_oan: viDu,
     nhac_trong_report_task: nhacTrongReport,
-    so_lan_chan: 'chưa đo được',
-    _vi_sao_chua_do_duoc_so_lan_chan:
-      'Không nguồn nào trong repo ghi "gate X đã chặn N lần". Transcript không được track, và thư mục '
-      + 'reports của task ghi kết quả task chứ không ghi lượt bị gate chặn. Muốn đo thì phải ghi sổ ở '
-      + '`gate_engine` (§A9: knowledge/metrics/gate-friction.jsonl) rồi dùng vài sprint.',
+    ...soMaSat(row),
   };
 }
 

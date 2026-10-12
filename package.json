@@ -162,7 +162,8 @@
     "exit:gate": "node scripts/qa/exit_gate.js",
     "check": "node scripts/qa/check.js",
     "lane": "node scripts/qa/lane.js",
-    "next": "node scripts/qa/next_command.js"
+    "next": "node scripts/qa/next_command.js",
+    "gate:friction": "node scripts/qa/gate_friction.js"
   },
   "dependencies": {
     "axe-core": "^4.12.1",

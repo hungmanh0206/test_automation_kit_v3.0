@@ -173,6 +173,18 @@ function tao({ taskKey, ma, tcIds, lyDo, by, evidence = '', hanNgay = HAN_MAC_DI
   fs.mkdirSync(d, { recursive: true });
   const duong = path.join(d, `${ban.id}.json`);
   fs.writeFileSync(duong, `${JSON.stringify(ban, null, 2)}\n`, 'utf8');
+  /*
+   * Ghi SỔ MA SÁT (§A9). Một lượt miễn trừ là tín hiệu về ma sát của gate đó, nhưng nó KHÔNG
+   * phải một lượt báo oan: người ta miễn trừ cả khi gate ĐÚNG mà việc vẫn phải đi tiếp. Hai chuyện đó
+   * lẫn vào nhau thì một gate đúng mà hay bị vướng sẽ bị kết luận là gate sai, rồi bị nới.
+   *
+   * Bọc `try`: đây là lớp ĐO, và không ghi được sổ thì KHÔNG được làm chết việc ghi miễn trừ.
+   */
+  try {
+    /* eslint-disable-next-line global-require */
+    const fric = require(path.join(__dirname, 'gate_friction.js'));
+    fric.ghi('mien_tru', { gate: ma, tang: k.tang, task: taskKey, ma, tcId: tcIds[0] || null });
+  } catch (e) { /* sổ đo KHÔNG được làm chết việc ghi miễn trừ */ }
   return { ok: true, duong, ban };
 }
 

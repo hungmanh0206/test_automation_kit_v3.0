@@ -202,6 +202,22 @@ function docSoNo(taskOutputDir) {
  * tự gọi `exit` là thư viện cắt ngang luồng in của mọi thứ gọi nó, và kit đã trả giá đúng chuyện đó ở
  * `require.main` guard.
  */
+/*
+ * GHI SỔ MA SÁT (§A9). Tách thành hàm riêng vì nó phải KHÔNG BAO GIỜ làm chết lượt gác: đây là lớp ĐO,
+ * và một lượt kiểm thất bại vì không ghi được sổ là đổi một phép đo thành một lỗi chặn người dùng.
+ *
+ * `require` ở TRONG hàm, không ở đầu file: `gate_tier` được require bởi hook `gate_on_write`, và mỗi
+ * module thêm vào đường require đó là thêm một chỗ có thể ném giữa một lượt ghi file của agent.
+ */
+function ghiMaSat(suKien, gateId, tang, nguCanh, taskOutputDir) {
+  try {
+    /* eslint-disable-next-line global-require */
+    const fric = require(path.join(__dirname, '..', 'gate_friction.js'));
+    const task = taskOutputDir ? path.basename(taskOutputDir) : null;
+    fric.ghi(suKien, { gate: gateId, tang, nguCanh, task });
+  } catch (e) { /* sổ đo KHÔNG được làm chết lớp gác */ }
+}
+
 function apTang(gateId, viPham, { nguCanh, taskOutputDir = null, laBaoCao = false, log = console.log } = {}) {
   const t = tangCua(gateId, { laBaoCao });
   const qd = quyetDinh(t.tang, nguCanh);
@@ -211,10 +227,12 @@ function apTang(gateId, viPham, { nguCanh, taskOutputDir = null, laBaoCao = fals
 
   if (qd.chan) {
     log(`[${gateId}] ✗ CHẶN (${t.tang}, ngữ cảnh ${nguCanh}): ${n} vi phạm. ${qd.vi_sao}`);
+    ghiMaSat('chan', gateId, t.tang, nguCanh, taskOutputDir);
     return { exitCode: 1, tang: t.tang, chan: true, ghi_so_no: false };
   }
   if (qd.ghiSoNo && taskOutputDir) {
     const r = ghiSoNo(taskOutputDir, gateId, viPham, { nguCanh });
+    ghiMaSat('so_no', gateId, t.tang, nguCanh, taskOutputDir);
     log(`[${gateId}] ⚠ ${n} vi phạm ${t.tang} — chưa chặn ở ngữ cảnh ${nguCanh}, đã ghi sổ nợ (${r.so_mon} món). Cửa ra sẽ chặn.`);
     return { exitCode: 0, tang: t.tang, chan: false, ghi_so_no: true, so_no: r.duong };
   }
@@ -233,7 +251,7 @@ function apTang(gateId, viPham, { nguCanh, taskOutputDir = null, laBaoCao = fals
 }
 
 module.exports = {
-  NGU_CANH, TANG, DUONG_TIERS,
+  NGU_CANH, TANG, DUONG_TIERS, ghiMaSat,
   napBang, xoaCache, tangCua, quyetDinh, apTang,
   ghiSoNo, docSoNo, duongSoNo,
 };

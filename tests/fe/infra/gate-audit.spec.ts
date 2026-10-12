@@ -163,8 +163,15 @@ test.describe('@infra gate:audit — "chưa đo được" KHÔNG thành một co
   test('số lần chặn ghi `chưa đo được`, kèm điều kiện để đo', () => {
     for (const g of kq.gate.slice(0, 5)) {
       const ls = g.lich_su as Record<string, unknown>;
-      expect(ls.so_lan_chan).toBe('chưa đo được');
-      expect(String(ls._vi_sao_chua_do_duoc_so_lan_chan)).toContain('gate_engine');
+      /*
+       * §A9 đã MỞ SỔ (`knowledge/metrics/gate-friction.jsonl`), nên lý do đổi: không còn là "chưa có
+       * chỗ ghi" mà là "sổ chưa có sự kiện của gate này". Test cập nhật theo, và vẫn giữ phần quan
+       * trọng: "chưa đo" KHÁC "không có", nên nó phải là chuỗi chứ không phải số 0.
+       */
+      expect(ls.so_lan_chan === 'chưa đo được' || typeof ls.so_lan_chan === 'number').toBe(true);
+      if (ls.so_lan_chan === 'chưa đo được') {
+        expect(String(ls._vi_sao_chua_do_duoc_so_lan_chan)).toMatch(/gate-friction|sổ ma sát/);
+      }
     }
   });
 
