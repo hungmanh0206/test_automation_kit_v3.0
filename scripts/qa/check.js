@@ -156,7 +156,10 @@ function gateTrongTienTrinh(taskKey, taskOutputDir, phase) {
       const r = dg.gateDesign(d.txt);
       pb.push(...(r.problems || [])); wn.push(...(r.warnings || []));
     }
-    kq.push(engine.toResult('design:gate', { problems: pb, warnings: wn, severity: engine.SEVERITY.P0, note: `${soLieu.so_case} case` }));
+    kq.push(engine.toResult('design:gate', {
+      problems: pb, warnings: wn, severity: engine.SEVERITY.P0,
+      mauSo: soLieu.so_case, dauVao: soLieu.so_case,
+    }));
   } else {
     kq.push(engine.toResult('design:gate', { skipped: true, note: 'không có `test-cases/*.md`' }));
   }
@@ -166,13 +169,25 @@ function gateTrongTienTrinh(taskKey, taskOutputDir, phase) {
     /* eslint-disable-next-line global-require */
     const og = require(path.join(__dirname, 'output_gate'));
     const pb = []; const wn = [];
+    /*
+     * ĐẾM THẬT số dòng đã chấm, không dùng lại `so_case` (§A10.1).
+     *
+     * Hai con số đó trông như một nhưng không phải: `so_case` là số case parse ra được, còn số dòng đã
+     * chấm là số lần `gateTestcaseRow` thực sự chạy. Chúng lệch nhau khi một `doc` parse lỗi giữa
+     * đường, và đúng chỗ lệch đó là chỗ gate kiểm ít hơn tưởng mà vẫn xanh.
+     */
+    let soDongDaCham = 0;
     for (const d of docs) {
       for (const row of d.doc.tests) {
         const r = og.gateTestcaseRow(row);
+        soDongDaCham += 1;
         pb.push(...(r.problems || [])); wn.push(...(r.warnings || []));
       }
     }
-    kq.push(engine.toResult('gate:gen-testcase', { problems: pb, warnings: wn, severity: engine.SEVERITY.P1, note: `${soLieu.so_case} dòng` }));
+    kq.push(engine.toResult('gate:gen-testcase', {
+      problems: pb, warnings: wn, severity: engine.SEVERITY.P1,
+      mauSo: soDongDaCham, dauVao: soLieu.so_case,
+    }));
   }
 
   /* 5. output_gate chế độ execution — chỉ ở Phase 2, và nhận doc đã đọc. */
@@ -189,7 +204,10 @@ function gateTrongTienTrinh(taskKey, taskOutputDir, phase) {
       soLieu.so_case_execute += (Array.isArray(doc) ? doc : (doc.tests || doc.testcases || [])).length;
       pb.push(...(r.problems || [])); wn.push(...(r.warnings || []));
     }
-    kq.push(engine.toResult('gate:output', { problems: pb, warnings: wn, severity: engine.SEVERITY.P0, note: `${soLieu.so_case_execute} case` }));
+    kq.push(engine.toResult('gate:output', {
+      problems: pb, warnings: wn, severity: engine.SEVERITY.P0,
+      mauSo: soLieu.so_case_execute, dauVao: soLieu.so_case_execute,
+    }));
   }
 
   /* 6. scope_anchor — nhận thư mục task. */
@@ -456,12 +474,21 @@ function main() {
 
   const soDat = results.filter((r) => r.status === 'PASS').length;
   const soSkip = results.filter((r) => r.status === 'SKIP');
+  /*
+   * `CHUA_KIEM` (§A10.1) phải lên DÒNG TỔNG, không chỉ nằm trong `--json`.
+   *
+   * Nó là trạng thái "gate đã CHẠY nhưng mẫu số 0 hoặc thấp hơn rõ" — tức có thể nó đọc sai tên trường
+   * hoặc rơi vào `catch`. Giấu nó xuống dưới nghĩa là người đọc thấy "4 kiểm đạt" rồi đi tiếp, đúng
+   * như ba lỗi mà §A10.1 đi vá.
+   */
+  const chuaKiem = results.filter((r) => r.status === 'CHUA_KIEM');
   const ra = {
     task: taskKey, phase: ph.phase, phase_vi_sao: ph.vi_sao, ngu_canh: NGU_CANH,
     so_lieu: trong.soLieu, giay,
     trong_tien_trinh: trong.kq.length, con_spawn: ngoai.length,
     tong_chan: agg.totalFail, tong_canh_bao: agg.totalWarn, so_kiem_dat: soDat,
     khong_phan_duoc: soSkip.map((r) => r.gateId),
+    chua_kiem: chuaKiem.map((r) => ({ gate: r.gateId, mau_so: r.mau_so, dau_vao: r.dau_vao, note: r.note })),
     theo_tang: { T0: theoTang.T0.map((r) => r.gateId), T1: theoTang.T1.map((r) => r.gateId), T2: theoTang.T2.map((r) => r.gateId) },
     chan: coChan,
     lan: lanHienTai,
@@ -473,7 +500,8 @@ function main() {
 
   /* ── BẢNG GỌN ───────────────────────────────────────────────────────────────────────────────────── */
   console.log(`✗ ${agg.totalFail} lỗi phải sửa · ⚠ ${agg.totalWarn} cảnh báo · ✓ ${soDat} kiểm đạt`
-    + `${soSkip.length ? ` · ○ ${soSkip.length} không phán được` : ''}`);
+    + `${soSkip.length ? ` · ○ ${soSkip.length} không phán được` : ''}`
+    + `${chuaKiem.length ? ` · ◌ ${chuaKiem.length} CHƯA KIỂM` : ''}`);
   console.log(`  task ${taskKey} · Phase ${ph.phase} (${ph.vi_sao}) · ngữ cảnh ${NGU_CANH} · ${giay}s`
     + ` · ${trong.soLieu.so_case} case${ph.phase === 2 ? `, ${trong.soLieu.so_case_execute} đã execute` : ''}`);
   console.log(`  ${ra.trong_tien_trinh} gate trong tiến trình · ${ra.con_spawn} còn spawn (xem header check.js)`);
@@ -513,6 +541,12 @@ function main() {
     }
     if (daVuotQua.length > 8) console.log(`  … (+${daVuotQua.length - 8})`);
     console.log('  Chúng KHÔNG bị xoá, chỉ chuyển mục — cửa ra vẫn đọc được, và hết hạn thì chặn lại.');
+  }
+
+  if (chuaKiem.length) {
+    console.log(`\n◌ CHƯA KIỂM — gate đã CHẠY nhưng mẫu số 0 hoặc thấp hơn rõ (${chuaKiem.length}):`);
+    for (const r of chuaKiem) console.log(`  ${r.gateId} — ${r.note}`);
+    console.log('  Đây KHÔNG phải đạt. Thường là gate đọc sai tên trường, hoặc rơi vào `catch` và tắt lặng lẽ.');
   }
 
   if (soSkip.length) {
