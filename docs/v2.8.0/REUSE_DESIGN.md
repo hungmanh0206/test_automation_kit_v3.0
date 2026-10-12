@@ -298,6 +298,35 @@ khớp, cùng danh mục, khác cách viết câu.
 viết tự do và tỉ lệ trên case viết theo §K — rồi nói rõ mục ≥70% chỉ có nghĩa với nhóm thứ hai. Báo một
 con số đơn lẻ ở đây là che mất đúng phần thông tin có giá trị.
 
+### §G đã chạy (`npm run reuse:measure`) — ba con số, và ba mục chưa đo được
+
+Máy đo: `scripts/qa/reuse/measure.js`. Mẫu số: **951 case · 5.886 mệnh đề**, 5 bộ case canonical thật.
+
+| Mục tiêu §G | Đo được | Mục | Kết |
+|---|---|---|---|
+| Dùng lại, module KHÁC | **22%** (1.285/5.886) | ≥50% | ✗ |
+| Dùng lại, CÙNG module | — | ≥70% | chưa có cặp task nào trên cùng màn để đo |
+| Khớp vào danh mục bước, case viết tự do | **0–3%** | — | bị chặn bởi danh mục 6 mục |
+| Khớp vào danh mục bước, case viết đúng chuẩn §K | **79%** (11/14) | — | cùng bộ khớp, cùng danh mục |
+
+Hai dòng cuối phải đọc **cạnh nhau**: khoảng cách giữa 3% và 79% là phần **§K** mua được, và nó không
+mua được bằng một bộ khớp tốt hơn.
+
+**Ba mục KHÔNG đo được, và máy in ra lý do thay vì in một con số:**
+
+1. **token −50%** — mốc duy nhất đang có (`docs/token-diet/baseline.dynamic.json`) là token theo PHIÊN
+   làm việc, không phải theo một lượt "sinh automation cho một module". Chia số phiên cho số module là
+   bịa mẫu số. *Để đo được:* ghi token của một lượt sinh automation đường cũ rồi lặp lại đường mới trên
+   cùng module. Thay vào đó máy in một **PROXY tự khai là proxy**: tỉ lệ mệnh đề không phải nhờ model.
+2. **5 bug gài → bắt 5/5** — spec biên dịch hiện tại gần như không có lời gọi bộ kiểm nào; mọi dòng kỳ
+   vọng rơi vào `TODO-ORACLE`. Một bộ spec không phán gì thì không bắt được bug nào, và con số 0/5 đó
+   nói về tình trạng thư viện chứ không nói về thiết kế. *Để đo được:* cần L1 + L2, tức §A0 `lib:buildout`.
+3. **`mutation_check` không giảm** — `mutation_check.js` mở chromium và bóp méo response ở tầng
+   `page.route()` trên UAT; không có đường chạy offline, và CLAUDE.md §2 đòi xác nhận trước mỗi lượt
+   chạm UAT. *Để đo được:* chạy trước và sau §A0 trên cùng catalog, sau khi QA duyệt.
+
+Ba mục đó **không được đọc thành "đã đạt" hay "không đạt"** — chúng chưa có phép đo nào.
+
 ## 8. Thứ tự làm, và chỗ rủi ro nhất
 
 1. **L0.5 widget** trước L1 — nó là thứ duy nhất khai thác được ngay từ code cũ (38% lời gọi định vị), và
