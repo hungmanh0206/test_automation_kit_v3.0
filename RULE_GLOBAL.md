@@ -38,7 +38,7 @@
 | 3 | [Inputs](#inputs) | 90-102 | 332 | npm run rule -- 3 |
 | 4 | [Outputs](#outputs) | 103-147 | 765 | npm run rule -- 4 |
 | 5 | &nbsp;&nbsp;[Giọng văn output](#giọng-văn-output) | 115-147 | 451 | npm run rule -- 5 |
-| 6 | [Rules](#rules) | 148-767 | 14896 | npm run rule -- 6 |
+| 6 | [Rules](#rules) | 148-771 | 14887 | npm run rule -- 6 |
 | 7 | &nbsp;&nbsp;[Language](#language) | 150-156 | 80 | npm run rule -- 7 |
 | 8 | &nbsp;&nbsp;[Security](#security) | 157-170 | 498 | npm run rule -- 8 |
 | 9 | &nbsp;&nbsp;[Project And Output](#project-and-output) | 171-182 | 284 | npm run rule -- 9 |
@@ -58,17 +58,17 @@
 | 23 | &nbsp;&nbsp;[Bug Claim Gate — kiểm chứng phải đi TRƯỚC lời nói](#bug-claim-gate-kiểm-chứng-phải-đi-trước-lời-nói) | 608-672 | 1059 | npm run rule -- 23 |
 | 24 | &nbsp;&nbsp;[Backlog Bug Gate](#backlog-bug-gate) | 673-682 | 154 | npm run rule -- 24 |
 | 25 | &nbsp;&nbsp;[Executable QA capabilities (autonomy & safety)](#executable-qa-capabilities-autonomy-safety) | 683-695 | 397 | npm run rule -- 25 |
-| 26 | &nbsp;&nbsp;[Automation quality](#automation-quality) | 696-730 | 736 | npm run rule -- 26 |
-| 27 | &nbsp;&nbsp;[Reporting](#reporting) | 731-741 | 170 | npm run rule -- 27 |
-| 28 | &nbsp;&nbsp;[Setup Strategy](#setup-strategy) | 742-755 | 207 | npm run rule -- 28 |
-| 29 | &nbsp;&nbsp;[Push execution](#push-execution) | 756-767 | 167 | npm run rule -- 29 |
-| 30 | [Workflow](#workflow) | 768-781 | 43 | npm run rule -- 30 |
-| 31 | [Chi phí một lượt chạy — đếm SỐ LƯỢT, không đếm độ dài](#chi-phí-một-lượt-chạy-đếm-số-lượt-không-đếm-độ-dài) | 782-812 | 477 | npm run rule -- 31 |
-| 32 | [Cleanup Rules](#cleanup-rules) | 813-840 | 388 | npm run rule -- 32 |
-| 33 | [Examples](#examples) | 841-848 | 80 | npm run rule -- 33 |
-| 34 | [References](#references) | 849-857 | 84 | npm run rule -- 34 |
+| 26 | &nbsp;&nbsp;[Automation quality](#automation-quality) | 696-734 | 728 | npm run rule -- 26 |
+| 27 | &nbsp;&nbsp;[Reporting](#reporting) | 735-745 | 170 | npm run rule -- 27 |
+| 28 | &nbsp;&nbsp;[Setup Strategy](#setup-strategy) | 746-759 | 207 | npm run rule -- 28 |
+| 29 | &nbsp;&nbsp;[Push execution](#push-execution) | 760-771 | 167 | npm run rule -- 29 |
+| 30 | [Workflow](#workflow) | 772-785 | 43 | npm run rule -- 30 |
+| 31 | [Chi phí một lượt chạy — đếm SỐ LƯỢT, không đếm độ dài](#chi-phí-một-lượt-chạy-đếm-số-lượt-không-đếm-độ-dài) | 786-816 | 477 | npm run rule -- 31 |
+| 32 | [Cleanup Rules](#cleanup-rules) | 817-844 | 388 | npm run rule -- 32 |
+| 33 | [Examples](#examples) | 845-852 | 80 | npm run rule -- 33 |
+| 34 | [References](#references) | 853-861 | 84 | npm run rule -- 34 |
 
-> Cả file ~18750 token. Tra MỘT mục thay vì đọc cả file: npm run rule -- <số|từ khoá>
+> Cả file ~18742 token. Tra MỘT mục thay vì đọc cả file: npm run rule -- <số|từ khoá>
 <!-- MỤC-LỤC:KẾT-THÚC -->
 
 ## Purpose
@@ -706,27 +706,31 @@ Các năng lực chạy thật trong `scripts/qa/` + `exploratory/` phải khai 
 - **Không hardcode dữ liệu task-specific** vào template dùng chung. Dữ liệu riêng của một task thì ở
   trong task đó.
 - **Test data unique và rollback được.** Dữ liệu trùng giữa hai lượt chạy là nguồn flaky khó tìm nhất.
-- **Đổi parser canonical thì phải sinh lại MỐC VÀNG, và sinh lại là một lời khai.**
-  `scripts/lib/testcase` là chỗ 30 gate cùng dùng, nên một thay đổi ở đó đổi đầu ra của cả 30 cùng lúc.
-  `golden:check` đóng băng đầu ra trên bộ fixture vàng (`tests/fe/fixtures/golden/testcase/`) và chạy ở
-  cả hai CI. Lệch mốc mà bạn KHÔNG chủ ý đổi parser ⇒ đi tìm cái gì đã đổi, đừng ghi lại mốc. Chủ ý đổi
-  thì `npm run golden:snapshot` — lệnh đó đòi cờ `--toi-da-doi-parser` đúng vì nó là lời khai, không
-  phải một lệnh dọn dẹp. Mốc tự ghi lại được thì nó không còn là mốc.
-- **Phần luật KHÔNG đo được bằng máy vẫn phải được chấm, và chấm chưa hiệu chuẩn thì không dùng được.**
-  `docs/RULE_COVERAGE.md` phân loại mọi mục luật; mục nào ghi `khong_do_duoc_bang_may` thì thuộc tầng
-  chấm `npm run judge`. Thang chấm ở `.agent/config/judge_rubric.json` — mỗi mục kèm lý do nó không có
-  máy, nhìn vào đâu, và bằng chứng nào phải nêu. Ba luật không đổi được: chấm chưa hiệu chuẩn ⇒
-  **CHƯA ĐƯỢC GÁC** (không phải "đạt"); mỗi lời chấm phải nêu neo cụ thể (TC ID, đường dẫn, số dòng),
-  không neo thì là `OBSERVATION`; và tầng chấm **KHÔNG** được ghi đè verdict của gate T0. Mẫu lấy tất
-  định theo hạt giống ghi lại được — mẫu chọn tuỳ ý thì tỉ lệ đạt nói về cách chọn mẫu, không nói về bộ.
-  Người chấm trùng người viết nhãn hiệu chuẩn ⇒ lượt đó bị đánh dấu `tu_cham` và con số không đo gì.
-- **Gate chặn oan thì phải để lại dấu vết, không chỉ để người ta lách.** `npm run gate:friction` ghi sổ
-  append-only mọi lượt chặn, ghi nợ, miễn trừ và báo oan. Một gate bị báo oan nhiều lần là một gate cần
-  sửa, và không có sổ thì chuyện đó chỉ sống trong trí nhớ của người vừa bị chặn.
+- **Đổi parser canonical thì phải sinh lại MỐC VÀNG.** `scripts/lib/testcase` là chỗ 30 gate cùng
+  dùng. Một thay đổi ở đó đổi đầu ra của cả 30 cùng lúc. `golden:check` đóng băng đầu ra trên bộ fixture
+  vàng và chạy ở cả hai CI.
+- **Sinh lại mốc vàng là một LỜI KHAI.** Lệch mốc mà bạn KHÔNG chủ ý đổi parser thì đi tìm cái gì đã
+  đổi, đừng ghi lại mốc. Chủ ý đổi thì chạy `npm run golden:snapshot`. Lệnh đó đòi cờ
+  `--toi-da-doi-parser` đúng vì nó là lời khai, không phải một lệnh dọn dẹp. Mốc tự ghi lại được thì nó
+  không còn là mốc.
+- **Phần luật KHÔNG đo được bằng máy vẫn phải được chấm.** `docs/RULE_COVERAGE.md` phân loại mọi mục
+  luật. Mục nào ghi `khong_do_duoc_bang_may` thì thuộc tầng chấm `npm run judge`. Thang chấm nằm ở
+  `.agent/config/judge_rubric.json`. Mỗi mục kèm ba thứ: lý do nó không có máy, nhìn vào đâu, và bằng
+  chứng nào phải nêu.
+- **Ba luật của tầng chấm, không đổi được.** Chấm chưa hiệu chuẩn là **CHƯA ĐƯỢC GÁC**, không phải
+  "đạt". Mỗi lời chấm phải nêu neo cụ thể: TC ID, đường dẫn, hoặc số dòng. Không neo thì nó là
+  `OBSERVATION`. Và tầng chấm **KHÔNG** được ghi đè verdict của gate T0.
+- **Mẫu lấy tất định theo hạt giống ghi lại được.** Mẫu chọn tuỳ ý thì tỉ lệ đạt nói về cách chọn mẫu,
+  không nói về bộ case. Người chấm trùng người viết nhãn hiệu chuẩn thì lượt đó bị đánh dấu `tu_cham`,
+  và con số của nó không đo gì.
+- **Gate chặn oan thì phải để lại dấu vết.** `npm run gate:friction` ghi sổ append-only mọi lượt chặn,
+  ghi nợ, miễn trừ và báo oan. Một gate bị báo oan nhiều lần là một gate cần sửa. Không có sổ thì chuyện
+  đó chỉ sống trong trí nhớ của người vừa bị chặn.
 - **Một bộ đo không được kiểm chính nó bằng chính nó.** `golden:check` đếm số case bằng HAI đường độc
-  lập: model canonical, và một phép đếm thô không đi qua model. Lệch nhau ⇒ `NGHI GATE SAI`, vì lúc đó
-  chưa biết tin bên nào — và "chưa biết tin bên nào" KHÔNG phải "đạt" (non-negotiable §3). Nếu phép đo
-  thứ hai cũng gọi `parseMarkdown` thì hai đường cùng sai một lúc và phép đối chiếu không phát hiện gì.
+  lập: model canonical, và một phép đếm thô không đi qua model. Lệch nhau thì nó báo `NGHI GATE SAI`.
+  Lúc đó chưa biết tin bên nào, mà "chưa biết tin bên nào" KHÔNG phải "đạt" (non-negotiable §3). Nếu
+  phép đo thứ hai cũng gọi `parseMarkdown` thì hai đường cùng sai một lúc, và phép đối chiếu không phát
+  hiện gì.
 
 ### Reporting
 
