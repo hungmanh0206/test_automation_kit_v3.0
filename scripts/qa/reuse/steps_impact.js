@@ -147,6 +147,58 @@ function cuaPhienBan(opts = {}) {
   return { so_buoc: nay.buoc.length, so_spec_quet: so_file, chan, canh_bao: canhBao };
 }
 
+/** File nào thuộc thư viện bước v2.8.0. `.agent/config/step_phrasing.json` tính là thư viện: nó quyết định câu nào khớp bước nào. */
+const laThuVienBuoc = (f) => /^tests\/fe\/lib\//.test(String(f).replace(/\\/g, '/'))
+  || String(f).replace(/\\/g, '/') === '.agent/config/step_phrasing.json';
+
+/**
+ * Từ danh sách FILE ĐỔI → vùng spec bị ảnh hưởng. Dùng bởi `select:tests` (§F).
+ *
+ * Trả `{ thu_vien_doi, dien_rong, spec, ly_do }`. `dien_rong: true` nghĩa **CHƯA BIẾT** vùng ảnh hưởng
+ * — và lúc đó người gọi phải chạy TẤT CẢ, không được rơi về `@smoke`.
+ *
+ * Ba nhánh, và ranh giới giữa chúng là chỗ dễ sai nhất:
+ *
+ *   - **0 spec biên dịch** ⇒ `dien_rong`. Con số 0 ở đây là "chưa có gì để soi", không phải "không ai
+ *     bị ảnh hưởng". Biến nó thành `@smoke` là đổi một phép đo thiếu thành một lời bảo đảm.
+ *   - **Đổi `step_catalog.json` / `step_phrasing.json`** ⇒ mọi spec biên dịch. Một mục đổi `phrases`
+ *     làm MỌI câu khớp lại, nên không khoanh theo mã bước được.
+ *   - **Đổi file thi hành** (`_widget/*.ts`, `_checks/*.ts`, …) ⇒ chỉ những bước có `impl` trỏ vào đó.
+ *     Không mục nào trỏ tới ⇒ lại là `dien_rong`, vì file đó có thể đang được gọi từ chỗ khác.
+ */
+function vungAnhHuongTuFileDoi(fileDoi, opts = {}) {
+  const thuVien = (fileDoi || []).map((f) => String(f).replace(/\\/g, '/')).filter(laThuVienBuoc);
+  if (!thuVien.length) return { thu_vien_doi: [], dien_rong: false, spec: [], ly_do: '' };
+
+  const { theo, so_file: soSpec } = opts.dung ? { theo: opts.dung, so_file: opts.so_file || 0 } : aiDangDung();
+  if (!soSpec) {
+    return {
+      thu_vien_doi: thuVien,
+      dien_rong: true,
+      spec: [],
+      ly_do: `đổi ${thuVien.length} file thư viện bước, nhưng quét được 0 spec biên dịch ⇒ CHƯA BIẾT vùng ảnh hưởng`,
+    };
+  }
+
+  if (thuVien.some((f) => /step_catalog\.json$|step_phrasing\.json$/.test(f))) {
+    const spec = [...new Set([...theo.values()].flat().map((x) => x.file))];
+    return { thu_vien_doi: thuVien, dien_rong: false, spec, ly_do: `đổi danh mục/ngữ pháp bước ⇒ mọi spec biên dịch (${spec.length} file)` };
+  }
+
+  const dm = opts.danhMuc || sm.napDanhMuc();
+  const idLienQuan = ((dm && dm.buoc) || []).filter((b) => thuVien.some((f) => String(b.impl || '').startsWith(f))).map((b) => b.id);
+  const spec = [...new Set(idLienQuan.flatMap((id) => (theo.get(id) || []).map((x) => x.file)))];
+  if (!spec.length) {
+    return {
+      thu_vien_doi: thuVien,
+      dien_rong: true,
+      spec: [],
+      ly_do: `đổi ${thuVien.length} file thư viện bước mà không spec biên dịch nào gọi tới ⇒ CHƯA BIẾT vùng ảnh hưởng`,
+    };
+  }
+  return { thu_vien_doi: thuVien, dien_rong: false, spec, ly_do: `đổi thi hành của ${idLienQuan.length} bước ⇒ ${spec.length} spec biên dịch` };
+}
+
 function main() {
   const argv = process.argv;
   const i = argv.indexOf('--id');
@@ -218,4 +270,7 @@ function main() {
 
 if (require.main === module) main();
 
-module.exports = { cuaPhienBan, aiDangDung, danhMucOHead, soChinh, KHOA_HOP_DONG, RE_BUOC_DA_DUNG };
+module.exports = {
+  cuaPhienBan, aiDangDung, danhMucOHead, soChinh, vungAnhHuongTuFileDoi, laThuVienBuoc,
+  KHOA_HOP_DONG, RE_BUOC_DA_DUNG,
+};

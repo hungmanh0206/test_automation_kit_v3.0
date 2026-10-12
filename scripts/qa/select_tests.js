@@ -70,6 +70,39 @@ try {
   }
 } catch (e) { /* impact-map optional */ }
 
+/*
+ * --- THƯ VIỆN BƯỚC v2.8.0 (§F) ---
+ *
+ * LỖ ĐÃ ĐO 12/10/2026. Trước bản này, mọi file của thư viện bước đều rơi vào nhánh "đổi tests/ nhưng
+ * không phải spec cụ thể → @smoke":
+ *
+ *   tests/fe/lib/step_catalog.json      spec=false  broad=false  → @smoke
+ *   tests/fe/lib/_widget/radcombobox.ts spec=false  broad=false  → @smoke
+ *   tests/fe/lib/_checks/index.ts       spec=false  broad=false  → @smoke
+ *   .agent/config/step_phrasing.json    không trong tests/       → @smoke
+ *
+ * Tức sửa `_checks/index.ts` — TẦNG DUY NHẤT được phép chứa `expect` — chỉ chạy @smoke. Và đổi `impl`
+ * của một bước trong danh mục ảnh hưởng MỌI spec biên dịch gọi bước đó, mà bộ chọn không thấy.
+ *
+ * `steps:impact --id` biết chính xác spec nào gọi bước nào, nên dùng nó. NHƯNG nó chỉ biết những spec
+ * ĐÃ BIÊN DỊCH RA: khi chưa có spec nào, nó trả 0 — và 0 ở đây nghĩa "chưa biết", KHÔNG nghĩa "không
+ * ai bị ảnh hưởng". Lúc đó phải rơi về DIỆN RỘNG, đúng tinh thần đã khai ở đầu file: thà chạy thừa
+ * còn hơn sót. Rơi về @smoke là biến một phép đo thiếu thành một lời bảo đảm.
+ */
+let thuVienDoi = []; let buocTests = []; let buocDienRong = false; let buocLyDo = '';
+try {
+  const si = require(path.join(rc.REPO_ROOT, 'scripts', 'qa', 'reuse', 'steps_impact.js'));
+  const v = si.vungAnhHuongTuFileDoi(norm);
+  thuVienDoi = v.thu_vien_doi; buocTests = v.spec; buocDienRong = v.dien_rong; buocLyDo = v.ly_do;
+} catch (e) {
+  /* Không tính được thì KHÔNG được coi là 'không ảnh hưởng' — xem chú thích trên. */
+  if (norm.some((f) => /^tests\/fe\/lib\//.test(f) || f === '.agent/config/step_phrasing.json')) {
+    thuVienDoi = norm.filter((f) => /^tests\/fe\/lib\//.test(f) || f === '.agent/config/step_phrasing.json');
+    buocDienRong = true;
+    buocLyDo = `đổi thư viện bước nhưng không tính được vùng ảnh hưởng (${e.message})`;
+  }
+}
+
 // --- Learning data (F9 + F10/F11): xếp hạng rủi ro theo FILE từ knowledge/metrics/tc-history.jsonl ---
 // Trước đây risk chỉ "in gợi ý, chưa auto-lọc". Giờ dùng thật: ưu tiên chạy trước file hay fail/flaky,
 // và (tuỳ chọn) KÉO THÊM file rủi ro cao dù diff không đụng — bắt regression ở vùng hay vỡ.
@@ -151,12 +184,25 @@ try {
 
 let args; let reason;
 if (broadChanged) { args = 'tests'; reason = 'đổi support/fixture/config → ảnh hưởng rộng → chạy TẤT CẢ'; }
+/*
+ * Thư viện bước xét TRƯỚC nhánh `selected`: một spec đổi ảnh hưởng chính nó, còn một bước đổi ảnh
+ * hưởng mọi spec gọi nó. Xét sau thì `selected` (chỉ gồm spec đổi) sẽ thắng và nuốt mất vùng rộng hơn.
+ */
+else if (buocDienRong) { args = 'tests'; reason = `${buocLyDo} → chạy TẤT CẢ (thà thừa còn hơn sót)`; }
+else if (buocTests.length) {
+  args = [...new Set([...buocTests, ...selected])].join(' ');
+  reason = `${buocLyDo}${selected.length ? ` + ${selected.length} target từ diff` : ''}`;
+}
 else if (selected.length) { args = selected.join(' '); reason = `chọn ${selected.length} target (spec đổi: ${specChanged.length}${impactDomains.length ? ` + impact-map domain: ${impactDomains.join(',')}` : ''}${riskyAdded.length ? ` + risky từ learning data: ${riskyAdded.length}` : ''}${RISK_FIRST ? ' · xếp risk-first' : ''})`; }
 else if (!anyTestsTouched) { args = '--grep @smoke'; reason = 'chỉ đổi kit/scripts/docs (không đụng tests/ và không khớp impact-map) → chạy @smoke'; }
 else { args = '--grep @smoke'; reason = 'đổi tests/ nhưng không phải spec cụ thể → @smoke'; }
 
 console.log(`[select] base=${BASE} · diff: ${cmd}`);
 console.log(`[select] ${norm.length} file đổi · spec đổi: ${specChanged.length} · broad: ${broadChanged}`);
+if (thuVienDoi.length) {
+  console.log(`[select] thư viện bước: ${thuVienDoi.length} file đổi (${thuVienDoi.slice(0, 3).join(' · ')}${thuVienDoi.length > 3 ? ` …+${thuVienDoi.length - 3}` : ''})`);
+  console.log(`[select]   → ${buocLyDo}`);
+}
 if (rankedRisky.length) {
   const top = rankedRisky.slice(0, 5).map(([f, s]) => `${f} (score ${s.score}: ${s.failed}F/${s.flaky}Fk/${s.runs}run)`);
   console.log(`[select] risk từ learning data — top: ${top.join(' · ')}`);

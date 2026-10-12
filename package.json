@@ -178,6 +178,8 @@
     "steps:promote": "node scripts/qa/reuse/steps_promote.js",
     "steps:impact": "node scripts/qa/reuse/steps_impact.js",
     "steps:reverify": "node scripts/qa/reuse/steps_reverify.js",
+    "replay:check": "node scripts/qa/reuse/replay_check.js",
+    "replay:check:enforce": "node scripts/qa/reuse/replay_check.js --enforce",
     "sync:canonical": "node scripts/qa/testcases/sync_canonical.js",
     "canonical:check": "node scripts/qa/canonical_check.js",
     "db:query": "node scripts/qa/db_query.js",
