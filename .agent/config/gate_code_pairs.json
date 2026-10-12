@@ -1,0 +1,114 @@
+{
+  "_y": "CẶP BẨN/SẠCH cho mọi mã T0/T1 (v2.7.0 §A10.3). Mỗi mã khai: câu THẬT mà gate phát ra khi đầu vào bẩn, gate nào phát, và spec nào chạy nó end-to-end. `maCua(mau_ban)` phải trả về đúng mã đó.",
+  "_vi_sao": "Mã gate không do gate gọi tên — `maCua()` khớp regex `khop` trên câu thông báo. Nên một mã có thể bị định tuyến sai mà không gì báo: đo 12/10/2026 thấy 18/7939 câu khớp hai mã hoặc hơn, trong đó có cặp hai mã T0. Registry này khoá đường định tuyến: đổi `khop` mà làm một mã đi sai chỗ thì CHẶN.",
+  "_mau_ban_la_gi": "Câu lấy từ chính gate (literal trong scripts/**), chỉ thay `${...}` bằng giá trị cụ thể. KHÔNG tự bịa câu, vì một câu bịa chỉ chứng minh regex khớp câu bịa.",
+  "_do_ngay": "2026-10-12",
+  "ma": [
+    {
+      "code": "EVID_THIEU",
+      "gate": "scripts/qa/lib/output_rules.js",
+      "mau_ban": "CSDL_HSTRUONG_TC_001: PASS nhưng thiếu evidence cho case đã execute"
+    },
+    {
+      "code": "EVID_SAI_LOAI",
+      "gate": "scripts/qa/output_gate.js",
+      "mau_ban": "CSDL_HSTRUONG_TC_001: evidence KHÔNG phải ảnh/video: trace.zip (chỉ nhận .png/.jpg/.jpeg/.webp/.mp4/.webm)"
+    },
+    {
+      "code": "EVID_VIDEO",
+      "gate": "scripts/qa/lib/output_rules.js",
+      "mau_ban": "CSDL_HSTRUONG_TC_001: case phức tạp nhưng THIẾU video (ảnh không mô tả đủ chuỗi thao tác) → rerun quay video"
+    },
+    {
+      "code": "STEP_THIEU",
+      "gate": "scripts/qa/output_gate.js",
+      "mau_ban": "CSDL_HSTRUONG_TC_001: 3/7 step THIẾU status (mỗi step phải PASS/FAIL)"
+    },
+    {
+      "code": "VERDICT_LA",
+      "gate": "scripts/qa/output_gate.js",
+      "mau_ban": "CSDL_HSTRUONG_TC_001: status \"DONE\" không thuộc verdict taxonomy — dùng PASS/FAIL/SKIP/BLOCKED_SETUP/SKIP_SETUP/TODO"
+    },
+    {
+      "code": "FAIL_CHUA_PHAN_TANG",
+      "gate": ".agent/config/verdict_taxonomy.json",
+      "mau_ban": "CSDL_HSTRUONG_TC_001: FAIL mà thiếu failureLayer — không route được owner"
+    },
+    {
+      "code": "RERUN_THIEU",
+      "gate": "scripts/qa/bug_claim.js",
+      "mau_ban": "CSDL_HSTRUONG_TC_001: có 2 lượt, cần ít nhất 3 để loại flaky và setup"
+    },
+    {
+      "code": "PII",
+      "gate": "scripts/qa/decisions.js",
+      "mau_ban": "knowledge/domain/br.md: có EMAIL trong nội dung — knowledge cấm PII khách (mask hoặc bỏ)"
+    },
+    {
+      "code": "SQL_CAM",
+      "gate": "scripts/qa/howto_store.js",
+      "mau_ban": "CSDL_HSTRUONG_TC_001: steps có câu lệnh GHI vào DB (INSERT/UPDATE/DELETE/psql…) — cấm dựng state bằng DB; chỉ SELECT read-only để verify"
+    },
+    {
+      "code": "ORACLE_TAUTOLOGY",
+      "gate": "scripts/qa/domain_rules.js",
+      "mau_ban": "CSDL_HSTRUONG_TC_001: expected lấy từ chính app đang kiểm — tautology, không phải oracle"
+    },
+    {
+      "code": "ORACLE_THIEU_NEO",
+      "gate": "scripts/lib/expansion/finding.js",
+      "mau_ban": "truc_1 · verdict \"FAILED\" không có `oracle_ref` hợp lệ ⇒ nhất quán KHÔNG phải bằng chứng của đúng; phải kèm open_question"
+    },
+    {
+      "code": "COT_CANONICAL",
+      "gate": "scripts/lib/testcase/validate.js",
+      "mau_ban": "Bảng testcase THIẾU cột \"Ưu tiên\" (canonical) — downstream sẽ vỡ"
+    },
+    {
+      "code": "O_LOI_RONG",
+      "gate": "scripts/qa/design_gate.js",
+      "mau_ban": "CSDL_HSTRUONG_TC_001: ô lõi `Kết quả mong đợi` rỗng"
+    },
+    {
+      "code": "TAG_THIEU",
+      "gate": "scripts/convert_excel/md_to_xlsx.js",
+      "mau_ban": "4/210 case KHÔNG có tag chiều: CSDL_HSTRUONG_TC_007, CSDL_HSTRUONG_TC_011"
+    },
+    {
+      "code": "TAG_LA",
+      "gate": "scripts/lib/expansion/finding.js",
+      "mau_ban": "truc_3 · verdict \"DONE\" không thuộc PASSED/FAILED/OBSERVATION"
+    },
+    {
+      "code": "QUY_MO",
+      "gate": "scripts/qa/dimension_coverage.js",
+      "mau_ban": "[dim] ✗ 3 chiều bắt buộc DƯỚI NGƯỠNG (band high ⇒ ≥5 case/chiều)"
+    },
+    {
+      "code": "KHAI_THIEU",
+      "gate": "scripts/qa/dimension_coverage.js",
+      "mau_ban": "[dim] ⚠ chiều \"Security\" (§8) chưa khai trong dimension_manifest.json"
+    },
+    {
+      "code": "XUNG_DOT",
+      "gate": "scripts/qa/dimension_coverage.js",
+      "mau_ban": "[dim] ✗ XUNG ĐỘT: chiều \"Design\" (§4) khai n/a nhưng có requirements/figma/**. Artifact chứng minh chiều này ÁP DỤNG."
+    },
+    {
+      "code": "UI_CATALOG",
+      "gate": "scripts/qa/design_gate.js",
+      "mau_ban": "`requirements/ui_catalog.json` có nhưng `screens` RỖNG — catalog rỗng không kiểm được gì."
+    },
+    {
+      "code": "NEEDS_VERIFY",
+      "gate": "scripts/lib/testcase/validate.js",
+      "mau_ban": "CSDL_HSTRUONG_TC_001 còn [NeedsVerify] — chưa có nguồn chống lưng, không được publish"
+    },
+    {
+      "code": "COMMENT_RAC",
+      "gate": "scripts/qa/lib/output_rules.js",
+      "mau_ban": "CSDL_HSTRUONG_TC_001: comment lẫn chuỗi debug key=value (editable=false, disabled=true)"
+    }
+  ],
+  "_do_phu_spec": "Trường `spec` đã BỎ: khai tay thì số sẽ cũ. `gate:policy` tự đo mỗi lượt bằng cách tìm mảnh đặc trưng của `mau_ban` trong tests/fe/infra/**.spec.ts, và in tỉ lệ đo được."
+}

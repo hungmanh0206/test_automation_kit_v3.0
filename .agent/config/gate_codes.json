@@ -44,7 +44,7 @@
     },
     {
       "code": "FAIL_CHUA_PHAN_TANG",
-      "khop": "failureLayer|chưa phân tầng|phân tầng lỗi",
+      "khop": "failureLayer|chưa phân tầng|phân tầng lỗi|FAIL .*không nêu tầng",
       "y": "FAIL không nêu tầng lỗi nên không route được owner",
       "tang": "T0",
       "vi_sao": "FAIL không nêu tầng lỗi thì không ai biết nó thuộc về ai: lỗi sản phẩm, lỗi dựng state, hay lỗi của chính spec. Mỗi tầng đi một đường xử lý khác, và đoán sai tầng là log một bug không tồn tại.",
@@ -53,7 +53,7 @@
     },
     {
       "code": "RERUN_THIEU",
-      "khop": "rerun|chạy lại .* lần",
+      "khop": "chưa rerun|thiếu rerun|rerun .*(chưa|thiếu|không đủ)|để loại flaky|chạy lại .* lần|cần ít nhất .* lượt",
       "y": "FAIL chưa rerun đủ ngưỡng để loại flaky",
       "tang": "T0",
       "vi_sao": "Một lượt đỏ chưa phân biệt được bug thật với flaky hay lỗi dựng state. Log bug từ một lượt là cách nhanh nhất để đốt thời gian của dev, và cũng làm người ta thôi tin bug do QA báo.",
@@ -62,7 +62,7 @@
     },
     {
       "code": "COMMENT_RAC",
-      "khop": "comment|run-on|debug key=value|key=value",
+      "khop": "comment .{0,30}(debug|rác|run-on|nhiều ý|key=value)|run-on|key=value|dán debug",
       "y": "Comment lẫn chuỗi debug hoặc dồn nhiều ý một dòng",
       "tang": "T1",
       "vi_sao": "Comment đi ra ngoài kit: nó vào Google Sheet và vào Backlog, nơi người không chạy test đọc nó. Chuỗi debug và nhiều ý dồn một dòng làm người đọc phải giải mã trước khi hiểu.",
@@ -98,7 +98,7 @@
     },
     {
       "code": "O_LOI_RONG",
-      "khop": "rỗng|để trống|bỏ trống",
+      "khop": "ô lõi|rỗng ô lõi|ô .{0,24}(rỗng|trống)|để trống|bỏ trống|(giá trị|nội dung|cột) .{0,16}rỗng",
       "y": "Ô lõi của testcase bị rỗng",
       "tang": "T1",
       "vi_sao": "Ô lõi rỗng làm Phase 2 phải ĐOÁN: đoán cách dựng state, đoán kỳ vọng, đoán dữ liệu. Đoán sai ở tầng setup thì mọi verdict sau đó vô nghĩa.",

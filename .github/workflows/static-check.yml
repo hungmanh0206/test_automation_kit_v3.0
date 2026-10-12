@@ -49,6 +49,15 @@ jobs:
       - name: Danh mục gate khớp source (bảng lệch = một gate đã đổi mức CHẶN/CẢNH BÁO mà không ai ghi)
         run: npm run gates:index:check
 
+      # Mã gate KHÔNG do gate gọi tên — `maCua()` khớp regex lên câu thông báo. Nên nới một `khop` có thể
+      # giành mất câu của mã khác, và người sửa đọc hướng dẫn của mã sai. Đo 12/10/2026: 18/7939 chuỗi
+      # khớp hai mã hoặc hơn, trong đó có cặp hai mã T0.
+      - name: Cặp bẩn/sạch và đường định tuyến của 21 mã T0/T1 (gate:code-pair --enforce)
+        run: npm run gate:code-pair:enforce
+
+      - name: Bản đồ luật → gate → spec khớp nguồn, và không mục luật nào chưa ai rà
+        run: npm run rule:coverage:check
+
       # Ngân sách token cho hướng dẫn của chính kit. Ngưỡng ở .agent/config/prompt_budget.json, đo theo
       # lời khai bat_buoc trong load_map.json. Chốt chống trôi: tài liệu phình lại bằng cách mỗi lần
       # thêm vài dòng hợp lý, và không gì ghi lại việc đó.

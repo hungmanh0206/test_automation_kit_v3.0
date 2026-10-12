@@ -46,11 +46,40 @@ function loadCodes() {
   return CODES_CACHE;
 }
 
+/*
+ * MÃ ỔN ĐỊNH của một thông điệp vi phạm — và vì sao KHÔNG lấy mã khớp đầu tiên.
+ *
+ * Bản trước duyệt danh sách mã theo thứ tự khai và trả cái khớp đầu. Đo 12/10/2026 trên 7.939 chuỗi
+ * literal trong `scripts/**.js`: 18 chuỗi khớp HAI mã hoặc hơn, và trong đó có cặp hai mã T0 —
+ * `FAIL_CHUA_PHAN_TANG` và `RERUN_THIEU`. Nghĩa là THỨ TỰ KHAI quyết định mã, và người sửa đọc sai hướng
+ * dẫn `vì sao`/`sửa` của mã khác.
+ *
+ * Nguyên nhân là vài `khop` chỉ có một từ: `rỗng`, `comment`, `rerun`. Một từ như vậy khớp cả câu không
+ * liên quan (`catalog rỗng không kiểm được gì` là chuyện của `UI_CATALOG`).
+ *
+ * Luật mới: KHỚP DÀI NHẤT THẮNG. Đoạn khớp dài hơn nghĩa là mẫu mang nhiều ngữ cảnh hơn, nên nó cụ thể
+ * hơn. Bằng nhau thì theo thứ tự khai, để kết quả không đổi giữa hai lượt.
+ *
+ * GIỚI HẠN, và nó quan trọng: khớp-dài-nhất là phỏng đoán, không phải chứng minh. Nó chỉ đổi mặc định từ
+ * "mã nào khai trước" sang "mã nào cụ thể hơn". Chỗ nhập nhằng vẫn PHẢI được khai và rà — đó là việc của
+ * `gate:policy`, và vì vậy `maCuaChiTiet` trả về cả danh sách ứng viên chứ không chỉ một mã.
+ */
+function maCuaChiTiet(message) {
+  const s = String(message || '');
+  const ungVien = [];
+  for (const c of loadCodes().codes) {
+    const m = s.match(c.re);
+    if (m) ungVien.push({ code: c.code, dai: m[0].length, khop: m[0] });
+  }
+  if (!ungVien.length) return { ma: 'KHAC', ung_vien: [] };
+  let tot = ungVien[0];
+  for (const u of ungVien) if (u.dai > tot.dai) tot = u;
+  return { ma: tot.code, ung_vien: ungVien };
+}
+
 /** Mã ổn định của một thông điệp vi phạm. Không khớp mã nào thì `KHAC` — vẫn được in. */
 function maCua(message) {
-  const s = String(message || '');
-  for (const c of loadCodes().codes) if (c.re.test(s)) return c.code;
-  return 'KHAC';
+  return maCuaChiTiet(message).ma;
 }
 
 /** TC ID trong thông điệp, nếu có. Không có thì trả chuỗi rỗng — KHÔNG bịa. */
@@ -269,4 +298,4 @@ function format(agg, { title = 'GATE ENGINE', failHead = 15, warnHead = 8 } = {}
   return L.join('\n');
 }
 
-module.exports = { STATUS, SEVERITY, TI_LE_MAU_SO_TOI_THIEU, kiemMauSo, toResult, aggregate, format, maCua, tcIdTrong, yChinh, nenGon, inGon,};
+module.exports = { STATUS, SEVERITY, TI_LE_MAU_SO_TOI_THIEU, kiemMauSo, toResult, aggregate, format, maCua, maCuaChiTiet, tcIdTrong, yChinh, nenGon, inGon,};

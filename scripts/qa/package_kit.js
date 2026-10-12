@@ -132,6 +132,11 @@ const KEEP_FILES = [
    * trong khi chẳng có gì sai — và người cài kit sẽ đọc màu đỏ đó thành "kit thiếu 6 gate".
    */
   '.agent/config/rule_coverage_notes.json',
+  /*
+   * `gate_code_pairs.json` (v2.7.0 §A10.3): cặp bẩn/sạch của 21 mã T0/T1. Thiếu nó thì `gate:code-pair` báo cả
+   * 21 mã "không có cặp" — một màn CHẶN toàn bộ ở máy mới, vì thiếu config chứ không vì thiếu gate.
+   */
+  '.agent/config/gate_code_pairs.json',
   '.agent/config/checklist_types.json',
   '.agent/config/gate_codes.json',
   '.agent/config/na_reasons_rejected.json',

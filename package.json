@@ -165,6 +165,8 @@
     "next": "node scripts/qa/next_command.js",
     "gate:friction": "node scripts/qa/gate_friction.js",
     "gate:selfmutate": "node scripts/qa/gate_selfmutate.js",
+    "gate:code-pair": "node scripts/qa/gate_code_pair.js",
+    "gate:code-pair:enforce": "node scripts/qa/gate_code_pair.js --enforce",
     "rule:coverage": "node scripts/qa/rule_coverage.js --write",
     "rule:coverage:check": "node scripts/qa/rule_coverage.js --check"
   },
