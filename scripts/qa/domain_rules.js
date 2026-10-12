@@ -75,7 +75,14 @@ const CONFIRMERS = ['BA', 'Dev', 'QA-Lead', 'PO', 'Van-ban-phap-quy'];
 const VBPQ = 'Van-ban-phap-quy';
 /** Số hiệu văn bản pháp quy VN: `TT32/2018`, `Thông tư 12/2022/TT-BGDĐT`, `NĐ 99/2019`, `QĐ 16/2006`. */
 const SO_HIEU_RE = /(?:TT|NĐ|ND|QĐ|QD|Th[ôo]ng t[ưu]|Nghị đ[ịi]nh|Quy[ếe]t đ[ịi]nh|Lu[ậa]t)\s*\.?\s*\d+\s*\/\s*\d{4}|\b\d+\/\d{4}\/(?:TT|NĐ|ND|QĐ|QD)\b/i;
-const EMAIL_RE = /[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}/;
+/*
+ * Mẫu PII lấy từ NGUỒN DUY NHẤT `lib/pii_mask.js` (v2.8.0 §0b).
+ *
+ * Trước đó kit có NĂM bản rời nhau và chúng LỆCH: bản ở `screen_snapshot.js` bỏ sót SĐT 9 chữ số mà
+ * bốn bản kia che. Tức cùng một số điện thoại được che trong báo cáo nhưng KHÔNG che trong ảnh chụp
+ * màn — non-negotiable §1 hở ở đúng chỗ không ai so hai bản bao giờ.
+ */
+const { EMAIL_RE, PHONE_RE } = require('./lib/pii_mask');
 
 // Dấu hiệu expected CÓ thứ để đối chiếu: số, chuỗi nguyên văn trong ngoặc, tên field/property, hoặc khẳng
 // định RỖNG (một oracle hợp lệ — "cột công phải TRỐNG, không phải 0").
@@ -87,8 +94,7 @@ const isVagueExpected = (s) => VAGUE_RE.test(s) && !CONCRETE_RE.test(s);
 
 // TC ID có dạng <PREFIX>_<số>; prefix cho biết bộ testcase nào. Dùng để biết một scan có ĐỦ THẨM QUYỀN phán
 // "TC không tồn tại" hay không.
-const tcPrefix = (id) => String(id).replace(/[_-]?\d+$/, '');
-const PHONE_RE = /\b0\d{8,10}\b/;
+const tcPrefix = (id) => String(id).replace(/[_-]?\d+$/, '');
 const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
 
 function readJson(p) { try { return JSON.parse(fs.readFileSync(p, 'utf8')); } catch (e) { return { __err: e.message }; } }

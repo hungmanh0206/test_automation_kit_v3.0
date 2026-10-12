@@ -115,9 +115,37 @@ function checkDbVerifyStatic(root, { task, declared, why, readFile = null, exist
           + (w ? `Đang thiếu: ${thieu.join(', ')}.` : 'Hiện chưa khai gì.'),
         );
       } else {
+        /*
+         * `bu_tru` PHẢI NÊU ĐÚNG TÊN CÁC LỚP ĐANG CÓ (v2.8.0 §0b.7).
+         *
+         * Khoá `bu_tru` đã bắt buộc từ trước, nhưng chỉ bắt buộc KHÁC RỖNG. Một lời khai đúng ở thời điểm
+         * viết sẽ trôi khỏi sự thật ngay lượt sau: v2.8.0 thêm bốn lớp bù, và nếu `bu_tru` vẫn chỉ nhắc
+         * `assertReadOnlySql` thì người đọc miễn trừ sẽ tưởng kit chỉ có một lớp — tức đánh giá rủi ro
+         * dựa trên một bản mô tả cũ.
+         *
+         * Kiểm bằng cách so TÊN, không so nội dung: gate này đọc file, không chạy test. Việc chứng minh
+         * mỗi lớp còn hoạt động là của spec tương ứng.
+         */
+        const PHAI_NHAC = [
+          ['sql_readonly_lint', 'lint một nguồn'],
+          ['ROLLBACK', 'transaction luôn rollback'],
+          ['guard_db_access', 'hook PreToolUse'],
+          ['db:paths:check', 'gate quét đường vòng'],
+          ['db_audit', 'sổ audit truy vấn'],
+        ];
+        const banKhai = String(w.bu_tru || '');
+        const thieuLop = PHAI_NHAC.filter(([ten]) => !banKhai.includes(ten)).map(([, nhan]) => nhan);
+        if (thieuLop.length) {
+          problems.push(
+            `DB verify: miễn trừ đang BẬT mà \`safety.waiver.bu_tru\` KHÔNG nhắc ${thieuLop.length}/${PHAI_NHAC.length} lớp bù đang có: ${thieuLop.join(' · ')}. `
+            + 'Một lời khai miễn trừ cũ hơn thực tế khiến người đọc đánh giá rủi ro trên bản mô tả sai — '
+            + 'và ở đây là đánh giá thấp hơn thực tế, nên nó không "an toàn về hướng nào".',
+          );
+        }
         warnings.push(
           `DB verify: safety.requireReadonlyUser = false — MIỄN TRỪ CÓ CHỮ KÝ, không phải đã an toàn. Người quyết: ${String(w.nguoi_quyet).slice(0, 80)}. `
-          + `Lớp bù trừ: ${String(w.bu_tru).slice(0, 120)}. Rủi ro còn lại đã ghi trong config — đọc trước khi dựa vào kết luận từ DB.`,
+          + `Lớp bù trừ (${PHAI_NHAC.length - thieuLop.length}/${PHAI_NHAC.length} nêu tên): ${String(w.bu_tru).replace(/\s+/g, ' ').slice(0, 160)}. `
+          + 'Rủi ro còn lại đã ghi trong config — đọc trước khi dựa vào kết luận từ DB.',
         );
       }
     }

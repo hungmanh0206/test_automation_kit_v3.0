@@ -30,10 +30,22 @@
  * giống email; còn họ tên / ngày sinh / CCCD / địa chỉ che theo NHÃN hoặc theo HEADER CỘT. Lý do: luật
  * `d{9,12}` từng che luôn mã liên kết ngoài (11 chữ số) — khoá dùng để nối UI với DB, che nó là mất chính thứ cần đọc.
  */
-const PII_LABEL = /^(full ?name|họ (và )?tên|ho ten|tên khách|email|e-?mail|phone( number)?|số điện thoại|so dien thoai|mobile|d\.?o\.?b|ngày sinh|ngay sinh|số cccd|so cccd|cccd|cmnd|hộ chiếu|passport|địa chỉ|dia chi|address)\b/i;
-const EMAIL_RE = /[\w.+-]+@[\w.-]+\.[A-Za-z]{2,}/g;
-/** SĐT VN bắt đầu bằng 0 — khoá nghiệp vụ của dự án này không bắt đầu bằng 0 nên mẫu này không ăn oan. */
-const PHONE_RE = /(?<!\d)0\d{9,10}(?!\d)/g;
+/*
+ * Mẫu PII lấy từ NGUỒN DUY NHẤT `scripts/qa/lib/pii_mask.js` (v2.8.0 §0b).
+ *
+ * BẢN Ở ĐÂY TỪNG LÀ BẢN LỆCH, và lệch đúng chiều nguy hiểm: nó chỉ bắt `0` + 9..10 chữ số, trong khi
+ * bốn bản kia bắt `0` + 8..10. Hệ quả: một SĐT 9 chữ số (định dạng di động cũ trước 2018, vẫn đầy
+ * trong dữ liệu) được che ở báo cáo và sổ tri thức nhưng KHÔNG che trong ẢNH CHỤP MÀN — tức bằng chứng
+ * đính kèm bug mang SĐT thật. Không ai thấy vì không ai so hai bản bao giờ.
+ *
+ * Lo ngại ghi ở bản cũ VẪN ĐÚNG với dải rộng hơn: luật `\d{9,12}` từng che luôn mã liên kết ngoài 11
+ * chữ số, nhưng mẫu chung đòi SỐ BẮT ĐẦU BẰNG `0`, mà khoá nghiệp vụ của dự án này không bắt đầu bằng
+ * 0. Nên hợp hai dải lại không làm sống lại ca báo oan đó.
+ *
+ * Nhãn PII cũng là HỢP của hai danh sách: bản cũ ở đây có `full name`, `tên khách`, `hộ chiếu`,
+ * `passport`, `mobile` mà bản kia thiếu; bản kia phủ tên cột DB không dấu (`HO_TEN`, `NGAY_SINH`).
+ */
+const { PII_LABEL, EMAIL_RE_G: EMAIL_RE, PHONE_RE_G: PHONE_RE, CHUAN_HOA_NHAN_SRC } = require('../../qa/lib/pii_mask');
 
 /** Chuẩn hoá số hiển thị → chuỗi chữ số (giữ dấu âm). Dùng để so giá trị UI với DB, không phụ thuộc định dạng. */
 function normNumber(v) {
@@ -61,7 +73,7 @@ async function snapshotScreen(page, opts = {}) {
   const scope = opts.scopeSelector || 'body';
   const labelSel = opts.labelSelector || 'label, .form-label, dt, th';
   const maskPii = opts.maskPii !== false;
-  return page.evaluate(({ scope: sc, labelSel: ls, CUR, mask: doMask, piiLabel, emailRe, phoneRe }) => {
+  return page.evaluate(({ scope: sc, labelSel: ls, CUR, mask: doMask, piiLabel, emailRe, phoneRe, chuanHoaSrc }) => {
     const root = document.querySelector(sc) || document.body;
     const norm = (s) => String(s == null ? '' : s).replace(/\s+/g, ' ').trim();
     const visible = (el) => {
@@ -71,7 +83,19 @@ async function snapshotScreen(page, opts = {}) {
     };
 
     const PII = new RegExp(piiLabel.source, piiLabel.flags);
-    const isPiiLabel = (l) => PII.test(String(l || '').trim());
+    /*
+     * CHUẨN HOÁ NHÃN TRƯỚC KHI SO — bỏ dấu, đổi `_`/`-` thành khoảng trắng.
+     *
+     * `PII_LABEL` ở nguồn chung viết ở dạng KHÔNG DẤU, vì nó phải phủ cả nhãn trên màn ("Họ và tên") lẫn
+     * tên cột DB (`HO_TEN`). Áp nó thẳng lên nhãn có dấu thì KHÔNG khớp gì — và lượt gộp một nguồn đầu
+     * tiên đã làm đúng vậy: hai test che PII trong ảnh chụp màn tụt từ "che 3 ô" xuống "che 1 ô", tức ảnh
+     * evidence bắt đầu mang dữ liệu khách.
+     *
+     * Bộ chuẩn hoá được dựng từ MÃ NGUỒN truyền qua biên (`CHUAN_HOA_NHAN_SRC`), không chép tay — chép
+     * tay thì lại thành hai bản trôi khỏi nhau, đúng lỗi đang sửa. Có test so hai bên.
+     */
+    const chuanHoaNhan = new Function('l', chuanHoaSrc);
+    const isPiiLabel = (l) => PII.test(chuanHoaNhan(l));
     const maskText = (t) => {
       if (!doMask) return t;
       return String(t == null ? '' : t)
@@ -207,7 +231,8 @@ async function snapshotScreen(page, opts = {}) {
   // Cố ý KHÔNG bọc try/catch: lỗi ở đây phải nổ ra, vì snapshot rỗng âm thầm đúng là kiểu "mù" cần tránh.
   }, { scope, labelSel, CUR: CURRENCY.map((c) => ({ key: c.key, source: c.re.source, flags: c.re.flags })),
     mask: maskPii, piiLabel: { source: PII_LABEL.source, flags: PII_LABEL.flags },
-    emailRe: { source: EMAIL_RE.source, flags: EMAIL_RE.flags }, phoneRe: { source: PHONE_RE.source, flags: PHONE_RE.flags } });
+    emailRe: { source: EMAIL_RE.source, flags: EMAIL_RE.flags }, phoneRe: { source: PHONE_RE.source, flags: PHONE_RE.flags },
+    chuanHoaSrc: CHUAN_HOA_NHAN_SRC });
 }
 
 /**

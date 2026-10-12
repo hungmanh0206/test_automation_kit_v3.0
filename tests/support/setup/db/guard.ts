@@ -1,4 +1,5 @@
 import { DbGuardError, WRITE_PRIVILEGES, type GrantRow } from './types';
+import { kiemSqlChiDoc } from './sql_readonly_lint';
 
 /*
  * guard.ts — CHỨNG MINH USER LÀ READ-ONLY, bằng cách ĐỌC QUYỀN chứ không thử ghi.
@@ -85,52 +86,23 @@ export function assertReadOnly(proof: ReadOnlyProof, ctx: { database?: string; u
 }
 
 /*
- * LINT CÂU TRUY VẤN. Bản Postgres gọi đây là lớp PHỤ (lớp chính là quyền DB + transaction READ ONLY).
- * Sau khi chuyển sang SQL Server (24/09/2026) điều đó KHÔNG còn đúng: T-SQL không có transaction
- * read-only, và `requireReadonlyUser` đang TẮT — nên đây là lớp chặn CHÍNH. Giữ tinh thần `assertReadOnlySql` của
- * `uatDbClient.ts`: chỉ cho câu ĐỌC, chặn stacked query và các hàm đọc/ghi file, admin.
+ * LINT CÂU TRUY VẤN — ỦY QUYỀN cho `sql_readonly_lint.ts`, nguồn DUY NHẤT (v2.8.0 §0b).
+ *
+ * Bản cũ ở đây có bộ regex riêng, và bản ở `uatDbClient.ts` cũng vậy. Đo trên 795 câu SQL thật trong repo
+ * ngày 12/10/2026: 4 câu hai bản BẤT ĐỒNG. Lỗ `EXEC` từng sống ở ĐÚNG khoảng trôi đó (vá 10/10/2026 ở bản
+ * này, trong khi bản kia vốn đã có) — nên cách chữa gốc không phải vá tiếp, mà là bỏ hẳn một bản.
+ *
+ * Nguồn mới còn sửa một lỗi đi NGƯỢC hướng: bản cũ chặn oan câu đọc hợp lệ có từ khoá nằm TRONG chuỗi
+ * (`WHERE note = N'update'`, `LIKE N'%exec%'`). Lint báo oan thì bị nới, và lúc nới thì lỗ thật mở theo.
+ *
+ * Giữ nguyên `DbGuardError` để spec cũ không phải đổi — kể cả bộ hồi quy của lỗ `EXEC`, vốn assert cả
+ * KIỂU LỖI lẫn TỪ KHOÁ trong thông điệp.
  */
-const READ_HEAD = /^\s*(select|with|explain|show|table)\b/i;
-/*
- * T-SQL không có "transaction READ ONLY" như Postgres — SET TRANSACTION ISOLATION LEVEL chỉ đổi mức khoá,
- * KHÔNG chặn ghi. Nghĩa là với SQL Server, lint này là lớp chặn CHÍNH, không phải lớp phụ. Nên danh sách
- * dưới đây phải phủ cả họ thủ tục hệ thống của SQL Server (`xp_*`, `sp_*`), đường ghi file (`openrowset`,
- * `bulk insert`, `opendatasource`), và `into` của `SELECT … INTO <bảng mới>` (tạo bảng thật).
- */
-/*
- * `exec`/`execute` THIẾU ở bản này cho tới 10/10/2026, và đó là lỗ ghi thật — đo được, không suy luận:
- *
- *   LỌT   SELECT 1 EXEC('DEL'+'ETE FROM dbo.t WHERE 1=0')
- *   LỌT   SELECT 1 DECLARE @s NVARCHAR(99) SET @s='x' EXEC(@s)
- *   CHẶN  SELECT 1 EXECUTE('DROP TABLE dbo.x')      ← chặn nhờ chữ DROP, KHÔNG nhờ EXEC
- *
- * Ca thứ ba là chỗ lỗ sống sót được: nó đỏ, nên nhìn vào thì tưởng `EXEC` đã bị gác. Thực ra chỉ `DROP`
- * bị bắt, và một payload không mang từ khoá DDL nào (`EXEC` + chuỗi ghép) thì đi qua sạch.
- *
- * GỐC CỦA LỖ: `;` ở giữa câu đã bị chặn ngay bên dưới, nhưng **T-SQL không cần `;` để nối hai statement** —
- * `SELECT 1 EXEC(…)` là hai lệnh hợp lệ. Nên phép chặn stacked-query chỉ là MỘT NỬA hàng rào, và nửa còn
- * lại là danh sách này phải phủ ĐỦ mọi statement ghi. Bản ở `uatDbClient.ts` (đường chính, 174 file) vốn đã
- * có `exec|execute`; bản này là đường `dbVerify` và đã trôi khỏi nó.
- *
- * `declare`/`set` tự chúng không ghi được gì, nhưng là cách lắp SQL động để né danh sách từ khoá. Đã kiểm
- * trước khi thêm: không câu đọc hợp lệ nào trong kit dùng hai chữ này (dbVerify tham số hoá bằng `@p`), nên
- * thêm vào KHÔNG báo oan. `\b` cũng không bắt chúng trong `sys.dm_exec_requests` hay `data_set` (dấu `_` là
- * ký tự từ), nên câu đọc DMV vẫn chạy — có positive control cho đúng chuyện này trong spec.
- */
-const DANGEROUS_TOKEN = /\b(insert|update|delete|truncate|drop|alter|create|grant|revoke|deny|copy|vacuum|reindex|call|do|merge|replace|backup|restore|shutdown|reconfigure|checkpoint|dbcc|waitfor|execute|exec|declare|set|writetext|updatetext|setuser|revert|load_file|outfile|dumpfile|openrowset|opendatasource|openquery|openxml|bulk\s+insert|xp_[a-z_]+|sp_[a-z_]+|fn_trace_[a-z_]+)\b/i;
-/** `SELECT … INTO <bảng>` tạo bảng mới — READ_HEAD không bắt được vì câu vẫn bắt đầu bằng SELECT. */
-const SELECT_INTO = /\binto\s+(?!@)[\[#a-z_]/i;
-
 export function assertReadOnlyQuery(sql: string): void {
-  const raw = String(sql || '');
-  const s = raw.replace(/--[^\n]*/g, ' ').replace(/\/\*[\s\S]*?\*\//g, ' ');
-  if (!READ_HEAD.test(s)) throw new DbGuardError(`Câu truy vấn không bắt đầu bằng SELECT/WITH/EXPLAIN/SHOW/TABLE: "${raw.slice(0, 60)}…"`);
-  // Stacked query: `;` ở giữa (bỏ qua `;` cuối câu) — đường kinh điển để giấu một câu ghi.
-  if (/;\s*\S/.test(s.trim())) throw new DbGuardError('Nhiều statement trong một câu (stacked query) — không cho.');
-  const hit = DANGEROUS_TOKEN.exec(s);
-  if (hit) throw new DbGuardError(`Câu truy vấn chứa từ khoá ghi/nguy hiểm: "${hit[0]}".`);
-  if (SELECT_INTO.test(s)) {
-    throw new DbGuardError('Câu truy vấn có `SELECT … INTO <bảng>` — tạo bảng thật, không phải câu đọc.');
+  try {
+    kiemSqlChiDoc(sql);
+  } catch (e) {
+    throw new DbGuardError((e as Error).message);
   }
 }
 

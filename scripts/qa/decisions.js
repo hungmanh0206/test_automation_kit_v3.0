@@ -38,8 +38,14 @@ const TYPES = ['false_positive', 'by_design', 'risk_override', 'blocked_pass', '
 const ID_RE = /^DEC-[A-Z0-9]+-\d{3}$/;
 const DECIDERS = ['BA', 'Dev', 'QA-Lead', 'PO', 'QA'];
 const STATUSES = ['active', 'superseded'];
-const EMAIL_RE = /[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}/;
-const PHONE_RE = /\b0\d{8,10}\b/;
+/*
+ * Mẫu PII lấy từ NGUỒN DUY NHẤT `lib/pii_mask.js` (v2.8.0 §0b).
+ *
+ * Trước đó kit có NĂM bản rời nhau và chúng LỆCH: bản ở `screen_snapshot.js` bỏ sót SĐT 9 chữ số mà
+ * bốn bản kia che. Tức cùng một số điện thoại được che trong báo cáo nhưng KHÔNG che trong ảnh chụp
+ * màn — non-negotiable §1 hở ở đúng chỗ không ai so hai bản bao giờ.
+ */
+const { EMAIL_RE, PHONE_RE } = require('./lib/pii_mask');
 const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
 const TODAY = new Date().toISOString().slice(0, 10);
 

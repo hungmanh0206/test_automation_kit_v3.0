@@ -3,7 +3,23 @@
     "SessionStart": [
       {
         "hooks": [
-          { "type": "command", "command": "node scripts/qa/hooks/inject_context.js", "timeout": 30 }
+          {
+            "type": "command",
+            "command": "node scripts/qa/hooks/inject_context.js",
+            "timeout": 30
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Bash|PowerShell|Read|Grep|Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node scripts/qa/hooks/guard_db_access.js",
+            "timeout": 20
+          }
         ]
       }
     ],
@@ -11,7 +27,11 @@
       {
         "matcher": "Write|Edit",
         "hooks": [
-          { "type": "command", "command": "node scripts/qa/hooks/gate_on_write.js", "timeout": 60 }
+          {
+            "type": "command",
+            "command": "node scripts/qa/hooks/gate_on_write.js",
+            "timeout": 60
+          }
         ]
       }
     ]

@@ -235,6 +235,14 @@ const PHAI_SPAWN = {
     { lenh: 'risk:gate', args: [] },
     { lenh: 'canonical:drift', args: [] },
     { lenh: 'expected:check', args: [] },
+    /*
+     * `db:paths:check` ở CẢ HAI phase, tầng T0 (v2.8.0 §0b.5).
+     *
+     * Vì sao cả Phase 1: code tự nối DB hay được viết lúc dò dữ liệu để VIẾT case, không chỉ lúc execute.
+     * Và vì sao T0: một đường vòng chạy dưới login `db_owner` trên 888 bảng, ngoài lint và ngoài
+     * transaction rollback. Nó không phải chuyện để ghi sổ nợ rồi tính sau.
+     */
+    { lenh: 'db:paths:check', args: [] },
   ],
   2: [
     { lenh: 'dim:coverage', args: [] },
@@ -243,6 +251,7 @@ const PHAI_SPAWN = {
     { lenh: 'typecheck:task', args: [] },
     { lenh: 'canonical:drift', args: [] },
     { lenh: 'expected:check', args: [] },
+    { lenh: 'db:paths:check', args: [] },
   ],
 };
 

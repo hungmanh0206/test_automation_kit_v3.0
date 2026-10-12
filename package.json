@@ -169,6 +169,8 @@
     "gate:code-pair": "node scripts/qa/gate_code_pair.js",
     "gate:code-pair:enforce": "node scripts/qa/gate_code_pair.js --enforce",
     "judge": "node scripts/qa/judge.js",
+    "db:query": "node scripts/qa/db_query.js",
+    "db:paths:check": "node scripts/qa/db_paths_check.js",
     "cleanup:check": "node scripts/qa/cleanup_check.js",
     "cleanup:check:enforce": "node scripts/qa/cleanup_check.js --enforce",
     "golden:check": "node scripts/qa/golden_check.js",

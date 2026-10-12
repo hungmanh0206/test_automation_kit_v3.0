@@ -87,6 +87,12 @@
       "vi_sao": "Phase 2 đọc Markdown canonical cho rẻ token. Markdown đã trôi mà vẫn đọc thì lượt đó chạy bộ CŨ, và mọi verdict của nó nói về một bộ case không còn tồn tại.",
       "do_tin": "cao",
       "_nguoi_chot": "Chủ repo duyệt T0 ngày 11/10/2026, sau khi được nêu rõ T1 cũng là lựa chọn hợp lý (đường chặn của nó hẹp: chỉ chặn khi bản xuất đi TRƯỚC Markdown)."
+    },
+    "db:paths:check": {
+      "non_negotiable": 2,
+      "vi_sao": "Quét file nào tự nối DB bằng driver riêng hoặc chứa chuỗi kết nối, ngoài tầng được phép. Một đường vòng như vậy chạy NGOÀI lint câu SQL và NGOÀI transaction rollback, dưới login `db_owner` + `db_datawriter` + `db_ddladmin` trên 888 bảng. T0 vì nó không phải chuyện ghi sổ nợ rồi tính sau: giữa lúc một đường vòng tồn tại và lúc nó ghi mất dữ liệu UAT chỉ là một câu SQL.",
+      "sua": "Chuyển đoạn tra DB sang `queryUatReadonly` (trong spec) hoặc `npm run db:query -- --task <K> --sql-file <f.sql>` (dòng lệnh). Hai đường đó đi qua lint một nguồn và transaction luôn rollback. Nợ cũ không sửa ngay được thì khai ở `.agent/config/db-paths.allow.json` KÈM lý do và hạn rà soát.",
+      "them_o": "v2.8.0 §0b.5"
     }
   },
   "_non_negotiable_con_ho": {
