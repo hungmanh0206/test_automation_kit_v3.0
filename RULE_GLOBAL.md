@@ -18,7 +18,7 @@
 > | Nhiều story chạy song song, đụng file dùng chung | [§Parallel Story Safety](#parallel-story-safety) · [§Shared Change Gate](#shared-change-gate) |
 > | Sửa/đặt automation ở đâu | [§Task-Scoped Automation Code](#task-scoped-automation-code) · [§Automation Promote Review](#automation-promote-review) |
 > | **Phase 1** — requirement mơ hồ, hỏi trước khi gen | [§Analysis & Ambiguity Gate](#analysis--ambiguity-gate-phase-1--đọc-kỹ-hỏi-trước-khi-gen) |
-> | **Phase 2** — 5 trục mở rộng quanh case + luật đóng vòng | [§5 trục mở rộng](#5-trục-mở-rộng-quanh-case--luật-đóng-vòng-phase-2--có-máy-đứng-sau) |
+> | **Phase 2** — 7 trục mở rộng quanh case + luật đóng vòng | [§5 trục mở rộng](#5-trục-mở-rộng-quanh-case--luật-đóng-vòng-phase-2--có-máy-đứng-sau) |
 > | **Phase 1** — chiều coverage: khai phạm vi, gắn tag, máy đếm | [§Chiều coverage](#chiều-coverage-phase-1--khai-phạm-vi-gắn-tag-có-máy-đếm) |
 > | **Phase 2** — chạy sao cho thông suốt, không TODO/SKIP bừa | [§Execution Discipline](#execution-discipline-kỷ-luật-thực-thi--chạy-thông-suốt) |
 > | Ghi kết quả, verdict, rerun | [§Execute Results](#execute-results) |
@@ -36,39 +36,39 @@
 | 1 | [Purpose](#purpose) | 74-77 | 30 | npm run rule -- 1 |
 | 2 | [When To Use](#when-to-use) | 78-89 | 61 | npm run rule -- 2 |
 | 3 | [Inputs](#inputs) | 90-102 | 332 | npm run rule -- 3 |
-| 4 | [Outputs](#outputs) | 103-147 | 765 | npm run rule -- 4 |
-| 5 | &nbsp;&nbsp;[Giọng văn output](#giọng-văn-output) | 115-147 | 451 | npm run rule -- 5 |
-| 6 | [Rules](#rules) | 148-771 | 14887 | npm run rule -- 6 |
-| 7 | &nbsp;&nbsp;[Language](#language) | 150-156 | 80 | npm run rule -- 7 |
-| 8 | &nbsp;&nbsp;[Security](#security) | 157-170 | 498 | npm run rule -- 8 |
-| 9 | &nbsp;&nbsp;[Project And Output](#project-and-output) | 171-182 | 284 | npm run rule -- 9 |
-| 10 | &nbsp;&nbsp;[Parallel Story Safety](#parallel-story-safety) | 183-199 | 260 | npm run rule -- 10 |
-| 11 | &nbsp;&nbsp;[Phase-Separated Story Execution](#phase-separated-story-execution) | 200-249 | 2788 | npm run rule -- 11 |
-| 12 | &nbsp;&nbsp;[Task-Scoped Automation Code](#task-scoped-automation-code) | 250-260 | 314 | npm run rule -- 12 |
-| 13 | &nbsp;&nbsp;[Shared Change Gate](#shared-change-gate) | 261-275 | 391 | npm run rule -- 13 |
-| 14 | &nbsp;&nbsp;[Automation Promote Review](#automation-promote-review) | 276-284 | 160 | npm run rule -- 14 |
-| 15 | &nbsp;&nbsp;[Analysis & Ambiguity Gate (Phase 1 — đọc kỹ, hỏi trước khi gen)](#analysis-ambiguity-gate-phase-1-đọc-kỹ-hỏi-trước-khi-gen) | 285-290 | 500 | npm run rule -- 15 |
-| 16 | &nbsp;&nbsp;[Chiều coverage (Phase 1 — khai phạm vi, gắn tag, có máy đếm)](#chiều-coverage-phase-1-khai-phạm-vi-gắn-tag-có-máy-đếm) | 291-311 | 544 | npm run rule -- 16 |
-| 17 | &nbsp;&nbsp;[Execution Discipline (Kỷ luật thực thi — chạy thông suốt)](#execution-discipline-kỷ-luật-thực-thi-chạy-thông-suốt) | 312-321 | 452 | npm run rule -- 17 |
-| 18 | &nbsp;&nbsp;[5 trục mở rộng quanh case + luật đóng vòng (Phase 2 — có máy đứng sau)](#5-trục-mở-rộng-quanh-case-luật-đóng-vòng-phase-2-có-máy-đứng-sau) | 322-548 | 4173 | npm run rule -- 18 |
-| 19 | &nbsp;&nbsp;[Execute Results](#execute-results) | 549-568 | 224 | npm run rule -- 19 |
-| 20 | &nbsp;&nbsp;[Phân tầng lỗi FE hay BE — bắt buộc kiểm API trước khi kết luận](#phân-tầng-lỗi-fe-hay-be-bắt-buộc-kiểm-api-trước-khi-kết-luận) | 569-583 | 307 | npm run rule -- 20 |
-| 21 | &nbsp;&nbsp;[Evidence — Quy chuẩn bắt buộc](#evidence-quy-chuẩn-bắt-buộc) | 584-595 | 629 | npm run rule -- 21 |
-| 22 | &nbsp;&nbsp;[Comment kết quả (Test Execution) — Quy chuẩn trình bày](#comment-kết-quả-test-execution-quy-chuẩn-trình-bày) | 596-607 | 396 | npm run rule -- 22 |
-| 23 | &nbsp;&nbsp;[Bug Claim Gate — kiểm chứng phải đi TRƯỚC lời nói](#bug-claim-gate-kiểm-chứng-phải-đi-trước-lời-nói) | 608-672 | 1059 | npm run rule -- 23 |
-| 24 | &nbsp;&nbsp;[Backlog Bug Gate](#backlog-bug-gate) | 673-682 | 154 | npm run rule -- 24 |
-| 25 | &nbsp;&nbsp;[Executable QA capabilities (autonomy & safety)](#executable-qa-capabilities-autonomy-safety) | 683-695 | 397 | npm run rule -- 25 |
-| 26 | &nbsp;&nbsp;[Automation quality](#automation-quality) | 696-734 | 728 | npm run rule -- 26 |
-| 27 | &nbsp;&nbsp;[Reporting](#reporting) | 735-745 | 170 | npm run rule -- 27 |
-| 28 | &nbsp;&nbsp;[Setup Strategy](#setup-strategy) | 746-759 | 207 | npm run rule -- 28 |
-| 29 | &nbsp;&nbsp;[Push execution](#push-execution) | 760-771 | 167 | npm run rule -- 29 |
-| 30 | [Workflow](#workflow) | 772-785 | 43 | npm run rule -- 30 |
-| 31 | [Chi phí một lượt chạy — đếm SỐ LƯỢT, không đếm độ dài](#chi-phí-một-lượt-chạy-đếm-số-lượt-không-đếm-độ-dài) | 786-816 | 477 | npm run rule -- 31 |
-| 32 | [Cleanup Rules](#cleanup-rules) | 817-844 | 388 | npm run rule -- 32 |
-| 33 | [Examples](#examples) | 845-852 | 80 | npm run rule -- 33 |
-| 34 | [References](#references) | 853-861 | 84 | npm run rule -- 34 |
+| 4 | [Outputs](#outputs) | 103-165 | 1064 | npm run rule -- 4 |
+| 5 | &nbsp;&nbsp;[Giọng văn output](#giọng-văn-output) | 115-165 | 750 | npm run rule -- 5 |
+| 6 | [Rules](#rules) | 166-813 | 15380 | npm run rule -- 6 |
+| 7 | &nbsp;&nbsp;[Language](#language) | 168-174 | 80 | npm run rule -- 7 |
+| 8 | &nbsp;&nbsp;[Security](#security) | 175-188 | 498 | npm run rule -- 8 |
+| 9 | &nbsp;&nbsp;[Project And Output](#project-and-output) | 189-200 | 284 | npm run rule -- 9 |
+| 10 | &nbsp;&nbsp;[Parallel Story Safety](#parallel-story-safety) | 201-217 | 260 | npm run rule -- 10 |
+| 11 | &nbsp;&nbsp;[Phase-Separated Story Execution](#phase-separated-story-execution) | 218-267 | 2784 | npm run rule -- 11 |
+| 12 | &nbsp;&nbsp;[Task-Scoped Automation Code](#task-scoped-automation-code) | 268-278 | 314 | npm run rule -- 12 |
+| 13 | &nbsp;&nbsp;[Shared Change Gate](#shared-change-gate) | 279-293 | 391 | npm run rule -- 13 |
+| 14 | &nbsp;&nbsp;[Automation Promote Review](#automation-promote-review) | 294-302 | 160 | npm run rule -- 14 |
+| 15 | &nbsp;&nbsp;[Analysis & Ambiguity Gate (Phase 1 — đọc kỹ, hỏi trước khi gen)](#analysis-ambiguity-gate-phase-1-đọc-kỹ-hỏi-trước-khi-gen) | 303-308 | 500 | npm run rule -- 15 |
+| 16 | &nbsp;&nbsp;[Chiều coverage (Phase 1 — khai phạm vi, gắn tag, có máy đếm)](#chiều-coverage-phase-1-khai-phạm-vi-gắn-tag-có-máy-đếm) | 309-329 | 544 | npm run rule -- 16 |
+| 17 | &nbsp;&nbsp;[Execution Discipline (Kỷ luật thực thi — chạy thông suốt)](#execution-discipline-kỷ-luật-thực-thi-chạy-thông-suốt) | 330-339 | 452 | npm run rule -- 17 |
+| 18 | &nbsp;&nbsp;[7 trục mở rộng quanh case + luật đóng vòng (Phase 2 — có máy đứng sau)](#7-trục-mở-rộng-quanh-case-luật-đóng-vòng-phase-2-có-máy-đứng-sau) | 340-574 | 4338 | npm run rule -- 18 |
+| 19 | &nbsp;&nbsp;[Execute Results](#execute-results) | 575-594 | 224 | npm run rule -- 19 |
+| 20 | &nbsp;&nbsp;[Phân tầng lỗi FE hay BE — bắt buộc kiểm API trước khi kết luận](#phân-tầng-lỗi-fe-hay-be-bắt-buộc-kiểm-api-trước-khi-kết-luận) | 595-609 | 307 | npm run rule -- 20 |
+| 21 | &nbsp;&nbsp;[Evidence — Quy chuẩn bắt buộc](#evidence-quy-chuẩn-bắt-buộc) | 610-621 | 629 | npm run rule -- 21 |
+| 22 | &nbsp;&nbsp;[Comment kết quả (Test Execution) — Quy chuẩn trình bày](#comment-kết-quả-test-execution-quy-chuẩn-trình-bày) | 622-633 | 396 | npm run rule -- 22 |
+| 23 | &nbsp;&nbsp;[Bug Claim Gate — kiểm chứng phải đi TRƯỚC lời nói](#bug-claim-gate-kiểm-chứng-phải-đi-trước-lời-nói) | 634-714 | 1391 | npm run rule -- 23 |
+| 24 | &nbsp;&nbsp;[Backlog Bug Gate](#backlog-bug-gate) | 715-724 | 154 | npm run rule -- 24 |
+| 25 | &nbsp;&nbsp;[Executable QA capabilities (autonomy & safety)](#executable-qa-capabilities-autonomy-safety) | 725-737 | 397 | npm run rule -- 25 |
+| 26 | &nbsp;&nbsp;[Automation quality](#automation-quality) | 738-776 | 728 | npm run rule -- 26 |
+| 27 | &nbsp;&nbsp;[Reporting](#reporting) | 777-787 | 170 | npm run rule -- 27 |
+| 28 | &nbsp;&nbsp;[Setup Strategy](#setup-strategy) | 788-801 | 207 | npm run rule -- 28 |
+| 29 | &nbsp;&nbsp;[Push execution](#push-execution) | 802-813 | 167 | npm run rule -- 29 |
+| 30 | [Workflow](#workflow) | 814-827 | 43 | npm run rule -- 30 |
+| 31 | [Chi phí một lượt chạy — đếm SỐ LƯỢT, không đếm độ dài](#chi-phí-một-lượt-chạy-đếm-số-lượt-không-đếm-độ-dài) | 828-858 | 477 | npm run rule -- 31 |
+| 32 | [Cleanup Rules](#cleanup-rules) | 859-886 | 388 | npm run rule -- 32 |
+| 33 | [Examples](#examples) | 887-894 | 80 | npm run rule -- 33 |
+| 34 | [References](#references) | 895-903 | 84 | npm run rule -- 34 |
 
-> Cả file ~18742 token. Tra MỘT mục thay vì đọc cả file: npm run rule -- <số|từ khoá>
+> Cả file ~19534 token. Tra MỘT mục thay vì đọc cả file: npm run rule -- <số|từ khoá>
 <!-- MỤC-LỤC:KẾT-THÚC -->
 
 ## Purpose
@@ -247,7 +247,7 @@ việc khác, và không làm.
 - Auto Publish testcase là step riêng trong phạm vi Phase 1, chạy bằng prompt riêng sau khi QA xác nhận Excel/testcase. Không publish thật khi chưa có QA confirmation rõ ràng. Sheet ghi đè toàn bộ mỗi lần sync, nên phải soi bản Excel trước khi upload.
 - **Test management tool là Google Sheet** — công cụ DUY NHẤT của kit. Không có tầng script tích hợp riêng: bản xuất `.xlsx` dựng từ Markdown canonical bằng `scripts/convert_excel/md_to_xlsx.js`, đưa lên và tải về đều qua Drive MCP, kết quả execution ghép lại bằng `npm run merge:execution-status`. Tức publish là thao tác NGƯỜI bấm, không có lệnh tự ghi. Gate `gate:policy` CHẶN mọi tài liệu nhắc lại công cụ cũ, kể cả dạng lệnh viết thường.
 - Publish testcase lên **Google Sheet** phải đi từ **Markdown canonical**, qua bản xuất `.xlsx` do `md_to_xlsx.js` sinh — không gõ case trực tiếp lên Sheet. (Sửa 10/10/2026: câu này ghi "lên Backlog" và **mâu thuẫn với chính gạch đầu dòng ngay trên** — "Test management tool là Google Sheet, công cụ DUY NHẤT". Ranh giới thật: **testcase đi Google Sheet, bug đi Backlog**. Backlog vẫn là công cụ sống của kit, nên nó KHÔNG thuộc `NO-LEGACY-TOOLS` và `gate:policy` không bắt được chỗ này.) Chạy dry-run trước nếu cần preview; publish thật chỉ khi QA/user approve. Ghi kết quả vào `<TASK_OUTPUT_DIR>/reports/backlog-testcase-publish-summary.md`.
-- **KHÔNG có cột `Severity`/`Mức độ rủi ro` trong bộ testcase** (bỏ 21/08/2026). Severity là thuộc tính của **BUG**, không phải của testcase. Chấm nó lúc viết case là đoán trước hậu quả của một lỗi chưa xảy ra, nên nó luôn được chấm bằng cảm tính. Bug thật vẫn có Severity, lấy lúc log bug chứ không lấy từ testcase. Việc duy nhất cột này còn gánh trong kit là **risk band**, thứ quyết định độ sâu mở rộng 5 trục. Mà `bandOf()` lấy `max(risk, priority)`. Sau khi vá `PRIO_RANK` thiếu khoá `critical`, đo trên **1977 case toàn repo: bỏ cột này làm đổi band 0 case**. `Ưu tiên` (`Critical|High|Medium|Low|Lowest`) một mình đủ quyết band. `COL.risk` vẫn giữ trong `model.js` để 17 bộ TC cũ còn cột đó parse không lỗi, và các cross-check ma trận §7b tự bỏ qua khi cột vắng.
+- **KHÔNG có cột `Severity`/`Mức độ rủi ro` trong bộ testcase** (bỏ 21/08/2026). Severity là thuộc tính của **BUG**, không phải của testcase. Chấm nó lúc viết case là đoán trước hậu quả của một lỗi chưa xảy ra, nên nó luôn được chấm bằng cảm tính. Bug thật vẫn có Severity, lấy lúc log bug chứ không lấy từ testcase. Việc duy nhất cột này còn gánh trong kit là **risk band**, thứ quyết định độ sâu mở rộng 7 trục. Mà `bandOf()` lấy `max(risk, priority)`. Sau khi vá `PRIO_RANK` thiếu khoá `critical`, đo trên **1977 case toàn repo: bỏ cột này làm đổi band 0 case**. `Ưu tiên` (`Critical|High|Medium|Low|Lowest`) một mình đủ quyết band. `COL.risk` vẫn giữ trong `model.js` để 17 bộ TC cũ còn cột đó parse không lỗi, và các cross-check ma trận §7b tự bỏ qua khi cột vắng.
 - **Tiêu đề case = NỘI DUNG, tag ở cột `Tag`** — template testcase là **10 cột**: `TC ID | Loại case | Tag | Module | Trường hợp kiểm thử | Tiền điều kiện | Dữ liệu Test | Các bước thực hiện | Kết quả mong đợi | Ưu tiên`. Khối `[<Loại>][<Chiều>][<Oracle-ref>]` (vd `[Positive][Calc][BR-SAPSYNC-004]`) ghi ở cột `Tag`, **KHÔNG** ghi vào `Trường hợp kiểm thử`. Tiêu đề phải **tự đủ nghĩa** khi không có tag, tức chở đủ **ba thông tin**: *đối tượng hoặc màn*, *hành động hoặc điều kiện*, *kết quả cụ thể đo được*. Thường gói trong **2 đoạn** nối ` - `, vì đối tượng và hành động hay dính liền. Ví dụ: `Tạo Business Partner - Sinh mã KH đúng cú pháp C + CCCD khi khách Cá nhân chưa có BP`. **KHÔNG** đòi đúng 3 đoạn: bản đầu của luật này viết "3 đoạn" trong khi đoạn thứ nhất của ví dụ chính là `Cross-app` — tức cái tiền tố hằng số mà cùng luật đó CẤM. Hai câu tự đá nhau; đếm đoạn không phải thước đo, **đủ ba thông tin** mới là. CẤM **tiền tố hằng số**. Đo thật: `Cross-app - ` gắn cho 101/101 case của CSDL-26878 nên không phân biệt được gì, mà thông tin đó đã nằm ở `Loại case` và tên folder. Cũng cấm đoạn kết quả chung chung kiểu "hoạt động đúng", và cấm để nghĩa của case phụ thuộc vào tag. Giữ được `[...]` GIỮA câu khi đó là tên trường thật (`Kiểm [FBP] Ngày ghi nhận…`) — chỉ khối ngoặc **liền nhau ở đầu** mới bị coi là tag. Bộ TC cũ **không phải sửa**: `scripts/lib/testcase/model.js` lấy HỢP của cột `Tag` và tiêu đề nên cả hai đời đều đo được, còn `displayTitle()` ở `publish qua Drive MCP.js` cắt khối tag đầu chuỗi trước khi đẩy Google Sheet. Máy kiểm: `tests/fe/infra/publish-field-mapping.spec.ts`.
 - **Case sinh mới phải TỰ KHAI `Loại case`** — đúng một trong **9 loại** đã chốt: `Security` · `Accessibility` · `Performance` · `Database` · `API` · `UI` · `E2E` · `Integration` · `Functional`. Định nghĩa, tag đi kèm và bảng **"chọn khi / KHÔNG chọn khi"** của từng loại nằm ở [`.agent/config/case_types.json`](.agent/config/case_types.json) — **nguồn duy nhất**, mọi nơi khác đọc file đó. Xét CHUYÊN BIỆT trước, `Functional` là mặc định cuối; một case mang ĐÚNG MỘT loại, hợp 2 loại nghĩa là case đang gộp 2 mục đích ⇒ tách case. Đây là trục KHÁC `Nhóm chức năng` (nhóm = *"thuộc mảng nghiệp vụ nào"* → thư mục; loại = *"kiểm thử kiểu gì"* → Case Type, dùng để lọc và báo cáo). Bỏ trống thì máy phải ĐOÁN: đo trên 1.399 case đã publish, cách suy từ tên nhóm đẩy **96% về `Functional`**, `Integration` và `Performance` = **0** — lọc theo Case Type trên Google Sheet thành vô dụng.
   - Chặn ở **biên sinh case** (`md_to_xlsx.js`), KHÔNG ở `REQUIRED_COLS`: bộ TC cũ đều 9 cột, siết ở bộ đọc dùng chung thì cả 9 bộ đỏ oan mà không ai sai. Bộ cũ giữ nguyên, chỉ khai khi có dịp sinh lại.
@@ -337,7 +337,7 @@ Bộ testcase có **hai trục**. *Module hoặc màn* trả lời "test **ở �
 4. **Báo cáo gộp, ít vòng.** Chỉ dừng để báo khi đã xong MỘT CỤM lớn hoặc gặp chặn thật; không tường thuật từng thao tác nhỏ. Mỗi lần báo = nhiều kết quả.
 5. Ranh giới không đổi: vẫn tuân thủ **Backlog Bug Gate**, **Evidence**, **PII/Security**, **Parallel Story Safety**, **Shared Change Gate** — siết coverage hay tốc độ KHÔNG được nới các gate này.
 
-### 5 trục mở rộng quanh case + luật đóng vòng (Phase 2 — có máy đứng sau)
+### 7 trục mở rộng quanh case + luật đóng vòng (Phase 2 — có máy đứng sau)
 
 Bug **không sống theo dòng testcase** mà sống theo **bề mặt** (màn × luồng × trạng thái). Đo trên một task thật:
 69 bug, gần như tất cả do NGƯỜI báo trong khi kit chạy xanh — nguyên nhân là execute chỉ bám đúng chữ trong case.
@@ -348,7 +348,7 @@ Case không đọc được band từ cả `Mức độ rủi ro` lẫn `Ưu ti�
 chạy**. Lý do: `bandOf` trả `low` cho chúng, tức ít trục nhất, và một ô trống không được quyết độ sâu
 kiểm thử. Máy KHÔNG tự thăng band hộ — tự thăng là tự nhân chi phí và chặn oan bộ TC cũ.
 
-1. **Mỗi case đã execute phải được mở rộng theo 5 trục**, mỗi trục có máy riêng:
+1. **Mỗi case đã execute phải được mở rộng theo 7 trục**, mỗi trục có máy riêng:
 
    | Trục | Máy |
    |---|---|
@@ -356,6 +356,13 @@ kiểm thử. Máy KHÔNG tự thăng band hộ — tự thăng là tự nhân c
    | ② cùng giá trị khác nơi hiển thị | `xsurf:diff` |
    | ③ chuỗi lưu trữ `form→payload→API→UI` | `probe:persist` |
    | ④ nhánh và biến thể, ⑤ trạng thái kế cận | `fixture:matrix` |
+   | ⑥ phân quyền (dọc · ngang/IDOR · ẩn≠cấm) | `authz:expand` |
+   | ⑦ oracle giá trị tính toán | `oracle:calc` |
+
+   Danh mục trục là MỘT NGUỒN: `scripts/lib/expansion/axes.js` (số · band · phase · artefact · chi phí).
+   Bốn máy từng khai bốn bộ từ vựng cho cùng năm trục, nên không máy nào trả lời được "case band này đã
+   mở đủ trục band nó đòi chưa"; gom về một nguồn 13/10/2026 (v2.8.1) rồi `expansion_audit` mới đối chiếu
+   được. **Chiều ngược `spec:gap` KHÔNG phải trục** — nó đi từ build về tài liệu, nên không mang số.
 2. **BẮT BUỘC lập kế hoạch TRƯỚC — máy chặn.** Task có case band **high** đã execute mà chưa có
    `reports/expansion-plan.md` thì `self-review` **CHẶN**. Chạy `npm run expansion:plan` (chỉ đọc Excel, vài
    giây, không mở browser): nó in ra "task này ~N lượt tải · ~M phút · ~K MB" để QA **chốt phạm vi**. Không mở
@@ -427,10 +434,11 @@ kiểm thử. Máy KHÔNG tự thăng band hộ — tự thăng là tự nhân c
 8. **Độ sâu theo RISK BAND, không mở 5 trục cho mọi case.** Chi phí là thật: một task đang giữ
    **1021 file, 136 MB** evidence. Mở đủ trục cho một bộ 530 case ước lượng **~3740 lượt tải trang, ~9,4 giờ,
    ~335 MB**. Band lấy **cái nặng hơn** giữa `Mức độ rủi ro` và `Ưu tiên`: high thì đủ trục runtime, medium thì
-   ③ và ⑤, low thì ③. Xem chi phí TRƯỚC
+   ③⑤⑦, low thì ③. ⑦ vào cả medium vì oracle là **code thuần**: 0 lượt tải trang, 0 ảnh — lý lẽ "band
+   thấp thu hẹp vì chi phí" không áp cho nó. Xem chi phí TRƯỚC
    khi chạy: `npm run expansion:plan`.
-9. **Phân vai Phase 1 / Phase 2 — đừng làm trùng.** ①field ②surface ③persist ⑥lặp-đồng-thời ⑦chiều-ngược **cần
-   runtime** (DOM/response thật) ⇒ Phase 2. ④nhánh ⑤trạng-thái-kế-cận **đoán trước được từ tài liệu**
+9. **Phân vai Phase 1 / Phase 2 — đừng làm trùng.** ①field ②surface ③persist ⑥phân-quyền **cần
+   runtime** (DOM/response thật) ⇒ Phase 2. ④nhánh ⑤trạng-thái-kế-cận ⑦oracle-tính-toán **đoán trước được từ tài liệu**
    (permission matrix, state machine) nên là **case do Phase 1 sinh** (§10 Cross-layer Guard), để được đếm
    coverage và publish lên TCM. Phase 2 chỉ đo **ô nào chạy được** (`fixture:matrix --discover`). Thứ chỉ sống ở execute thì
    chỉ lượt chạy đó biết.
