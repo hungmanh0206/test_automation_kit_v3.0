@@ -46,6 +46,8 @@ const TRUC = [
     artefact: { thuMuc: 'test-results', re: /^conformance/, doiFile: 'conformance_report.json' },
     band: ['high'],
     phase: 2,
+    /* Hệ số chi phí một lượt mở rộng: lượt tải trang · ảnh evidence. Đo từ chính kit. */
+    chi_phi: { loads: 1, shots: 1 },
   },
   {
     so: 2,
@@ -56,6 +58,8 @@ const TRUC = [
     artefact: { thuMuc: 'reports', re: /cross-surface/i },
     band: ['high'],
     phase: 2,
+    /* Hệ số chi phí một lượt mở rộng: lượt tải trang · ảnh evidence. Đo từ chính kit. */
+    chi_phi: { loads: 3, shots: 1 },
   },
   {
     so: 3,
@@ -67,6 +71,8 @@ const TRUC = [
     /* Trục duy nhất band `low` cũng phải mở — đúng như `depth.PLAN` đang khai. */
     band: ['high', 'medium', 'low'],
     phase: 2,
+    /* Hệ số chi phí một lượt mở rộng: lượt tải trang · ảnh evidence. Đo từ chính kit. */
+    chi_phi: { loads: 3, shots: 2 },
   },
   {
     so: 4,
@@ -84,6 +90,8 @@ const TRUC = [
     band: ['high'],
     /* ④⑤ sinh được TỪ TÀI LIỆU (permission matrix / state machine) ⇒ Phase 1; ①②③ cần DOM/response thật. */
     phase: 1,
+    /* Hệ số chi phí một lượt mở rộng: lượt tải trang · ảnh evidence. Đo từ chính kit. */
+    chi_phi: { loads: 1, shots: 1 },
   },
   {
     so: 5,
@@ -100,6 +108,29 @@ const TRUC = [
      */
     band: ['high', 'medium'],
     phase: 1,
+    /* Hệ số chi phí một lượt mở rộng: lượt tải trang · ảnh evidence. Đo từ chính kit. */
+    chi_phi: { loads: 2, shots: 1 },
+  },
+  {
+    so: 6,
+    key: 'authz',
+    ten: 'phân quyền quanh case (dọc · ngang/IDOR · ẩn≠cấm)',
+    may: 'authz_expand',
+    lenh: 'npm run authz:expand -- --config requirements/authz_matrix.json',
+    artefact: { thuMuc: 'reports', re: /authz-expansion/i },
+    /*
+     * Band `high` thôi. Thiết kế có ghi "medium: khuyến nghị" — nhưng `depth.PLAN` không có bậc "khuyến
+     * nghị", chỉ có đòi hoặc không. Đưa vào medium là bắt 254/950 case thật mở thêm một trục mà hôm nay
+     * chưa task nào có ma trận để chạy. Khi đã có ma trận thật ở vài task thì nâng, kèm số đo.
+     */
+    band: ['high'],
+    /*
+     * Phase 2: biến thể phân quyền cần DOM/response thật của từng vai trò. Danh sách biến thể thì liệt kê
+     * được từ tài liệu, nhưng "vai trò thấp có vào được không" chỉ server trả lời.
+     */
+    phase: 2,
+    /* Hệ số chi phí một lượt mở rộng: lượt tải trang · ảnh evidence. Đo từ chính kit. */
+    chi_phi: { loads: 2, shots: 1 },
   },
 ];
 
@@ -118,6 +149,7 @@ const CHIEU_NGUOC = {
   lenh: 'npm run spec:gap -- --screens … --surface … --bindings …',
   artefact: { thuMuc: 'reports', re: /spec-gap/i },
   phase: 2,
+  chi_phi: { loads: 3, shots: 2 },
 };
 
 /**

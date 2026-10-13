@@ -89,7 +89,15 @@ function axesFor(tc) {
  * Hệ số đo từ chính kit: mỗi bề mặt ≈ 1 page load ~7s settle; mỗi trục ≈ 1–2 ảnh evidence.
  */
 function estimate(tcs) {
-  const per = { field: { loads: 1, shots: 1 }, surface: { loads: 3, shots: 1 }, persist: { loads: 3, shots: 2 }, branch: { loads: 1, shots: 1 }, state: { loads: 2, shots: 1 }, concurrency: { loads: 2, shots: 2 }, reverse: { loads: 3, shots: 2 } };
+  /*
+   * Hệ số LẤY TỪ `axes.js` (v2.8.1 bước 2). Bảng này trước đây gõ tay — bản sao thứ BẢY, và là bản sao
+   * duy nhất không ai canh: thêm một trục vào `PLAN` mà quên thêm vào đây thì `estimate` ném
+   * `Cannot read properties of undefined`, tức chi phí của trục mới hiện ra bằng một lần CRASH. Đó đúng
+   * là cách nó lộ ra lượt này.
+   */
+  const per = {};
+  for (const t of axes.TRUC) per[t.key] = t.chi_phi;
+  per[axes.CHIEU_NGUOC.key] = axes.CHIEU_NGUOC.chi_phi;
   const bands = { high: 0, medium: 0, low: 0 };
   let loads = 0;
   let shots = 0;

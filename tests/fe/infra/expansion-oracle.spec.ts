@@ -78,8 +78,9 @@ test.describe('@infra độ sâu theo risk band (chi phí là thật)', () => {
      * sinh artefact (`concurrency`) hoặc không phải trục (`reverse` = "+ chiều ngược" của CLAUDE.md §3).
      * Đổi lại, band high nay phủ TRỌN band medium, chuyện trước đây không đúng.
      */
-    for (const a of ['field', 'surface', 'persist', 'branch', 'state']) expect(hi).toContain(a);
-    expect(hi, 'bỏ trục phải là bỏ CÓ LÝ DO, không phải thu nhỏ độ sâu').toHaveLength(5);
+    for (const a of ['field', 'surface', 'persist', 'branch', 'state', 'authz']) expect(hi).toContain(a);
+    /* 6 từ v2.8.1 bước 2: thêm ⑥`authz`. Số này chỉ được TĂNG khi trục mới có máy sinh artefact. */
+    expect(hi, 'bỏ trục phải là bỏ CÓ LÝ DO, không phải thu nhỏ độ sâu').toHaveLength(6);
     expect(depth.axesFor({ risk: 'Major' })).toEqual(['persist', 'state']);
     expect(depth.axesFor({ risk: 'Minor', priority: 'Low' })).toEqual(['persist']);
   });
@@ -96,7 +97,7 @@ test.describe('@infra độ sâu theo risk band (chi phí là thật)', () => {
   test('④branch/⑤state được đánh dấu thuộc Phase 1 (đoán trước được từ tài liệu)', () => {
     expect(fnd.AXES.branch.phase, 'case ④ sinh được từ permission matrix ⇒ Phase 1').toBe(1);
     expect(fnd.AXES.state.phase, 'case ⑤ sinh được từ state machine ⇒ Phase 1').toBe(1);
-    for (const a of ['field', 'surface', 'persist', 'reverse']) {
+    for (const a of ['field', 'surface', 'persist', 'reverse', 'authz']) {
       expect(fnd.AXES[a].phase, `${a} cần DOM/response thật ⇒ Phase 2`).toBe(2);
     }
     expect(fnd.AXES.concurrency, '`concurrency` đã bỏ ở 1b — chưa máy nào sinh artefact cho nó').toBeUndefined();

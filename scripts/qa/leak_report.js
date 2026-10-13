@@ -88,6 +88,23 @@ const AXES = [
     may: 'fixture_matrix — npm run fixture:matrix',
     rx: /sau khi (?:hủy|huỷ|hoàn|thanh toán|xác nhận|edit)|đã hủy|cancel(?:led)? order|deal lost|trạng thái .*(?:không|vẫn)|guard|chặn .*trạng thái/i,
   },
+  {
+    id: 6,
+    key: 'authz',
+    ten: 'Phân quyền quanh case (dọc · ngang/IDOR · ẩn≠cấm)',
+    may: 'authz_expand — npm run authz:expand',
+    /*
+     * ĐỐI CHỨNG khi viết mẫu này (13/10/2026) — bắt được: "tài khoản giáo viên vẫn vào được màn quản
+     * trị", "ẩn nút Xoá nhưng gọi API vẫn xoá được", "xem được hồ sơ trường khác". KHÔNG bắt (đúng): "ô
+     * Quyền sử dụng đất hiển thị sai" (chữ `quyền` trong tên field nghiệp vụ, không phải phân quyền) và
+     * "phân bổ hạn mức tín dụng sai" (chuyện nghiệp vụ). Vì thế mẫu KHÔNG dò chữ `quyền` trần — nó đòi
+     * một động từ truy cập đứng cùng, hoặc một từ khoá phân quyền rõ nghĩa.
+     *
+     * `401`/`403` phải chặn hai đầu bằng lookbehind/lookahead số: đối chứng âm bắt được "mã 4030 hiển
+     * thị lệch" khớp vì `403` nằm TRONG `4030`. Một mã lỗi HTTP viết trần là mồi dương tính giả.
+     */
+    rx: /phân quyền|không có quyền|leo thang quyền|(?:vai trò|role|tài khoản) .*(?:vẫn (?:vào|xem|sửa|xoá|xóa)|truy cập được|không bị chặn)|ẩn .*(?:nhưng|mà) .*(?:vẫn|gọi|api)|(?<![0-9])(?:401|403)(?![0-9])|idor|xem được .*(?:của )?(?:người|đơn vị|trường|lớp|khách) khác/i,
+  },
 ];
 
 function apiUrl(pathname, params = {}) {

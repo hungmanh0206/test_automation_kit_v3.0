@@ -196,7 +196,8 @@
     "rule:coverage": "node scripts/qa/rule_coverage.js --write",
     "rule:coverage:check": "node scripts/qa/rule_coverage.js --check",
     "full:suite": "node scripts/qa/full_suite_ledger.js",
-    "full:suite:check": "node scripts/qa/full_suite_ledger.js --kiem"
+    "full:suite:check": "node scripts/qa/full_suite_ledger.js --kiem",
+    "authz:expand": "node scripts/qa/authz_expand.js"
   },
   "dependencies": {
     "axe-core": "^4.12.1",
