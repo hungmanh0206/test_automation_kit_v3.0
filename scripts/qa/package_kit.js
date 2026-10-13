@@ -388,6 +388,27 @@ function main() {
   const argv = process.argv.slice(2);
   const outDir = path.join(REPO, (argv.indexOf('--out') >= 0 && argv[argv.indexOf('--out') + 1]) || 'dist');
 
+  /*
+   * CỬA ĐẦU TIÊN: sổ lượt chạy CẢ BỘ phải mô tả đúng cây sắp đóng gói.
+   *
+   * Đặt ở ĐÂY chứ không ở `release:verify`, vì `release:verify` chỉ phát hiện SAU khi đã đóng gói và
+   * chạy lại toàn bộ (~25 phút mỗi vòng). Ở v2.8.0 nó đỏ BỐN vòng trước khi lôi ra 15 test đỏ mà tác
+   * giả không thấy — vì tác giả chỉ chạy các spec vừa viết rồi báo con số đó như thể của cả bộ.
+   * `npm run full:suite` mất ~6 phút, và nó chặn trước khi tốn công đóng gói.
+   *
+   * Cố ý KHÔNG có cờ bỏ qua. Một cửa có đường vòng là một cửa sẽ được đi vòng, và đây đúng là cửa
+   * chống lại việc tự khai.
+   */
+  const soBo = require(path.join(REPO, 'scripts', 'qa', 'full_suite_ledger.js'));
+  const kq = soBo.kiem();
+  if (!kq.dat) {
+    console.error('[package] ✗ CHẶN — chưa có lượt chạy cả bộ nào mô tả đúng cây này:');
+    for (const l of kq.ly_do) console.error(`    · ${l}`);
+    console.error('    Chạy `npm run full:suite` rồi đóng gói lại.');
+    process.exit(2);
+  }
+  console.log(`[package] sổ cả bộ: ${kq.so.so_xanh} xanh · ${kq.so.so_bo_qua} bỏ qua · 0 đỏ (${kq.so.luc.slice(0, 16)})`);
+
   let version;
   try { version = JSON.parse(fs.readFileSync(path.join(REPO, 'package.json'), 'utf8')).version; } catch (e) { version = ''; }
   if (!version) { console.error('[package] package.json thiếu `version` — chạy `npm run version:check` trước.'); process.exit(2); }

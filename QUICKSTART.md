@@ -59,6 +59,25 @@ không". Hai câu khác nhau, và câu thứ hai mới là câu người nhận 
 | `npm run ci:scope` đếm | 136 spec | 136 spec |
 | `release:verify` — suite chạy TRONG gói | **1.841 test · 0 đỏ** (1.798 chạy · 43 bỏ qua) | — |
 
+### Trước khi đóng gói: `npm run full:suite`
+
+`npm run package:kit` **CHẶN** nếu chưa có lượt chạy cả bộ nào mô tả đúng cây sắp đóng gói. Sổ ghi ở
+`knowledge/metrics/full-suite.json`, và `npm run full:suite:check` là phép kiểm đó chạy riêng.
+
+Cửa này sinh ra từ một lỗi có thật ở v2.8.0: người làm chỉ chạy các spec **vừa viết** rồi báo con số đó
+như thể của cả bộ. Cả bộ có **15 test đỏ**, và `release:verify` phải đỏ **bốn vòng** (~25 phút mỗi vòng)
+mới lôi ra. `full:suite` mất ~6 phút.
+
+Ba chi tiết của cửa này, mỗi cái vá một cách nó có thể thành vô dụng:
+
+- Nó **tự chạy suite**, không nhận cờ tự khai — một cửa tin lời khai thì chặn đúng thứ nó sinh ra để chặn.
+- Nó so **vân tay bản-sẽ-đóng-gói** (băm nội dung mọi file vào gói), không chỉ so commit: cùng `HEAD` mà
+  một file chưa commit đã sửa thì kết quả cũ không mô tả bản sắp phát hành.
+- **Không có cờ bỏ qua.** Một cửa có đường vòng là một cửa sẽ được đi vòng.
+
+> Hệ quả cần biết: đang sửa dở một file nằm trong gói thì mỗi lần đóng gói sẽ phải chạy lại `full:suite`.
+> Đó là hành vi đúng — cách chữa là commit hoặc stash file đó, không phải nới cửa.
+
 > Gói chạy ÍT HƠN cây và bỏ qua NHIỀU HƠN (43 so với 11) — cả hai đều đúng. Gói không mang `.git`,
 > `outputs/**` và tài liệu của repo, nên những phép kiểm đối chiếu với chúng **bỏ qua kèm lý do** thay vì
 > đỏ (xem `tests/fe/infra/_trong_repo.ts`). `release:verify` ĐẾM số bỏ qua và in ra, vì một bộ kiểm skip
