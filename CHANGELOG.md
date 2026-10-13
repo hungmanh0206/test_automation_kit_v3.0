@@ -7,6 +7,147 @@
 > `.agent/**`, `tests/support/**` đều là **shared change** (xem `RULE_GLOBAL.md` §Shared Change Gate) —
 > ảnh hưởng mọi story đang chạy. Mỗi mục ghi **vấn đề → cách chữa**, không chỉ liệt kê tính năng.
 
+## v2.8.1 — 2026-10-13 — Hai trục mở rộng, hai chiều Phase 1, và bảy bản sao của cùng một danh mục
+
+**Vấn đề.** `CLAUDE.md` §3 bắt mở rộng 5 trục quanh mỗi case, nhưng không máy nào trả lời được câu
+"case band high này đã mở đủ trục mà band của nó yêu cầu chưa". Lý do đo ra được ngay: **bốn máy khai
+bốn bộ từ vựng khác nhau cho cùng năm trục**. Chỉ `field`, `surface`, `persist` có mặt ở cả bốn;
+`depth.PLAN` có `concurrency`/`reverse`, `leak_report` có `branch`/`state`, `expansion_audit` có
+`reverse`/`fixture`, `self_review` gộp ④⑤ làm một dòng. Và bảng band→trục — thứ đáng ra quyết độ sâu —
+chỉ được **in ra** ở hai chỗ, không máy nào đọc nó để thi hành.
+
+Đợt này gom về một nguồn, thêm trục ⑥ phân quyền và ⑦ oracle tính toán, thêm chiều §24 Thời gian và
+§25 Dữ liệu cũ. Phần đắt nhất lại không phải hai trục mới — mà là **đếm đúng số bản sao**.
+
+### Bốn hoá ra là bảy, và mỗi bản sao lộ ra theo một kiểu khác nhau
+
+| # | Bản sao | Lộ ra bằng cách nào |
+|---|---|---|
+| 1–4 | `depth.PLAN` · `leak_report.AXES` · `expansion_audit` · `self_review` | khảo sát tay (bước 1a) |
+| 5 | `risk_model.json` → `depthPolicy[*].expansionAxes` | có máy canh sẵn ⇒ **đỏ ngay** khi `PLAN` đổi |
+| 6 | `finding.AXES` | cửa `full:suite` làm đỏ 2 test ở file khác |
+| 7 | bảng hệ số chi phí trong `depth.estimate` | ném `Cannot read properties of undefined (reading 'loads')` |
+
+Bản thứ bảy đáng kể lại nhất: nó là bản sao **duy nhất không ai canh**, nên chi phí của một trục mới
+hiện ra bằng một lần **crash**. Nay `so` · `band` · `phase` · `artefact` · `chi_phi` đều nằm trong
+`scripts/lib/expansion/axes.js`, và `tests/fe/infra/expansion-gates.spec.ts` đối chiếu từng bản sao còn
+lại với nó.
+
+`leak_report` vẫn giữ bảng riêng — có lý do (nó mang thêm `rx` phân loại văn bản bug) **và** có máy canh.
+Bản sao có lý do thì được; bản sao không có máy canh mới là chỗ trôi, và v2.8.0 đã trả giá năm lần.
+
+### `finding.AXES`: cùng một khoá, hai nghĩa, hai máy đếm
+
+`finding.js` định nghĩa `reverse` là *"huỷ/hoàn → về trạng thái cũ"*, trong khi `CLAUDE.md` §3 và
+`expansion_audit` hiểu chiều ngược là `spec:gap` (build→tài liệu). Một finding gắn `reverse` theo nghĩa
+huỷ/hoàn sẽ được audit tính là **đã phủ `spec:gap`** — tức báo đã phủ một chiều chưa ai đo.
+
+Nó còn khai `⑥concurrency`/`⑦reverse`, chiếm đúng hai số mà đợt này định cấp cho `authz`/`oracle_calc`.
+Đo trước khi đổi: toàn repo có **2 finding ghi ra đĩa**, mang `①field` và `④branch`; hai khoá kia chưa
+từng được dùng. `concurrency` bị bỏ hẳn — không máy nào sinh artefact cho nó, không npm script, và §3
+liệt kê 5 trục mà không có nó. Giữ một dòng chữ mà không gì đối chiếu được chỉ làm bảng **trông** đủ hơn
+thực tế.
+
+Cùng lượt: `state` vào band high. `PLAN` cũ cho nó ở medium mà KHÔNG ở high — tức "nâng band" từng làm
+case bị soi **mỏng đi** ở một trục. Và `expansion_audit` lần đầu đối chiếu được band→trục: **3/5 task đỏ**
+vì thiếu trục mà band của chúng đòi.
+
+### Trục ⑥ — phân quyền, và hai tiền đề của thiết kế bị bác
+
+`authz:expand` liệt kê biến thể dọc (vai trò thấp hơn) · ngang (IDOR) · ẩn≠cấm. Nó **không dò** — phần dò
+đã có ở `discovery/roles.js` với ba mức bằng chứng và luật "ô `unknown` không làm tròn thành *không có
+quyền*".
+
+Hai tiền đề sai:
+
+- *"mỗi vai trò THẤP HƠN vai trò của case"* — toàn repo **không khai thứ bậc vai trò ở đâu cả**. Nên máy
+  cũng không suy: thiếu `thu_bac` thì biến thể vào nhóm `doc_chua_xep_hang`, trạng thái `unknown`, kèm một
+  câu hỏi Critical. "Chưa biết ai thấp hơn ai" không được in ra như "đã phủ chiều dọc".
+- *"ma trận vai trò × route (v2.6.0)"* nói như thể đang có sẵn — **không artefact nào trên đĩa** chứa
+  `role_route_matrix`. Thiếu ma trận ⇒ `CHƯA ĐO`: `proven=0`, lý do ghi thẳng vào file, **exit 2** (mã của
+  "không phán được", khác exit 1 của "đo rồi và sai").
+
+**Ranh giới không nới:** máy không gửi request nào, và có test khoá theo HƯỚNG (`fetch`/`axios`/`page.goto`
+xuất hiện trong mã là đỏ). Biến thể authz-GHI được liệt kê nhưng gắn `chi_chay_tay` — gửi một request ghi
+để thử 403 nghĩa là *nếu phân quyền hỏng thì đã ghi thật vào UAT*.
+
+Phép đo đó làm được ở chỗ khác: mutant `grant_permission` lật cờ quyền `false → true` ở tầng
+`page.route()`, tức bóp response trên đường về browser, không request nào rời máy. Mẫu nhận khoá quyền
+suýt sai **hai lần**, cả hai do đối chứng ÂM bắt: dò `quyen` trần thì `so_quyen_sach` và
+`quyen_su_dung_dat` trúng; bật `/i` cho mẫu camelCase thì `canhBaoHienThi`/`island` trúng, vì `[A-Z]` khi
+đó khớp luôn chữ thường — tức vứt đúng cái tín hiệu đang dựa vào.
+
+### Trục ⑦ — oracle tính toán, và chỗ dễ tự lừa nhất của cả đợt
+
+L4 cấm "code dùng chung chứa giá trị kỳ vọng"; ⑦ lại bảo viết hàm tính kỳ vọng vào `tests/fe/lib`. Hai
+điều đó chỉ không mâu thuẫn nếu oracle **neo vào một rule có mã** — còn không thì ⑦ chính là `app == app`
+hạ xuống tầng thư viện, chỗ khó thấy hơn hẳn tầng testcase.
+
+Nhưng neo thôi chưa đủ: một hàm viết theo quan sát app rồi gắn một mã `BR-` vào vẫn trông hợp lệ và vẫn
+xanh mãi mãi. Nên mỗi oracle bị đòi **cặp đối chứng** — ca `dung` và ca `lech` (giá trị app có thể trả, mà
+oracle PHẢI khác). Thiếu một vế thì `dangKy()` ném ngay lúc nạp module. Ca lệch **không tự nghĩ ra**:
+`knowledge/domain` đã có sẵn trong `examples` của chính rule.
+
+Hai oracle thật, không phải ví dụ: `BR-HSTRUONG-010` (bốn ô tổng tự cộng) và `BR-HSLOP-035` (ngưỡng sĩ số,
+dẫn TT28/2020 Đ16.1 và TT52/2020 Đ15). Rule thứ hai **không phủ THCS/THPT/GDTX**, nên oracle **ném** cho
+ba cấp đó thay vì suy một con số — 45 hay 50 nghe rất thuận tai, và viết vào rồi thì không ai biết nó dựa
+trên gì.
+
+`oracle:calc` canh tĩnh: oracle ma (ref không tra ra rule) · rule `draft` (tệ hơn oracle ma vì nó TRÔNG
+như có neo) · oracle chạm `page`/`locator`/`expect` · thiếu ca lệch · 0 oracle ⇒ `CHƯA KIỂM` + exit 2. Mẫu
+dò chạy trên nguồn **đã bỏ chú thích**, có test riêng cho việc đó — nếu không thì chính khối chú thích giải
+thích "không được dùng `page`" sẽ làm máy đỏ, và người ta sẽ gỡ lời giải thích cho xanh.
+
+Band: ⑦ vào **cả high lẫn medium**, khác ⑥ chỉ ở high. Oracle là code thuần, `chi_phi {loads:0, shots:0}` —
+lý lẽ "band thấp thu hẹp vì chi phí" không áp cho nó.
+
+### Chiều §24 Thời gian · §25 Dữ liệu cũ
+
+§24 là lớp lỗi duy nhất mà **thời điểm chạy** là một phần của đầu vào nhưng không case nào khai ra. Đo:
+`page.clock` chạy thật (ép giờ trang sang 2030), **nhưng chỉ đổi đồng hồ trình duyệt** — app tính hạn, kỳ,
+năm học ở server thì ép giờ trang không đổi được gì. Nên §24 có bảng "mốc do ai quyết → đo thế nào → tự
+động được không", và nói thẳng phần nào là `Manual` thay vì hứa tự động hoá.
+
+§25 là bản ghi có TRƯỚC luật hiện tại. Mọi chiều khác kiểm trên bản ghi do chính lượt test tạo, tức sinh
+dưới luật hôm nay; hệ thống thật chạy phần lớn trên bản ghi của luật hôm qua. **Chỉ đọc** bản ghi cũ —
+không chạy script di trú, không sửa dữ liệu cũ cho hợp lệ: nó là thứ duy nhất chứng minh được hành vi
+legacy, sửa nó là xoá luôn bằng chứng.
+
+**`dimensionsOf` đổi từ `includes()` sang khớp theo từ.** Thêm một tag ngắn như `time` vào một matcher
+chuỗi-con là mở một lớp dương tính giả (`[Timeout]`, `[Lifetime]`, `[Datetime]`). Đo trên 202 tag thật:
+hai cách lệch **đúng một chỗ**, và chỗ đó là dương tính giả của bản cũ — `"Gửi yêu cầu mở khóa"` bỏ dấu
+thành `"gui yeu cau mo khoa"`, chứa `ui` trong `gui`. Tag đó nằm ở ô `Tag` còn hàm chỉ đọc tiêu đề, nên
+**0/951 case đổi kết quả**. Đó là điều kiện để được sửa: đổi cách chấm chiều mà không ai đo thì không phân
+biệt được "sửa lỗi" với "đổi số cho đẹp".
+
+**Năm chỗ khai, không phải bốn.** Thiết kế liệt kê bốn; `load-map.spec.ts` bắt chỗ thứ năm
+(`load_map.json`) ngay lượt chạy cả bộ đầu. Nay `dimension-wiring.spec.ts` canh cả năm — một lời dặn đã
+viết ba lần (§22, §23, và `model.js`) mà vẫn hỏng lần thứ tư thì vấn đề không phải người đọc, là nó chưa
+có máy.
+
+Và bảng tag §0b bị **bỏ**, không phải thêm dòng: nó trùng hoàn toàn cột Tag của bảng điều hướng, và đã
+trôi đúng kiểu bản sao-không-máy-canh — dừng ở §17 trong khi thư mục đã tới §23, tức sáu chiều có file, có
+gate đếm, không có dòng nào ở bảng.
+
+### Ngân sách: cắt bù, không nới số
+
+Phần bắt buộc tăng 363 token (luồng phase1) và 4 (mọi luồng, do `CLAUDE.md` auto-load). Đã cắt bù đúng cam
+kết — bỏ bảng trùng, gộp con trỏ, gọn hai dòng điều hướng — ra `✓ ĐẠT` mà không đụng một con số nào trong
+`prompt_budget.json`. Một lần cắt **bị máy bác**: gỡ con trỏ "(Đầy đủ: RULE_GLOBAL §7 trục.)" để lấy 2
+token, và `rule:parity` đỏ với đúng câu cần nghe — *"luật không có con trỏ thì rút gọn là xoá luật"*.
+
+### Việc còn nợ, nói thẳng
+
+- **Flaky dưới tải chưa sửa.** `discovery-api-inventory.spec.ts` (`goi_tu`) đỏ một lượt rồi xanh ở lượt sau
+  trên cùng commit; chạy riêng 3 lượt đều xanh. Nguyên nhân khả dĩ: `boVaTongHop` cache một lượt bò với
+  `doTre: 0` — phép đo nhạy thời gian chạy dưới tải tuỳ ý. Bước 2 thêm spec sinh tiến trình node nên làm nó
+  lộ ra. Ghi lại thay vì lấy lượt xanh làm kết luận.
+- **⑥ và ⑦ chưa chạy trên task thật.** Hai báo cáo sẽ ra `CHƯA ĐO`/`proven=0` cho tới khi có ma trận vai
+  trò × route (cần ≥2 tài khoản) và có case gắn `[Time]`/`[Legacy]`. Đó là trạng thái ĐÚNG chứ không phải
+  thiếu sót che giấu — nhưng nó có nghĩa hai trục mới **chưa chứng minh được gì trên dữ liệu thật**.
+
+---
+
 ## v2.8.0 — 2026-10-12 — Dùng lại script Phase 2, và con số nói thật về mức dùng lại được
 
 **Vấn đề.** Mỗi task Phase 2 viết lại automation gần như từ đầu. Khai thác 421 file automation của 4 task
