@@ -19,11 +19,30 @@ const RISK_RANK = { blocker: 3, critical: 3, major: 2, minor: 1 };
  */
 const PRIO_RANK = { critical: 3, high: 3, medium: 2, low: 1, lowest: 1 };
 
-// ①②③ cần runtime; ④⑤ case do Phase 1 sinh (Phase 2 chỉ đo ô nào chạy được); ⑥⑦ chỉ runtime mới thấy.
+/*
+ * ①②③ cần runtime; ④⑤ case do Phase 1 sinh (Phase 2 chỉ đo ô nào chạy được).
+ *
+ * SINH TỪ MỘT NGUỒN `axes.js` (v2.8.1 bước 1b). Trước đó bảng này khai tay và lệch với ba máy còn lại
+ * theo ba kiểu, mỗi kiểu một hệ quả:
+ *
+ *   · `concurrency` ở band high — KHÔNG máy nào sinh artefact cho nó, không npm script, không mục nào
+ *     ở `expansion_audit` hay `self_review`. `CLAUDE.md` §3 liệt kê 5 trục và không có nó. Một dòng
+ *     chữ mà không gì đối chiếu được: bỏ. Ý định "race condition nên là một trục" ghi ở CHANGELOG —
+ *     nếu quay lại thì quay lại CÙNG VỚI một cái máy.
+ *   · `reverse` ở band high — `CLAUDE.md` gọi nó là "**+** chiều ngược", tức KHÔNG phải một trục.
+ *     Tách khỏi danh sách; `self_review` vẫn chấm nó, chỉ là không đếm vào mẫu số trục.
+ *   · `state` chỉ ở medium, KHÔNG ở high — band cao nhất thiếu đúng một trục mà band thấp hơn có.
+ *     Nhiều khả năng là sót khi viết: band cao phải phủ TRỌN band thấp, nếu không "nâng band" lại làm
+ *     case bị soi mỏng đi ở một trục.
+ *
+ * Và bảng này trước đây chỉ được IN RA — hai nơi dùng đều ở `expansion_plan`, một `console.log` và một
+ * dòng markdown. Từ 1b, `expansion_audit` đối chiếu nó với trục đã chạy, nên nó lần đầu có răng.
+ */
+const axes = require(require('path').join(__dirname, 'axes.js'));
 const PLAN = {
-  high: ['field', 'surface', 'persist', 'concurrency', 'reverse'],
-  medium: ['persist', 'state'],
-  low: ['persist'],
+  high: axes.TRUC.filter((t) => t.band.includes('high')).map((t) => t.key),
+  medium: axes.TRUC.filter((t) => t.band.includes('medium')).map((t) => t.key),
+  low: axes.TRUC.filter((t) => t.band.includes('low')).map((t) => t.key),
 };
 
 /**

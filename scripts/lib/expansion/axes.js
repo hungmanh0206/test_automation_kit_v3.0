@@ -44,6 +44,8 @@ const TRUC = [
     lenh: 'npm run spec:extract … --catalog … rồi node scripts/qa/ui_conformance_check.js --catalog …',
     /* `expansion_audit` và `self_review` cùng dò thư mục `conformance*` rồi đòi có `conformance_report.json`. */
     artefact: { thuMuc: 'test-results', re: /^conformance/, doiFile: 'conformance_report.json' },
+    band: ['high'],
+    phase: 2,
   },
   {
     so: 2,
@@ -52,6 +54,8 @@ const TRUC = [
     may: 'cross_surface_diff',
     lenh: 'npm run xsurf:diff -- --config requirements/cross_surface.json --out reports/cross-surface.md',
     artefact: { thuMuc: 'reports', re: /cross-surface/i },
+    band: ['high'],
+    phase: 2,
   },
   {
     so: 3,
@@ -60,6 +64,9 @@ const TRUC = [
     may: 'persistence_probe',
     lenh: 'npm run probe:persist -- --chains … --out reports/persistence-probe.md',
     artefact: { thuMuc: 'reports', re: /persist|probe/i },
+    /* Trục duy nhất band `low` cũng phải mở — đúng như `depth.PLAN` đang khai. */
+    band: ['high', 'medium', 'low'],
+    phase: 2,
   },
   {
     so: 4,
@@ -74,6 +81,9 @@ const TRUC = [
      */
     artefact: { thuMuc: 'reports', re: /fixture-matrix/i },
     chung_artefact_voi: 'state',
+    band: ['high'],
+    /* ④⑤ sinh được TỪ TÀI LIỆU (permission matrix / state machine) ⇒ Phase 1; ①②③ cần DOM/response thật. */
+    phase: 1,
   },
   {
     so: 5,
@@ -83,6 +93,13 @@ const TRUC = [
     lenh: 'npm run fixture:matrix -- --config requirements/fixture_matrix.json --discover --out reports/fixture-matrix.md',
     artefact: { thuMuc: 'reports', re: /fixture-matrix/i },
     chung_artefact_voi: 'branch',
+    /*
+     * `state` vào CẢ high (1b): `depth.PLAN` cũ cho nó ở medium mà KHÔNG ở high — band cao nhất thiếu
+     * đúng một trục mà band thấp hơn có. Band cao phải phủ TRỌN band thấp, nếu không "nâng band" lại
+     * làm case bị soi mỏng đi ở một trục.
+     */
+    band: ['high', 'medium'],
+    phase: 1,
   },
 ];
 
@@ -100,7 +117,22 @@ const CHIEU_NGUOC = {
   may: 'spec_gap',
   lenh: 'npm run spec:gap -- --screens … --surface … --bindings …',
   artefact: { thuMuc: 'reports', re: /spec-gap/i },
+  phase: 2,
 };
+
+/**
+ * Số thứ tự ①..⑦ dùng trong `id` của finding.
+ *
+ * Tách ra làm hằng vì `finding.js` từng tự gõ `⑥concurrency`/`⑦reverse` — tức ⑥ và ⑦ ĐÃ BỊ CHIẾM bởi hai
+ * trục chữ-chết, đúng hai số mà v2.8.1 định cấp cho `authz` và `oracle_calc`. Giờ `so` trong bảng trên là
+ * nguồn duy nhất, nên trục mới lấy số kế tiếp mà không giẫm lên ai.
+ */
+const SO_KHOANH = ['⓪', '①', '②', '③', '④', '⑤', '⑥', '⑦', '⑧', '⑨'];
+
+/** `id` của một trục trong finding: số khoanh + khoá. `⑤state`, `③persist`… */
+function idTruc(t) {
+  return `${SO_KHOANH[t.so] || `(${t.so})`}${t.key}`;
+}
 
 /**
  * CHỖ BỐN MÁY LỆCH NHAU — khai ra, không im lặng xoá.
@@ -136,6 +168,32 @@ const LECH = [
       + 'Nhiều khả năng là sót khi viết, không phải chủ ý.',
     de_xuat_1b: 'đưa `state` vào high (high phủ trọn medium).',
   },
+  /*
+   * Hai mục dưới đây KHÔNG có trong bản khảo sát 1a — chúng lộ ra ở 1b khi cửa `full:suite` làm đỏ hai
+   * test ở file khác. Bản khảo sát nói "bốn máy"; thật ra là SÁU. Ghi lại chính chỗ đếm sót, vì bài học
+   * không phải "có thêm hai bản sao" mà là "đếm bản sao bằng mắt thì thiếu, bằng máy mới đủ".
+   */
+  {
+    khoa: 'risk_model.json → depthPolicy[*].expansionAxes',
+    o_dau: '.agent/config/risk_model.json (bản sao thứ NĂM)',
+    van_de: 'config khai lại y nguyên bảng band→trục. Nó CÓ máy canh sẵn '
+      + '(`depth-band-policy.spec.ts` đối chiếu với `depth.PLAN`) nên không trôi — và chính vì thế nó đỏ '
+      + 'ngay khi `PLAN` đổi. Đây là bản sao ĐÚNG KIỂU: có lý do (config đọc được không cần chạy JS) và có máy.',
+    de_xuat_1b: 'cập nhật theo `PLAN` mới; giữ nguyên máy canh.',
+  },
+  {
+    khoa: 'finding.AXES',
+    o_dau: 'scripts/lib/expansion/finding.js (bản sao thứ SÁU)',
+    van_de: 'khai `⑥concurrency` và `⑦reverse` — CHIẾM đúng hai số v2.8.1 định cấp cho `authz`/`oracle_calc`. '
+      + 'Nặng hơn: `reverse` ở đây nghĩa là "huỷ/hoàn → về trạng thái cũ", KHÁC HẲN `spec:gap` (build→tài '
+      + 'liệu) mà `CLAUDE.md` §3 và `expansion_audit` hiểu. Cùng một khoá, hai nghĩa, hai máy đếm — một '
+      + 'finding "đã kiểm chiều ngược" theo nghĩa huỷ/hoàn sẽ được audit tính là đã phủ `spec:gap`. '
+      + 'Đo 13/10/2026: toàn repo chỉ có 2 finding ghi ra đĩa, mang `①field` và `④branch`; `concurrency` '
+      + 'và `reverse` CHƯA TỪNG được dùng, nên đổi bây giờ không mất dữ liệu nào.',
+    de_xuat_1b: 'bỏ `concurrency`; `reverse` giữ lại nhưng theo ĐÚNG nghĩa `spec:gap` và KHÔNG mang số '
+      + 'khoanh (nó không phải trục). `id`/`phase` sinh từ bảng này; `hasDocOracle` ở lại finding.js vì nó '
+      + 'là chuyện của finding, không phải của trục.',
+  },
 ];
 
 /** Tra theo khoá. Trả `undefined` khi không có — người gọi tự quyết, không đoán hộ. */
@@ -149,4 +207,4 @@ function khoaTruc() {
   return TRUC.map((t) => t.key);
 }
 
-module.exports = { TRUC, CHIEU_NGUOC, LECH, theoKhoa, khoaTruc };
+module.exports = { TRUC, CHIEU_NGUOC, LECH, theoKhoa, khoaTruc, idTruc, SO_KHOANH };

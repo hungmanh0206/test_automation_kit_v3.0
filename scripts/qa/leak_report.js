@@ -42,7 +42,16 @@ const TASK = arg('task', process.env.TASK_KEY || '');
 const BASE = String(process.env.BACKLOG_BASE_URL || '').replace(/\/+$/, '');
 const API_KEY = process.env.BACKLOG_API_KEY || '';
 
-// Trục phát hiện: mỗi trục = một loại máy. Từ khoá lấy từ cách bug thật được mô tả trong task.
+/*
+ * Trục phát hiện: mỗi trục = một loại máy. Từ khoá lấy từ cách bug thật được mô tả trong task.
+ *
+ * `id`/`key`/`ten`/`may` PHẢI KHỚP `scripts/lib/expansion/axes.js` — nguồn duy nhất của danh mục trục
+ * (v2.8.1). Ở đây KHÔNG sinh từ nguồn đó, và lý do là `rx`: nó phân loại VĂN BẢN BUG, thuộc việc của
+ * `leak:report`, và đưa nó vào nguồn chung thì ba máy kia phải mang theo một thứ chúng không dùng.
+ *
+ * Đổi lại, có máy canh: `tests/fe/infra/expansion-gates.spec.ts` đối chiếu `key` và thứ tự của bảng này
+ * với `axes.TRUC`. Hai bản sao KHÔNG có máy canh mới là chỗ trôi — đợt v2.8.0 đã trả giá năm lần.
+ */
 const AXES = [
   {
     id: 1,
