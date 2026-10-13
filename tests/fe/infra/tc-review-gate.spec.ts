@@ -68,28 +68,28 @@ const diemCua = (report: string, id: string): string => {
   return line ? (line.split('|')[2] || '').trim() : '';
 };
 
-test.describe('@infra tc:review — rubric 8 tiêu chí, và nó phải BIẾT TRƯỢT', () => {
+test.describe('@infra tc:review — rubric 9 tiêu chí, và nó phải BIẾT TRƯỢT', () => {
   test('case đạt mọi tiêu chí máy đo được ⇒ điểm tối đa', () => {
     const r = chay([OK]);
     expect(r.code, 'không --enforce thì không chặn').toBe(0);
-    expect(diemCua(r.report, 'M_TC_001'), 'bộ chưa dùng tag kỹ thuật ⇒ mẫu số 14, không phải 16').toBe('14/14');
+    expect(diemCua(r.report, 'M_TC_001'), 'bộ chưa dùng tag kỹ thuật ⇒ mẫu số 16, không phải 18').toBe('16/16');
   });
 
   test('ĐỐI CHỨNG ÂM ①: bước gộp range ⇒ tiêu chí 1 về 0', () => {
     const r = chay([{ ...OK, buoc: '1-2. Mở màn rồi bấm Ghi' }]);
-    expect(diemCua(r.report, 'M_TC_001')).toBe('12/14');
+    expect(diemCua(r.report, 'M_TC_001')).toBe('14/16');
     expect(r.report).toContain('1-ro-rang');
   });
 
   test('ĐỐI CHỨNG ÂM ②: Expected chung chung ⇒ tiêu chí 2 về 0', () => {
     const r = chay([{ ...OK, expected: '1. Thành công<br>2. Hiển thị đúng' }]);
-    expect(diemCua(r.report, 'M_TC_001')).toBe('12/14');
+    expect(diemCua(r.report, 'M_TC_001')).toBe('14/16');
     expect(r.report).toContain('2-expected-do-duoc');
   });
 
   test('ĐỐI CHỨNG ÂM ③: Tiền điều kiện thiếu tag cách dựng ⇒ tiêu chí 3 tụt', () => {
     const r = chay([{ ...OK, tien: 'Đã đăng nhập vai Trường' }]);
-    expect(diemCua(r.report, 'M_TC_001')).toBe('13/14');
+    expect(diemCua(r.report, 'M_TC_001')).toBe('15/16');
     expect(r.report).toContain('3-doc-lap');
   });
 
@@ -100,19 +100,19 @@ test.describe('@infra tc:review — rubric 8 tiêu chí, và nó phải BIẾT T
 
   test('ĐỐI CHỨNG ÂM ④: data còn placeholder ⇒ tiêu chí 4 về 0', () => {
     const r = chay([{ ...OK, data: 'Mã lớp = <điền sau>' }]);
-    expect(diemCua(r.report, 'M_TC_001')).toBe('12/14');
+    expect(diemCua(r.report, 'M_TC_001')).toBe('14/16');
     expect(r.report).toContain('4-data-cu-the');
   });
 
   test('ĐỐI CHỨNG ÂM ⑤: không có oracle-ref ⇒ tiêu chí 5 về 0', () => {
     const r = chay([{ ...OK, tag: '[Positive][Validation]' }]);
-    expect(diemCua(r.report, 'M_TC_001')).toBe('12/14');
+    expect(diemCua(r.report, 'M_TC_001')).toBe('14/16');
     expect(r.report).toContain('5-truy-vet');
   });
 
   test('ĐỐI CHỨNG ÂM ⑦: actor chung chung ⇒ tiêu chí 7 về 0', () => {
     const r = chay([{ ...OK, tien: '[api] Người dùng đã đăng nhập' }]);
-    expect(diemCua(r.report, 'M_TC_001')).toBe('12/14');
+    expect(diemCua(r.report, 'M_TC_001')).toBe('14/16');
     expect(r.report).toContain('7-actor-context');
   });
 
@@ -123,16 +123,16 @@ test.describe('@infra tc:review — rubric 8 tiêu chí, và nó phải BIẾT T
      */
     const r = chay([OK]);
     expect(r.out).toContain('n/a');
-    expect(diemCua(r.report, 'M_TC_001')).toBe('14/14');
+    expect(diemCua(r.report, 'M_TC_001')).toBe('16/16');
   });
 
-  test('HAI TẦNG: bộ ĐÃ dùng tag kỹ thuật ⇒ mẫu số thành 16, case thiếu tag mất điểm', () => {
+  test('HAI TẦNG: bộ ĐÃ dùng tag kỹ thuật ⇒ mẫu số thành 18, case thiếu tag mất điểm', () => {
     const r = chay([
       { ...OK, id: 'M_TC_001', tag: '[Positive][Validation][BVA][BR-X-001]' },
       { ...OK, id: 'M_TC_002' },
     ]);
-    expect(diemCua(r.report, 'M_TC_001'), 'case có tag kỹ thuật').toBe('16/16');
-    expect(diemCua(r.report, 'M_TC_002'), 'case thiếu tag trong bộ đã dùng').toBe('14/16');
+    expect(diemCua(r.report, 'M_TC_001'), 'case có tag kỹ thuật').toBe('18/18');
+    expect(diemCua(r.report, 'M_TC_002'), 'case thiếu tag trong bộ đã dùng').toBe('16/18');
   });
 
   test('TC TRÙNG (cùng bước + cùng dữ liệu) được nêu ra để cân nhắc gộp', () => {

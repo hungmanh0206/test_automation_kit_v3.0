@@ -219,7 +219,7 @@ việc khác, và không làm.
 
 - Mỗi story không bắt buộc chạy liền một mạch. Luồng chuẩn là:
   `Requirement -> Generate Testcase (Markdown canonical) -> xuất Excel -> QA confirmation -> Auto Publish Google Sheet -> chờ Dev implement -> Phase 2 -> chờ Dev fix bug nếu có -> Re-run`.
-- Sau bước generate testcase, **Markdown canonical** trong `<TASK_OUTPUT_DIR>/test-cases/*.md` là source of truth cho **nội dung case**, ở mọi giai đoạn — gen, publish lẫn execute. `.xlsx` và Google Sheet là **bản xuất**. Nội dung testcase phải sửa ở `.md` rồi chạy lại một bộ ghi toả ba (`sync:canonical`). KHÔNG lấy bản xuất làm nguồn authoring — cả `.xlsx` lẫn Google Sheet đều bị ghi đè toàn phần ở lượt xuất kế tiếp, nên bản sửa tay trên chúng sẽ mất.
+- Sau generate, **Markdown canonical** (`<TASK_OUTPUT_DIR>/test-cases/*.md`) là source of truth cho **nội dung case** ở mọi giai đoạn. `.xlsx` và Sheet là **bản xuất**: sửa ở `.md` rồi chạy `sync:canonical`. KHÔNG sửa trên bản xuất — chúng bị ghi đè toàn phần ở lượt xuất kế tiếp.
 - **Phase 2 execute mặc định đọc Markdown canonical** (`TESTCASE_SOURCE=md`): đọc thẳng `<TASK_OUTPUT_DIR>/test-cases/*.md`.
 
   **Vì sao Markdown, và đây là lý do về CHI PHÍ chứ không phải sở thích:** `.xlsx` là định dạng nhị phân nên agent không đọc trực tiếp được — phải chạy một script, script in bảng ra, rồi bảng đó mới vào ngữ cảnh. Thêm một lượt shell và thêm toàn bộ phần in. Đọc `.md` thì agent đọc thẳng file, không qua tầng nào. Cùng một bộ case, đường Markdown rẻ hơn đúng phần chuyển đổi đó.

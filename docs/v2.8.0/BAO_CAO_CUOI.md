@@ -83,17 +83,34 @@ Phần này quan trọng với người bảo trì: nó cho biết lớp gác n�
 **đối chứng hai chiều** ghim ngay cạnh nó — câu sai phải khớp, VÀ câu đúng phải không khớp. Thiếu chiều
 thứ hai thì cách sửa dễ nhất cho một gate ồn ào là nới mẫu tới lúc nó không bắt gì nữa.
 
-## 5. Một phép đo về chính lượt chạy test
+## 5. Một phép đo về chính lượt chạy test, và một dự đoán của tôi bị bác
 
-Chạy cả bộ offline một lượt với `workers` mặc định (nửa số core): **2 test** của L0.5 ĐỎ, cả lượt **2.1
-giờ**. Chạy riêng: 17/17 trong 1.3 phút. Hai file browser với `--workers=1`: 47/47 trong **2.0 phút**.
+Vài spec của đợt này đo **hành vi theo thời gian** trên app fixture: dropdown có hiện ra trong 15 giây
+không · ô có nhận chữ rồi giữ sau khi rời ô không. Chúng vỡ dưới tải, và việc tìm ra **vỡ ở đâu** mất ba
+phép đo vì dự đoán đầu tiên của tôi sai.
 
-Đó là **bỏ đói do tranh chấp**, không phải khiếm khuyết — và phân biệt hai thứ đó quan trọng: hai test
-kia đo **hành vi theo thời gian** (dropdown có hiện ra trong 15 giây không), nên nới ngưỡng chờ để chúng
-xanh dưới tải là **xoá mất đúng thứ chúng đo**.
+| Phép đo | Kết quả |
+|---|---|
+| Bộ offline 8 file, `workers` mặc định (nửa số core) | 2 test ĐỎ · cả lượt **2.1 giờ** |
+| Hai file browser đó chạy riêng, `--workers=1` | 47/47 · **2.0 phút** |
+| Cả suite 1.838 test **trong gói phát hành**, workers mặc định | **46 ĐỎ** |
+| `buildout-hoso.spec.ts` chạy riêng **trong chính gói đó**, `--workers=1` | **30/30 · 45 giây** |
+| Hai file browser chạy **cùng nhau**, `--workers=4`, trong repo | 47/47 · 1.4 phút |
 
-Cố ý **không** sửa `playwright.config.js`: nó là file dùng chung, và đổi `workers` ở đó ảnh hưởng mọi lượt
-chạy của người khác (CLAUDE.md §5). Cách chạy ghi ở đầu spec, và `smoke:run` ghim `--workers=1`.
+**Dự đoán đầu của tôi — "hai spec browser tranh chấp nhau" — bị phép đo cuối bác bỏ**: ép chúng chạy đồng
+thời với 4 worker thì vẫn xanh. Và dòng thứ tư bác giả thuyết "gói hỏng". Ngưỡng vỡ nằm ở **tải của cả
+suite**, không ở gói và không ở bản thân spec.
+
+**Cách chữa, và vì sao không chữa kiểu khác:**
+
+- `verify_release` chạy suite trong gói với `--workers=2`. Không dùng `--workers=1` vì lượt verify đã mất
+  ~25 phút và một worker kéo dài gấp nhiều lần mà không mua thêm thông tin.
+- **Không nới ngưỡng chờ.** Nới để chúng xanh dưới tải là xoá mất đúng thứ chúng đo.
+- Cố ý **không** sửa `playwright.config.js`: file dùng chung, đổi `workers` ở đó ảnh hưởng mọi lượt chạy
+  của người khác (CLAUDE.md §5). Cách chạy ghi ở đầu spec, và `smoke:run` ghim `--workers=1`.
+
+Bài học chung hơn: một test đo thời gian là hợp lệ, nhưng nó **không được chạy dưới tải tuỳ ý**. Harness
+phải khoanh tải, chứ không phải test phải nới ngưỡng.
 
 ## 6. Việc còn chờ, và chờ ai
 

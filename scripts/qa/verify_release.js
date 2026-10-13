@@ -161,7 +161,25 @@ function main() {
       record('dựng tiền đề từ bản mẫu (như người nhận kit)', true,
         daChep.length ? `chép ${daChep.length} file: ${daChep.join(', ')}` : 'không cần chép gì');
 
-      const pwRun = run('npx', ['playwright', 'test', 'tests/fe/infra', '--reporter=dot'],
+      /*
+       * `--workers=2`, và đây là một phép đo chứ không phải sự thận trọng.
+       *
+       * Vài spec của v2.8.0 đo HÀNH VI THEO THỜI GIAN trên app fixture: dropdown có hiện ra trong 15
+       * giây không · ô có nhận chữ rồi giữ sau khi rời ô không. Dưới `workers` mặc định (nửa số core),
+       * 1.838 test chia nhau một máy và những phép đo đó vượt `timeout: 90_000` của config — KHÔNG phải
+       * vì sai, mà vì bị bỏ đói.
+       *
+       * Đo 12–13/10/2026, cùng một gói `kit-2.8.0.tar.gz`:
+       *   · cả suite, workers mặc định ⇒ **46 ĐỎ**;
+       *   · `buildout-hoso.spec.ts` chạy RIÊNG trong chính gói đó, `--workers=1` ⇒ **30/30 xanh, 45 giây**;
+       *   · hai spec browser chạy cùng nhau `--workers=4` trong repo ⇒ 47/47 xanh.
+       * Tức ngưỡng vỡ nằm ở TẢI của cả suite, không ở gói và không ở bản thân spec.
+       *
+       * VÌ SAO KHÔNG NỚI NGƯỠNG CHỜ: nới để chúng xanh dưới tải là xoá mất đúng thứ chúng đo. Và vì sao
+       * không `--workers=1`: lượt verify đã mất ~25 phút, một worker sẽ kéo dài gấp nhiều lần mà không
+       * mua thêm thông tin nào — 2 worker đủ để ra khỏi vùng bỏ đói.
+       */
+      const pwRun = run('npx', ['playwright', 'test', 'tests/fe/infra', '--reporter=dot', '--workers=2'],
         { cwd: root, shell: process.platform === 'win32', env: { PROJECT_OUTPUT_DIR: 'outputs/_v', TASK_KEY: 'V-0' } });
       const mm = pwRun.out.match(/(\d+)\s+failed/);
       const doFail = mm ? Number(mm[1]) : 0;

@@ -38,16 +38,26 @@ Trước đây nhánh GitLab cố ý bị gỡ 2 file so với GitHub. Hai file 
 hai cây **hết phân kỳ**. Cơ chế strip vẫn giữ: lần sau có đường dẫn nào chỉ được nằm ở một nhánh thì khai
 vào file đó, đừng gỡ tay.
 
-Đo ngày 12/10/2026 (v2.7.0 §D) trên **worktree sạch ở HEAD** (`git worktree add --detach`). Không đo trên cây làm việc:
-cây làm việc có file chưa track và chúng đẩy số test lên. Lượt này cây sạch còn bắt được một chuyện khác hẳn —
-`scripts/qa/check.js` mang nguyên phần §A10.1 mà chưa bao giờ được commit, nên ba test xanh ở cây làm việc và
-ĐỎ ở HEAD. Chạy bộ test trên cây làm việc KHÔNG trả lời được câu "bản sẽ phát hành có chạy không".
+Đo ngày 12/10/2026 (v2.8.0 §I) trên **worktree sạch ở HEAD** (`git worktree add --detach`). Không đo trên cây làm việc:
+cây làm việc có file chưa track và chúng đẩy số test lên.
+
+**Và cây sạch cũng KHÔNG đủ** — đó là bài học của hai đợt liền:
+
+- v2.7.0: `scripts/qa/check.js` mang nguyên phần §A10.1 mà chưa bao giờ được commit, nên ba test xanh ở cây làm
+  việc và ĐỎ ở HEAD.
+- v2.8.0: cả 131 file spec xanh ở cây sạch, nhưng **69 test ĐỎ TRONG GÓI** — `outputs/` bị `.gitignore` nên gói
+  không mang nó, và năm spec gọi `mkdtempSync` vào `outputs/_scratch` đều ném `ENOENT`. Chỉ `npm run
+  release:verify` (giải nén gói vào thư mục sạch, `npm ci`, chạy suite ở đó) bắt được.
+
+Nên thứ tự là: cây sạch trả lời "HEAD có chạy không", còn `release:verify` trả lời "**bản sẽ phát hành** có chạy
+không". Hai câu khác nhau, và câu thứ hai mới là câu người nhận kit quan tâm.
 
 | | GitHub | GitLab |
 |---|---|---|
-| file được track | 653 | 653 |
-| `npx playwright test tests/fe/infra` | **1.590 test · 0 đỏ** (1.580 chạy · 10 bỏ qua) | **1.590 test · 0 đỏ** |
-| `npm run ci:scope` đếm | 121 spec | 121 spec |
+| file được track | 710 | 710 |
+| `npx playwright test tests/fe/infra --list` | **1.937 test / 131 file** | **1.937 test / 131 file** |
+| `npm run ci:scope` đếm | 136 spec | 136 spec |
+| `release:verify` — suite chạy TRONG gói | **1.838 test** (gói ít hơn cây vì loại probe/spec phụ) | — |
 
 > 10 test bỏ qua trên cây sạch là đúng: chúng cần dữ liệu ở `knowledge/**` hoặc `outputs/**` — hai lớp PROJECT
 > bị gitignore. Mỗi test tự in lý do khi bỏ qua.

@@ -154,7 +154,10 @@ test.describe('§L — spec sinh ra chạy được và không ghim môi trườ
   });
 
   test('`ghiConfigTask` NÉM khi thư mục khác ổ đĩa', () => {
-    expect(() => pwc.ghiConfigTask('C:\\khong-cung-o-dia', 'x')).toThrow(/cùng ổ đĩa/);
+    /* Ổ thử suy từ ổ của REPO, không ghim — xem ghi chú cùng loại ở `compile-spec.spec.ts`. */
+    const oRepo = path.parse(REPO).root;
+    const oKhac = /^C:/i.test(oRepo) ? 'D:\\' : 'C:\\';
+    expect(() => pwc.ghiConfigTask(`${oKhac}khong-cung-o-dia`, 'x')).toThrow(/cùng ổ đĩa/);
   });
 });
 

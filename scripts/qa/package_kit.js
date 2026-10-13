@@ -128,6 +128,17 @@ const KEEP_FILES = [
   '.agent/config/retention.json',
   '.agent/config/library-drift.allow.json',
   /*
+   * BỔ SUNG 13/10/2026 (v2.8.0) — `config-presence.spec.ts` bắt được, không phải tôi tự nhớ ra.
+   *
+   * `step_catalog.schema.json` là hình dạng mà `steps:catalog` gác; `step_phrasing.json` là MỘT NGUỒN
+   * cho luật đồng nghĩa/tách mệnh đề mà `steps:match`, `steps:suggest` và `tc:review` tiêu chí 9 cùng
+   * đọc. Thiếu `step_phrasing.json` thì `steps:match` KHÔNG nổ — nó rơi về nhánh không gộp đồng nghĩa
+   * và in tỉ lệ khớp thấp hơn thật, tức đúng kiểu "tắt phép kiểm rồi đi tiếp" mà khối chú thích trên
+   * đã cảnh báo. Cả hai không chứa host, bảng DB, credential hay PII.
+   */
+  '.agent/config/step_catalog.schema.json',
+  '.agent/config/step_phrasing.json',
+  /*
    * BỔ SUNG 10/10/2026 — đo trên chính bản đóng gói, không phải đọc code mà đoán.
    *
    * Ba file đầu được nạp bằng `require()`, nên thiếu chúng là gói KHÔNG NẠP NỔI `md_to_xlsx.js`

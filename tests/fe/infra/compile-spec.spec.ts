@@ -116,8 +116,17 @@ test.describe('§D — bộ biên dịch sinh được file CHẠY ĐƯỢC', ()
     /*
      * Bản đầu không kiểm và sinh ra `from './D:/Project/.../radcombobox'`. File trông bình thường và chỉ
      * vỡ lúc Playwright nạp, với một thông báo lạc hướng về module không tìm thấy.
+     *
+     * Ổ ĐĨA THỬ PHẢI SUY TỪ Ổ CỦA REPO, KHÔNG ĐƯỢC GHIM.
+     *
+     * Bản đầu ghim `'C:\\khong-cung-o-dia'`, và nó chỉ đúng khi repo nằm ở ổ khác C:. Trong gói phát
+     * hành, thư mục giải nén nằm ở `C:\…\kitverify-*` — cùng ổ, nên `path.relative` trả đường TƯƠNG ĐỐI,
+     * hàm không ném, và test ĐỎ. Đo 13/10/2026 bằng `release:verify`: xanh ở repo (ổ D:), đỏ trong gói.
+     * Đây đúng loại giả định mà chạy-ở-một-chỗ không bao giờ lộ ra.
      */
-    expect(() => cs.duongImport('C:\\khong-cung-o-dia', 'tests/fe/lib/_widget/radcombobox.ts'))
+    const oRepo = path.parse(REPO).root;             /* ví dụ `D:\` */
+    const oKhac = /^C:/i.test(oRepo) ? 'D:\\' : 'C:\\';
+    expect(() => cs.duongImport(`${oKhac}khong-cung-o-dia`, 'tests/fe/lib/_widget/radcombobox.ts'))
       .toThrow(/cùng ổ đĩa/);
   });
 });
