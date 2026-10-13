@@ -6,6 +6,16 @@ import { spawnSync } from 'child_process';
 import { gateEnv } from './_gate_env';
 
 /*
+ * MẪU DÒ ĐÃ CHUYỂN VỀ MỘT NGUỒN (12/10/2026): `scripts/qa/lib/canonical_phrases.js`.
+ *
+ * Trước đó có HAI gate canh cùng luật này — file này và `canonical-md-source.spec.ts` — với hai bộ
+ * mẫu khác nhau và hai phạm vi quét khác nhau. CẢ HAI ĐỀU XANH, trong khi 7 bề mặt vẫn khai Excel
+ * là nguồn: mẫu ở đây chỉ bắt `source of truth` viết dấu cách, còn repo viết `source-of-truth` gạch nối.
+ */
+import { RE_EXCEL_LA_NGUON, boQua, DOI_CHUNG } from '../../../scripts/qa/lib/canonical_phrases.js';
+
+
+/*
  * `canonical:drift` — máy canh chỗ mà LUẬT MỚI của v2.7.0 tự mở ra.
  *
  * Luật: nội dung case lấy Markdown làm nguồn sự thật, `.xlsx` và Sheet là bản xuất, và Phase 2 execute
@@ -359,6 +369,16 @@ test.describe('@infra canonical:drift — luật trỏ tới máy, máy không m
 
   test('không bề mặt nào còn khai Excel là nguồn sự thật của testcase', () => {
     /*
+     * MẪU DÒ ĐÃ NỚI 12/10/2026 — bản cũ chỉ bắt `source of truth` viết DẤU CÁCH, trong khi gần như mọi
+     * chỗ trong repo viết `source-of-truth` có GẠCH NỐI. Gate xanh suốt từ lúc dựng, và 7 bề mặt vẫn
+     * khai Excel là nguồn: `RULE_GLOBAL.md` (hai chỗ, một trong đó mâu thuẫn với chính dòng 111 của
+     * nó), `run_phase1_template.md`, `USER_GUIDE.md`, `QUICKSTART.md`, `run_testcase_cleanup.md`,
+     * `docs/course/thiet-ke-testcase.md`.
+     *
+     * Bài học của chính dòng này: một gate dò bằng chữ mà không ai thử ĐỐI CHỨNG ÂM thì nó chứng minh
+     * được đúng một điều — rằng nó chạy. Phép đối chứng âm nằm ngay dưới test này.
+     */
+    /*
      * BỎ QUA CHÍNH FILE NÀY. Nó mang câu `Excel là source of truth` làm MẪU QUÉT, nên tự nó khớp — và
      * phép quét sẽ tố cáo chính cái câu đang cảnh báo về câu đó. Đây là lần thứ chín trong dự án một
      * phép quét bắt đúng dòng mô tả nó, nên để lại ghi chú thay vì để người sau truy lại từ đầu.
@@ -366,7 +386,6 @@ test.describe('@infra canonical:drift — luật trỏ tới máy, máy không m
      * CHANGELOG và `docs/token-diet/` là BẢN GHI LỊCH SỬ: chúng ghi lại điều đã đúng ở thời điểm đó.
      * Sửa chúng cho khớp luật mới là xoá dấu vết của một lần đổi luật.
      */
-    const boQua = /^(CHANGELOG\.md|docs\/token-diet\/|tests\/fe\/infra\/canonical-drift\.spec\.ts$)/;
     const ra: string[] = [];
     const di = (d: string) => {
       for (const e of fs.readdirSync(d, { withFileTypes: true })) {
@@ -374,13 +393,30 @@ test.describe('@infra canonical:drift — luật trỏ tới máy, máy không m
         const rel = path.relative(REPO, p).split(path.sep).join('/');
         if (/node_modules|^\.git$|^outputs|^dist|^knowledge/.test(rel) || rel.startsWith('.git/')) continue;
         if (e.isDirectory()) { di(p); continue; }
-        if (!/\.(md|js|ts|json)$/.test(e.name) || boQua.test(rel)) continue;
+        if (!/\.(md|js|ts|json)$/.test(e.name) || boQua(rel)) continue;
         const t = fs.readFileSync(p, 'utf8');
-        if (/Excel là source of truth|Excel canonical là source of truth/.test(t)) ra.push(rel);
+        if (RE_EXCEL_LA_NGUON.test(t)) ra.push(rel);
       }
     };
     di(REPO);
     expect(ra, 'đổi nguồn sự thật mà để lại một dòng cũ thì hai luật nói ngược nhau').toEqual([]);
+  });
+
+  test('MẪU DÒ của test trên có đối chứng hai chiều', () => {
+    /*
+     * Test ở trên quét cả repo và kỳ vọng mảng rỗng. Một mảng rỗng có HAI cách đọc: không bề mặt nào
+     * sai, hoặc mẫu dò không bắt được gì. Suốt từ lúc dựng tới 12/10/2026 nó là cách đọc thứ hai —
+     * mẫu cũ chỉ bắt `source of truth` viết dấu cách, còn repo viết `source-of-truth` gạch nối, nên
+     * gate xanh trong khi 7 bề mặt vẫn khai Excel là nguồn.
+     *
+     * Vì thế mẫu phải có đối chứng HAI CHIỀU ghim ngay tại chỗ: câu sai phải khớp, VÀ câu đúng phải
+     * không khớp. Thiếu chiều thứ hai thì cách sửa dễ nhất cho một gate ồn ào là nới mẫu tới mức nó
+     * không bắt gì nữa.
+     */
+    /* Danh sách đối chứng nằm cạnh MẪU, không chép lại ở đây — chép lại là dựng bản sao thứ hai
+     * của đúng thứ vừa gom về một nguồn. */
+    for (const t of DOI_CHUNG.phai_khop) expect(RE_EXCEL_LA_NGUON.test(t), `phải bắt: ${t}`).toBe(true);
+    for (const t of DOI_CHUNG.khong_duoc_khop) expect(RE_EXCEL_LA_NGUON.test(t), `báo oan câu đúng: ${t}`).toBe(false);
   });
 
   test('npm script đã đăng ký cả bản thường và bản `:enforce`', () => {

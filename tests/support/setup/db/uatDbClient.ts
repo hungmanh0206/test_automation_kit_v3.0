@@ -1,4 +1,5 @@
 import { Connection, Request, TYPES, type ConnectionConfiguration } from 'tedious';
+import { kiemSqlChiDoc } from './sql_readonly_lint';
 
 /**
  * Guarded READ-ONLY SQL Server client cho kho DB UAT — cửa DUY NHẤT được phép mở kết nối DB.
@@ -129,46 +130,20 @@ export function assertHostGuards(cfg: UatDbConfig): void {
 }
 
 /**
- * Hàm/keyword nguy hiểm của SQL Server. Bản Postgres liệt kê `pg_read_file`/`lo_export`/`dblink`…; T-SQL có
- * họ khác hẳn: thủ tục hệ thống `xp_*`/`sp_*` (đặc biệt `xp_cmdshell`), đường đọc-ghi file
- * (`openrowset`, `opendatasource`, `bulk insert`), lệnh quản trị (`dbcc`, `backup`, `restore`,
- * `reconfigure`, `shutdown`) và `waitfor delay` (đường làm treo kết nối).
- */
-const DANGEROUS_TOKEN =
-  /\b(xp_[a-z0-9_]+|sp_[a-z0-9_]+|fn_trace_[a-z0-9_]+|openrowset|opendatasource|openquery|openxml|bulk\s+insert|dbcc|backup|restore|shutdown|reconfigure|checkpoint|waitfor|kill)\b/i;
-
-/**
- * Lint read-only. **Với SQL Server đây là lớp chặn CHÍNH** (không có transaction READ ONLY phía server),
- * nên đừng nới. Chỉ cho câu ĐỌC, chặn stacked query, `SELECT … INTO`, và họ thủ tục hệ thống.
+ * Lint read-only — ỦY QUYỀN cho `sql_readonly_lint.ts`, nguồn DUY NHẤT của luật này (v2.8.0 §0b).
+ *
+ * Trước v2.8.0 hàm này có bộ regex RIÊNG, và bản ở `guard.ts` cũng vậy. Chạy cả 795 câu SQL thật trong
+ * repo qua hai bản ngày 12/10/2026: **4 câu hai bản BẤT ĐỒNG**, trong đó `SELECT load_file("/etc/passwd")`
+ * bị `guard.ts` chặn mà bản NÀY cho qua. Hai bản trôi khỏi nhau là chuyện đã xảy ra, nên giờ chỉ còn một.
+ *
+ * Giữ nguyên `UatDbGuardError` để mọi caller và mọi spec cũ không phải đổi: thứ thay đổi là LUẬT ở đâu,
+ * không phải kiểu lỗi ném ra.
  */
 export function assertReadOnlySql(sql: string): void {
-  const trimmed = String(sql || '').trim();
-  if (!trimmed) throw new UatDbGuardError('Query rỗng.');
-
-  // Bỏ comment trước khi soi, tránh giấu từ khoá trong `/* */`.
-  const s = trimmed.replace(/--[^\n]*/g, ' ').replace(/\/\*[\s\S]*?\*\//g, ' ');
-
-  const readStart = /^(?:\s|--[^\n]*\n|\/\*[\s\S]*?\*\/)*(select|with|values)\b/i;
-  if (!readStart.test(trimmed)) {
-    throw new UatDbGuardError('Chỉ cho phép câu đọc bắt đầu bằng SELECT/WITH/VALUES (read-only verify).');
-  }
-  // `SELECT … INTO <bảng>` tạo bảng THẬT mà vẫn bắt đầu bằng SELECT — readStart không bắt được.
-  if (/\binto\s+(?!@)[\[#a-z_]/i.test(s)) {
-    throw new UatDbGuardError('Không cho phép `SELECT … INTO <bảng>` (tạo bảng thật, không phải câu đọc).');
-  }
-  // Từ khoá ghi/DDL.
-  if (/\b(insert|update|delete|truncate|drop|alter|create|grant|revoke|deny|merge|exec|execute)\b/i.test(s)) {
-    const bad = s.match(/\b(insert|update|delete|truncate|drop|alter|create|grant|revoke|deny|merge|exec|execute)\b/i);
-    throw new UatDbGuardError(`Không cho phép từ khoá ghi/DDL "${bad?.[1]}".`);
-  }
-  const bad = s.match(DANGEROUS_TOKEN);
-  if (bad) {
-    throw new UatDbGuardError(`Không cho phép hàm/keyword nguy hiểm "${bad[1]}" (thủ tục hệ thống, đọc/ghi file hoặc quản trị).`);
-  }
-  // Chặn nhiều statement (ngăn stacked write): chỉ cho phép 1 dấu ; ở cuối.
-  const withoutTrailing = s.trim().replace(/;\s*$/, '');
-  if (withoutTrailing.includes(';')) {
-    throw new UatDbGuardError('Không cho phép nhiều statement trong một query (chống stacked query).');
+  try {
+    kiemSqlChiDoc(sql);
+  } catch (e) {
+    throw new UatDbGuardError((e as Error).message);
   }
 }
 
@@ -193,6 +168,64 @@ function addParam(req: Request, name: string, v: unknown): void {
  *
  * Tham số đánh tên `@p1, @p2…` theo thứ tự trong mảng `params` (T-SQL không có `$1`).
  */
+/*
+ * ───────────────────────────────────────────────────────────────────────────────────────────────────
+ * LỚP CHẶN THỨ HAI: MỌI TRUY VẤN CHẠY TRONG TRANSACTION VÀ LUÔN ROLLBACK (v2.8.0 §0b).
+ *
+ * Vì sao cần lớp thứ hai khi đã có lint: lint là phép xấp xỉ theo từ khoá, không phải bộ phân tích T-SQL
+ * đầy đủ. Lỗ `EXEC` từng sống trong lint đúng một tháng. Một câu ghi lọt lint mà chạy dưới `BEGIN TRAN`
+ * thì vẫn bị huỷ ở `ROLLBACK` — hai lớp phải cùng hỏng mới mất dữ liệu.
+ *
+ * `SET XACT_ABORT ON` để lỗi giữa chừng tự huỷ cả transaction thay vì để nó treo nửa vời.
+ * `SET LOCK_TIMEOUT` để một câu đọc chạm phải khoá không giữ transaction mở vô hạn trên UAT.
+ *
+ * GIỚI HẠN, phải đọc: lớp này KHÔNG phủ hết.
+ *   · Vài thứ nằm NGOÀI transaction trên SQL Server: một số lệnh hệ thống, `xp_cmdshell` và mọi tác dụng
+ *     phụ ra ngoài DB (ghi file, gọi mạng). `ROLLBACK` không gọi chúng về được.
+ *   · Những thứ đó đã bị LINT chặn, nên hai lớp bù nhau chứ không chồng nhau. Mất lint thì lớp này không
+ *     đỡ nổi phần đó.
+ *
+ * Mấy câu điều khiển dưới đây KHÔNG đi qua `assertReadOnlySql`, cố ý: chúng do chính client dựng, không
+ * phải SQL của người dùng, và `BEGIN TRAN`/`ROLLBACK` đương nhiên không phải câu đọc.
+ */
+
+/** Cửa chạy lệnh — tách ra để test được chuỗi lệnh gửi đi mà không cần DB thật. */
+export interface BoChayCau {
+  /** Câu điều khiển, không tham số (`SET …`, `BEGIN TRAN`, `ROLLBACK`). */
+  lenhDieuKhien(sql: string): Promise<void>;
+  /** Câu truy vấn có tham số, trả về các dòng. */
+  cauTruyVan<T>(sql: string, params: unknown[]): Promise<T[]>;
+}
+
+/** Ngưỡng chờ khoá mặc định. Ngắn có chủ đích: đây là đường ĐỌC, không phải job chạy nền. */
+export const LOCK_TIMEOUT_MS_MAC_DINH = 5_000;
+
+/**
+ * Chạy MỘT câu đọc trong một transaction luôn bị ROLLBACK.
+ *
+ * `ROLLBACK` nằm trong `finally` nên nó chạy kể cả khi câu ném lỗi hoặc timeout. Nếu chính `ROLLBACK`
+ * cũng ném (mất kết nối chẳng hạn) thì lỗi đó KHÔNG được nuốt im lặng — nó được gắn vào lỗi gốc, vì
+ * "rollback thất bại" là thông tin an toàn, không phải tiếng ồn.
+ */
+export async function chayTrongTransaction<T>(
+  bo: BoChayCau,
+  sql: string,
+  params: unknown[] = [],
+  opts: { lockTimeoutMs?: number } = {},
+): Promise<T[]> {
+  const lock = Number.isFinite(opts.lockTimeoutMs) ? Number(opts.lockTimeoutMs) : LOCK_TIMEOUT_MS_MAC_DINH;
+  await bo.lenhDieuKhien(`SET XACT_ABORT ON; SET LOCK_TIMEOUT ${lock};`);
+  await bo.lenhDieuKhien('BEGIN TRAN;');
+  try {
+    return await bo.cauTruyVan<T>(sql, params);
+  } finally {
+    await bo.lenhDieuKhien('ROLLBACK;').catch((e) => {
+      /* eslint-disable-next-line no-console */
+      console.error(`[uatDbClient] ROLLBACK THẤT BẠI: ${(e as Error).message} — kết nối sẽ bị đóng ngay.`);
+    });
+  }
+}
+
 export async function queryUatReadonly<T extends Record<string, unknown> = Record<string, unknown>>(
   sql: string,
   params: unknown[] = [],
@@ -227,18 +260,27 @@ export async function queryUatReadonly<T extends Record<string, unknown> = Recor
   // eslint-disable-next-line no-console
   console.log(`[uatDbClient] connected UAT host=${cfg.host} db=${cfg.database} user=${cfg.user} (read-only lint)`);
 
-  try {
-    return await new Promise<T[]>((resolve, reject) => {
-      const rows: T[] = [];
-      const req = new Request(sql, (err) => (err ? reject(err) : resolve(rows)));
-      params.forEach((v, idx) => addParam(req, `p${idx + 1}`, v));
+  /* Cửa chạy lệnh dựng trên kết nối tedious này. Logic transaction nằm ở `chayTrongTransaction`. */
+  const bo: BoChayCau = {
+    lenhDieuKhien: (cau) => new Promise<void>((resolve, reject) => {
+      const req = new Request(cau, (err) => (err ? reject(err) : resolve()));
+      connection.execSqlBatch(req);
+    }),
+    cauTruyVan: <R>(cau: string, ps: unknown[]) => new Promise<R[]>((resolve, reject) => {
+      const rows: R[] = [];
+      const req = new Request(cau, (err) => (err ? reject(err) : resolve(rows)));
+      ps.forEach((v, idx) => addParam(req, `p${idx + 1}`, v));
       req.on('row', (cols: { value: unknown; metadata: { colName: string } }[]) => {
         const o: Record<string, unknown> = {};
         for (const col of cols) o[col.metadata.colName] = col.value;
-        rows.push(o as T);
+        rows.push(o as R);
       });
       connection.execSql(req);
-    });
+    }),
+  };
+
+  try {
+    return await chayTrongTransaction<T>(bo, sql, params, { lockTimeoutMs: cfg.statementTimeoutMs });
   } finally {
     await new Promise<void>((resolve) => {
       connection.on('end', () => resolve());

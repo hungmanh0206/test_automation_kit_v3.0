@@ -38,16 +38,31 @@ Trước đây nhánh GitLab cố ý bị gỡ 2 file so với GitHub. Hai file 
 hai cây **hết phân kỳ**. Cơ chế strip vẫn giữ: lần sau có đường dẫn nào chỉ được nằm ở một nhánh thì khai
 vào file đó, đừng gỡ tay.
 
-Đo ngày 12/10/2026 (v2.7.0 §D) trên **worktree sạch ở HEAD** (`git worktree add --detach`). Không đo trên cây làm việc:
-cây làm việc có file chưa track và chúng đẩy số test lên. Lượt này cây sạch còn bắt được một chuyện khác hẳn —
-`scripts/qa/check.js` mang nguyên phần §A10.1 mà chưa bao giờ được commit, nên ba test xanh ở cây làm việc và
-ĐỎ ở HEAD. Chạy bộ test trên cây làm việc KHÔNG trả lời được câu "bản sẽ phát hành có chạy không".
+Đo ngày 12/10/2026 (v2.8.0 §I) trên **worktree sạch ở HEAD** (`git worktree add --detach`). Không đo trên cây làm việc:
+cây làm việc có file chưa track và chúng đẩy số test lên.
+
+**Và cây sạch cũng KHÔNG đủ** — đó là bài học của hai đợt liền:
+
+- v2.7.0: `scripts/qa/check.js` mang nguyên phần §A10.1 mà chưa bao giờ được commit, nên ba test xanh ở cây làm
+  việc và ĐỎ ở HEAD.
+- v2.8.0: cả 131 file spec xanh ở cây sạch, nhưng **69 test ĐỎ TRONG GÓI** — `outputs/` bị `.gitignore` nên gói
+  không mang nó, và năm spec gọi `mkdtempSync` vào `outputs/_scratch` đều ném `ENOENT`. Chỉ `npm run
+  release:verify` (giải nén gói vào thư mục sạch, `npm ci`, chạy suite ở đó) bắt được.
+
+Nên thứ tự là: cây sạch trả lời "HEAD có chạy không", còn `release:verify` trả lời "**bản sẽ phát hành** có chạy
+không". Hai câu khác nhau, và câu thứ hai mới là câu người nhận kit quan tâm.
 
 | | GitHub | GitLab |
 |---|---|---|
-| file được track | 653 | 653 |
-| `npx playwright test tests/fe/infra` | **1.590 test · 0 đỏ** (1.580 chạy · 10 bỏ qua) | **1.590 test · 0 đỏ** |
-| `npm run ci:scope` đếm | 121 spec | 121 spec |
+| file được track | 710 | 710 |
+| `npx playwright test tests/fe/infra` | **1.937 test · 0 đỏ** (1.926 chạy · 11 bỏ qua) | **1.937 test · 0 đỏ** |
+| `npm run ci:scope` đếm | 136 spec | 136 spec |
+| `release:verify` — suite chạy TRONG gói | **1.841 test · 0 đỏ** (1.798 chạy · 43 bỏ qua) | — |
+
+> Gói chạy ÍT HƠN cây và bỏ qua NHIỀU HƠN (43 so với 11) — cả hai đều đúng. Gói không mang `.git`,
+> `outputs/**` và tài liệu của repo, nên những phép kiểm đối chiếu với chúng **bỏ qua kèm lý do** thay vì
+> đỏ (xem `tests/fe/infra/_trong_repo.ts`). `release:verify` ĐẾM số bỏ qua và in ra, vì một bộ kiểm skip
+> 200 test trông y hệt một bộ kiểm xanh nếu không ai đếm.
 
 > 10 test bỏ qua trên cây sạch là đúng: chúng cần dữ liệu ở `knowledge/**` hoặc `outputs/**` — hai lớp PROJECT
 > bị gitignore. Mỗi test tự in lý do khi bỏ qua.
@@ -187,7 +202,7 @@ Requirement
 ↓
 Generate Testcase
 ↓
-Excel (Source of truth khi gen/publish)
+Excel (bản phái sinh của Markdown canonical)
 ↓
 QA xác nhận
 ↓
@@ -223,7 +238,7 @@ Nhóm chức năng thành **sheet riêng** trong workbook (1 sheet cho mỗi nh�
 
 ## Partial Rerun - Cleanup testcase
 
-Khi Excel source of truth thay đổi sau khi đã publish, cleanup thuộc nhánh phụ Partial Rerun. **Không còn lifecycle riêng** như công cụ TMS cũ: re-publish (bước ở trên) ghi đè toàn workbook nên case bị bỏ khỏi Excel tự động biến mất khỏi Sheet ngay lần ghi đè kế tiếp. Dùng prompt riêng [partial-rerun/run_testcase_cleanup.md](partial-rerun/run_testcase_cleanup.md) chỉ khi còn việc unlink liên kết Test↔Story/Task trên Backlog (optional, cần QA yêu cầu rõ).
+Khi nội dung Markdown canonical thay đổi sau khi đã publish, cleanup thuộc nhánh phụ Partial Rerun. **Không còn lifecycle riêng** như công cụ TMS cũ: re-publish (bước ở trên) ghi đè toàn workbook nên case bị bỏ khỏi Excel tự động biến mất khỏi Sheet ngay lần ghi đè kế tiếp. Dùng prompt riêng [partial-rerun/run_testcase_cleanup.md](partial-rerun/run_testcase_cleanup.md) chỉ khi còn việc unlink liên kết Test↔Story/Task trên Backlog (optional, cần QA yêu cầu rõ).
 
 ## Parallel Story Safety
 
@@ -326,7 +341,7 @@ Tái dùng login và catalog; kết quả ghi `<TASK_OUTPUT_DIR>/reports/` và l
 | Playwright báo thiếu browser | Browser runtime chưa cài | Chạy `npx playwright install`. |
 | MCP không kết nối | Token/quyền hoặc MCP config sai | Kiểm tra `.env.local` và IDE MCP settings. |
 | Phase 1 không fetch được requirement | URL/quyền Backlog/tài liệu nguồn/Figma sai | Kiểm tra link, token, quyền page/file. |
-| Publish testcase bị lỗi | Chưa kết nối Google Drive MCP, hoặc file `.xlsx` local chưa export/lỗi | Kiểm tra MCP còn sống (`search_files` thử), kiểm tra Excel canonical đã export đúng chưa trước khi `create_file`/`update_file` |
+| Publish testcase bị lỗi | Chưa kết nối Google Drive MCP, hoặc file `.xlsx` local chưa export/lỗi | Kiểm tra MCP còn sống (`search_files` thử), kiểm tra bản xuất `.xlsx` đã sinh đúng từ Markdown canonical chưa (`sync:canonical`) trước khi `create_file`/`update_file` |
 | Case cũ vẫn còn trên Sheet sau khi bỏ TC khỏi Excel | Chưa re-publish (ghi đè) sau khi sửa Excel | Chạy lại bước publish (`update_file`) — ghi đè toàn workbook sẽ tự phản ánh đúng Excel hiện tại, không cần thao tác riêng |
 | Phase 2 bị `SKIP` nhiều | Auth/data/API/env chưa sẵn sàng hoặc case cần state sâu không có API/hook | Kiểm tra credential, base URL, Swagger URL, fixture/test hook; case thiếu capability an toàn (không dựng được qua API/hook/sandbox) đánh dấu `Needs hook`/`Manual-only` — KHÔNG dùng DB để né (xem `tests/support/setup/hooks/README.md`). |
 | Backlog bug không tạo được | Chưa đủ config hoặc chưa được phép log thật | Chạy dry-run trước, kiểm tra `BACKLOG_*` keys. |

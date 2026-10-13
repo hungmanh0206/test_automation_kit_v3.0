@@ -23,7 +23,7 @@
 | `.agent/skills/shared/test_data_generator/SKILL.md` | Sinh data traceable, unique, rollback được. |
 | `.agent/skills/shared/precondition_setup_planner/SKILL.md` | Phân loại tiền điều kiện, chọn setup method, ghi readiness/blocker cho Setup Strategy contract. |
 | `.agent/skills/shared/backlog_integration/SKILL.md` | Fetch/read Backlog/Figma context khi được gọi (tài liệu nguồn ngoài phạm vi hiện tại). |
-| `.agent/skills/shared/backlog_testcase_publisher/SKILL.md` | Publish testcase từ Excel source of truth lên Backlog trong Phase 1 sau QA confirmation. |
+| `.agent/skills/shared/backlog_testcase_publisher/SKILL.md` | Publish testcase từ bản xuất Excel của Markdown canonical lên Backlog trong Phase 1 sau QA confirmation. |
 | `.agent/skills/shared/backlog_bug_reporter/SKILL.md` | Log Backlog bug khi Phase 2 đủ gate. |
 
 ## Quy tắc duy trì

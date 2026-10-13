@@ -33,6 +33,7 @@ const path = require('path');
 const rc = require(path.resolve(__dirname, '..', 'utils', 'runtime_config'));
 const canonical = require(path.resolve(__dirname, '..', 'lib', 'testcase'));
 const rules = require(path.resolve(__dirname, 'lib', 'output_rules'));
+const phrasing = require(path.resolve(__dirname, 'lib', 'step_phrasing_check'));
 
 const ENFORCE = process.argv.includes('--enforce');
 const CFG = require(path.resolve(__dirname, '..', '..', '.agent', 'config', 'tc_review.json'));
@@ -186,6 +187,25 @@ function cham(tc, boDaDungKyThuat) {
         vi_pham: ks.length ? [] : ['thiếu tag kỹ thuật, trong khi bộ này đã dùng quy ước'],
       });
     }
+  }
+
+  // ⑨ CÂU BƯỚC THEO CHUẨN §K — luật và đối chứng ở `scripts/qa/lib/step_phrasing_check.js`, MỘT NGUỒN.
+  {
+    /*
+     * Chỉ chấm HAI luật (P1 bọc giá trị · P4 không dán đường dẫn màn), không chấm cả năm. Ba luật còn
+     * lại hoặc trùng tiêu chí khác, hoặc không chấm được bằng máy mà không phạt oan — lý do đầy đủ, kèm
+     * số đo của từng luật, nằm ở đầu `step_phrasing_check.js`.
+     *
+     * `diem: null` khi case không có bước nào ⇒ KHÔNG tính vào mẫu số, cùng cách tiêu chí 8 dùng `n/a`.
+     */
+    const r = phrasing.diem(tc);
+    ct.push({
+      ma: '9-cau-buoc-chuan',
+      diem: r.diem,
+      toiDa: r.diem === null ? 0 : 2,
+      ai: false,
+      vi_pham: r.vi_sao,
+    });
   }
 
   const diem = ct.reduce((s, c) => s + (c.diem == null ? 0 : c.diem), 0);

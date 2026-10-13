@@ -177,6 +177,159 @@ function trangLop(vaiTro, q) {
   <tbody>${hang.map((l) => `<tr><td>${l.ten}</td><td>${l.khoi}</td><td>${l.id}</td></tr>`).join('')}</tbody></table>`);
 }
 
+/*
+ * TRANG RADCOMBOBOX — tái hiện ĐÚNG năm hành vi đã đo của Telerik trên hệ thật (v2.8.0 L0.5).
+ *
+ * Fixture này không "giả lập Telerik cho giống". Nó tái hiện năm chỗ mà code thật đã SAI rồi mới biết,
+ * vì đó là thứ duy nhất đáng tái hiện — một fixture dễ hơn thực tế sẽ cho L0.5 xanh rồi vỡ trên UAT:
+ *
+ *   1. Ô ĐANG ĐÚNG giá trị thì click KHÔNG bung dropdown  → `cbCap` mặc định "Mầm non".
+ *   2. Item nằm sẵn trong DOM nhưng ẨN cho tới khi mở     → mọi combobox.
+ *   3. Ô KHOÁ: item vẫn trong DOM, dropdown không hiện    → `cbKhoa`.
+ *   4. Vài combobox KHÔNG bọc `rcbSlide`                   → `cbTron` không có lớp bọc.
+ *   5. Chọn ở combobox CHA làm combobox CON nạp lại       → `cbTinh` → `cbHuyen`.
+ */
+function trangTelerik(vaiTro) {
+  const combo = (id, nhan, items, opt) => {
+    const o = opt || {};
+    const giaTri = o.giaTri || '';
+    const khoa = !!o.khoa;
+    const coSlide = o.coSlide !== false;
+    const li = items.map((x) => `<li class="rcbItem">${x}</li>`).join('');
+    const ds = `<div id="${id}_DropDown" class="rcbDropDown" style="display:none"><ul class="rcbList">${li}</ul></div>`;
+    return `
+    <div class="rcbWrap" data-combo="${id}">
+      <label for="${id}_Input">${nhan}</label>
+      <div id="${id}" class="RadComboBox${khoa ? ' rcbDisabled' : ''}">
+        <input id="${id}_Input" class="rcbInput${khoa ? ' rcbDisabled' : ''}" value="${giaTri}" readonly
+               data-khoa="${khoa ? '1' : '0'}" data-dangDung="${giaTri ? '1' : '0'}">
+        <span id="${id}_Arrow" class="rcbArrow">▾</span>
+      </div>
+      ${coSlide ? `<div class="rcbSlide" style="display:none">${ds}</div>` : ds}
+    </div>`;
+  };
+
+  const JS = `
+  <script>
+  /* Mở/đóng dropdown. KHÔNG mở nếu ô khoá (hành vi 3), và KHÔNG mở nếu click vào ô đang đúng giá trị
+   * đã chọn sẵn (hành vi 1) — đúng như Telerik thật. */
+  function moDong(id) {
+    var inp = document.getElementById(id + '_Input');
+    if (inp.dataset.khoa === '1') return;                    // hành vi 3
+    if (inp.dataset.dangDung === '1') return;                // hành vi 1
+    var dd = document.getElementById(id + '_DropDown');
+    var slide = dd.parentElement.classList.contains('rcbSlide') ? dd.parentElement : null;
+    var hien = dd.style.display !== 'none';
+    dd.style.display = hien ? 'none' : 'block';              // hành vi 2: item luôn trong DOM
+    if (slide) slide.style.display = hien ? 'none' : 'block';
+  }
+  function chon(id, li) {
+    var inp = document.getElementById(id + '_Input');
+    inp.value = li.textContent;
+    document.getElementById(id + '_DropDown').style.display = 'none';
+    var dd = document.getElementById(id + '_DropDown');
+    if (dd.parentElement.classList.contains('rcbSlide')) dd.parentElement.style.display = 'none';
+    /* Hành vi 5: chọn ở cbTinh thì cbHuyen nạp lại sau một nhịp, và trong nhịp đó nó RỖNG. */
+    if (id === 'cbTinh') {
+      var con = document.getElementById('cbHuyen_Input');
+      var dsCon = document.getElementById('cbHuyen_DropDown').querySelector('ul');
+      con.value = '';
+      dsCon.innerHTML = '';
+      setTimeout(function () {
+        var ds = inp.value === 'Phú Thọ' ? ['Phường Âu Cơ', 'Phường Hùng Vương'] : ['Quận 1', 'Quận 3'];
+        dsCon.innerHTML = ds.map(function (x) { return '<li class="rcbItem">' + x + '</li>'; }).join('');
+        gan();
+      }, 400);
+    }
+  }
+  function gan() {
+    document.querySelectorAll('.rcbWrap').forEach(function (w) {
+      var id = w.dataset.combo;
+      var inp = document.getElementById(id + '_Input');
+      var arrow = document.getElementById(id + '_Arrow');
+      inp.onclick = function () { moDong(id); };
+      arrow.onclick = function () { moDong(id); };
+      document.getElementById(id + '_DropDown').querySelectorAll('li.rcbItem').forEach(function (li) {
+        li.onclick = function () { chon(id, li); };
+      });
+    });
+  }
+  gan();
+  </script>`;
+
+  return CHROME(vaiTro, 'Combobox Telerik', [
+    '<h2>Combobox dạng Telerik</h2>',
+    combo('cbCap', 'Cấp học', ['Mầm non', 'Tiểu học', 'THCS', 'THPT', 'GDTX'], { giaTri: 'Mầm non' }),
+    combo('cbTinh', 'Tỉnh/Thành', ['Phú Thọ', 'Hồ Chí Minh']),
+    combo('cbHuyen', 'Quận/Huyện', []),
+    combo('cbKhoa', 'Loại hình (chỉ xem)', ['Công lập', 'Tư thục'], { giaTri: 'Công lập', khoa: true }),
+    combo('cbTron', 'Năm học (không rcbSlide)', ['2025-2026', '2026-2027'], { coSlide: false }),
+    JS,
+  ].join('\n'));
+}
+
+/*
+ * Trang HỒ SƠ kiểu ASP.NET WebForms — để đo L1 (mô hình màn) + L0.5 textbox/checkbox + L2 form hoàn
+ * toàn OFFLINE. Ba đặc điểm dưới đây là thứ làm nó giống app thật, và mỗi cái là một bài học đã trả giá:
+ *
+ *   · `name` dạng `ctl00$ContentPlaceHolder1$tbTen` — có `$`, nên `#id` không dùng được và phải định vị
+ *     bằng `[name$="tbTen"]`. Đúng cách L1 làm.
+ *   · ô `tbMa` có `maxlength=10` và CẮT ÂM THẦM: `fill` không báo gì, giá trị chỉ còn 10 ký tự.
+ *   · `tbKhoa` là `readonly`, `tbThue` là `disabled` — hai kiểu khoá KHÁC nhau, và L0.5 phải phân biệt
+ *     `khong-tuong-tac-duoc` với `tuong-tac-duoc-nhung-khong-doi-duoc`.
+ */
+function trangHoSo(vaiTro) {
+  const pre = 'ctl00$ContentPlaceHolder1$';
+  const o = (id, nhan, opt) => {
+    const v = opt || {};
+    const attr = [
+      `name="${pre}${id}"`, `id="${id}"`, 'type="text"',
+      `value="${v.giaTri === undefined ? '' : v.giaTri}"`,
+      v.maxlength ? `maxlength="${v.maxlength}"` : '',
+      v.readonly ? 'readonly' : '',
+      v.disabled ? 'disabled' : '',
+    ].filter(Boolean).join(' ');
+    return `<div class="row"><label for="${id}">${nhan}</label><input ${attr}></div>`;
+  };
+  const cb = (id, nhan, opt) => {
+    const v = opt || {};
+    return `<div class="row"><label for="${id}">${nhan}</label>`
+      + `<input name="${pre}${id}" id="${id}" type="checkbox" ${v.tich ? 'checked' : ''}></div>`;
+  };
+  const ta = (id, nhan) => `<div class="row"><label for="${id}">${nhan}</label>`
+    + `<textarea name="${pre}${id}" id="${id}"></textarea></div>`;
+
+  return CHROME(vaiTro, 'Hồ sơ trường', [
+    '<h2>1.1 Hồ sơ trường</h2>',
+    '<form id="aspnetForm" method="POST">',
+    o('tbTen', 'Tên trường', { giaTri: 'Truong THCS Fixture' }),
+    o('tbMa', 'Mã định danh', { giaTri: '', maxlength: 10 }),
+    o('tbDienTich', 'Diện tích đất', { giaTri: '1000' }),
+    o('tbKhoa', 'Loại hình', { giaTri: 'Công lập', readonly: true }),
+    o('tbThue', 'Mã số thuế', { giaTri: '0101234567', disabled: true }),
+    /*
+     * Ô NHẬN ĐƯỢC CHỮ RỒI TRẢ LẠI GIÁ TRỊ CŨ KHI RỜI Ô.
+     *
+     * Đây là trạng thái thứ ba của `ghiDuoc()` — `tuong-tac-duoc-nhung-khong-doi-duoc` — và nó KHÁC hẳn
+     * ô khoá: người dùng gõ được, nhìn thấy chữ mình gõ, rồi mất. Không có ô kiểu này trong fixture thì
+     * một trong ba trạng thái của hàm đó chưa bao giờ được thử, và một nhánh chưa thử là một nhánh có
+     * thể sai mà suite vẫn xanh. Mẫu thật: field bị JS/postback của WebForms nắn lại.
+     */
+    o('tbTuHoan', 'Khoảng cách (tự hoàn nguyên)', { giaTri: '3' }),
+    cb('ckInternet', 'Có Internet', { tich: false }),
+    cb('ckDien', 'Có điện (lưới)', { tich: true }),
+    ta('txGhiChu', 'Ghi chú'),
+    '<table id="grid"><thead><tr><th><input type="checkbox" id="ckAll" name="ckAll"></th><th>Tên</th></tr></thead>',
+    '<tbody><tr><td><input type="checkbox" name="ckRow1"></td><td>Dòng 1</td></tr></tbody></table>',
+    '<input type="submit" value="Cập nhật">',
+    '<input type="button" value="Huỷ">',
+    '</form>',
+    /* JS nắn `tbTuHoan` về giá trị cũ khi rời ô — xem ghi chú ở chỗ khai ô đó. */
+    '<script>(function(){var e=document.getElementById("tbTuHoan");var cu=e.value;'
+      + 'e.addEventListener("blur",function(){e.value=cu;});})();</script>',
+  ].join('\n'));
+}
+
 function trangThemTruong(vaiTro) {
   /* Đủ 18 loại field của `.agent/config/ui_components.json`, để spec dấu vân tay đếm được. */
   return CHROME(vaiTro, 'Thêm trường', `
@@ -333,6 +486,8 @@ function start() {
     if (mCt) { const t = trangChiTiet(vaiTro, mCt[1]); return t ? html(t) : html('<h1>404</h1>', 404); }
     if (p === '/lop') return html(trangLop(vaiTro, q));
     if (p === '/them-truong') return html(trangThemTruong(vaiTro));
+    if (p === '/telerik') return html(trangTelerik(vaiTro));
+    if (p === '/ho-so') return html(trangHoSo(vaiTro));
     if (p === '/bao-cao') return html(trangBaoCao(vaiTro, q));
     if (p === '/admin') return html(trangAdmin(vaiTro));   // KHÔNG kiểm quyền — cố ý
     /*

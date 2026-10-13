@@ -212,7 +212,7 @@ const TERMS_CONCEPT = [
 
 { id:'c-canonical', t:'Canonical source', cat:'concept',
   def:'Mỗi loại thông tin chỉ có đúng một nguồn thật. Nơi khác chỉ được trỏ về.',
-  detail:'RULE_GLOBAL.md là canonical cho policy. verdict_taxonomy.json là canonical cho trạng thái kết quả và ngưỡng rerun. Excel là canonical khi gen/publish; Google Sheet là nguồn khi execute.',
+  detail:'RULE_GLOBAL.md là canonical cho policy. verdict_taxonomy.json là canonical cho trạng thái kết quả và ngưỡng rerun. Markdown canonical (test-cases/*.md) là nguồn của nội dung case ở mọi giai đoạn; bản xuất .xlsx và Google Sheet là phái sinh.',
   why:'Tài liệu nhiều tầng thì rất dễ trôi: sửa ở một chỗ, ba chỗ khác vẫn nói điều cũ, và người đọc không biết tin chỗ nào. Có canonical thì mâu thuẫn được giải quyết bằng quy tắc chứ không bằng tranh luận.',
   how:['Mỗi phase đọc lại artifact canonical, không dựa hội thoại cũ.'],
   src:'scripts/qa/policy_source_check.js', rel:['f-rule-global','f-verdict-taxonomy','f-excel-canonical','g-policy_source_check'] },

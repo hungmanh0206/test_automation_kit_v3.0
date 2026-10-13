@@ -1,6 +1,6 @@
 # Phase 1 - Bước 4: Auto Publish Testcase (Google Sheet)
 
-> Publish testcase từ Excel source of truth lên **Google Sheet** (qua Drive MCP) sau khi QA xác nhận. Đây là step riêng trong phạm vi Phase 1, không chạy chung với bước sinh testcase.
+> Publish testcase từ bản xuất Excel của Markdown canonical lên **Google Sheet** (qua Drive MCP) sau khi QA xác nhận. Đây là step riêng trong phạm vi Phase 1, không chạy chung với bước sinh testcase.
 
 ## Mục Đích
 

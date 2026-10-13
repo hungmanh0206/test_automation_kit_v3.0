@@ -1,0 +1,94 @@
+{
+  "_y": "MỘT NGUỒN cho cách diễn đạt câu bước (v2.8.0 §K). `steps:match` (§C2) và `tc_reviewer` tiêu chí 9 cùng đọc file này. Hai bản sao sẽ trôi khỏi nhau — đợt này đã trả giá đúng chuyện đó hai lần.",
+  "_do_tren": {
+    "ngay": "2026-10-12",
+    "nguon": "5 task thật: CSDL-3544 · 9001 · 9002 · 9003 · 9004",
+    "mau_so": "952 case · 4080 câu bước · 5338 mệnh đề sau khi tách",
+    "_y": "Mọi luật dưới đây có một con số đi kèm. Luật không đo được thì không đưa vào đây."
+  },
+
+  "dong_nghia": {
+    "_y": "Nhóm từ cùng nghĩa. Từ ĐẦU nhóm là dạng chuẩn; các từ sau được thay bằng nó.",
+    "_luat_quan_trong_nhat": "Thay thế làm trên chữ CÒN DẤU, và CHỈ ở vị trí động từ (đầu câu hoặc sau dấu ngắt mệnh đề).",
+    "_vi_sao": "Bản đầu của tôi gộp trên chữ ĐÃ BỎ DẤU và thay ở mọi vị trí. Đo trên 4080 câu: `nhấn`/`nhận`/`nhân`/`nhãn` cùng ra `nhan`, nên nó đổi `xác nhận` → `xác bấm` (65 câu), `nhân sự` → `bấm sự` (50 câu), và `vào` trong `ghi vào evidence` → `mở` (13 câu). `select` trong `db_readonly: SELECT COUNT(*)` cũng bị đổi (34 câu). Giữ dấu + chỉ vị trí động từ ⇒ 0 va chạm còn lại trên cùng mẫu số đó. Đây đúng là bài học đã có ở chỗ khác: đo thì neo cấu trúc, đừng dò chữ.",
+    "nhom": [
+      {
+        "chuan": "bấm",
+        "cung_nghia": ["nhấn", "kích", "click", "bấm chuột"],
+        "_do": "kích 350 · bấm 227 · click 60 · nhấn 12 lần ở vị trí động từ. Gộp lại: 3 khung `kích nút {}` (144) + `bấm nút {}` (75) + `click nút {}` (42) thành MỘT mục danh mục 269 lượt."
+      },
+      {
+        "chuan": "nhập",
+        "cung_nghia": ["điền", "gõ"],
+        "_do": "nhập 140 · điền 109 · gõ 23."
+      },
+      {
+        "chuan": "mở",
+        "cung_nghia": ["navigate đến", "navigate", "truy cập"],
+        "_do": "mở 395 · navigate 250 (trong đó `navigate đến` 249)."
+      },
+      {
+        "chuan": "tải lại",
+        "cung_nghia": ["refresh", "reload", "mở lại"],
+        "_do": "tải lại 100 · mở lại 71. `mở lại` phải đứng TRƯỚC `mở` khi khớp, nếu không `mở` ăn mất nó — đây là lý do danh sách khớp theo cụm dài trước."
+      },
+      {
+        "chuan": "chọn",
+        "cung_nghia": ["kích chọn", "bấm chọn", "click chọn", "nhấn chọn"],
+        "_do": "`kích chọn` 41 lượt. Đây là động từ XẾP ĐÔI: `kích` là cách chạm, `chọn` là việc thật. Cụm hai từ phải được thử TRƯỚC từ đơn `kích` của nhóm `bấm`, nếu không `kích` ăn trước và 41 lượt đó rơi hết vào `none` — fixture `tests/fe/fixtures/steps/testcase-chuan-phrasing.md` bắt đúng lỗi này.",
+        "_khong_gom_tich_chon": "`tích chọn` (8 lượt) CỐ Ý không nằm ở đây: tích checkbox là thao tác khác, và L0.5 xử lý nó bằng hàm khác."
+      },
+      {
+        "chuan": "tích",
+        "cung_nghia": ["tick", "tích chọn"],
+        "_do": "tích 28 · tick 9. CỐ Ý KHÔNG gộp vào `bấm`: tích checkbox và bấm nút là hai thao tác khác nhau ở tầng widget, và L0.5 xử lý chúng bằng hai hàm khác nhau."
+      }
+    ],
+    "_co_y_khong_gop": [
+      {
+        "tu": ["đọc", "ghi lại", "quan sát", "xem"],
+        "_y": "`ghi lại` (58+28 lượt) và `đọc` (358 lượt) là hai việc khác: đọc là quan sát, ghi lại là lưu vào evidence. Gộp chúng làm mất đúng phần evidence — thứ CLAUDE.md §4 bắt buộc. Thay vì gộp, khai nhiều `phrases` trên CÙNG một bước."
+      },
+      {
+        "tu": ["vào", "mở"],
+        "_y": "`vào` gần như không bao giờ là động từ ở đây: `bấm vào ô` (8) · `gõ vào ô` (8) · `ghi vào evidence` (13) · `sự vào tổ` (8). Nó là giới từ."
+      },
+      {
+        "tu": ["select", "chọn"],
+        "_y": "`select` trong mẫu này 100% nằm trong câu SQL `db_readonly: SELECT …` (34 lượt). Gộp nó là sửa nội dung câu truy vấn."
+      }
+    ]
+  },
+
+  "tach_gia_tri": {
+    "_y": "Giá trị trong câu bước được tách thành THAM SỐ, để `nhập \"Tên trường\" = \"ABC\"` và `nhập \"Họ tên\" = \"B\"` thành cùng một bước.",
+    "dang": [
+      { "mau": "\"giá trị\"", "ky_tu": ["\"", "“", "”", "'"], "_do": "1268/4080 câu (31%) — dạng phổ biến nhất. Nháy CONG: 0 lượt trong mẫu, nhưng vẫn nhận vì QA copy từ Word thì ra nháy cong." },
+      { "mau": "[Nhãn nút]", "ky_tu": ["[", "]"], "_do": "241/4080 câu (6%) — `kích nút [Đồng bộ dữ liệu]`. Bản đầu của bộ tách BỎ SÓT dạng này; đo mới thấy." },
+      { "mau": "<bien_moi_truong>", "_do": "182 lượt `<ops_base_url>` — thay bằng `<U>` cùng với URL, vì đường dẫn màn thuộc tầng L1 chứ không phải tham số bước." },
+      { "mau": "số trần", "_do": "`Stt 87`, `khối 10`, `= 14` — thay bằng `#`. Không làm thế thì mỗi số là một khung riêng." }
+    ],
+    "_khong_tach": "Không tách bên trong câu SQL (`db_readonly:` hoặc có `SELECT`): nội dung truy vấn là dữ liệu, không phải tham số bước."
+  },
+
+  "tach_menh_de": {
+    "_y": "Câu bước của QA là câu GHÉP. Tách ở dấu ngắt mệnh đề rồi mới khớp.",
+    "dau_ngat": [",", ";", "→", "rồi"],
+    "_do": "4080 câu → 5338 mệnh đề. Tỉ lệ khớp được (khung lặp ≥2 lượt) tăng từ 37% lên 47%.",
+    "_khong_tach": "Câu SQL và phần trong ngoặc — `chọn \"Khối 10, 11\"` chỉ là một mệnh đề.",
+    "khong_ngat_o": ["và"],
+    "_vi_sao_bo_va": "`và` nối cả mệnh đề (`mở màn và đọc nhãn`) lẫn danh từ (`họ và tên` · `lớp, học sinh và nhân sự`). Tách ở `và` thì `Xoá trắng ô \"Họ và tên\"` vỡ làm hai."
+  },
+
+  "chuan_viet_cau_buoc": {
+    "_y": "Chuẩn cho người VIẾT case. `tc_reviewer` tiêu chí 9 chấm theo đây.",
+    "_vi_sao_chuan_nay_moi_la_don_bay": "Đo trên 5 task: khớp TUYỆT ĐỐI chéo task chỉ 6–21%; thêm `fuzzy` ≥0.65 lên 12–39%. Nhìn vào các cặp `fuzzy` thì nguyên nhân chính KHÔNG phải bộ khớp yếu, mà là THAM SỐ KHÔNG ĐƯỢC BỌC: `Nhập Stt 87 = 100` và `Nhập \"Hệ số phụ cấp chức vụ lãnh đạo (%)\" = 14` là CÙNG một bước, chỉ khác chỗ một bên bọc nháy một bên không. Viết đúng chuẩn thì chúng thành khớp tuyệt đối. Bộ khớp tốt hơn không mua được phần đó.",
+    "luat": [
+      { "ma": "P1", "luat": "Bọc mọi giá trị và mọi nhãn điều khiển trong nháy kép: `Nhập \"Tên trường\" = \"Trường THCS A\"`.", "_do": "chỉ 31% câu đang làm thế" },
+      { "ma": "P2", "luat": "Một mệnh đề = một thao tác. Cần ba thao tác thì viết ba câu, đừng nối bằng dấu phẩy.", "_do": "câu dài nhất trong mẫu có 4 thao tác; mỗi câu ghép là một khung riêng không ai dùng lại được" },
+      { "ma": "P3", "luat": "Dùng động từ chuẩn ở `dong_nghia.nhom[].chuan`.", "_do": "4 cách viết cho cùng một cú bấm" },
+      { "ma": "P4", "luat": "Đường dẫn màn đặt ở cột tiền đề hoặc dùng tên màn có mã (`màn \"1.1 Hồ sơ trường\"`), KHÔNG dán URL vào câu bước.", "_do": "182 câu dán URL; mỗi URL theo cấp học là một khung riêng" },
+      { "ma": "P5", "luat": "Phần phán đúng/sai thuộc cột kỳ vọng, không nằm trong câu bước.", "_do": "luật vàng L4 — bước không chứa oracle" }
+    ]
+  }
+}

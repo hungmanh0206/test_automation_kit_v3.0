@@ -25,7 +25,7 @@ Test Automation Kit hỗ trợ QA làm việc theo từng story hoặc task:
 
 ```text
 Requirement
--> Sinh testcase (Excel source of truth)
+-> Sinh testcase (Markdown canonical, xuất kèm Excel)
 -> QA review/confirmation
 -> Auto publish testcase lên Google Sheet (qua Drive MCP)
 -> Execute automation (luôn tải bản Sheet mới nhất trước mỗi lượt)
@@ -49,7 +49,7 @@ gate nào biết.
 ```text
 Bước 0: khám phá hệ thống (npm run discover)
 -> Phase 1
--> Excel source of truth
+-> Markdown canonical (xuất kèm Excel)
 -> Review / QA Confirmation
 -> Auto Publish testcase lên Google Sheet (qua Drive MCP)
 -> Phase 2 Execute (luôn tải bản Sheet mới nhất)
@@ -65,7 +65,7 @@ Bước 0: khám phá hệ thống (npm run discover)
 
 | Phase | Mục tiêu | Output chính | Ai review |
 |---|---|---|---|
-| Phase 1 | Sinh testcase từ Backlog/tài liệu nguồn/Figma/Swagger và export Excel source of truth. Auto Publish testcase là step riêng trong Phase 1 sau khi QA xác nhận. | Testcase Markdown, Excel, coverage report, Google Sheet publish summary nếu đã chạy step publish. | QA Member, QA Lead. |
+| Phase 1 | Sinh testcase từ Backlog/tài liệu nguồn/Figma/Swagger và xuất kèm Excel từ Markdown canonical. Auto Publish testcase là step riêng trong Phase 1 sau khi QA xác nhận. | Testcase Markdown, Excel, coverage report, Google Sheet publish summary nếu đã chạy step publish. | QA Member, QA Lead. |
 | Review | Kiểm tra coverage, risk và chất lượng testcase. | Quyết định có chạy Phase 2 chưa. | QA Member, QA Lead. |
 | Phase 2 | Execute automation thật (luôn tải bản mới nhất từ Google Sheet), giảm skip/fail sai, rồi đồng bộ trạng thái lên Sheet khi QA duyệt. |
 | Backlog Bug | Log bug khi fail là product bug thật. | Backlog bug + evidence ảnh/video. | QA Member, QA Lead. |
@@ -77,7 +77,7 @@ Bước 0: khám phá hệ thống (npm run discover)
 |---|---|
 | Không chạy nhầm `TASK_KEY`. | Tránh ghi đè output của story khác. |
 | Không chạy Phase 2 khi Phase 1 chưa được review. | Tránh execute sai expected result. |
-| Execute luôn tải bản Google Sheet mới nhất qua Drive MCP; Excel là source-of-truth khi gen/publish |
+| Markdown canonical (`test-cases/*.md`) là source-of-truth cho nội dung case; `.xlsx` và Sheet là bản xuất. Execute mặc định đọc `.md`. |
 | Không skip case để làm đẹp pass rate. | Report phải phản ánh chất lượng thật. |
 | Không log Backlog bug nếu fail do setup/test data/automation. | Tránh tạo noise cho Dev. |
 | Không đổi expected result nếu chưa có source xác nhận. | Tránh biến product bug thành pass ảo. |
@@ -359,7 +359,7 @@ outputs/<project>/tasks/<TASK_KEY>/
 ├── test-cases/
 │   ├── *.md
 │   ├── *.xlsx                     # Excel gen ở Phase 1 (source khi gen/publish; chính là nội dung Sheet)
-│   ├── from-sheet/                # canonical tải từ Google Sheet qua Drive MCP (nguồn execute mặc định)
+│   ├── from-sheet/                # CHỈ dùng cho gate chống lệch; KHÔNG phải nguồn execute (v2.8.0 §0c)
 │   │   └── <TASK_KEY>_from_sheet.xlsx
 │   └── snapshot_context.json
 ├── test-results/
@@ -460,7 +460,7 @@ Output bắt buộc:
 |---|---|
 | Requirement artifact | `<PROJECT_OUTPUT_DIR>/tasks/<TASK_KEY>/requirements/` |
 | Testcase Markdown | `<PROJECT_OUTPUT_DIR>/tasks/<TASK_KEY>/test-cases/*.md` |
-| Testcase Excel source of truth | `<PROJECT_OUTPUT_DIR>/tasks/<TASK_KEY>/test-cases/*.xlsx` |
+| Testcase Markdown canonical | `<PROJECT_OUTPUT_DIR>/tasks/<TASK_KEY>/test-cases/*.md` (bản xuất Excel: `*.xlsx`) |
 | Phase 1 report | `<PROJECT_OUTPUT_DIR>/tasks/<TASK_KEY>/reports/phase1-summary.md` (gồm `### Setup Readiness` + `### Precondition Execution Matrix`) |
 | Capability / Test-Hook Request | `<PROJECT_OUTPUT_DIR>/tasks/<TASK_KEY>/reports/capability-request.md` (handoff Dev khi còn `Needs hook`/`Manual-only`) |
 | Cách dựng precondition | Tag `[<method>]` ngay trong cell `Tiền điều kiện` của từng TC; chi tiết theo task ở `### Setup Readiness` của `reports/phase1-summary.md` |
@@ -550,7 +550,7 @@ Task key là <TASK_KEY>.
 QA confirmation Status = APPROVED.
 ```
 
-Step này đọc Excel source of truth trong `test-cases/*.xlsx` rồi publish lên **Google Sheet** qua Drive MCP: agent `search_files` tìm Sheet đã có (theo `GOOGLE_SHEET_URL`), rồi `create_file`/`update_file` — review nội dung local trước khi ghi đè.
+Step này đọc bản xuất Excel trong `test-cases/*.xlsx` (sinh từ Markdown canonical) rồi publish lên **Google Sheet** qua Drive MCP: agent `search_files` tìm Sheet đã có (theo `GOOGLE_SHEET_URL`), rồi `create_file`/`update_file` — review nội dung local trước khi ghi đè.
 
 Nếu Excel thay đổi sau khi đã publish, chỉ cần re-publish (ghi đè Sheet) là đủ — không cần cleanup lifecycle riêng. Chỉ dùng nhánh phụ `partial-rerun/run_testcase_cleanup.md` nếu cần unlink Test↔Story/Task trên Backlog sau Human Review.
 
@@ -600,7 +600,7 @@ Output bắt buộc:
 | Sync log (khi `PUSH_EXECUTION` ≠ 0) | `<PROJECT_OUTPUT_DIR>/tasks/<TASK_KEY>/reports/aio-execution-summary.md` |
 | Task log | `<PROJECT_OUTPUT_DIR>/tasks/<TASK_KEY>/task.md` |
 
-**Bước đầu Phase 2 (mặc định)** — agent tải testcase từ Google Sheet về canonical local trước khi execute:
+**Bước đầu Phase 2 (v2.8.0 §0c)** — execute đọc THẲNG Markdown canonical local. KHÔNG còn cú tải Sheet mỗi lượt:
 
 Agent `mcp__claude_ai_Google_Drive__download_file_content` file Sheet theo `GOOGLE_SHEET_URL` trong `profiles/<TASK_KEY>/task.env`, ghi `test-cases/from-sheet/<TASK_KEY>_from_sheet.xlsx`.
 
@@ -614,7 +614,7 @@ Nguyên tắc Phase 2:
 
 | Chủ đề | Rule |
 |---|---|
-| Nguồn testcase | Mặc định tải testcase từ Google Sheet về `test-cases/from-sheet/*.xlsx` rồi execute từ đó (canonical local); đặt `TESTCASE_SOURCE=excel` để dùng Excel local. |
+| Nguồn testcase | Execute đọc `test-cases/*.md` (Markdown canonical). `from-sheet/` chỉ dùng cho gate chống lệch (canonical local); đặt `TESTCASE_SOURCE=excel` để dùng Excel local. |
 | Precondition | Setup theo **tag `[<method>]`** trong cell `Tiền điều kiện` (api/factory/test_hook/ui/pre_existing/manual) qua capability an toàn — KHÔNG bằng DB; chỉ `manual` mới skip vì setup. |
 | Execute thật | Không pass ảo bằng skip/mock sai/sửa expected tùy tiện. |
 | Skip | Hạn chế tối đa, mỗi skip phải có lý do và khả năng fix. |
@@ -639,7 +639,7 @@ Một task chạy trọn bộ testcase cùng lúc. Testcase management giờ là
 | **Tiền điều kiện** | Cách dựng state | Cột `Tiền điều kiện` ngay trong sheet, dạng `[<method>] <mô tả>` — không còn field/issue riêng như trước |
 | **Cột `Result`** | Kết quả execute | Ghi qua `merge_execution_status.js` (Pass/Fail/Pending) rồi agent `update_file` đẩy lên Drive |
 
-- **Excel là canonical, Sheet chỉ phản chiếu** — sửa thẳng trên Sheet sẽ mất ở lần ghi đè kế tiếp.
+- **Markdown canonical là nguồn; Excel và Sheet chỉ phản chiếu** — sửa thẳng trên Excel hay Sheet sẽ mất ở lần `sync:canonical` kế tiếp, và `canonical:check` sẽ CHẶN trước đó.
 - **Không cần lifecycle Deprecated**: case rời khỏi Excel thì tự động không còn trên Sheet ở lần `update_file` kế tiếp — không có bước "cleanup" riêng như công cụ cũ.
 - **Publish chỉ làm được trong phiên chat** (Drive MCP không gọi được từ script CLI/CI headless) — đổi lại không còn quản lý token và rate-limit của TMS riêng. Chi tiết mô hình: [`.agent/skills/shared/backlog_testcase_publisher/SKILL.md`](.agent/skills/shared/backlog_testcase_publisher/SKILL.md).
 
@@ -1102,9 +1102,9 @@ Chi tiết ở Mục 8.
 | Thuật ngữ | Giải thích |
 |---|---|
 | Phase 1 | Sinh testcase, Excel và coverage report. |
-| Excel source of truth | File `.xlsx` trong `test-cases/` là nguồn chính khi GEN/PUBLISH testcase (Phase 1) — cũng chính là nội dung publish lên Sheet. Phase 2 execute thì luôn tải bản Google Sheet mới nhất. |
+| Bản xuất Excel | File `.xlsx` trong `test-cases/` là BẢN PHÁI SINH của `*.md`, sinh lại bằng `sync:canonical` — cũng chính là nội dung publish lên Sheet. Phase 2 execute thì luôn tải bản Google Sheet mới nhất. |
 | `TESTCASE_SOURCE` | Nguồn testcase cho Phase 2 execute/rerun: mặc định tải từ Google Sheet về `test-cases/from-sheet/`, `excel` (Excel local, khi chưa publish). |
-| Tải testcase (từ Sheet) | Agent `download_file_content` qua Drive MCP kéo bản Sheet mới nhất về canonical local để execute; lấy steps/expected từ đó. |
+| Tải testcase (từ Sheet) | CHỈ cho gate chống lệch `canonical:check`, không phải nguồn execute. Agent `download_file_content` qua Drive MCP kéo bản Sheet về local để execute; lấy steps/expected từ đó. |
 | Google Sheet | Bản đồng bộ hiển thị của bản xuất Excel (vốn sinh từ Markdown canonical), publish qua Drive MCP. Đây là **nguồn execute** của Phase 2. Sheet không phải issue tracker nên không có field liên kết Story/Task riêng. |
 | Cột `Result` | Kết quả execute (Pass/Fail/Pending) ghi vào đúng dòng khớp `tcId` trên Sheet, qua `merge_execution_status.js` rồi `update_file`. |
 | Sheet-tab theo nhóm | Không có Test Plan/thư mục cycle như trước — nhóm chức năng thể hiện bằng 1 tab riêng trong cùng workbook. |
@@ -1139,7 +1139,7 @@ Chi tiết ở Mục 8.
 
 | Giai đoạn | Phải có trước khi kết thúc |
 |---|---|
-| Phase 1 | Testcase Markdown, Excel source of truth, `phase1-summary.md`, `task.md`. |
+| Phase 1 | Testcase Markdown canonical, bản xuất Excel, `phase1-summary.md`, `task.md`. |
 | Auto Publish testcase | QA confirmation, publish summary (link Sheet, tạo mới/ghi đè rõ ràng). |
 | Re-publish sau partial rerun | Ghi đè Sheet đã xác nhận đúng Excel mới; unlink Backlog (nếu có) kèm lý do rõ ràng. |
 | Review Phase 1 | Coverage %, Final Decision, High/Critical gaps rõ ràng. |

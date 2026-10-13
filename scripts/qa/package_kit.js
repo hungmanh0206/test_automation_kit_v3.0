@@ -43,6 +43,19 @@ const KEEP_DIRS = [
    * vì lý do đó, nhưng gói lại không mang. Người nhận kit sẽ không có subagent nào.
    */
   'manual-run', '.claude/agents', 'tests/load',
+  /*
+   * `tests/fe/lib`: THƯ VIỆN BƯỚC của v2.8.0 — L0.5 widget, L1 mô hình màn, L2 bước, L4 bộ kiểm, và
+   * `step_catalog.json`.
+   *
+   * Đo 12/10/2026 trước khi thêm: gói mang **16 file** `scripts/qa/reuse/**` (các gate) nhưng **0 file**
+   * `tests/fe/lib/**` — tức người nhận kit có đủ máy gác mà không có thứ chúng gác. `steps:catalog` sẽ
+   * ĐỎ ở phép kiểm 2 (`impl` trỏ tới hàm có thật) cho cả 17 mục, còn `steps:lint` sẽ in "CHƯA CÓ GÌ ĐỂ
+   * CANH" và người đọc hiểu thành "thư viện sạch".
+   *
+   * Cùng một lớp lỗi với ca `manual-run` ghi ở trên: thêm một nhánh/một tầng mà quên danh sách này.
+   * `tests/fe/infra/config-presence.spec.ts` đã đối chiếu nhánh; phần tầng thì có test ở `package-kit`.
+   */
+  'tests/fe/lib',
   'tests/support', 'tests/fe/infra', 'tests/fe/fixtures', 'tests/fe/pages', 'tests/fe/visual', 'tests/fixtures',
   '.claude/commands', '.github/workflows',
   /*
@@ -115,6 +128,17 @@ const KEEP_FILES = [
   '.agent/config/retention.json',
   '.agent/config/library-drift.allow.json',
   /*
+   * BỔ SUNG 13/10/2026 (v2.8.0) — `config-presence.spec.ts` bắt được, không phải tôi tự nhớ ra.
+   *
+   * `step_catalog.schema.json` là hình dạng mà `steps:catalog` gác; `step_phrasing.json` là MỘT NGUỒN
+   * cho luật đồng nghĩa/tách mệnh đề mà `steps:match`, `steps:suggest` và `tc:review` tiêu chí 9 cùng
+   * đọc. Thiếu `step_phrasing.json` thì `steps:match` KHÔNG nổ — nó rơi về nhánh không gộp đồng nghĩa
+   * và in tỉ lệ khớp thấp hơn thật, tức đúng kiểu "tắt phép kiểm rồi đi tiếp" mà khối chú thích trên
+   * đã cảnh báo. Cả hai không chứa host, bảng DB, credential hay PII.
+   */
+  '.agent/config/step_catalog.schema.json',
+  '.agent/config/step_phrasing.json',
+  /*
    * BỔ SUNG 10/10/2026 — đo trên chính bản đóng gói, không phải đọc code mà đoán.
    *
    * Ba file đầu được nạp bằng `require()`, nên thiếu chúng là gói KHÔNG NẠP NỔI `md_to_xlsx.js`
@@ -164,6 +188,12 @@ const KEEP_FILES = [
    * 21 mã "không có cặp" — một màn CHẶN toàn bộ ở máy mới, vì thiếu config chứ không vì thiếu gate.
    */
   '.agent/config/gate_code_pairs.json',
+  /*
+   * `db-paths.allow.json` (v2.8.0 §0b.5): danh sách miễn trừ CÓ HẠN của `db:paths:check`. Thiếu nó trong
+   * gói thì máy mới đỏ ngay lượt đầu vì 9 file probe có sẵn của một task cũ — đỏ vì thiếu config, không
+   * vì có lỗi. Mà một gate đỏ-khi-vừa-cài thì bị bỏ qua chứ không được sửa.
+   */
+  '.agent/config/db-paths.allow.json',
   /*
    * `judge_rubric.json` + `judge_calibration.json` (v2.7.0 §A11): thang chấm cho phần máy không đo được,
    * và bộ hiệu chuẩn. Thiếu thang thì `judge --check` không biết chấm những mục nào; thiếu bộ hiệu chuẩn

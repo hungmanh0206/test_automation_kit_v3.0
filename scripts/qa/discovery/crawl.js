@@ -131,8 +131,13 @@ async function moCacKhoi(page, bienBan, cfg, doTre) {
  * nằm trong tệp ảnh — khác hẳn việc chụp xong rồi bôi, lúc đó bản gốc đã tồn tại một nhịp trên đĩa.
  */
 async function oCanChe(page) {
-  const sel = await page.evaluate(({ piiLabel }) => {
+  const sel = await page.evaluate(({ piiLabel, chuanHoaSrc }) => {
     const PII = new RegExp(piiLabel.source, piiLabel.flags);
+    /*
+     * Chuẩn hoá nhãn trước khi so — xem ghi chú ở `pii_mask.CHUAN_HOA_NHAN_SRC`. Mẫu viết ở dạng không
+     * dấu để phủ cả nhãn màn lẫn tên cột DB, nên áp thẳng lên nhãn có dấu thì không khớp gì.
+     */
+    const chuanHoaNhan = new Function('l', chuanHoaSrc);
     const norm = (s) => String(s == null ? '' : s).replace(/\s+/g, ' ').trim().replace(/[:*]\s*$/, '');
     const ra = [];
     let n = 0;
@@ -145,13 +150,13 @@ async function oCanChe(page) {
     };
     // ① ô nhập có nhãn PII
     for (const l of document.querySelectorAll('label[for]')) {
-      if (!PII.test(norm(l.textContent))) continue;
+      if (!PII.test(chuanHoaNhan(norm(l.textContent)))) continue;
       danhDau(document.getElementById(l.getAttribute('for')));
     }
     // ② cột bảng có header PII — che cả cột
     for (const t of document.querySelectorAll('table')) {
       const th = [...t.querySelectorAll('thead th')];
-      const cot = th.map((h, i) => (PII.test(norm(h.textContent)) ? i : -1)).filter((i) => i >= 0);
+      const cot = th.map((h, i) => (PII.test(chuanHoaNhan(norm(h.textContent))) ? i : -1)).filter((i) => i >= 0);
       if (!cot.length) continue;
       for (const tr of t.querySelectorAll('tbody tr')) {
         const td = [...tr.querySelectorAll('td')];
@@ -159,7 +164,8 @@ async function oCanChe(page) {
       }
     }
     return ra;
-  }, { piiLabel: { source: snapshot.PII_LABEL.source, flags: snapshot.PII_LABEL.flags } });
+  }, { piiLabel: { source: snapshot.PII_LABEL.source, flags: snapshot.PII_LABEL.flags },
+    chuanHoaSrc: require(path.resolve(__dirname, '..', 'lib', 'pii_mask')).CHUAN_HOA_NHAN_SRC });
   return sel.map((s) => page.locator(s));
 }
 

@@ -1,0 +1,64 @@
+{
+  "_y": "MIỄN TRỪ CÓ HẠN cho db:paths:check (v2.8.0 §0b.5). Mỗi mục là một file mở đường riêng tới DB, được tạm cho qua KÈM LÝ DO và HẠN RÀ SOÁT.",
+  "_vi_sao_co_file_nay": "Gate này đỏ ngay ngày đầu với 10 file có sẵn. Một gate đỏ-khi-vừa-ra-đời sẽ bị bỏ qua chứ không được sửa, và lúc đó nó không gác gì nữa. Khai miễn trừ thì nợ ĐƯỢC ĐẾM và có hạn, còn file MỚI vẫn bị chặn ngay.",
+  "_khong_phai_la": "Đây KHÔNG phải lời khẳng định các file này an toàn. Chúng chạy dưới login db_owner trên 888 bảng, ngoài lint và ngoài transaction rollback. Phép đo chỉ nói chúng không CHỨA câu ghi, không nói chúng không THỂ ghi.",
+  "_cach_tra_no": "Đổi từng file sang queryUatReadonly (hoặc npm run db:query), rồi xoá mục tương ứng ở đây.",
+  "_do_ngay": "2026-10-12",
+  "mien_tru": [
+    {
+      "file": "outputs/CSDL/tasks/CSDL-9003/automation/_db_chon_cuoi.js",
+      "loai": "driver DB",
+      "ly_do": "Script probe CHỈ-ĐỌC của task CSDL-9003, viết TRƯỚC v2.8.0 khi chưa có lệnh db:query. Đã đo 12/10/2026: 107 file trong thư mục automation của task, 48 câu SELECT/WITH, 0 câu mở đầu bằng từ khoá ghi. Nối thẳng tedious nên KHÔNG đi qua lint và KHÔNG có transaction rollback.",
+      "ra_soat_truoc": "2026-12-31"
+    },
+    {
+      "file": "outputs/CSDL/tasks/CSDL-9003/automation/_db_chon_don_vi.js",
+      "loai": "driver DB",
+      "ly_do": "Script probe CHỈ-ĐỌC của task CSDL-9003, viết TRƯỚC v2.8.0 khi chưa có lệnh db:query. Đã đo 12/10/2026: 107 file trong thư mục automation của task, 48 câu SELECT/WITH, 0 câu mở đầu bằng từ khoá ghi. Nối thẳng tedious nên KHÔNG đi qua lint và KHÔNG có transaction rollback.",
+      "ra_soat_truoc": "2026-12-31"
+    },
+    {
+      "file": "outputs/CSDL/tasks/CSDL-9003/automation/_db_fieldmap.js",
+      "loai": "driver DB",
+      "ly_do": "Script probe CHỈ-ĐỌC của task CSDL-9003, viết TRƯỚC v2.8.0 khi chưa có lệnh db:query. Đã đo 12/10/2026: 107 file trong thư mục automation của task, 48 câu SELECT/WITH, 0 câu mở đầu bằng từ khoá ghi. Nối thẳng tedious nên KHÔNG đi qua lint và KHÔNG có transaction rollback.",
+      "ra_soat_truoc": "2026-12-31"
+    },
+    {
+      "file": "outputs/CSDL/tasks/CSDL-9003/automation/_db_khoi.js",
+      "loai": "driver DB",
+      "ly_do": "Script probe CHỈ-ĐỌC của task CSDL-9003, viết TRƯỚC v2.8.0 khi chưa có lệnh db:query. Đã đo 12/10/2026: 107 file trong thư mục automation của task, 48 câu SELECT/WITH, 0 câu mở đầu bằng từ khoá ghi. Nối thẳng tedious nên KHÔNG đi qua lint và KHÔNG có transaction rollback.",
+      "ra_soat_truoc": "2026-12-31"
+    },
+    {
+      "file": "outputs/CSDL/tasks/CSDL-9003/automation/_db_lien_cap.js",
+      "loai": "driver DB",
+      "ly_do": "Script probe CHỈ-ĐỌC của task CSDL-9003, viết TRƯỚC v2.8.0 khi chưa có lệnh db:query. Đã đo 12/10/2026: 107 file trong thư mục automation của task, 48 câu SELECT/WITH, 0 câu mở đầu bằng từ khoá ghi. Nối thẳng tedious nên KHÔNG đi qua lint và KHÔNG có transaction rollback.",
+      "ra_soat_truoc": "2026-12-31"
+    },
+    {
+      "file": "outputs/CSDL/tasks/CSDL-9003/automation/_db_nhan_truong.js",
+      "loai": "driver DB",
+      "ly_do": "Script probe CHỈ-ĐỌC của task CSDL-9003, viết TRƯỚC v2.8.0 khi chưa có lệnh db:query. Đã đo 12/10/2026: 107 file trong thư mục automation của task, 48 câu SELECT/WITH, 0 câu mở đầu bằng từ khoá ghi. Nối thẳng tedious nên KHÔNG đi qua lint và KHÔNG có transaction rollback.",
+      "ra_soat_truoc": "2026-12-31"
+    },
+    {
+      "file": "outputs/CSDL/tasks/CSDL-9003/automation/_db_procs.js",
+      "loai": "driver DB",
+      "ly_do": "Script probe CHỈ-ĐỌC của task CSDL-9003, viết TRƯỚC v2.8.0 khi chưa có lệnh db:query. Đã đo 12/10/2026: 107 file trong thư mục automation của task, 48 câu SELECT/WITH, 0 câu mở đầu bằng từ khoá ghi. Nối thẳng tedious nên KHÔNG đi qua lint và KHÔNG có transaction rollback.",
+      "ra_soat_truoc": "2026-12-31"
+    },
+    {
+      "file": "outputs/CSDL/tasks/CSDL-9003/automation/_db_relations.js",
+      "loai": "driver DB",
+      "ly_do": "Script probe CHỈ-ĐỌC của task CSDL-9003, viết TRƯỚC v2.8.0 khi chưa có lệnh db:query. Đã đo 12/10/2026: 107 file trong thư mục automation của task, 48 câu SELECT/WITH, 0 câu mở đầu bằng từ khoá ghi. Nối thẳng tedious nên KHÔNG đi qua lint và KHÔNG có transaction rollback.",
+      "ra_soat_truoc": "2026-12-31"
+    },
+    {
+      "file": "outputs/CSDL/tasks/CSDL-9003/automation/_db_verify_rules.js",
+      "loai": "driver DB",
+      "ly_do": "Script probe CHỈ-ĐỌC của task CSDL-9003, viết TRƯỚC v2.8.0 khi chưa có lệnh db:query. Đã đo 12/10/2026: 107 file trong thư mục automation của task, 48 câu SELECT/WITH, 0 câu mở đầu bằng từ khoá ghi. Nối thẳng tedious nên KHÔNG đi qua lint và KHÔNG có transaction rollback.",
+      "ra_soat_truoc": "2026-12-31"
+    }
+  ],
+  "_da_go": "Đã gỡ `outputs/CSDL/tasks/CSDL-9004/automation/bao-mat-injection.spec.ts` ngày 12/10/2026: nó chỉ khớp MẪU TRẦN cũ của hook (tên driver không kèm ngữ cảnh nạp) vì là spec liệt kê payload injection. Siết mẫu lại đã tăng độ chính xác chứ không mất độ phủ — file đó không nạp driver nào và không chứa chuỗi kết nối."
+}

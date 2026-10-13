@@ -133,9 +133,21 @@ test.describe('@infra db guard — chứng minh read-only bằng ĐỌC QUYỀN'
 });
 
 test.describe('@infra db guard — lint câu truy vấn + host', () => {
-  test('chỉ cho câu ĐỌC', () => {
-    for (const ok of ['SELECT 1', '  with x as (select 1) select * from x', 'EXPLAIN SELECT 1', 'SHOW TABLES']) {
+  test('chỉ cho câu ĐỌC — SELECT và WITH, không còn EXPLAIN/SHOW/TABLE', () => {
+    /*
+     * ĐỔI 12/10/2026 (v2.8.0 §0b): `explain|show|table` bị BỎ khỏi danh sách đầu câu. Chúng là di sản
+     * thời Postgres — `EXPLAIN`/`SHOW` không phải cú pháp T-SQL (SQL Server dùng `SET SHOWPLAN_*`, mà
+     * `set` thì bị cấm). Đã đếm trước khi bỏ: **0/795 câu SQL trong repo** bắt đầu bằng ba từ đó, nên bỏ
+     * chúng không phá câu nào đang chạy.
+     *
+     * Giữ chúng thì tệ hơn là vô hại: `SHOW` mở ra một nhánh đầu câu mà phần còn lại của lint không soi
+     * kỹ, và nó chỉ ở đó vì chưa ai đọc lại danh sách sau khi chuyển DB.
+     */
+    for (const ok of ['SELECT 1', '  with x as (select 1) select * from x']) {
       expect(() => assertReadOnlyQuery(ok), ok).not.toThrow();
+    }
+    for (const diSan of ['EXPLAIN SELECT 1', 'SHOW TABLES']) {
+      expect(() => assertReadOnlyQuery(diSan), `${diSan} là cú pháp Postgres, không phải T-SQL`).toThrow(/SELECT hoặc WITH/);
     }
     for (const bad of ['UPDATE orders SET x=1', 'delete from orders', 'TRUNCATE orders', 'DROP TABLE x']) {
       expect(() => assertReadOnlyQuery(bad), bad).toThrow();

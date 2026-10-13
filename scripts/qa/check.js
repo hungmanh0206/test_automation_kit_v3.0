@@ -233,16 +233,44 @@ const PHAI_SPAWN = {
   1: [
     { lenh: 'dim:coverage', args: [] },
     { lenh: 'risk:gate', args: [] },
-    { lenh: 'canonical:drift', args: [] },
+    /*
+     * `canonical:check` THAY `canonical:drift` ở đây (v2.8.0 §0c.4), không chạy cả hai.
+     *
+     * `canonical:check` GỌI LẠI drift để so MD với Excel, rồi thêm hai thứ drift không có: tách lệch
+     * NỘI DUNG khỏi lệch KẾT QUẢ (lệch kết quả sau một lượt chạy là HỢP LỆ, chặn nó thì gate đỏ sau
+     * mọi lượt execute), và đọc `sync_state.json` cho chân thứ ba là Google Sheet.
+     *
+     * Giữ cả hai trong danh sách này là chạy drift hai lần cho cùng một kết luận.
+     */
+    { lenh: 'canonical:check', args: [] },
     { lenh: 'expected:check', args: [] },
+    /*
+     * `db:paths:check` ở CẢ HAI phase, tầng T0 (v2.8.0 §0b.5).
+     *
+     * Vì sao cả Phase 1: code tự nối DB hay được viết lúc dò dữ liệu để VIẾT case, không chỉ lúc execute.
+     * Và vì sao T0: một đường vòng chạy dưới login `db_owner` trên 888 bảng, ngoài lint và ngoài
+     * transaction rollback. Nó không phải chuyện để ghi sổ nợ rồi tính sau.
+     */
+    { lenh: 'db:paths:check', args: [] },
+    /*
+     * `steps:lint` ở CẢ HAI phase, tầng T1 (v2.8.0 §C3).
+     *
+     * T1 chứ không T0: thư viện bước đang được dựng dần, và giữa lúc viết thì một bước chưa hoàn chỉnh là
+     * chuyện bình thường. Chỗ phải CHẶN là cửa ra — nên T1 ghi sổ nợ ở phase, và chặn ở `exit:gate`.
+     *
+     * Vì sao có ở Phase 1: bước mới hay được viết lúc dò màn để VIẾT case, không chỉ lúc execute.
+     */
+    { lenh: 'steps:lint', args: [] },
   ],
   2: [
     { lenh: 'dim:coverage', args: [] },
     { lenh: 'risk:gate', args: [] },
     { lenh: 'ledger:check', args: [] },
     { lenh: 'typecheck:task', args: [] },
-    { lenh: 'canonical:drift', args: [] },
+    { lenh: 'canonical:check', args: [] },
     { lenh: 'expected:check', args: [] },
+    { lenh: 'db:paths:check', args: [] },
+    { lenh: 'steps:lint', args: [] },
   ],
 };
 

@@ -133,7 +133,7 @@ Parallel story safety:
 - Khi có `RUN_ID`, không cập nhật trực tiếp testcase Markdown/Excel chính trong `test-cases/`; ghi `Status`, `Actual Result`, `Evidence` vào run-scoped report/status. Chỉ merge ngược khi user chọn run đó làm canonical.
 
 Nguyên tắc tiết kiệm token:
-- Phase 2 dùng canonical local (`reports/phase1-summary.md`, `task.md`, Excel testcase từ Sheet) làm source of truth cho TC ID/steps/expected; chỉ fetch lại Backlog/tài liệu nguồn/Figma/Swagger khi cần xác minh expected/spec.
+- Phase 2 dùng canonical local (`reports/phase1-summary.md`, `task.md`, và **Markdown canonical** `test-cases/*.md`) làm nguồn cho TC ID/steps/expected; chỉ fetch lại Backlog/tài liệu nguồn/Figma/Swagger khi cần xác minh expected/spec.
 - Nguồn execute: `test-cases/*.md`, đọc file local — không gọi Sheet/Backlog cho từng case.
 - Đọc testcase theo index/TC ID/module trước, chỉ mở full file khi selected scope yêu cầu.
 - Không paste full Playwright report, trace, DOM, network log hoặc `results.json` vào chat/report; trích lỗi chính và lưu artifact local.

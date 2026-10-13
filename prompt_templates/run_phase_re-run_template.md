@@ -25,7 +25,7 @@ Dùng prompt này khi cần chạy lại testcase fail trước đó hoặc veri
 |---|---|---|
 | `PROJECT_OUTPUT_DIR` | Có | Thư mục output gốc của project. |
 | `TASK_KEY` | Có | Phạm vi task/feature. |
-| `TESTCASE_SOURCE` | Không bắt buộc | Mặc định tải testcase liên quan từ Google Sheet về local trước khi rerun (xem dưới); `excel` để dùng Excel local. |
+| ~~`TESTCASE_SOURCE`~~ | **ĐÃ BỎ** | Nguồn rerun là **MD canonical local** `test-cases/*.md`. Biến này không máy nào đọc (đo 12/10/2026). |
 | `PUSH_EXECUTION` | Không bắt buộc | `1` để đồng bộ trạng thái các TC vừa rerun lên Google Sheet. |
 | `RUN_ID` | Không bắt buộc | Bắt buộc nếu rerun song song cùng một `TASK_KEY`. |
 | `TC_IDS_OR_N/A` | Không bắt buộc | Danh sách testcase cần rerun. |
@@ -46,7 +46,7 @@ Dùng prompt này khi cần chạy lại testcase fail trước đó hoặc veri
 | Bước | Hành động |
 |---:|---|
 | 1 | Echo scope `PROJECT_OUTPUT_DIR`, `TASK_KEY`, `TASK_OUTPUT_DIR`, `RUN_ID` nếu có; nếu sai task thì dừng. |
-| 1b | **Mặc định**: nguồn expected là `test-cases/*.md`. Chạy `npm run canonical:drift` trước; trôi thì `download_file_content` Sheet mới nhất về local (Drive MCP, `GOOGLE_SHEET_URL` trong `profiles/<TASK_KEY>/task.env`) và dùng `from-sheet/*.xlsx`. TC thiếu steps thì dừng và báo user. |
+| 1b | Expected lấy từ `test-cases/*.md`. Chạy `npm run canonical:check` trước; lệch NỘI DUNG thì bê về MD rồi `sync:canonical`, đừng đọc bản xuất thay nguồn. TC thiếu steps thì dừng, báo user. |
 | 2 | Xác định rerun type: failed testcase, fixed Backlog bug hoặc automation/setup issue trong phạm vi bug rerun. |
 | 3 | Đọc report/task artifact gần nhất theo file priority bên dưới. |
 | 4 | Rerun targeted scope trước, không chạy full suite nếu không cần. |

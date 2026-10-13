@@ -127,7 +127,8 @@ test.describe('@infra preflight DB verify — kiểm TĨNH có răng', () => {
   const WAIVER_DU = {
     ly_do: 'Nhà cung cấp chỉ cấp một tài khoản DBA, không tách được login chỉ-SELECT.',
     nguoi_quyet: 'Chủ dự án (nêu tên thật)',
-    bu_tru: 'assertReadOnlySql trong tests/support/setup/db/uatDbClient.ts',
+    bu_tru: 'assertReadOnlySql + sql_readonly_lint (một nguồn) · ROLLBACK trong transaction · hook guard_db_access'
+      + ' · gate db:paths:check · sổ db_audit.jsonl',
     _canh_bao: 'Chỉ áp cho câu đi qua queryUatReadonly; gọi thẳng driver thì không được chặn.',
   };
 
@@ -148,6 +149,26 @@ test.describe('@infra preflight DB verify — kiểm TĨNH có răng', () => {
       const p = run({ conv }).problems.join(' ');
       expect(p, `bỏ "${bo}" mà vẫn lọt ⇒ miễn trừ không chặt`).toMatch(/requireReadonlyUser = false/);
       expect(p, `phải nói rõ đang thiếu "${bo}"`).toContain(bo);
+    }
+  });
+
+  test('miễn trừ BẬT mà `bu_tru` không nhắc đủ tên lớp bù ⇒ CHẶN', () => {
+    /*
+     * Thêm ở v2.8.0 §0b.7. Khoá `bu_tru` đã bắt buộc từ trước, nhưng chỉ bắt buộc KHÁC RỖNG — nên một lời
+     * khai đúng ở thời điểm viết sẽ trôi khỏi sự thật ngay lượt sau. v2.8.0 thêm bốn lớp bù, và nếu
+     * `bu_tru` vẫn chỉ nhắc `assertReadOnlySql` thì người đọc miễn trừ tưởng kit chỉ có một lớp, tức
+     * đánh giá rủi ro trên một bản mô tả CŨ HƠN thực tế.
+     *
+     * Lưu ý hướng của sai lệch: ở đây nó đánh giá rủi ro THẤP hơn thực tế, nên nó không "an toàn về hướng nào".
+     */
+    const conv = JSON.parse(JSON.stringify(GOOD_CONV));
+    conv.safety.requireReadonlyUser = false;
+    conv.safety.waiver = { ...WAIVER_DU, bu_tru: 'assertReadOnlySql trong uatDbClient.ts' };
+    const r = run({ conv });
+    const p = r.problems.join(' ');
+    expect(p, JSON.stringify(r.problems)).toMatch(/KHÔNG nhắc/);
+    for (const nhan of ['lint một nguồn', 'transaction luôn rollback', 'hook PreToolUse', 'gate quét đường vòng', 'sổ audit truy vấn']) {
+      expect(p, `thiếu lớp "${nhan}" mà không được nêu tên`).toContain(nhan);
     }
   });
 
