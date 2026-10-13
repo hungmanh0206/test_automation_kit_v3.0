@@ -215,7 +215,23 @@ test.describe('@infra sql lint — mọi câu SQL THẬT trong repo phải qua',
         }
       }
     }
-    expect(dem, 'quét được 0 câu nghĩa là phép đo hỏng, không phải "sạch"').toBeGreaterThan(300);
+    /*
+     * MẪU SỐ NHỎ ⇒ BỎ QUA KÈM LÝ DO, KHÔNG ĐỎ VÀ CŨNG KHÔNG XANH.
+     *
+     * Đo 13/10/2026 bằng `release:verify`: trong repo quét được 743 câu, trong GÓI chỉ **6**. Lý do
+     * không phải lint hỏng — phần lớn câu SQL thật nằm ở `outputs/**` (lớp PROJECT, gitignore) và ở các
+     * spec probe chưa track, nên gói không mang chúng. Ngưỡng `>300` là ngưỡng của REPO.
+     *
+     * Ba cách xử lý, và chỉ một cách đúng (xem `_trong_repo.ts`): cho đỏ thì người nhận kit học cách bỏ
+     * qua màu đỏ; cho xanh thì một phép kiểm không chạy mà báo đạt — đúng lớp lỗi mà chính spec này sinh
+     * ra để chống. Nên BỎ QUA kèm lý do, và `verify_release` đếm số skip.
+     *
+     * Phần `chan` vẫn kiểm trên 6 câu đó: lint chặn một câu đọc thật thì vẫn phải đỏ, dù mẫu số nhỏ.
+     */
     expect(chan, `lint chặn câu đọc thật:\n${chan.join('\n')}`).toEqual([]);
+    test.skip(dem <= 300,
+      `mẫu số chỉ ${dem} câu SELECT/WITH (repo có 743) — phần lớn nằm ở \`outputs/**\` và spec probe, `
+      + 'không được đóng gói. Phép đo "0 câu đọc thật bị chặn" cần mẫu số của REPO mới có nghĩa.');
+    expect(dem, 'quét được 0 câu nghĩa là phép đo hỏng, không phải "sạch"').toBeGreaterThan(300);
   });
 });
