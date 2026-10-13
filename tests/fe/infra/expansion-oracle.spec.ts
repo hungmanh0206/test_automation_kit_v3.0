@@ -78,10 +78,14 @@ test.describe('@infra độ sâu theo risk band (chi phí là thật)', () => {
      * sinh artefact (`concurrency`) hoặc không phải trục (`reverse` = "+ chiều ngược" của CLAUDE.md §3).
      * Đổi lại, band high nay phủ TRỌN band medium, chuyện trước đây không đúng.
      */
-    for (const a of ['field', 'surface', 'persist', 'branch', 'state', 'authz']) expect(hi).toContain(a);
-    /* 6 từ v2.8.1 bước 2: thêm ⑥`authz`. Số này chỉ được TĂNG khi trục mới có máy sinh artefact. */
-    expect(hi, 'bỏ trục phải là bỏ CÓ LÝ DO, không phải thu nhỏ độ sâu').toHaveLength(6);
-    expect(depth.axesFor({ risk: 'Major' })).toEqual(['persist', 'state']);
+    for (const a of ['field', 'surface', 'persist', 'branch', 'state', 'authz', 'oracle_calc']) expect(hi).toContain(a);
+    /* 7 từ v2.8.1: ⑥`authz` (bước 2) và ⑦`oracle_calc` (bước 3). Số này chỉ TĂNG khi trục mới có máy. */
+    expect(hi, 'bỏ trục phải là bỏ CÓ LÝ DO, không phải thu nhỏ độ sâu').toHaveLength(7);
+    /*
+     * Medium nhận thêm ⑦ chứ không nhận ⑥: oracle là code thuần (`chi_phi` {loads:0, shots:0}), nên lý
+     * lẽ "band thấp phải thu hẹp vì chi phí" không áp cho nó. ⑥ thì cần drive app theo từng vai trò.
+     */
+    expect(depth.axesFor({ risk: 'Major' })).toEqual(['persist', 'state', 'oracle_calc']);
     expect(depth.axesFor({ risk: 'Minor', priority: 'Low' })).toEqual(['persist']);
   });
 

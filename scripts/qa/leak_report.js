@@ -105,6 +105,19 @@ const AXES = [
      */
     rx: /phân quyền|không có quyền|leo thang quyền|(?:vai trò|role|tài khoản) .*(?:vẫn (?:vào|xem|sửa|xoá|xóa)|truy cập được|không bị chặn)|ẩn .*(?:nhưng|mà) .*(?:vẫn|gọi|api)|(?<![0-9])(?:401|403)(?![0-9])|idor|xem được .*(?:của )?(?:người|đơn vị|trường|lớp|khách) khác/i,
   },
+  {
+    id: 7,
+    key: 'oracle_calc',
+    ten: 'Giá trị tính toán (tổng · ngưỡng · giá trị dẫn xuất)',
+    may: 'oracle_calc_check — npm run oracle:calc',
+    /*
+     * ĐỐI CHỨNG khi viết mẫu (13/10/2026) — bắt được: "ô tổng không cộng lại khi sửa chi tiết", "sĩ số
+     * 40 vượt ngưỡng 35 vẫn lưu được", "thành tiền tính sai", "làm tròn sai ở chữ số thứ hai". KHÔNG bắt
+     * (đúng): "tổng đài hỗ trợ không phản hồi", "danh sách tổng hợp không mở được", "tổng quan hiển thị
+     * chậm". Vì thế mẫu KHÔNG dò chữ `tổng` trần — `tổng đài`, `tổng hợp`, `tổng quan` đều là từ khác.
+     */
+    rx: /(?:tính|cộng|trừ|nhân|chia|làm tròn) (?:sai|lệch|nhầm|thiếu|thừa)|sai (?:công thức|phép tính)|ô tổng .*(?:không|sai|lệch)|tổng (?:không (?:khớp|cộng|bằng)|bị sai|sai)|vượt ngưỡng .*(?:vẫn|không bị)|(?:thành tiền|số tiền|điểm trung bình|sĩ số) .*(?:sai|lệch)/i,
+  },
 ];
 
 function apiUrl(pathname, params = {}) {

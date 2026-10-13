@@ -54,10 +54,10 @@ không". Hai câu khác nhau, và câu thứ hai mới là câu người nhận 
 
 | | GitHub | GitLab |
 |---|---|---|
-| file được track | 713 | 713 |
-| `npx playwright test tests/fe/infra` | **1.937 test · 0 đỏ** (1.926 chạy · 11 bỏ qua) | **1.937 test · 0 đỏ** |
-| `npm run ci:scope` đếm | 136 spec | 136 spec |
-| `release:verify` — suite chạy TRONG gói | **1.841 test · 0 đỏ** (1.798 chạy · 43 bỏ qua) | — |
+| file được track | 720 | 720 |
+| `npx playwright test tests/fe/infra` | **1.974 test · 0 đỏ** (đo 13/10/2026, `npm run full:suite`) | **1.974 test · 0 đỏ** |
+| `npm run ci:scope` đếm | 138 spec | 138 spec |
+| `release:verify` — suite chạy TRONG gói | **1.841 test · 0 đỏ** (1.798 chạy · 43 bỏ qua) — đo ở v2.8.0, **chưa đo lại cho v2.8.1** | — |
 
 ### Trước khi đóng gói: `npm run full:suite`
 

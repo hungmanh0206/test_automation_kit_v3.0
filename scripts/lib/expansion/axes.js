@@ -132,6 +132,22 @@ const TRUC = [
     /* Hệ số chi phí một lượt mở rộng: lượt tải trang · ảnh evidence. Đo từ chính kit. */
     chi_phi: { loads: 2, shots: 1 },
   },
+  {
+    so: 7,
+    key: 'oracle_calc',
+    ten: 'oracle giá trị tính toán (tổng · ngưỡng · giá trị dẫn xuất)',
+    may: 'oracle_calc_check',
+    lenh: 'npm run oracle:calc',
+    artefact: { thuMuc: 'reports', re: /oracle-calc/i },
+    band: ['high', 'medium'],
+    /*
+     * Phase 1: quy tắc tính nằm trong đặc tả, nên viết được TRƯỚC khi chạy app — và phải viết trước, vì
+     * oracle viết sau khi nhìn app là `app == app` đội lốt công thức.
+     */
+    phase: 1,
+    /* Oracle là code thuần: không mở trang, không chụp ảnh. Chi phí thật gần 0 — đó là điểm mạnh của ⑦. */
+    chi_phi: { loads: 0, shots: 0 },
+  },
 ];
 
 /**
