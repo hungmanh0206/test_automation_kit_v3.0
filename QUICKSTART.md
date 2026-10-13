@@ -55,9 +55,14 @@ không". Hai câu khác nhau, và câu thứ hai mới là câu người nhận 
 | | GitHub | GitLab |
 |---|---|---|
 | file được track | 710 | 710 |
-| `npx playwright test tests/fe/infra --list` | **1.937 test / 131 file** | **1.937 test / 131 file** |
+| `npx playwright test tests/fe/infra` | **1.937 test · 0 đỏ** (1.926 chạy · 11 bỏ qua) | **1.937 test · 0 đỏ** |
 | `npm run ci:scope` đếm | 136 spec | 136 spec |
-| `release:verify` — suite chạy TRONG gói | **1.838 test** (gói ít hơn cây vì loại probe/spec phụ) | — |
+| `release:verify` — suite chạy TRONG gói | **1.841 test · 0 đỏ** (1.798 chạy · 43 bỏ qua) | — |
+
+> Gói chạy ÍT HƠN cây và bỏ qua NHIỀU HƠN (43 so với 11) — cả hai đều đúng. Gói không mang `.git`,
+> `outputs/**` và tài liệu của repo, nên những phép kiểm đối chiếu với chúng **bỏ qua kèm lý do** thay vì
+> đỏ (xem `tests/fe/infra/_trong_repo.ts`). `release:verify` ĐẾM số bỏ qua và in ra, vì một bộ kiểm skip
+> 200 test trông y hệt một bộ kiểm xanh nếu không ai đếm.
 
 > 10 test bỏ qua trên cây sạch là đúng: chúng cần dữ liệu ở `knowledge/**` hoặc `outputs/**` — hai lớp PROJECT
 > bị gitignore. Mỗi test tự in lý do khi bỏ qua.
