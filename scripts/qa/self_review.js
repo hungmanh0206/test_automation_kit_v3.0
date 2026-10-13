@@ -18,6 +18,8 @@ const rc = require(path.resolve(__dirname, '..', 'utils', 'runtime_config'));
 const preflight = require(path.resolve(__dirname, 'preflight_gate'));
 const outputGate = require(path.resolve(__dirname, 'output_gate'));
 const designGate = require(path.resolve(__dirname, 'design_gate'));
+/* MỘT NGUỒN cho danh mục trục mở rộng — xem `scripts/lib/expansion/axes.js`. */
+const axesSrc = require(path.resolve(__dirname, '..', 'lib', 'expansion', 'axes.js'));
 const scopeAnchor = require(path.resolve(__dirname, 'scope_anchor'));
 const engine = require(path.resolve(__dirname, 'lib', 'gate_engine'));
 const testcaseModel = require(path.resolve(__dirname, '..', 'lib', 'testcase')); // parser canonical (check #6c)
@@ -601,14 +603,31 @@ if (taskDir) {
   const repDir = path.join(taskDir, 'reports');
   const reqDir = path.join(taskDir, 'requirements');
   // Mỗi trục: [tên, có chạy chưa, lệnh để chạy]
+  /*
+   * BẢNG TRỤC ĐỌC TỪ MỘT NGUỒN `scripts/lib/expansion/axes.js` (v2.8.1 bước 1a).
+   *
+   * Trước đó bảng này khai riêng, khác `leak_report.AXES`, khác `depth.PLAN`, khác
+   * `expansion_audit.axesRan` — bốn bộ từ vựng cho cùng năm trục. Hệ quả: không máy nào đối chiếu được
+   * "band đòi trục nào" với "trục nào đã chạy".
+   *
+   * 1a KHÔNG ĐỔI HÀNH VI: vẫn 5 dòng, vẫn gộp ④⑤ làm một, vẫn giữ "chiều ngược" ở vị trí thứ hai. Chỉ
+   * khác chỗ định nghĩa đến từ đâu. Việc tách ④⑤ và tách chiều ngược khỏi mẫu số là bước 1b.
+   */
+  const thuMucCua = { 'test-results': resDir, reports: repDir };
+  const coArtefact = (t) => {
+    const a = t.artefact;
+    const ds = glob1(thuMucCua[a.thuMuc], a.re);
+    if (!a.doiFile) return ds.length > 0;
+    return ds.some((d) => fs.existsSync(path.join(thuMucCua[a.thuMuc], d, a.doiFile)));
+  };
+  const _t = (k) => axesSrc.theoKhoa(k);
   const axes = [
-    ['① field cùng khối (spec→UI)',
-      glob1(resDir, /^conformance/).some((d) => fs.existsSync(path.join(resDir, d, 'conformance_report.json'))),
-      'npm run spec:extract … --catalog … rồi node scripts/qa/ui_conformance_check.js --catalog …'],
-    ['chiều ngược (build→tài liệu)', glob1(repDir, /spec-gap/i).length > 0, 'npm run spec:gap -- --screens … --surface … --bindings …'],
-    ['② cùng giá trị khác nơi hiển thị', glob1(repDir, /cross-surface/i).length > 0, 'npm run xsurf:diff -- --config requirements/cross_surface.json --out reports/cross-surface.md'],
-    ['③ chuỗi lưu trữ form→payload→API→UI', glob1(repDir, /persist|probe/i).length > 0, 'npm run probe:persist -- --chains … --out reports/persistence-probe.md'],
-    ['④⑤ nhánh × trạng thái', glob1(repDir, /fixture-matrix/i).length > 0, 'npm run fixture:matrix -- --config requirements/fixture_matrix.json --discover --out reports/fixture-matrix.md'],
+    [`① ${_t('field').ten}`, coArtefact(_t('field')), _t('field').lenh],
+    [axesSrc.CHIEU_NGUOC.ten, coArtefact(axesSrc.CHIEU_NGUOC), axesSrc.CHIEU_NGUOC.lenh],
+    [`② ${_t('surface').ten}`, coArtefact(_t('surface')), _t('surface').lenh],
+    [`③ ${_t('persist').ten}`, coArtefact(_t('persist')), _t('persist').lenh],
+    /* ④⑤ dùng CHUNG artefact `fixture-matrix` — giữ gộp một dòng ở 1a, đúng như trước. */
+    ['④⑤ nhánh × trạng thái', coArtefact(_t('branch')), _t('branch').lenh],
   ];
   const missing = axes.filter(([, ran]) => !ran);
   for (const [name, , how] of missing) warnings.push(`trục ${name}: chưa có artefact nào ⇒ trục này CHƯA ai soi. Chạy: ${how}`);

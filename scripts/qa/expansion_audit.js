@@ -17,6 +17,7 @@ const fs = require('fs');
 const path = require('path');
 const REPO = process.argv[2] || path.resolve(__dirname, '..', '..');
 const depth = require(path.join(REPO, 'scripts/lib/expansion/depth.js'));
+const axes = require(path.join(REPO, 'scripts/lib/expansion/axes.js'));
 const canonical = require(path.join(REPO, 'scripts/lib/testcase'));
 // Thư mục testcase lấy từ MỘT nguồn (runtime_config) — ghép tay ở đây là tự tạo lại đúng lỗi mà
 // check "thêm nguồn mới không được làm script đếm thiếu" sinh ra để chống.
@@ -25,15 +26,39 @@ const { getTestcaseDirs } = require(path.join(REPO, 'scripts/utils/runtime_confi
 const glob1 = (dir, rx) => (fs.existsSync(dir) ? fs.readdirSync(dir).filter((f) => rx.test(f)) : []);
 
 /** Bản sao NGUYÊN VĂN cách self_review #10 xét "trục đã chạy chưa". */
+/**
+ * Trục nào đã có artefact trong task này.
+ *
+ * ĐỌC TỪ MỘT NGUỒN `scripts/lib/expansion/axes.js` (v2.8.1 bước 1a). Trước đó file này khai bộ khoá
+ * RIÊNG — `fixture` (tên artefact, gánh cả ④ lẫn ⑤) và `reverse` — khác với `leak_report.AXES`, khác
+ * `depth.PLAN`, khác bảng của `self_review`. Bốn bộ từ vựng cho cùng một thứ, và hệ quả là không máy
+ * nào đối chiếu được "band này đòi trục nào" với "trục nào đã chạy".
+ *
+ * BƯỚC 1a KHÔNG ĐỔI HÀNH VI: khoá `fixture` GIỮ NGUYÊN (④⑤ vẫn chung một ô), chỉ là định nghĩa của nó
+ * nay lấy từ nguồn chung. Việc tách `fixture` thành `branch`/`state` là bước 1b, commit riêng — gom và
+ * sửa cùng lúc thì khi một máy vỡ, không biết nó vỡ vì gom hay vì sửa.
+ */
 function axesRan(taskDir) {
   const resDir = path.join(taskDir, 'test-results');
   const repDir = path.join(taskDir, 'reports');
+  const thuMuc = { 'test-results': resDir, reports: repDir };
+  const co = (t) => {
+    const a = t.artefact;
+    const ds = glob1(thuMuc[a.thuMuc], a.re);
+    if (!a.doiFile) return ds.length > 0;
+    return ds.some((d) => fs.existsSync(path.join(thuMuc[a.thuMuc], d, a.doiFile)));
+  };
+  const field = axes.theoKhoa('field');
+  const surface = axes.theoKhoa('surface');
+  const persist = axes.theoKhoa('persist');
+  const branch = axes.theoKhoa('branch');
   return {
-    field: glob1(resDir, /^conformance/).some((d) => fs.existsSync(path.join(resDir, d, 'conformance_report.json'))),
-    reverse: glob1(repDir, /spec-gap/i).length > 0,
-    surface: glob1(repDir, /cross-surface/i).length > 0,
-    persist: glob1(repDir, /persist|probe/i).length > 0,
-    fixture: glob1(repDir, /fixture-matrix/i).length > 0,
+    field: co(field),
+    reverse: co(axes.CHIEU_NGUOC),
+    surface: co(surface),
+    persist: co(persist),
+    /* `fixture` = artefact của ④⑤. Giữ đúng tên cũ ở 1a; đổi tên là việc của 1b. */
+    fixture: co(branch),
   };
 }
 
