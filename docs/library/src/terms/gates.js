@@ -107,7 +107,7 @@ const TERMS_GATE = [
   src:'scripts/qa/audit_ci.js', rel:['c-false-positive','g-secret_scan','g-ui_conformance_check'] },
 
 { id:'g-dimension_coverage', t:'dimension_coverage', cat:'gate',
-  def:'Đếm testcase theo 20 chiều coverage và chặn nếu thiếu chiều mà task đã khai là bắt buộc.',
+  def:'Đếm testcase theo 22 chiều coverage và chặn nếu thiếu chiều mà task đã khai là bắt buộc.',
   detail:'Bộ testcase có hai trục: module cho biết test ở ĐÂU, chiều cho biết hỏi LOẠI CÂU HỎI nào. Gate đếm theo trục thứ hai, dựa vào tag chiều gắn trong tiêu đề case.',
   why:'Đây là lỗ hổng lớn nhất còn lại của Phase 1. Đo trên một bộ 530 case thật: chiều E2E có 0 case, chiều change-impact 0–1 case, case hiển thị chỉ khoảng 12% dù mục đó bắt buộc. Bộ phủ kín mọi module nhưng trống hẳn một loại câu hỏi thì vẫn TRÔNG đầy đủ, chỉ có máy đếm mới lộ ra.',
   how:[

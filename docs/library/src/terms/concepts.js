@@ -114,7 +114,7 @@ const TERMS_CONCEPT = [
   ex:'4 biến × 4 giá trị: Cartesian là 256 case, pairwise thường xuống dưới 25 mà vẫn phủ mọi cặp.',
   src:'.agent/skills/phase1/combinatorial_matrix/SKILL.md', rel:['sk-combinatorial_matrix','c-chieu-coverage'] },
 
-{ id:'c-chieu-coverage', t:'Chiều coverage (20 chiều)', cat:'concept',
+{ id:'c-chieu-coverage', t:'Chiều coverage (22 chiều)', cat:'concept',
   def:'Trục thứ hai của bộ testcase: không phải test Ở ĐÂU, mà hỏi LOẠI CÂU HỎI nào.',
   detail:'§3 field validation · §4 hiển thị UI (lưới, filter, sort, empty, loading) · §5 API · §6 E2E · §7 export/import · §8 resilience & concurrency · §9 side-effect & notification · §10 cross-layer guard · §11 design/Figma · §12 display conformance · §13 business logic & công thức · §14 BE response conformance · §15 security · §16 performance & load · §17 change impact · §19 ordering/sequence · §20 error guessing từ bug lịch sử · §21 accessibility · §22 inbound callback/webhook phía nhận · §23 DB persistence sau CRUD.',
   why:'Bộ case phủ kín mọi module mà trống hẳn một chiều thì vẫn TRÔNG đầy đủ, đây là điểm mù lớn nhất của Phase 1. Đo trên một bộ 530 case thật: chiều E2E có 0 case, change-impact 0–1 case, case hiển thị chỉ khoảng 12% dù mục đó bắt buộc.',
