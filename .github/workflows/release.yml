@@ -62,6 +62,17 @@ jobs:
       - name: Chạy CẢ BỘ (ghi sổ cho cửa đóng gói)
         run: npm run full:suite
 
+      # Log của lượt chạy cả bộ — CHỈ khi đỏ. Cửa in tên test đỏ ra stdout, nhưng thông báo
+      # assertion nằm trong file log cạnh sổ, và không có nó thì "4 đỏ" là một câu đố.
+      - name: Log full:suite (khi đỏ)
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: full-suite-log
+          path: knowledge/metrics/full-suite.last.log
+          retention-days: 7
+          if-no-files-found: ignore
+
       # 3) Đóng gói CHỈ lớp GENERIC; script tự quét lại gói và tự xoá nếu bẩn.
       - name: Đóng gói
         run: npm run package:kit

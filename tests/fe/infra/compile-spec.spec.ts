@@ -114,6 +114,19 @@ test.describe('§D — bộ biên dịch sinh được file CHẠY ĐƯỢC', ()
 
   test('NÉM khi thư mục đích ở ổ đĩa khác, thay vì sinh import hỏng', () => {
     /*
+     * BỎ QUA NGOÀI WINDOWS — "ổ đĩa" không phải khái niệm của Linux/macOS.
+     *
+     * Đo 14/10/2026 bằng lượt `release` chạy thật trên Linux: `path.parse(REPO).root` ở đó là `/`, nên
+     * "ổ khác" tính ra `C:\\…` và `path.relative` trả một đường TƯƠNG ĐỐI bình thường — hàm không ném,
+     * test ĐỎ. Không có lỗi nào ở đây cả: trên Linux KHÔNG TỒN TẠI tình huống mà phép kiểm này canh.
+     *
+     * Đây là lần thứ HAI cùng một lớp lỗi trong hai đợt: v2.8.0 đã ghi bài học "ba test của tôi ghim giả
+     * định về NƠI chúng chạy", và tôi lại ghim thêm một giả định nữa — lần này là giả định có ổ đĩa. Lý
+     * do nó sống sót: tôi chưa từng chạy bộ này trên Linux.
+     */
+    test.skip(process.platform !== 'win32', 'ổ đĩa là khái niệm của Windows — trên Linux/macOS không có tình huống này để canh');
+
+    /*
      * Bản đầu không kiểm và sinh ra `from './D:/Project/.../radcombobox'`. File trông bình thường và chỉ
      * vỡ lúc Playwright nạp, với một thông báo lạc hướng về module không tìm thấy.
      *
