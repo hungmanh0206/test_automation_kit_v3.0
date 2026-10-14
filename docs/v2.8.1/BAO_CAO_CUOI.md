@@ -8,8 +8,9 @@
 
 | | |
 |---|---|
-| Commit | `0e2e2a5` (1a) · `4a1d007` (1b) · `2c94e0a` (⑥) · `a2324b0` (⑦) · `f9949a0` (§24/§25) |
-| Cả bộ `tests/fe/infra` | **1.980 xanh · 0 đỏ · 0 bỏ qua** |
+| Commit | `0e2e2a5` (1a) · `4a1d007` (1b) · `2c94e0a` (⑥) · `a2324b0` (⑦) · `f9949a0` (§24/§25) · `1d457e1` `7024479` `e1a0eef` (ba vòng sửa do `release:verify` bắt) |
+| Cả bộ `tests/fe/infra` | **1.982 xanh · 0 đỏ · 0 bỏ qua** |
+| `release:verify` (gói, thư mục sạch) | **15/15 bước đạt** · trong gói **1.829 xanh · 44 bỏ qua** |
 | Ngân sách prompt | `✓ ĐẠT` — **không nới một con số nào** trong `prompt_budget.json` |
 | Tiền đề bị phép đo bác | **7** (xem §3) |
 | Chạm UAT | **không có lượt nào** |
@@ -51,6 +52,21 @@ trông đúng.
 
 Thêm một chỗ nữa không nằm trong thiết kế: **bốn điểm nối hoá ra là năm** (`load_map.json`).
 
+## 3b. Ba vòng `release:verify` đỏ — repo xanh không nói gì về gói
+
+Bài học v2.8.0 lặp lại nguyên vẹn, và cả ba chỗ đỏ đều là code viết trong chính đợt này. Không chỗ nào
+repo nhìn thấy.
+
+| Vòng | Đỏ ở đâu | Vì sao repo không thấy |
+|---|---|---|
+| 1 | `npm run typecheck` — 3 lỗi `TS2339` ở `oracle-calc.spec.ts`, và `depth-band-policy` đỏ trong gói | Playwright chạy `.ts` **transpile-only**, không kiểm kiểu; và repo dùng `risk_model.json` còn gói dựng từ `risk_model.example.json` — bản mẫu vẫn dạy `concurrency`/`reverse` |
+| 2 | `oracle-calc.spec.ts` — "bộ oracle thật phải SẠCH" | gói mang `knowledge/domain/` **rỗng**, nên máy kết cả hai oracle là "oracle ma" rồi exit 1: người nhận kit vừa cài đã thấy hai lỗi bịa |
+| 3 | `oracle-calc.spec.ts` — chính test ĐỐI CHỨNG | nó mượn kho rule của repo để dựng ca xấu; một đối chứng phụ thuộc dữ liệu nơi nó chạy thì nó đo nơi chạy, không đo cái máy nó định canh |
+
+Ba cái máy sinh ra từ ba vòng đó: `full:suite` nay **typecheck trước và không ghi sổ khi typecheck đỏ**;
+`depth-band-policy` đối chiếu **cả bản mẫu** với `PLAN`; `oracle_calc_check` phân biệt **kho rỗng
+(`CHƯA KIỂM`)** với **ref không tra ra (oracle ma)**.
+
 ## 4. Chỗ máy bắt được người làm
 
 Bốn lần trong đợt này, và cả bốn đều là lý do các máy đó tồn tại.
@@ -82,7 +98,7 @@ Và **đối chứng âm** cứu bốn mẫu dò khỏi dương tính giả: `40
   đang ghim có thể chính là phía **đếm thiếu**, và lượt "xanh" là lượt bò chưa tới nơi. Một công cụ khám
   phá mà kết quả đổi theo tải máy thì nó báo bề mặt khác nhau vào những ngày khác nhau.
 
-  Vì thế con số **1.981 xanh · 0 đỏ** ở §1 là **một lượt chạy đạt**, KHÔNG phải bằng chứng suite xanh ổn
+  Vì thế con số **1.982 xanh · 0 đỏ** ở §1 là **một lượt chạy đạt**, KHÔNG phải bằng chứng suite xanh ổn
   định. Chưa sửa: chủ dự án chốt đóng v2.8.1 trước, và sửa đúng cách là làm lượt bò tất định (chờ mạng
   lặng / DOM ổn định) chứ không phải nới con số cho khớp.
 - **Band của ⑥ chỉ `high`.** Thiết kế ghi "medium: khuyến nghị", nhưng `PLAN` không có bậc khuyến nghị —
