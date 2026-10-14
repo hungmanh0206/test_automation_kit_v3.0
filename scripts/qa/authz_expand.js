@@ -122,20 +122,65 @@ function main() {
   const bienThe = [];
   const cauHoi = [];
 
+  /*
+   * KẾT QUẢ CHẠY THẬT — planner liệt kê, nhưng `proven` phải phản ánh lượt ĐO, không phải lượt khai.
+   *
+   * Mỗi mục: { oracle_ref, mo_ta, trang_thai: "pass"|"fail", bang_chung, do_luc }. Spec/probe nào chạy
+   * một biến thể thì ghi vào đây; `authz:expand` khớp theo (oracle_ref, mo_ta) rồi nâng trạng thái.
+   *
+   * Vì sao không để planner tự chạy: nó là máy LIỆT KÊ và có test khoá nó không gửi request nào. Phép
+   * đo thuộc Phase 2, kèm evidence ảnh theo CLAUDE.md §4 — file này là chỗ hai bên gặp nhau.
+   */
+  const duongKq = arg('ket-qua', path.join(taskDir, 'test-results', 'authz_ket_qua.json'));
+  const kq = [];
+  if (fs.existsSync(duongKq)) {
+    try {
+      const j = JSON.parse(fs.readFileSync(duongKq, 'utf8'));
+      for (const x of (Array.isArray(j) ? j : j.ket_qua || [])) kq.push(x);
+    } catch (e) {
+      console.error(`[authz] ✗ ${duongKq} không đọc được JSON: ${e.message}`);
+      process.exit(2);
+    }
+  }
+  const traKq = (ref, moTa) => kq.find((x) => String(x.oracle_ref) === String(ref)
+    && String(x.mo_ta || '').trim() === String(moTa || '').trim());
+
   const luat = Array.isArray(cfg.luat) ? cfg.luat : [];
-  const soVaiTroCo = 1; // vai trò đang đăng nhập; nhóm `doc` đòi ≥2 nên luôn thiếu khi chưa có ma trận
+  /*
+   * VAI TRÒ NÀO ĐANG CÓ TÀI KHOẢN — đọc từ ma trận, không đoán.
+   *
+   * Vì sao cần: `BR-NHANSU-029` nói về tài khoản TRƯỜNG ("hồ sơ nhân sự của trường khác không được
+   * xem qua sửa tham số URL"). Session đang có là `masteradmin`, vốn thấy cả 5 cấp — với nó, "xem
+   * được đơn vị khác" rất có thể là ĐÚNG, không phải lỗi. Chạy luật đó bằng tài khoản sai vai trò là
+   * đường ngắn nhất tới một bug BỊA: tiền đề một nửa thì kết luận sai, dù phép đo chạy thật.
+   *
+   * Nên luật khai `vai_tro_ap_dung` thì chỉ đo được khi có tài khoản thuộc danh sách đó; không có thì
+   * `needs_account` KÈM TÊN vai trò cần — chứ không phải `unknown` chung chung.
+   */
+  const vaiCoTk = new Set((((docMaTran(taskDir) || {}).roles) || [])
+    .filter((r) => r.co_tai_khoan !== false).map((r) => String(r.ten)));
   for (const l of luat) {
-    const du = Number(l.can_vai_tro || 1) <= soVaiTroCo;
+    const apDung = Array.isArray(l.vai_tro_ap_dung) ? l.vai_tro_ap_dung : null;
+    const coVaiDung = !apDung || apDung.some((t) => vaiCoTk.has(t));
+    const du = Number(l.can_vai_tro || 1) <= vaiCoTk.size && coVaiDung;
+    /* Đã chạy thật thì lấy trạng thái của lượt chạy, không để `unknown`. */
+    const r = traKq(l.oracle_ref, l.mo_ta);
     bienThe.push({
       nhom: l.nhom || 'ngang',
-      vai_tro: '(vai trò đang đăng nhập)',
-      route: '—',
+      vai_tro: r && r.vai_tro ? r.vai_tro : '(vai trò đang đăng nhập)',
+      route: r && r.route ? r.route : '—',
       base_tc: `luật ${l.oracle_ref}`,
-      trang_thai: du ? TT.unknown : TT.needs_account,
+      trang_thai: r && (r.trang_thai === TT.pass || r.trang_thai === TT.fail)
+        ? r.trang_thai
+        : (du ? TT.unknown : TT.needs_account),
       oracle_ref: l.oracle_ref || null,
-      vi_sao: du
+      vi_sao: r && r.bang_chung
+        ? `${l.mo_ta} — đo ${r.do_luc || '(không khai giờ)'}, evidence \`${r.bang_chung}\``
+        : (du
         ? l.mo_ta
-        : `${l.mo_ta} — cần ≥${l.can_vai_tro} vai trò, hiện có ${soVaiTroCo}`,
+        : (!coVaiDung
+          ? `${l.mo_ta} — luật này nói về vai trò ${apDung.join('/')}, tài khoản đang có: ${[...vaiCoTk].join('/') || '(không có)'}`
+          : `${l.mo_ta} — cần ≥${l.can_vai_tro} vai trò, hiện có ${vaiCoTk.size}`)),
     });
   }
 

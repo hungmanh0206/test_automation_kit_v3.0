@@ -91,7 +91,7 @@ Và **đối chứng âm** cứu bốn mẫu dò khỏi dương tính giả: `40
   | | |
   |---|---|
   | ⑦ `oracle:calc` | `proven=2` — 2 oracle neo vào rule `active`, 118 rule trong kho |
-  | ⑥ `authz:expand` | 179 biến thể · `proven=0` · 126/213 case thuộc band đòi ⑥ |
+  | ⑥ `authz:expand` | 179 biến thể · **`proven=1`** · 126/213 case thuộc band đòi ⑥ |
   | ma trận vai trò × route | 240 ô — **120 `verified`** (masteradmin) · **120 `unknown`** (vai trò `truong` chưa có tài khoản) · 0 finding ẩn≠cấm |
   | `expansion_audit` | CSDL-9001 từ 1/7 lên **2/7 trục** (`persist, oracle_calc`) |
 
@@ -111,8 +111,35 @@ Và **đối chứng âm** cứu bốn mẫu dò khỏi dương tính giả: `40
   chỉ PASS/FAIL khi có neo nói vai trò nào ĐƯỢC hay KHÔNG ĐƯỢC vào đâu (`CLAUDE.md` §3). Nay 120 ô đó
   được in ra như **QUAN SÁT**, và `proven=0` — con số đúng, vì chưa biến thể nào được CHẠY.
 
-  Còn lại để ⑥ có `proven>0`: chạy 4 biến thể đo-được-bằng-một-tài-khoản (chúng là phép đo Phase 2, cần
-  một spec), và xin tài khoản vai trò `truong` cho nhóm dọc.
+  **④ Luật phải khai NÓ NÓI VỀ VAI TRÒ NÀO — nếu không, lượt đo sinh bug BỊA.** `BR-NHANSU-029` nói về
+  tài khoản TRƯỜNG; session đang có là `masteradmin`, vốn thấy cả 5 cấp. Với nó, "xem được đơn vị khác"
+  rất có thể là **ĐÚNG**. Chạy luật đó bằng tài khoản sai vai trò là đường ngắn nhất tới một bug bịa ra
+  từ tiền đề chỉ đúng một nửa. Nay config khai `vai_tro_ap_dung`, và máy đánh `needs_account` **kèm tên
+  vai trò cần** thay vì `unknown` chung chung. Hệ quả ngay: 4/5 luật chuyển sang `needs_account` —
+  **bốn bug bịa bị chặn trước khi sinh ra**, và còn đúng MỘT luật đo được.
+
+  **⑥ nay có `proven=1`, bằng một phép đo thật.** Vế thứ ba của `BR-NHANSU-029` không phụ thuộc vai trò
+  ("chưa đăng nhập" là cùng một trạng thái với mọi tài khoản), nên đo được bằng một lượt GET duy nhất ở
+  context sạch:
+
+  | | |
+  |---|---|
+  | route | `/C2/HoSoTruongDetail.aspx` |
+  | kết quả | bị đẩy về `Login.aspx?returnUrl=~/C2/HoSoTruongDetail.aspx` |
+  | oracle (neo cấu trúc, không dò chữ) | 1 ô `input[type=password]` · **0** nút `Ghi` của form hồ sơ |
+  | verdict | **PASS** — `oracle_ref: BR-NHANSU-029` |
+  | evidence | ảnh `.png` trong `evidence/authz/` (CLAUDE.md §4) |
+
+  Cơ chế nối hai bên: probe ghi `test-results/authz_ket_qua.json` (`oracle_ref` · `mo_ta` · `trang_thai` ·
+  `bang_chung` · `do_luc`), và `authz:expand` khớp theo (`oracle_ref`, `mo_ta`) rồi nâng trạng thái biến
+  thể. Planner vẫn **không gửi request nào** — có test khoá theo hướng chuyện đó; phép đo thuộc Phase 2.
+
+  Probe cố ý **không track**: `ci:scope` đòi mọi spec ĐƯỢC TRACK trong `tests/fe/infra` không chạm UAT,
+  và repo đã có 11 probe untracked cùng kiểu. Chạy nó cần `PROBE=1` — `testIgnore` chặn cả khi gọi thẳng
+  tên file, nên không ai chạy nhầm nó trong CI.
+
+  Còn lại: 2 vế của `BR-NHANSU-029` và `BR-HSLOP-025` cần **tài khoản trường** (và một tài khoản gán
+  MỘT phân hiệu); nhóm dọc cần vai trò thứ hai để khai `thu_bac`.
 
   Hai ghi chú về lượt `discover`: lần đầu **không bò được màn nào** vì tôi chỉ nạp session cho phần ma
   trận mà quên `--storage-state` cho lượt bò chính — cửa báo đúng và exit 1. Lần hai bò **120 màn**, độ
