@@ -411,6 +411,24 @@ function escHtml(s) {
 function start() {
   const store = { truong: DU_LIEU_GOC.map((r) => ({ ...r })), soLanGhi: 0, nhatKyGhi: [] };
 
+  /*
+   * VÙNG CHO KỊCH BẢN ĐUA (v2.8.4).
+   *
+   * `loiDua` bật/tắt từng lỗi — mỗi lỗi phải có CẶP bản hỏng/bản đúng, vì một harness chỉ được thử trên
+   * bản đúng thì chưa ai biết nó bắt được gì.
+   *
+   * MỌI handler dưới đây có một KHE CHỜ thật (`await nghi(0)`) giữa lúc ĐỌC trạng thái và lúc GHI. Thiếu
+   * khe đó thì Node một luồng xử lý nguyên tử, không có cuộc đua nào để bắt, và fixture sẽ "chứng minh"
+   * một điều không đúng: rằng app không bao giờ đua.
+   */
+  const dua = {
+    donDuyet: { trangThai: 'cho_duyet', soLanDuyet: 0 },
+    datCho: [],              // mỗi phần tử: { key, id }
+    kho: { conLai: 1 },
+    callback: { daNhan: [], tong: 0 },
+  };
+  const nghi = (ms) => new Promise((r) => { setTimeout(r, ms); });
+
   const srv = http.createServer((req, res) => {
     const u = new URL(req.url, 'http://localhost');
     const p = u.pathname;
@@ -450,6 +468,81 @@ function start() {
       store.soLanGhi += 1;
       store.nhatKyGhi.push({ method: req.method, path: p, luc: Date.now() });
       return json({ ok: true });
+    }
+
+    /*
+     * ---- KỊCH BẢN ĐUA (v2.8.4) ----
+     * `?hong=1` chạy bản CÓ LỖI; mặc định chạy bản ĐÚNG. Cặp hỏng/đúng là điều kiện để tin harness.
+     */
+    const hong = q.get('hong') === '1';
+
+    if (p === '/api/dua/duyet' && req.method === 'POST') {
+      return (async () => {
+        const truoc = dua.donDuyet.trangThai;              /* ảnh chụp CŨ — bản hỏng dùng nó */
+        await nghi(0);                                     /* khe chờ: chỗ cuộc đua xảy ra */
+        /* Bản ĐÚNG đọc LẠI sau khe chờ. Dùng ảnh chụp cũ chính là lỗi TOCTOU mà bản hỏng mô phỏng. */
+        if (!hong && dua.donDuyet.trangThai !== 'cho_duyet') {
+          return json({ ok: false, vi_sao: 'đã duyệt rồi' }, 409);
+        }
+        dua.donDuyet.trangThai = 'da_duyet';
+        dua.donDuyet.soLanDuyet += 1;
+        return json({ ok: true, so_lan: dua.donDuyet.soLanDuyet }, 200);
+      })();
+    }
+
+    if (p === '/api/dua/dat' && req.method === 'POST') {
+      return (async () => {
+        const key = req.headers['idempotency-key'] || '';
+        const daCo = dua.datCho.find((x) => x.key === key);  /* ảnh chụp CŨ */
+        await nghi(0);
+        const daCoMoi = dua.datCho.find((x) => x.key === key);
+        if (!hong && key && daCoMoi) { const d = daCoMoi; return json({ ok: true, id: d.id, trung: true }, 200); }
+        if (false && daCo) return json({ ok: true, id: daCo.id, trung: true }, 200);
+        const id = dua.datCho.length + 1;
+        dua.datCho.push({ key, id });
+        return json({ ok: true, id }, 201);
+      })();
+    }
+
+    if (p === '/api/dua/tru' && req.method === 'POST') {
+      return (async () => {
+        const conLai = dua.kho.conLai;                     /* ảnh chụp CŨ */
+        await nghi(0);
+        /*
+         * Cả hai bản đều TRỪ TỪ GIÁ TRỊ HIỆN TẠI; khác nhau ở chỗ KIỂM bằng giá trị nào.
+         * Bản hỏng kiểm bằng ảnh chụp CŨ nên N request cùng tưởng còn hàng ⇒ kho xuống ÂM (oversell).
+         * Bản đầu của fixture này trừ từ ảnh chụp cũ, và nó dừng ở 0 thay vì âm — tức lỗi oversell
+         * KHÔNG lộ ra, và harness sẽ báo xanh cho một fixture đáng ra phải đỏ.
+         */
+        const conHang = hong ? conLai : dua.kho.conLai;
+        if (conHang <= 0) return json({ ok: false, vi_sao: 'hết hàng' }, 409);
+        dua.kho.conLai -= 1;
+        return json({ ok: true, con_lai: dua.kho.conLai }, 200);
+      })();
+    }
+
+    if (p === '/api/dua/callback' && req.method === 'POST') {
+      return (async () => {
+        const ref = q.get('ref') || '';
+        const daNhan = dua.callback.daNhan.includes(ref);   /* ảnh chụp CŨ */
+        await nghi(0);
+        if (!hong && ref && dua.callback.daNhan.includes(ref)) return json({ ok: true, trung: true }, 200);
+        if (false && daNhan) return json({ ok: true, trung: true }, 200);
+        dua.callback.daNhan.push(ref);
+        dua.callback.tong += 100;
+        return json({ ok: true, tong: dua.callback.tong }, 200);
+      })();
+    }
+
+    /* Tầng ĐỌC để kiểm bất biến ở trạng thái cuối — harness không đoán từ mã trả về. */
+    if (p === '/api/dua/trang-thai' && req.method === 'GET') {
+      return json({
+        don_trang_thai: dua.donDuyet.trangThai,
+        so_lan_duyet: dua.donDuyet.soLanDuyet,
+        so_ban_ghi_dat: dua.datCho.length,
+        kho_con_lai: dua.kho.conLai,
+        callback_tong: dua.callback.tong,
+      });
     }
 
     // ---- API đọc ----

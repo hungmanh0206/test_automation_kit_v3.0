@@ -198,7 +198,8 @@
     "full:suite": "node scripts/qa/full_suite_ledger.js",
     "full:suite:check": "node scripts/qa/full_suite_ledger.js --kiem",
     "authz:expand": "node scripts/qa/authz_expand.js",
-    "oracle:calc": "node scripts/qa/oracle_calc_check.js"
+    "oracle:calc": "node scripts/qa/oracle_calc_check.js",
+    "concurrency:check": "node scripts/qa/concurrency_check.js"
   },
   "dependencies": {
     "axe-core": "^4.12.1",

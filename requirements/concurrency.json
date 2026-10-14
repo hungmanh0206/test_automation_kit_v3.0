@@ -1,0 +1,77 @@
+{
+  "_doc": "Kịch bản đồng thời cho `npm run concurrency:check`. Mỗi kịch bản phải khai BẤT BIẾN ở trạng thái cuối — không khai thì máy trả CHUA_KIEM chứ không PASS.",
+
+  "_n_tran": "Trần N. Trần CỨNG trong code là 10 và config chỉ hạ xuống được, không nâng lên. Đây không phải load test: muốn đo thông lượng thì dùng K6 ở `tests/load/`.",
+  "n_tran": 5,
+
+  "_lech_toi_da_ms": "Độ lệch thả tối đa để còn coi là một cuộc đua. Vượt ngưỡng ⇒ CHUA_KIEM. Không thể bắn N request đúng cùng thời điểm (Node một luồng, mạng không hứa thứ tự), nên máy ĐO độ lệch thật thay vì giả vờ là 0.",
+  "lech_toi_da_ms": 50,
+
+  "_chay_o": "fixture = chỉ chạy trên host loopback · uat_doc = chỉ đọc lại kiểm bất biến · uat_ghi = mặc định TỪ CHỐI, cần --resource-test cho một resource dùng một lần và người xác nhận từng lượt.",
+
+  "_mau_so": "Mẫu số đề xuất lấy từ `api_inventory` + `SM-*`. Máy KHÔNG tự sinh kịch bản ghi: tự sinh là tự quyết thay người về chuyện chạm dữ liệu.",
+
+  "kich_ban": [
+    {
+      "id": "duyet-mot-lan",
+      "_nhom": "mot_lan",
+      "chay_o": "fixture",
+      "duong": "/api/dua/duyet",
+      "method": "POST",
+      "n": 4,
+      "doc_lai": "/api/dua/trang-thai",
+      "bat_bien": {
+        "ma_tra_ve": { "so_2xx": 1, "cam_500": true },
+        "doc": { "so_lan_duyet": 1, "don_trang_thai": "da_duyet" }
+      }
+    },
+    {
+      "id": "submit-dup-idempotency",
+      "_nhom": "submit_dup",
+      "chay_o": "fixture",
+      "duong": "/api/dua/dat",
+      "method": "POST",
+      "headers": { "idempotency-key": "K-CONC-1" },
+      "n": 4,
+      "doc_lai": "/api/dua/trang-thai",
+      "bat_bien": {
+        "doc": { "so_ban_ghi_dat": 1 }
+      }
+    },
+    {
+      "id": "tru-kho-oversell",
+      "_nhom": "tru_tai_nguyen",
+      "_ghi_chu": "Kho khởi điểm 1, bắn 4 lượt trừ. Bất biến là KHÔNG ÂM — oversell lộ ra dưới dạng số âm.",
+      "chay_o": "fixture",
+      "duong": "/api/dua/tru",
+      "method": "POST",
+      "n": 4,
+      "doc_lai": "/api/dua/trang-thai",
+      "bat_bien": {
+        "doc": { "kho_con_lai": { "toi_thieu": 0 } }
+      }
+    },
+    {
+      "id": "callback-trung",
+      "_nhom": "callback_trung",
+      "_ghi_chu": "Nối chiều §22 (callback ĐẾN từ bên thứ ba). Gửi lại cùng `ref` ⇒ xử lý một lần.",
+      "chay_o": "fixture",
+      "duong": "/api/dua/callback?ref=R-CONC-1",
+      "method": "POST",
+      "n": 4,
+      "doc_lai": "/api/dua/trang-thai",
+      "bat_bien": {
+        "doc": { "callback_tong": 100 }
+      }
+    },
+    {
+      "id": "khong-khai-bat-bien",
+      "_ghi_chu": "ĐỐI CHỨNG: kịch bản không khai bất biến phải ra CHUA_KIEM, không được PASS vì 'chạy không lỗi'.",
+      "chay_o": "fixture",
+      "duong": "/api/dua/trang-thai",
+      "method": "GET",
+      "n": 2,
+      "bat_bien": {}
+    }
+  ]
+}
