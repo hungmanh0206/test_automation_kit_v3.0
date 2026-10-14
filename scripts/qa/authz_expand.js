@@ -184,16 +184,28 @@ function main() {
       const khac = tenVai.filter((t) => t !== vai);
       const thapHon = thuBac ? khac.filter((t) => thuBac.indexOf(t) > thuBac.indexOf(vai) && thuBac.indexOf(t) >= 0) : khac;
       for (const t of thapHon) {
+        /*
+         * MỘT biến thể cho mỗi (case, vai trò) — KHÔNG phải mỗi (case, vai trò, route).
+         *
+         * Bản đầu đẩy một biến thể cho TỪNG ô ma trận của vai trò đó, và nó nằm trong vòng lặp case.
+         * Đo 14/10/2026 trên CSDL-9001 với ma trận thật: **3.035 biến thể** cho một task. Một danh
+         * sách cỡ đó thì không ai đọc, và nó cũng không đúng: planner KHÔNG biết case này đụng route
+         * nào, nên nhân case với MỌI route là bịa ra một quan hệ không có.
+         */
         const oMt = (mt.o || []).filter((c) => c.role === t);
-        for (const c of oMt) {
-          const tt = khongTaiKhoan.has(t) ? TT.needs_account
-            : (c.muc_bang_chung === 'verified' ? TT.pass : TT.unknown);
-          bienThe.push({
-            nhom: thuBac ? 'doc' : 'doc_chua_xep_hang', vai_tro: t, route: c.route, base_tc: tc.tcId,
-            trang_thai: tt, oracle_ref: cfg.oracle_ref || null,
-            vi_sao: thuBac ? null : 'config không khai `thu_bac` nên KHÔNG kết luận được đây là vai trò thấp hơn',
-          });
-        }
+        const soVerified = oMt.filter((c) => c.muc_bang_chung === 'verified').length;
+        const tt = khongTaiKhoan.has(t) ? TT.needs_account : TT.unknown;
+        bienThe.push({
+          nhom: thuBac ? 'doc' : 'doc_chua_xep_hang',
+          vai_tro: t,
+          route: oMt.length + ' route trong ma trận, ' + soVerified + ' đã kiểm chứng',
+          base_tc: tc.tcId,
+          trang_thai: tt,
+          oracle_ref: cfg.oracle_ref || null,
+          vi_sao: khongTaiKhoan.has(t)
+            ? 'chưa có tài khoản vai trò ' + t
+            : (thuBac ? null : 'config không khai thu_bac nên KHÔNG kết luận được đây là vai trò thấp hơn'),
+        });
       }
 
       /* ② NGANG (IDOR) — cần biết trường nào định danh chủ sở hữu/đơn vị. Không khai thì không bịa. */
@@ -236,6 +248,15 @@ function main() {
 
   const dem = {};
   for (const b of bienThe) dem[b.trang_thai] = (dem[b.trang_thai] || 0) + 1;
+  /*
+   * Ô verified của ma trận KHÔNG tự thành bằng chứng của trục ⑥.
+   *
+   * Bản đầu tính proven = verified + finding, và trên CSDL-9001 nó cho **proven=2880**. Nhưng những ô
+   * đó chỉ nói "vai trò masteradmin VÀO ĐƯỢC route này" — không ô nào được so với một kỳ vọng. Phân
+   * quyền chỉ PASS/FAIL khi có neo nói vai trò nào ĐƯỢC hay KHÔNG ĐƯỢC vào đâu; không neo thì nó là
+   * QUAN SÁT (CLAUDE.md §3). Báo proven=2880 là báo đã chứng minh 2880 thứ chưa ai so.
+   */
+  const quanSat = (mt.o || []).filter((c) => c.muc_bang_chung === 'verified').length;
   const proven = bienThe.filter((b) => LA_BANG_CHUNG.has(b.trang_thai)).length;
   const inconclusive = bienThe.length - proven;
   const doViPham = bienThe.filter((b) => b.trang_thai === TT.fail).length;
@@ -260,6 +281,10 @@ function main() {
   if (bienThe.length) {
     if (!mt.thieu) {
       L.push(`- Nguồn ma trận: \`${path.relative(rc.REPO_ROOT, mt.nguon)}\` · ${(mt.o || []).length} ô`);
+    }
+    if (quanSat) {
+      L.push('- Ô ma trận **đã kiểm chứng**: **' + quanSat + '** — đây là QUAN SÁT ("vai trò này vào được route này"),'
+        + ' KHÔNG phải bằng chứng của ⑥: không ô nào được so với một kỳ vọng có neo.');
     }
     L.push(`- Case thuộc band đòi trục ⑥: **${canAuthz.length}**/${tests.length}`,
       `- Biến thể: **${bienThe.length}** — ${Object.entries(dem).map(([k, v]) => `${k} **${v}**`).join(' · ')}`, '',

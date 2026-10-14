@@ -158,11 +158,11 @@ test.describe('@infra trục ⑥ authz — liệt kê biến thể phân quyền
     const inconclusive = Number(m![2]);
 
     /*
-     * Ma trận dựng sẵn có ĐÚNG hai ô là bằng chứng: 1 ô `verified` của `giao_vien` (/ho-so) và 1
-     * EXPANSION_FINDING ẩn≠cấm. Mọi ô còn lại là `unknown` / `needs_account` / `needs_config` /
-     * `chi_chay_tay` — phép đo CHƯA xảy ra.
+     * CHỈ MỘT bằng chứng: EXPANSION_FINDING ẩn≠cấm. Ô `verified` KHÔNG tính (đổi 14/10/2026) — nó chỉ
+     * nói "vai trò này vào được route này", chưa so với kỳ vọng nào. Trên CSDL-9001 cách tính cũ cho
+     * `proven=2880` cho một ma trận chưa ô nào được so — tức báo đã chứng minh 2880 thứ chưa ai so.
      */
-    expect(proven, 'chỉ ô verified + finding ẩn≠cấm mới là bằng chứng').toBe(2);
+    expect(proven, 'chỉ finding ẩn≠cấm là bằng chứng; ô verified là QUAN SÁT').toBe(1);
     expect(inconclusive, 'phần còn lại phải nằm ở cột chưa kết luận, không bị nuốt').toBeGreaterThan(0);
     expect(k.bao).toContain('needs_account');
     expect(k.bao).toMatch(/Xin tài khoản vai trò `thanh_tra`/);

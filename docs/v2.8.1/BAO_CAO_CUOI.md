@@ -85,55 +85,39 @@ Và **đối chứng âm** cứu bốn mẫu dò khỏi dương tính giả: `40
 
 ## 5. Việc còn nợ — nói thẳng
 
-- **⑥ và ⑦ chưa chạy trên dữ liệu thật.** Cả hai sẽ báo `CHƯA ĐO`/`proven=0` cho tới khi có ma trận vai
-  trò × route (cần ≥2 tài khoản UAT) và có case gắn `[Time]`/`[Legacy]`. Đó là trạng thái ĐÚNG — máy nói
-  thẳng nó chưa đo được gì — nhưng nó có nghĩa hai trục mới **chưa chứng minh được gì trên dữ liệu
-  thật**. Chủ dự án đã chốt: đóng v2.8.1 trước, chạy UAT ở lượt sau.
-- **Suite KHÔNG xanh ổn định — nguyên nhân CHƯA tìm ra.** `discovery-api-inventory.spec.ts` (`goi_tu`) và
-  `discovery-injection.spec.ts` (`gộp theo (nhóm, màn)`) mỗi cái đỏ một lượt trong `full:suite` rồi xanh
-  **3/3 khi chạy riêng**. Lượt đỏ của `discovery-injection` đếm `tong=12` trong khi mốc ghim **11**.
+- **⑥ và ⑦ ĐÃ chạy trên dữ liệu thật** (14/10/2026, CSDL-9001, một lượt `discover` CHỈ ĐỌC trên UAT có
+  chủ dự án xác nhận). Kết quả, và ba chỗ nó bắt được chính thiết kế của tôi:
 
-  Ba giả thuyết đã ĐO và BÁC, ghi lại để không ai đi lại:
+  | | |
+  |---|---|
+  | ⑦ `oracle:calc` | `proven=2` — 2 oracle neo vào rule `active`, 118 rule trong kho |
+  | ⑥ `authz:expand` | 179 biến thể · `proven=0` · 126/213 case thuộc band đòi ⑥ |
+  | ma trận vai trò × route | 240 ô — **120 `verified`** (masteradmin) · **120 `unknown`** (vai trò `truong` chưa có tài khoản) · 0 finding ẩn≠cấm |
+  | `expansion_audit` | CSDL-9001 từ 1/7 lên **2/7 trục** (`persist, oracle_calc`) |
 
-  | Giả thuyết | Phép đo | Kết quả |
-  |---|---|---|
-  | nhạy tải CPU | đốt 6 tiến trình CPU, bò 8 lượt | **8/8 giống nhau** — bác |
-  | state tầng module của các file discovery dùng chung qua `require` cache | đọc `crawl.js`, `api_inventory.js`, `injection_surface.js` | **không có** state tầng module — bác |
-  | request về MUỘN bị tính/bỏ tuỳ lịch chạy | thêm chờ mạng lặng có biên vào `crawl.js`, bò 6 lượt | **tất định 6/6, và vẫn 11** — bác |
+  **① Thiết kế bắt ⑥ phải có ≥2 tài khoản là bắt quá rộng.** `knowledge/domain` có hai rule `active` phủ
+  đúng hai nhóm còn lại và đo được bằng MỘT tài khoản: `BR-NHANSU-029` (đổi `id` sang đơn vị khác phải bị
+  từ chối · `isview=1→0` không được thành Sửa · URL popup chưa đăng nhập bị đẩy về Đăng nhập) và
+  `BR-HSLOP-025` (tài khoản gán một phân hiệu chỉ thấy phân hiệu đó, bộ lọc không có "Tất cả phân hiệu").
+  Bắt cả ba nhóm chờ ma trận nghĩa là một dự án một-vai-trò **không bao giờ** đo được phân quyền.
 
-  Cũng đã loại: trùng cổng (`listen(0)`), state dùng chung của fixture (`store` tạo trong `start()`),
-  spec khác ghi `.agent/config/discovery.json` (không spec nào ghi), và chạy 6 spec discovery cùng lúc
-  4 lượt (**4/4 xanh**).
+  **② Nổ tổ hợp.** Bản đầu đẩy một biến thể cho mỗi (case, vai trò, route) trong vòng lặp case ⇒ **3.035
+  biến thể** cho một task. Một danh sách cỡ đó không ai đọc, và nó cũng sai: planner KHÔNG biết case này
+  đụng route nào, nên nhân case với MỌI route là bịa ra một quan hệ không có. Nay một biến thể cho mỗi
+  (case, vai trò), kèm số route và số ô đã kiểm chứng.
 
-  **Đã sửa được một thứ thật:** `crawl.js` nay chờ mạng lặng có biên (`langMs` 250 / `tranMs` 2500) trước
-  khi đọc dấu vân tay trang. Trước đó tập request quan sát được là "những request KỊP về", không phải
-  "những request trang này gửi" — một cuộc đua, dù hôm nay nó đua ra kết quả nào. Sửa cuộc đua, không
-  sửa con số.
+  **③ `proven` thổi phồng 2.880 lần.** Bản đầu tính `proven = verified + finding` ⇒ `proven=2880`. Nhưng
+  những ô đó chỉ nói "masteradmin VÀO ĐƯỢC route này" — không ô nào được so với một kỳ vọng. Phân quyền
+  chỉ PASS/FAIL khi có neo nói vai trò nào ĐƯỢC hay KHÔNG ĐƯỢC vào đâu (`CLAUDE.md` §3). Nay 120 ô đó
+  được in ra như **QUAN SÁT**, và `proven=0` — con số đúng, vì chưa biến thể nào được CHẠY.
 
-  **Còn lại:** con số 12 chưa giải thích được. Nên hai test nay **tự khai chỗ lệch**: khi đỏ, chúng in
-  trọn danh sách điểm nhập / bảng `goi_tu` thay vì chỉ "chờ 11 nhận 12". Lượt trước tôi mất một lượt chạy
-  cả bộ 6 phút mà vẫn không biết nó thừa cái gì. Lần tới sẽ biết ngay — và đó là điều kiện để sửa đúng
-  chỗ thay vì nới mốc cho khớp.
+  Còn lại để ⑥ có `proven>0`: chạy 4 biến thể đo-được-bằng-một-tài-khoản (chúng là phép đo Phase 2, cần
+  một spec), và xin tài khoản vai trò `truong` cho nhóm dọc.
 
-  Vì thế con số **1.982 xanh · 0 đỏ** ở §1 là **một lượt chạy đạt**, KHÔNG phải bằng chứng suite xanh ổn
-  định.
+  Hai ghi chú về lượt `discover`: lần đầu **không bò được màn nào** vì tôi chỉ nạp session cho phần ma
+  trận mà quên `--storage-state` cho lượt bò chính — cửa báo đúng và exit 1. Lần hai bò **120 màn**, độ
+  đầy đủ 45% (dưới ngưỡng 80%, cảnh báo không chặn) và tóm tắt vượt trần 2.000 token.
 
-- **⑥ và ⑦ chưa chạy trên dữ liệu thật.** Cả hai sẽ báo `CHƯA ĐO`/`proven=0` cho tới khi có ma trận vai
-  trò × route (cần ≥2 tài khoản UAT) và có case gắn `[Time]`/`[Legacy]`. Đó là trạng thái ĐÚNG — máy nói
-  thẳng nó chưa đo được gì — nhưng nó có nghĩa hai trục mới **chưa chứng minh được gì trên dữ liệu
-  thật**. Chủ dự án đã chốt: đóng v2.8.1 trước, chạy UAT ở lượt sau.
-- **Suite KHÔNG xanh ổn định — hai spec nhạy tải.** `discovery-api-inventory.spec.ts` (`goi_tu`) và
-  `discovery-injection.spec.ts` (`gộp theo (nhóm, màn)`) mỗi cái đỏ một lượt trong `full:suite` rồi xanh
-  **3/3 khi chạy riêng**. Cả hai đều bò app fixture rồi ghim con số đếm được.
-
-  Chi tiết đáng chú ý hơn cả việc nó flaky: lượt đỏ của `discovery-injection` tìm ra **12** điểm nhập
-  trong khi mốc ghim **11** — tức dưới tải nó thấy NHIỀU hơn, không phải ít hơn. Nếu vậy thì con số 11
-  đang ghim có thể chính là phía **đếm thiếu**, và lượt "xanh" là lượt bò chưa tới nơi. Một công cụ khám
-  phá mà kết quả đổi theo tải máy thì nó báo bề mặt khác nhau vào những ngày khác nhau.
-
-  Vì thế con số **1.982 xanh · 0 đỏ** ở §1 là **một lượt chạy đạt**, KHÔNG phải bằng chứng suite xanh ổn
-  định. Chưa sửa: chủ dự án chốt đóng v2.8.1 trước, và sửa đúng cách là làm lượt bò tất định (chờ mạng
-  lặng / DOM ổn định) chứ không phải nới con số cho khớp.
 - **Band của ⑥ chỉ `high`.** Thiết kế ghi "medium: khuyến nghị", nhưng `PLAN` không có bậc khuyến nghị —
   chỉ có đòi hoặc không. Nâng lên medium khi đã có ma trận thật ở vài task, kèm số đo.
 
