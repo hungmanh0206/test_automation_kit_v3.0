@@ -1,0 +1,45 @@
+{
+  "_doc": "Cấu hình trục ⑥ phân quyền cho `npm run authz:expand`. Mỗi mục phải kèm NGUỒN — một ma trận quyền tự khai là một ma trận bịa.",
+
+  "_thu_bac": "KHÔNG khai, có chủ ý. Đo 14/10/2026: toàn repo và `knowledge/domain` không có chỗ nào khai thứ bậc vai trò QEMIS. Chủ dự án xác nhận hiện chỉ có MỘT vai trò dùng được. Nên nhóm biến thể DỌC chưa đo được, và máy phải nói thế chứ không tự xếp hạng. Khi có tài khoản vai trò thứ hai thì khai `thu_bac` ở đây (CAO → THẤP) kèm nguồn.",
+
+  "chu_so_huu": {
+    "truong": "ID_TRUONG",
+    "phan_hieu": "ID_PHAN_HIEU",
+    "_nguon": "BR-NHANSU-029 (cách ly đơn vị theo hồ sơ) + BR-HSLOP-025 (quyền xét theo phân hiệu khi trường có phân hiệu)"
+  },
+
+  "_luat": "Luật phân quyền CÓ NEO trong `knowledge/domain`, kèm số vai trò TỐI THIỂU để đo được. Hai luật dưới đây đo được bằng MỘT tài khoản — đó là chỗ thiết kế v2.8.1 ban đầu nói sai: nó bắt ⑥ phải có ≥2 tài khoản mới làm được gì, trong khi chỉ nhóm DỌC cần vai trò thứ hai.",
+  "luat": [
+    {
+      "oracle_ref": "BR-NHANSU-029",
+      "nhom": "ngang",
+      "can_vai_tro": 1,
+      "mo_ta": "Đổi `id` hồ sơ sang đơn vị khác phải BỊ TỪ CHỐI (không trả dữ liệu đơn vị khác)."
+    },
+    {
+      "oracle_ref": "BR-NHANSU-029",
+      "nhom": "an_khac_cam",
+      "can_vai_tro": 1,
+      "mo_ta": "Đổi `isview=1` → `isview=0` trên URL màn Xem KHÔNG được chuyển sang chế độ Sửa."
+    },
+    {
+      "oracle_ref": "BR-NHANSU-029",
+      "nhom": "an_khac_cam",
+      "can_vai_tro": 1,
+      "mo_ta": "Mở URL popup hồ sơ khi CHƯA đăng nhập phải bị đẩy về màn Đăng nhập."
+    },
+    {
+      "oracle_ref": "BR-HSLOP-025",
+      "nhom": "ngang",
+      "can_vai_tro": 1,
+      "mo_ta": "Tài khoản gán MỘT phân hiệu chỉ thấy/sửa/xoá lớp của phân hiệu đó, và bộ lọc Phân hiệu của họ KHÔNG có mục \"Tất cả phân hiệu\"."
+    },
+    {
+      "oracle_ref": "BR-HSLOP-025",
+      "nhom": "doc",
+      "can_vai_tro": 2,
+      "mo_ta": "Quyền module Hồ sơ lớp thuộc \"Quản trị viên / người dùng có quyền quản trị hệ thống\" — vai trò KHÔNG có quyền đó phải bị chặn."
+    }
+  ]
+}

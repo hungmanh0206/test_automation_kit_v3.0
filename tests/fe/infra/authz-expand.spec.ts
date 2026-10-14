@@ -74,9 +74,14 @@ test.beforeEach(() => { tmp = thuMucTam('authz'); });
 test.afterEach(() => { donThuMucTam(tmp); });
 
 test.describe('@infra trục ⑥ authz — liệt kê biến thể phân quyền', () => {
-  test('THIẾU ma trận ⇒ CHƯA ĐO (exit 2, proven=0), KHÔNG phải "không có vấn đề"', () => {
+  test('THIẾU ma trận VÀ không khai luật ⇒ CHƯA ĐO (exit 2), KHÔNG phải "không có vấn đề"', () => {
     dungTask(tmp, { cases: BANG });
-    const k = chay(tmp);
+    /*
+     * PHẢI trỏ config không tồn tại. Từ 14/10/2026 config mặc định
+     * `requirements/authz_matrix.json` có khai `luat` (luật phân quyền CÓ NEO), nên thiếu ma trận
+     * KHÔNG còn là "không đo được gì" — xem test ngay dưới. Chỉ khi thiếu CẢ HAI thì mới là CHƯA ĐO.
+     */
+    const k = chay(tmp, ['--config', path.join(tmp, 'khong-ton-tai.json')]);
 
     /* exit 2, không phải 0 và cũng không phải 1: "không phán được" có mã riêng của nó. */
     expect(k.ma, 'thiếu đầu vào là KHÔNG PHÁN ĐƯỢC, không phải đạt và cũng không phải sai').toBe(2);
@@ -86,6 +91,32 @@ test.describe('@infra trục ⑥ authz — liệt kê biến thể phân quyền
     expect(k.bao, 'proven=0 KHÔNG được kể như đã kiểm').not.toMatch(/không có vấn đề|đạt|an toàn|OK\b/i);
     expect(k.bao).toContain('KHÔNG có nghĩa "phân quyền ổn"');
     expect(k.ra, 'phải chỉ ra chạy gì để đo được').toContain('discover');
+  });
+
+  test('có LUẬT CÓ NEO thì thiếu ma trận chỉ chặn nhóm DỌC — ngang/ẩn≠cấm vẫn liệt kê được', () => {
+    /*
+     * Thiết kế v2.8.1 bắt cả ba nhóm chờ ma trận, tức chờ ≥2 tài khoản. Đo 14/10/2026 trên
+     * `knowledge/domain`: `BR-NHANSU-029` (đổi `id` sang đơn vị khác · `isview=1→0` · URL popup chưa
+     * đăng nhập) và `BR-HSLOP-025` (tài khoản gán một phân hiệu) đều đo được bằng MỘT tài khoản.
+     * Bắt cả ba nhóm chờ ma trận nghĩa là một dự án một-vai-trò không bao giờ đo được phân quyền.
+     */
+    dungTask(tmp, { cases: BANG });
+    const cfg = path.join(tmp, 'authz.json');
+    fs.writeFileSync(cfg, JSON.stringify({
+      luat: [
+        { oracle_ref: 'BR-NHANSU-029', nhom: 'ngang', can_vai_tro: 1, mo_ta: 'đổi id sang đơn vị khác phải bị từ chối' },
+        { oracle_ref: 'BR-HSLOP-025', nhom: 'doc', can_vai_tro: 2, mo_ta: 'vai trò không có quyền quản trị phải bị chặn' },
+      ],
+    }));
+    const k = chay(tmp, ['--config', cfg]);
+
+    expect(k.ma, 'có luật có neo thì KHÔNG còn là không-phán-được').toBe(0);
+    expect(k.bao, 'biến thể phải HIỆN RA, không bị ẩn sau mục CHƯA ĐO').toMatch(/\| ngang \|/);
+    expect(k.bao).toContain('BR-NHANSU-029');
+    /* Nhóm dọc đòi 2 vai trò mà chỉ có 1 ⇒ `needs_account`, KHÔNG phải `unknown` chung chung. */
+    expect(k.bao).toMatch(/\| doc \|[^|]*\|[^|]*\|[^|]*\| needs_account \|/);
+    /* Dòng cảnh báo đi ra stderr, mà `chay()` chỉ gom stderr khi exit != 0 — nên khoá ở BÁO CÁO. */
+    expect(k.bao, 'phải nói rõ thiếu ma trận chỉ chặn nhóm dọc').toMatch(/Nhóm DỌC/);
   });
 
   test('KHÔNG khai `thu_bac` ⇒ không tự xếp hạng vai trò, và nói thẳng là chưa phủ chiều dọc', () => {

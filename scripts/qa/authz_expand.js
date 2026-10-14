@@ -108,6 +108,37 @@ function main() {
   const thuBac = Array.isArray(cfg.thu_bac) ? cfg.thu_bac : null;   // [cao → thấp]
   const chuSoHuu = cfg.chu_so_huu && typeof cfg.chu_so_huu === 'object' ? cfg.chu_so_huu : null;
 
+  /*
+   * LUẬT CÓ NEO — sinh biến thể KHÔNG CẦN ma trận.
+   *
+   * Thiết kế v2.8.1 bắt cả ba nhóm biến thể chờ ma trận vai trò × route, tức chờ ≥2 tài khoản. Đo
+   * 14/10/2026 trên `knowledge/domain` thì điều đó SAI: `BR-NHANSU-029` (đổi `id` sang đơn vị khác phải
+   * bị từ chối · `isview=1→0` không được thành Sửa · URL popup chưa đăng nhập bị đẩy về Đăng nhập) và
+   * `BR-HSLOP-025` (tài khoản gán một phân hiệu chỉ thấy phân hiệu đó) đều đo được bằng MỘT tài khoản.
+   *
+   * Chỉ nhóm DỌC cần vai trò thứ hai. Bắt cả ba nhóm chờ ma trận nghĩa là một dự án một-vai-trò không
+   * bao giờ đo được phân quyền, trong khi hai luật trên là đúng chỗ bug phân quyền hay nằm.
+   */
+  const bienThe = [];
+  const cauHoi = [];
+
+  const luat = Array.isArray(cfg.luat) ? cfg.luat : [];
+  const soVaiTroCo = 1; // vai trò đang đăng nhập; nhóm `doc` đòi ≥2 nên luôn thiếu khi chưa có ma trận
+  for (const l of luat) {
+    const du = Number(l.can_vai_tro || 1) <= soVaiTroCo;
+    bienThe.push({
+      nhom: l.nhom || 'ngang',
+      vai_tro: '(vai trò đang đăng nhập)',
+      route: '—',
+      base_tc: `luật ${l.oracle_ref}`,
+      trang_thai: du ? TT.unknown : TT.needs_account,
+      oracle_ref: l.oracle_ref || null,
+      vi_sao: du
+        ? l.mo_ta
+        : `${l.mo_ta} — cần ≥${l.can_vai_tro} vai trò, hiện có ${soVaiTroCo}`,
+    });
+  }
+
   const mt = docMaTran(taskDir);
 
   /* Bộ case: chỉ những case mà band của chúng ĐÒI trục `authz`. */
@@ -119,9 +150,6 @@ function main() {
     }
   }
   const canAuthz = tests.filter((t) => depth.axesFor(t).includes('authz'));
-
-  const bienThe = [];
-  const cauHoi = [];
 
   if (mt.thieu) {
     cauHoi.push({
@@ -220,15 +248,26 @@ function main() {
     '> nghĩa là phép đo chưa xảy ra. Chỉ `pass`/`fail` mới là bằng chứng.', '',
   ];
   if (mt.thieu) {
-    L.push('## CHƯA ĐO ĐƯỢC', '',
+    /*
+     * Thiếu ma trận chỉ chặn nhóm DỌC. Bản đầu của báo cáo ẩn luôn cả bảng biến thể, nên 5 biến thể sinh
+     * từ luật có neo không hiện ra — tức việc làm được lại trông như không làm được gì.
+     */
+    L.push('## Nhóm DỌC: CHƯA ĐO ĐƯỢC', '',
       `- ${mt.thieu}`, '',
-      '`proven=0` là ĐÚNG ở đây: chưa có ma trận thì chưa có phép đo nào. Nó KHÔNG có nghĩa "phân quyền ổn".', '');
-  } else {
-    L.push(`- Nguồn ma trận: \`${path.relative(rc.REPO_ROOT, mt.nguon)}\` · ${(mt.o || []).length} ô`,
-      `- Case thuộc band đòi trục ⑥: **${canAuthz.length}**/${tests.length}`,
-      `- Biến thể: **${bienThe.length}** — ${Object.entries(dem).map(([k, v]) => `${k} **${v}**`).join(' · ') || '(không có)'}`, '',
+      'Chỉ nhóm **dọc** (vai trò thấp hơn) cần ma trận, tức cần ≥2 tài khoản. Nhóm **ngang (IDOR)** và',
+      '**ẩn≠cấm** đo được bằng MỘT tài khoản — chúng ở bảng dưới.', '');
+  }
+  if (bienThe.length) {
+    if (!mt.thieu) {
+      L.push(`- Nguồn ma trận: \`${path.relative(rc.REPO_ROOT, mt.nguon)}\` · ${(mt.o || []).length} ô`);
+    }
+    L.push(`- Case thuộc band đòi trục ⑥: **${canAuthz.length}**/${tests.length}`,
+      `- Biến thể: **${bienThe.length}** — ${Object.entries(dem).map(([k, v]) => `${k} **${v}**`).join(' · ')}`, '',
       '| Nhóm | Case gốc | Vai trò | Route | Trạng thái | Vì sao |', '|---|---|---|---|---|---|',
       ...bienThe.map((b) => `| ${b.nhom} | ${b.base_tc} | ${b.vai_tro} | ${b.route} | ${b.trang_thai} | ${b.vi_sao || '—'} |`), '');
+  } else {
+    L.push('Không biến thể nào: chưa khai luật có neo trong config, và chưa có ma trận.', '',
+      'Con số proven=0 ở đây KHÔNG có nghĩa "phân quyền ổn" — nghĩa là chưa đo gì.', '');
   }
   if (cauHoi.length) {
     L.push('## Câu hỏi cho Ambiguity Gate', '',
@@ -241,9 +280,12 @@ function main() {
   console.log(`[authz] báo cáo: ${out}`);
   for (const q of cauHoi) console.log(`[authz] ? ${q.muc}: ${q.cau_hoi}`);
 
-  if (mt.thieu) {
-    console.error('[authz] ✗ KHÔNG PHÁN ĐƯỢC (exit 2) — thiếu ma trận vai trò × route.');
+  if (mt.thieu && !luat.length) {
+    console.error('[authz] ✗ KHÔNG PHÁN ĐƯỢC (exit 2) — thiếu ma trận vai trò × route VÀ không khai luật nào có neo.');
     process.exit(2);
+  }
+  if (mt.thieu) {
+    console.error(`[authz] ⚠ thiếu ma trận ⇒ nhóm DỌC chưa đo được; ${luat.length} luật có neo vẫn liệt kê được.`);
   }
   if (flag('enforce') && doViPham) {
     console.error(`[authz] ✗ ${doViPham} biến thể FAIL (leo thang quyền / ẩn-mà-không-cấm).`);
