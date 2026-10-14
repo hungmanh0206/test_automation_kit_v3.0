@@ -55,7 +55,16 @@ export type Oracle<I, O> = {
   lech: CaLech<I, O>[];
 };
 
-const SO: Map<string, Oracle<never, never>> = new Map();
+/*
+ * Kiểu của một oracle BẤT KỲ trong sổ.
+ *
+ * Bản đầu dùng `Oracle<never, never>`, và `npm run typecheck` đỏ — nhưng chỉ ĐỎ TRONG GÓI, vì `full:suite`
+ * không chạy typecheck. Lại đúng bài học v2.8.0: repo xanh KHÔNG đồng nghĩa gói xanh.
+ * `never` làm mọi giá trị trả về của `tinh()` thành `never`, nên `expect(...)` mất hết phương thức.
+ */
+export type OracleBatKy = Oracle<Record<string, unknown>, unknown>;
+
+const SO: Map<string, OracleBatKy> = new Map();
 
 /**
  * Đăng ký một oracle. Mọi điều kiện kiểm NGAY lúc nạp module: một oracle sai khuôn phải làm vỡ lúc
@@ -84,17 +93,17 @@ export function dangKy<I, O>(o: Oracle<I, O>): Oracle<I, O> {
   if (SO.has(o.oracle_ref)) {
     throw new OracleUsageError(`\`oracle_ref\` ${o.oracle_ref} đã có oracle khác đăng ký — hai quy tắc cùng mã thì không biết case trỏ cái nào.`);
   }
-  SO.set(o.oracle_ref, o as unknown as Oracle<never, never>);
+  SO.set(o.oracle_ref, o as unknown as OracleBatKy);
   return o;
 }
 
 /** Mọi oracle đã đăng ký. Mẫu số 0 ⇒ nơi gọi phải báo `CHƯA KIỂM`, KHÔNG phải PASS. */
-export function tatCa(): Oracle<never, never>[] {
+export function tatCa(): OracleBatKy[] {
   return [...SO.values()];
 }
 
 /** Lấy theo mã. Không có ⇒ ném: "không tra được oracle" không được lặng lẽ thành "không cần oracle". */
-export function theoRef(ref: string): Oracle<never, never> {
+export function theoRef(ref: string): OracleBatKy {
   const o = SO.get(ref);
   if (!o) throw new OracleUsageError(`không có oracle nào đăng ký cho \`${ref}\`. Chưa viết ⇒ case đó là CHƯA KIỂM, không phải PASS.`);
   return o;

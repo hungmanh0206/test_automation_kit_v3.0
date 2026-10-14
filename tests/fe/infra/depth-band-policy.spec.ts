@@ -75,6 +75,23 @@ test.describe('@infra độ sâu mở rộng theo band', () => {
     expect(RISK.depthPolicy._nguon_truc, 'quy ước một nguồn phải ghi trong config').toMatch(/depth\.js/);
   });
 
+  test('BẢN MẪU `risk_model.example.json` cũng khớp PLAN — nó mới là thứ người nhận kit dùng', () => {
+    /*
+     * Chỗ này lọt ở v2.8.1 và chỉ `release:verify` bắt được: repo chạy với `risk_model.json`, còn GÓI
+     * dựng tiền đề từ `risk_model.example.json`. Bản thật đã bỏ `concurrency`/`reverse` mà bản mẫu vẫn
+     * dạy chúng, nên test "MỘT NGUỒN" ngay trên xanh trong repo và ĐỎ trong gói.
+     *
+     * Bài học y hệt v2.8.0: repo xanh KHÔNG đồng nghĩa gói xanh. Khác là lần này có máy canh.
+     */
+    // eslint-disable-next-line @typescript-eslint/no-var-requires, global-require
+    const mau = require(path.join(REPO, '.agent/config/risk_model.example.json'));
+    for (const b of BANDS) {
+      const ten = b[0].toUpperCase() + b.slice(1);
+      expect(mau.depthPolicy[ten].expansionAxes, `bản mẫu band ${ten} lệch PLAN`).toEqual(depth.PLAN[b]);
+    }
+    expect(mau.depthPolicy.UNKNOWN.expansionAxes).toEqual(depth.PLAN.low);
+  });
+
   test('độ sâu phải GIẢM DẦN theo band, không đảo chiều', () => {
     expect(depth.PLAN.high.length).toBeGreaterThan(depth.PLAN.medium.length);
     expect(depth.PLAN.medium.length).toBeGreaterThanOrEqual(depth.PLAN.low.length);
