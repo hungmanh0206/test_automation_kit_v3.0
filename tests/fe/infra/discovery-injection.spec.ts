@@ -153,8 +153,21 @@ test.describe('@infra gộp bề mặt — để gate không bị tắt vì ch�
      */
     const m = await banDo();
     const t = m.tong as Record<string, number>;
-    expect(t.tong).toBe(11);
-    expect(t.be_mat).toBe(9);
+    /*
+     * IN RA DANH SÁCH khi lệch, đừng chỉ in con số.
+     *
+     * Test này đỏ một lượt trong `full:suite` ngày 13/10/2026 với `tong=12`, rồi xanh 3/3 khi chạy riêng.
+     * Ba giả thuyết đã đo và BÁC: tải CPU (8/8 giống nhau khi đốt 6 tiến trình) · state tầng module của
+     * các file discovery (không có) · request về muộn (đã thêm chờ mạng lặng vào `crawl.js`, ra tất định
+     * 6/6 — và vẫn là 11). Nguyên nhân con số 12 **chưa tìm ra**.
+     *
+     * Nên việc làm được bây giờ là: lần đỏ tới phải TỰ KHAI điểm nhập nào thừa. Lượt trước chỉ nói
+     * "chờ 11 nhận 12" và tôi đã mất một lượt chạy cả bộ 6 phút mà vẫn không biết nó thừa cái gì.
+     */
+    const ds = (m.diem_nhap as { nhom: string; o: string }[] || [])
+      .map((d) => `${d.nhom}|${d.o}`).sort().join(' · ');
+    expect(t.tong, `điểm nhập đếm được: ${ds}`).toBe(11);
+    expect(t.be_mat, `bề mặt gộp từ: ${ds}`).toBe(9);
     expect(t.be_mat_can_case).toBe(6);
     expect(t.be_mat).toBeLessThan(t.tong);
   });

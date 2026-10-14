@@ -284,9 +284,12 @@ test.describe('@infra luật cứng — KHÔNG gọi API trực tiếp, và mộ
 
   test('`goi_tu` quy được request cho màn — nếu rỗng thì `shared_surface` vô nghĩa', async () => {
     const { inv } = await boVaTongHop();
+    /* Khi lệch thì in TRỌN bảng `goi_tu` — xem chú thích cùng chuyện ở `discovery-injection.spec.ts`. */
+    const bang = (inv.apis as Api[])
+      .map((a) => `${a.method} ${a.path_chuan}←${(a.goi_tu || []).join(',')}`).sort().join(' · ');
     const get = (inv.apis as Api[]).find((a) => a.method === 'GET' && a.path_chuan === '/api/truong')!;
-    expect(get.goi_tu).toEqual(['/truong']);
+    expect(get.goi_tu, bang).toEqual(['/truong']);
     const loi = (inv.apis as Api[]).find((a) => a.path_chuan === '/api/loi-sql')!;
-    expect(loi.goi_tu).toEqual(['/bao-cao']);
+    expect(loi.goi_tu, bang).toEqual(['/bao-cao']);
   });
 });

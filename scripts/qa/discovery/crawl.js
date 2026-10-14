@@ -72,6 +72,51 @@ function danhTinh(route, chuKy) {
 }
 
 /** Mở các khối co lại trên màn (accordion, tab) để dấu vân tay thấy được field bên trong. */
+/**
+ * CHỜ MẠNG LẶNG, CÓ BIÊN — để tập request quan sát được là TẤT ĐỊNH.
+ *
+ * VÌ SAO (đo 14/10/2026, v2.8.1): lượt bò trước đây chỉ có `doTre` — một khoảng chờ PHẲNG, mà hai spec
+ * còn truyền `doTre: 0`. Nghĩa là tập request `api_inventory` nhìn thấy = "những request KỊP về trước khi
+ * đóng trang", chứ không phải "những request trang này sẽ gửi". Hai spec ghim con số đếm được từ tập đó
+ * (`discovery-injection` ghim 11 điểm nhập, `discovery-api-inventory` ghim `goi_tu`) nên mỗi cái đã đỏ
+ * một lượt trong `full:suite` rồi xanh 3/3 khi chạy riêng.
+ *
+ * Lượt đỏ tìm ra **12** điểm nhập, tức NHIỀU hơn mốc — nên 11 là phía đếm THIẾU, và "xanh" là lượt bò
+ * chưa tới nơi. Một công cụ khám phá mà kết quả đổi theo lịch chạy thì nó báo bề mặt khác nhau vào những
+ * ngày khác nhau, và không ai biết ngày nào đúng.
+ *
+ * ĐÃ THỬ VÀ BÁC BỎ hai cách chẩn: đốt 6 tiến trình CPU rồi bò 8 lượt ⇒ 8/8 giống nhau; chạy 6 spec
+ * discovery cùng lúc 4 lượt ⇒ 4/4 xanh. Nên không tái hiện bằng tải. Nhưng chỗ sai KHÔNG cần tái hiện
+ * mới chứng minh được: tập request không bị chặn biên thì nó là một cuộc đua, dù hôm nay đua ra kết quả
+ * nào. Sửa cái đua, không sửa con số.
+ *
+ * Biên là ĐIỀU KIỆN để phép chờ này không thành một `waitForTimeout` trá hình: lặng `langMs` thì đi tiếp,
+ * và dù sao cũng không quá `tranMs`. Long-polling hay heartbeat sẽ không bao giờ lặng — gặp nó thì hết
+ * trần rồi đi, chứ không treo lượt bò.
+ */
+async function choLangMang(page, { langMs = 250, tranMs = 2500 } = {}) {
+  let dangBay = 0;
+  const len = () => { dangBay += 1; };
+  const ve = () => { dangBay = Math.max(0, dangBay - 1); };
+  page.on('request', len);
+  page.on('requestfinished', ve);
+  page.on('requestfailed', ve);
+  const batDau = Date.now();
+  let langTu = Date.now();
+  try {
+    for (;;) {
+      if (Date.now() - batDau >= tranMs) return 'het-tran';
+      if (dangBay > 0) langTu = Date.now();
+      else if (Date.now() - langTu >= langMs) return 'lang';
+      await page.waitForTimeout(50);
+    }
+  } finally {
+    page.off('request', len);
+    page.off('requestfinished', ve);
+    page.off('requestfailed', ve);
+  }
+}
+
 async function moCacKhoi(page, bienBan, cfg, doTre) {
   const moDuoc = [];
   /*
@@ -311,6 +356,11 @@ async function boApp(browser, o) {
     const hetGio = Symbol('het-gio');
     const xuLyTrang = (async () => {
       const moDuoc = await moCacKhoi(page, bienBan, cfg, doTre);
+      /*
+       * Chờ TRƯỚC khi đọc dấu vân tay và trước khi đi trang kế: `api_inventory` gắn bộ theo dõi vào
+       * page, nên request về muộn hơn chỗ này sẽ bị bỏ hoặc được tính tuỳ lịch chạy.
+       */
+      await choLangMang(page, { langMs: o.langMs == null ? 250 : o.langMs, tranMs: o.tranLangMs == null ? 2500 : o.tranLangMs });
       const route = chuanHoaRoute(url);
       const dvt = await fp.docDauVanTay(page, { route, keoSnapshot: o.keoSnapshot !== false });
       return { moDuoc, route, dvt };
@@ -466,4 +516,4 @@ async function boApp(browser, o) {
   };
 }
 
-module.exports = { boApp, chuanHoaRoute, danhTinh, chuKyCauTruc, oCanChe, gomLink };
+module.exports = { boApp, chuanHoaRoute, choLangMang, danhTinh, chuKyCauTruc, oCanChe, gomLink };
