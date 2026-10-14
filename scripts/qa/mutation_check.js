@@ -60,9 +60,28 @@ const DEFAULT_MUTANTS = [
   // bóp đúng thứ nó gác: xoá một cột khỏi lưới. Đây cũng là lớp bug 'field không hiển thị' chiếm phần
   // lớn trong 45% bug hiển thị của file tổng hợp.
   { id: 'drop_column', why: 'cột biến mất khỏi lưới (lớp "field không hiển thị")', dom: 'drop_declared_label' },
+  // Trục ⑥ (v2.8.1): cờ quyền bị lật `false → true`. Đây là lớp bug mà `authz_expand` liệt kê biến thể
+  // nhưng KHÔNG tự chạy được trên UAT — ở đây đo được vì không request nào rời browser.
+  { id: 'grant_permission', why: 'cờ quyền bị lật false→true (lớp "ẩn nút nhưng BE cho phép")', op: 'grant_permission' },
 ];
 
 const MONEY_KEYS = /(amount|fee|price|total|paid|discount|convertible)/i;
+
+/*
+ * Khoá mang nghĩa QUYỀN trong response. Dùng cho mutant `grant_permission` (trục ⑥, v2.8.1).
+ *
+ * Danh sách này hẹp CÓ CHỦ Ý. Bản đầu tôi định dò chữ `quyen`/`perm` trần, và đối chứng âm bác ngay:
+ * `so_quyen_sach` (số quyển sách) và `quyen_su_dung_dat` đều khớp — hai field nghiệp vụ không liên quan
+ * gì tới phân quyền. Tiêm nhầm vào chúng thì mutant "sống sót" vì máy kiểm đúng ra KHÔNG phải bắt, và
+ * điểm mutation tụt vì một lý do bịa.
+ *
+ * TÁCH LÀM HAI MẪU, và mẫu camelCase KHÔNG mang cờ `/i`. Đối chứng âm lượt hai bắt được `canhBaoHienThi`
+ * và `island`: với `/i` thì `[A-Z]` khớp luôn chữ thường, nên `can`+`h` và `is`+`l` đều trúng. Chữ hoa
+ * chính là thứ phân biệt `canEdit` với `canhBao` — bật `/i` là vứt đúng cái tín hiệu mình đang dựa vào.
+ */
+const PERM_CAMEL = /^(?:can|is|has|allow)[A-Z]/;          // KHÔNG `/i` — xem chú thích dưới
+const PERM_SNAKE = /^(?:duoc|cho)_phep|(?:^|_)(?:permission|quyen_han|readonly|read_only|editable|disabled|visible)s?(?:$|_)/i;
+const PERM_KEYS = { test: (k) => PERM_CAMEL.test(String(k)) || PERM_SNAKE.test(String(k)) };
 
 /** Biến đổi body JSON theo op. Trả {changed, note}. */
 function mutateBody(body, op) {
@@ -84,6 +103,18 @@ function mutateBody(body, op) {
         if (op === 'halve_money') { o[k] = keep(Math.round(nv / 2)); changed = `${k}: ${v} → ${o[k]}`; original = String(v); return; }
         if (op === 'stringify_money') { o[k] = `${nv}.0`; changed = `${k}: ${v} → "${nv}.0"`; original = String(v); return; }
         if (op === 'drop_first_money') { delete o[k]; changed = `xoá field ${k} (giá trị ${v})`; original = String(v); return; }
+      }
+      /*
+       * ⑥ PHÂN QUYỀN. Lật một cờ quyền `false → true`: mô phỏng đúng lớp bug "UI ẩn nút nhưng BE nói
+       * được phép". Bộ kiểm phải ĐỎ; nếu nó vẫn xanh thì vùng mù phân quyền đã được CHỨNG MINH, không
+       * còn là nghi ngờ.
+       *
+       * An toàn không đổi: tiêm ở `page.route()`, tức bóp response TRÊN ĐƯỜNG VỀ browser. Không request
+       * nào đi tới server, không bản ghi UAT nào bị chạm. Đây chính là lý do mutant làm được phép đo mà
+       * biến thể authz-GHI của `authz_expand` KHÔNG được phép làm: ở đó phải gửi request ghi thật.
+       */
+      if (typeof v === 'boolean' && op === 'grant_permission' && v === false && PERM_KEYS.test(k)) {
+        o[k] = true; changed = `${k}: false → true (cấp quyền không nên có)`; original = 'false'; return;
       }
       if (typeof v === 'string' && op === 'rename_text' && /^[A-Za-zÀ-ỹ ]{4,28}$/.test(v) && MONEY_KEYS.test(k) === false && /name|label|title|status|type/i.test(k)) {
         o[k] = `${v} X`; changed = `${k}: "${v}" → "${v} X"`; original = v; return;
@@ -315,4 +346,4 @@ async function main() {
 
 if (require.main === module) main();
 
-module.exports = { mutateBody, DEFAULT_MUTANTS, MONEY_KEYS };
+module.exports = { mutateBody, DEFAULT_MUTANTS, MONEY_KEYS, PERM_KEYS };

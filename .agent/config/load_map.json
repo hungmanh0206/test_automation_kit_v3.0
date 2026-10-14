@@ -56,7 +56,9 @@
         "bug_history": "prompt_templates/phase1/dimensions/20_bug_history.md",
         "accessibility": "prompt_templates/phase1/dimensions/21_accessibility.md",
         "inbound_callback": "prompt_templates/phase1/dimensions/22_inbound_callback.md",
-        "db_persistence": "prompt_templates/phase1/dimensions/23_db_persistence.md"
+        "db_persistence": "prompt_templates/phase1/dimensions/23_db_persistence.md",
+        "time_calendar": "prompt_templates/phase1/dimensions/24_time.md",
+        "legacy_data": "prompt_templates/phase1/dimensions/25_legacy.md"
       }
     },
     "publish": {

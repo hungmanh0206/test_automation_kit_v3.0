@@ -92,7 +92,27 @@ const DIMS = [
   // Chieu them 27/08/2026 sau khi dung tang kiem DB: UI/API KHONG du de noi ban ghi da luu dung —
   // response thuong echo lai request, con FE format lai gia tri. 7 lop loi (doi kieu so, lech mui gio,
   // cat varchar, xoa mem hong, bang lien quan khong doi, double-submit, rollback sai) deu 'UI thay dung'.
-  { id: 'db_persistence', sec: '§23', label: 'DB Persistence (bản ghi sau CRUD)', group: /dbpersist|persist|ban ghi/, re: /dbpersist|ban ghi (duoi )?db|\bdeleted_at\b|xoa mem|soft[- ]delete|luu (dung|sai) (vao )?db|updated_at|rollback|khong doi gi trong db/ },];
+  { id: 'db_persistence', sec: '§23', label: 'DB Persistence (bản ghi sau CRUD)', group: /dbpersist|persist|ban ghi/, re: /dbpersist|ban ghi (duoi )?db|\bdeleted_at\b|xoa mem|soft[- ]delete|luu (dung|sai) (vao )?db|updated_at|rollback|khong doi gi trong db/ },
+  /*
+   * §24 (13/10/2026) — hành vi phụ thuộc THỜI ĐIỂM. Lớp lỗi duy nhất mà thời điểm chạy là một phần của
+   * đầu vào, nhưng không case nào khai ra: biên mốc lệch 1 ngày, năm học suy từ `new Date()`, 29/02.
+   *
+   * ĐỐI CHỨNG khi viết mẫu — bắt: "han nop ngay cuoi cung", "qua han 1 phut", "nam hoc 2026-2027 chuyen
+   * ky", "mui gio nhap 23:00", "nam nhuan 29/02", "con 3 ngay thi canh bao". KHÔNG bắt (đúng): "thoi gian
+   * tai trang duoi 3 giay" (đó là §16 Perf), "timeout khi goi api" (§8), "ghi nhan thoi diem bam nut".
+   * Vì thế mẫu KHÔNG dò `thoi gian` trần — nó là cụm chuẩn của chiều hiệu năng.
+   */
+  { id: 'time_calendar', sec: '§24', label: 'Thời gian & lịch (hành vi phụ thuộc ngày/giờ/kỳ)', group: /\btime\b|thoi gian|lich|han|ky han/, re: /\btime\b|han (nop|cuoi|chot)|qua han|con han|nam hoc|mui gio|nam nhuan|29\/02|hieu luc (tu|den)|ngay bien|dem nguoc|dong ky|chuyen ky|con \d+ ngay|sau (han|moc)|truoc (han|moc)/ },
+
+  /*
+   * §25 (13/10/2026) — bản ghi có TRƯỚC luật hiện tại. Mọi chiều khác kiểm trên bản ghi do chính lượt
+   * test tạo, tức sinh dưới luật hôm nay; hệ thống thật chạy phần lớn trên bản ghi của luật hôm qua.
+   *
+   * ĐỐI CHỨNG — bắt: "mo ban ghi cu thieu o bat buoc", "du lieu cu ngoai danh muc hien tai", "ban ghi tao
+   * truoc khi them cot", "nhap tu he thong tien nhiem". KHÔNG bắt (đúng): "cu the la o Ho ten", "cu dan
+   * vao o tim kiem" — `cu` là chuỗi con của rất nhiều từ tiếng Việt bỏ dấu, nên phải chặn biên từ.
+   */
+  { id: 'legacy_data', sec: '§25', label: 'Dữ liệu cũ (bản ghi có trước luật hiện tại)', group: /\blegacy\b|du lieu cu|ban ghi cu/, re: /\blegacy\b|(du lieu|ban ghi|ho so|gia tri) cu\b|nam hoc cu|ngoai danh muc|tao truoc khi|co truoc khi|he (thong )?tien nhiem|truoc khi (o|cot|truong) .{0,20}bat buoc/ },];
 
 // Self-check bảng DIMS: id trùng hoặc pattern không phải RegExp thì báo ngay, đừng để lệch âm thầm.
 {
@@ -133,7 +153,7 @@ const blob = (t) => norm(`${t.title} ${t.stepsRaw} ${t.expectedRaw} ${t.data}`);
 //   này KHÔNG đủ tin: recall thiếu (§5 API đếm 0 trong khi có 17 case nhắc "api") và precision kém
 //   (§12 nhận cả "Chọn Next → hiển thị màn Confirm" — vì `hiển thị` là động từ chuẩn của MỌI expected tiếng
 //   Việt). Nên chế độ này chỉ để BIẾT chỗ nào có thể hổng, và script TỪ CHỐI chặn.
-const TAG_OF = { field_validation: 'validation', ui_display: 'ui', api: 'api', e2e: 'e2e', export_import: 'export', resilience: 'resilience', side_effect: 'sideeffect', guard: 'guard', design_figma: 'design', display_conformance: 'display', business_logic: 'calc', be_conformance: 'bedata', security: 'security', perf: 'perf', change_impact: 'impact', ordering: 'ordering', bug_history: 'bughistory', accessibility: 'a11y', inbound_callback: 'callback', db_persistence: 'dbpersist' };
+const TAG_OF = { field_validation: 'validation', ui_display: 'ui', api: 'api', e2e: 'e2e', export_import: 'export', resilience: 'resilience', side_effect: 'sideeffect', guard: 'guard', design_figma: 'design', display_conformance: 'display', business_logic: 'calc', be_conformance: 'bedata', security: 'security', perf: 'perf', change_impact: 'impact', ordering: 'ordering', bug_history: 'bughistory', accessibility: 'a11y', inbound_callback: 'callback', db_persistence: 'dbpersist', time_calendar: 'time', legacy_data: 'legacy' };
 const COVERAGE_TAGS = new Set(Object.values(TAG_OF));
 const labelled = tests.filter((t) => (t.dimensions || []).some((x) => COVERAGE_TAGS.has(x)));
 const MODE = labelled.length ? 'label' : 'hint';

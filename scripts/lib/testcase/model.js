@@ -200,12 +200,39 @@ const DIMENSION_TAGS = [
   'callback',
   // §23 (27/08/2026): bản ghi dưới DB sau case CRUD. Nhớ bài học §22 — khai ở đây MỚI có tác dụng.
   'dbpersist',
+  // §24 (13/10/2026): hành vi phụ thuộc THỜI GIAN/LỊCH — hạn, kỳ, múi giờ, năm học, ngày biên.
+  // §25 (13/10/2026): DỮ LIỆU CŨ — bản ghi tạo trước khi luật/cột hiện tại ra đời.
+  // Vẫn bài học §22/§23: khai ở đây MỚI có tác dụng.
+  'time', 'legacy',
 ];
-/** Dimension từ tag [..] trong title (vd "[Negative] ..." → ['negative']). */
+/**
+ * Dimension từ tag [..] trong title (vd "[Negative] ..." → ['negative']).
+ *
+ * KHỚP THEO TỪ, KHÔNG `includes()` (sửa 13/10/2026, v2.8.1 bước 4).
+ *
+ * Bản cũ dò chuỗi con, và nó sai đúng kiểu mà khối chú thích của `techniquesOf` ngay dưới đã cảnh báo cho
+ * mã kỹ thuật. Đo trên 202 tag thật của 5 bộ testcase: hai cách khớp lệch nhau ĐÚNG MỘT chỗ, và chỗ đó là
+ * dương tính giả của bản cũ — `"Gửi yêu cầu mở khóa"` bỏ dấu thành `"gui yeu cau mo khoa"`, chứa `ui` nằm
+ * trong `gui`, nên nó được tính là chiều §4 UI. Tiếng Việt bỏ dấu đầy chỗ như vậy: `gui` `qui` `tui`.
+ *
+ * Vì sao đổi được mà không phá bộ cũ: tag đó nằm ở ô `Tag`, còn hàm này chỉ đọc TIÊU ĐỀ, nên hôm nay
+ * **0/951 case** đổi kết quả. Đó là điều kiện để sửa — một thay đổi cách chấm chiều mà không ai đo thì
+ * không phân biệt được "sửa lỗi" với "đổi số cho đẹp".
+ *
+ * Và đây là điều kiện để §24 `time` tồn tại được: với `includes()` thì `[Timeout]`, `[Lifetime]`,
+ * `[Datetime]` đều âm thầm tính thành chiều thời gian. Thêm một tag NGẮN vào danh sách khớp-chuỗi-con là
+ * mở một lớp dương tính giả cho mọi tag về sau.
+ *
+ * `normalizeHeader` đã đổi mọi ký tự không phải chữ/số thành DẤU CÁCH, nên `[Positive, Boundary]` vẫn ra
+ * cả hai chiều — phần `includes()` thật sự có ích được giữ nguyên.
+ */
 function dimensionsOf(title) {
   const tags = (String(title || '').match(/\[([^\]]+)\]/g) || []).map((t) => normalizeHeader(t));
   const out = new Set();
-  for (const t of tags) for (const d of DIMENSION_TAGS) if (t.includes(d)) out.add(d);
+  for (const t of tags) {
+    const tu = new Set(String(t).split(' ').filter(Boolean));
+    for (const d of DIMENSION_TAGS) if (tu.has(d)) out.add(d);
+  }
   return [...out];
 }
 

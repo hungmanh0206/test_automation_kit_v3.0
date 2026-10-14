@@ -175,17 +175,33 @@ test.describe('@infra run:analysis — xu hướng chỉ khi CÙNG nguồn TC', 
 
 test.describe('@infra run:analysis — repo thật, và cấu hình thiếu', () => {
   test('chạy được trên dữ liệu THẬT, và dải báo đúng', () => {
-    /* Hai lượt thật, hai dải khác nhau — chứng minh ngưỡng phân biệt được trên dữ liệu của chính dự án. */
+    /*
+     * Hai lượt thật, hai dải khác nhau — chứng minh ngưỡng phân biệt được trên dữ liệu của chính dự án.
+     *
+     * KHÔNG GHIM SỐ PHẦN TRĂM NỮA (sửa 13/10/2026). Bản đầu ghim `28.9%` cho CSDL-9004, và nó ĐỎ khi
+     * dữ liệu task đó trôi còn `28.6%` — dải vẫn y nguyên (`KHÔNG được kết luận`), chỉ con số lẻ đổi.
+     * `testcase-status.json` là dữ liệu PROJECT SỐNG: nó bị ghi lại mỗi lượt execute và mỗi lượt gộp,
+     * nên ghim một con số lẻ ở đó làm một test ĐÚNG đỏ vì một lý do SAI.
+     *
+     * Thứ test này muốn chứng minh là **ngưỡng phân biệt được hai bộ dữ liệu thật**, không phải "bộ
+     * 9004 có đúng 28,9%". Nên nay nó ghim DẢI, và đòi hai bộ rơi vào HAI dải khác nhau — nếu ngưỡng
+     * hỏng tới mức gộp cả hai vào một dải thì test vẫn đỏ, đúng chỗ nó cần đỏ.
+     */
     const ca: [string, RegExp][] = [
-      ['outputs/CSDL/tasks/CSDL-9003/test-results/testcase-status.json', /13\.9%.*NÊU NGAY ĐẦU/s],
-      ['outputs/CSDL/tasks/CSDL-9004/test-results/testcase-status.json', /28\.9%.*KHÔNG được kết luận/s],
+      ['outputs/CSDL/tasks/CSDL-9003/test-results/testcase-status.json', /NÊU NGAY ĐẦU/s],
+      ['outputs/CSDL/tasks/CSDL-9004/test-results/testcase-status.json', /KHÔNG được kết luận/s],
     ];
+    const dai: string[] = [];
     for (const [f, mong] of ca) {
       const p = path.join(REPO, f);
       if (!fs.existsSync(p)) { test.skip(true, `không có ${f} trên máy này — dữ liệu lớp PROJECT`); return; }
       const r = spawnSync(process.execPath, [RA, '--status', p], { cwd: REPO, encoding: 'utf8', env: gateEnv() });
-      expect(`${r.stdout}${r.stderr}`, f).toMatch(mong);
+      const out = `${r.stdout}${r.stderr}`;
+      expect(out, f).toMatch(mong);
+      dai.push(mong.source);
     }
+    /* Và hai bộ phải rơi vào HAI dải khác nhau — đó mới là điều test này khẳng định. */
+    expect(new Set(dai).size, 'hai bộ dữ liệu thật phải rơi vào hai dải KHÁC nhau').toBe(2);
   });
 
   test('0 case ⇒ KHÔNG phán được, và nói rõ đây không phải đạt', () => {

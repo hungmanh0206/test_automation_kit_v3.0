@@ -107,18 +107,13 @@ Tag ghi ở **cột `Tag`**, KHÔNG ghi vào tiêu đề. Mỗi case: `[<Loại>
 >
 > `model.js` lấy **HỢP** của cột `Tag` và tiêu đề, nên bộ TC cũ (tag còn trong tiêu đề) vẫn đo được — không phải đi sửa lại bộ đã publish.
 
-| Chiều (mục) | Tag | Chiều (mục) | Tag |
-|---|---|---|---|
-| §3 Field validation | `[Validation]` | §12 Display/Field conformance | `[Display]` |
-| §4 UI (lưới/filter/sort/empty) | `[UI]` | §13 Business logic / tính toán | `[Calc]` |
-| §5 API | `[API]` | §14 BE response conformance | `[BEData]` |
-| §6 E2E | `[E2E]` | §15 Security | `[Security]` |
-| §7 Export/Import | `[Export]` | §16 Performance/Load | `[Perf]` |
-| §8 Resilience/Concurrency | `[Resilience]` | §17 Change impact/Regression | `[Impact]` |
-| §9 Side-effect/Notification | `[SideEffect]` | §10 Cross-layer guard | `[Guard]` |
-| §11 Design compliance (Figma) | `[Design]` | | |
+Bảng **chiều → tag → file → "mở khi"** nằm ở mục *Chiều coverage* phía dưới (§3–§25) — MỘT bảng, không hai.
 
-**Vì sao bắt buộc:** `npm run dim:coverage -- --enforce` đếm case **theo tag** rồi chặn nếu thiếu chiều mà `requirements/dimension_manifest.json` khai là `required`. Không có tag thì gate rơi về chế độ GỢI Ý, tức suy từ văn bản, và **tự từ chối chặn**. Lý do: đo trên bộ 530 case thật, suy diễn vừa thiếu recall vừa kém precision. Thiếu recall: §5 đếm 0 dù có 17 case nhắc "api". Kém precision: §12 nhận cả case điều hướng, vì "hiển thị" là động từ chuẩn của MỌI expected tiếng Việt. Tag là đường duy nhất để chiều coverage được **máy** gác, thay vì phụ thuộc việc bạn có đọc §3–§17 hay không.
+> Trước 13/10/2026 ở đây có bảng thứ hai chỉ gồm chiều→tag, và nó DỪNG Ở §17 trong khi thư mục `dimensions/`
+> đã tới §23: sáu chiều có file, có gate đếm, mà không có dòng nào ở bảng. Bản sao không có máy canh thì
+> trôi — bỏ bản sao rẻ hơn canh nó.
+
+**Vì sao bắt buộc:** `npm run dim:coverage -- --enforce` đếm case **theo tag** rồi chặn nếu thiếu chiều mà `requirements/dimension_manifest.json` khai `required`. Không có tag thì gate rơi về chế độ GỢI Ý (suy từ văn bản) và **tự từ chối chặn** — đo trên 530 case thật: suy diễn vừa thiếu recall (§5 đếm 0 dù 17 case nhắc "api") vừa kém precision (§12 nhận cả case điều hướng, vì "hiển thị" là động từ chuẩn của MỌI expected tiếng Việt). Tag là đường duy nhất để chiều được **máy** gác.
 
 Case phủ nhiều chiều thì ghi nhiều tag (`[Negative][Validation][Security]`). Chiều không áp dụng cho task thì khai `"n/a"` **kèm lý do** trong `dimension_manifest.json` — bỏ chiều mà không nói vì sao sẽ bị cảnh báo.
 
@@ -485,6 +480,8 @@ Khai `n/a` cho một chiều mà thực tế nó áp dụng = **bỏ chiều có
 | §21 | Accessibility (A11y) Coverage | `[A11y]` | scope có màn UI thao tác được: form/bảng/modal/menu | [`21_accessibility.md`](dimensions/21_accessibility.md) |
 | §22 | Inbound Callback / Webhook (phía NHẬN) | `[Callback]` | hệ thống NHẬN request từ bên thứ ba (VNPay/VietQR, CRM, SAP, SMS) — kể cả khi chỉ là "báo kết quả" | [`22_inbound_callback.md`](dimensions/22_inbound_callback.md) |
 | §23 | DB Persistence (bản ghi sau CRUD) | `[DbPersist]` | case có Create/Update/Delete dữ liệu — kể cả xoá mềm, kể cả đổi 1 field | [`23_db_persistence.md`](dimensions/23_db_persistence.md) |
+| §24 | Thời gian & lịch | `[Time]` | hành vi phụ thuộc THỜI ĐIỂM: hạn · kỳ · năm học · hiệu lực từ–đến · tuổi theo ngày sinh · job theo lịch | [`24_time.md`](dimensions/24_time.md) |
+| §25 | Dữ liệu cũ | `[Legacy]` | màn ĐỌC/SỬA bản ghi có TRƯỚC luật hiện tại: thiếu ô nay bắt buộc · giá trị ngoài danh mục · dữ liệu hệ tiền nhiệm | [`25_legacy.md`](dimensions/25_legacy.md) |
 
 ## 18. Self-check vét cạn biên (BẮT BUỘC trước khi kết thúc)
 Tự rà và ghi vào `reports/phase1-summary.md` (Coverage Gaps) nếu thiếu:

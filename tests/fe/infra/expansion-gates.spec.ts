@@ -389,3 +389,79 @@ test.describe('@infra §23 db persistence — 3 mắt xích + nối pipeline', (
     expect(fs.readFileSync(path.join(REPO, 'prompt_templates/run_phase2_template.md'), 'utf8')).toContain('readonly.verify.spec.ts');
   });
 });
+
+/*
+ * MỘT NGUỒN cho danh mục trục mở rộng (v2.8.1).
+ *
+ * Trước 1a, bốn máy khai bốn bộ từ vựng cho cùng năm trục — `leak_report` có `branch`/`state`,
+ * `depth.PLAN` có `concurrency`/`reverse`, `expansion_audit` có `reverse`/`fixture`, `self_review` gộp
+ * ④⑤ làm một dòng. Chỉ `field`/`surface`/`persist` có ở cả bốn, và hệ quả là không máy nào đối chiếu
+ * được "band đòi trục nào" với "trục nào đã chạy".
+ *
+ * `leak_report` CỐ Ý giữ bảng riêng vì nó mang thêm `rx` (từ khoá phân loại văn bản bug) mà ba máy kia
+ * không dùng. Bản sao có lý do thì được, nhưng bản sao KHÔNG CÓ MÁY CANH mới là chỗ trôi.
+ */
+test.describe('@infra trục mở rộng — một nguồn, không bốn bộ từ vựng', () => {
+  /* eslint-disable @typescript-eslint/no-var-requires, global-require */
+  const axes = require(path.join(REPO, 'scripts/lib/expansion/axes.js'));
+  const depth = require(path.join(REPO, 'scripts/lib/expansion/depth.js'));
+  /* eslint-enable @typescript-eslint/no-var-requires, global-require */
+
+  test('`depth.PLAN` sinh TỪ `axes.js`, không khai tay', () => {
+    for (const band of ['high', 'medium', 'low']) {
+      const mong = axes.TRUC.filter((t: { band: string[] }) => t.band.includes(band))
+        .map((t: { key: string }) => t.key);
+      expect(depth.PLAN[band], `band ${band}`).toEqual(mong);
+    }
+  });
+
+  test('band CAO phủ TRỌN band thấp — nâng band không được làm case bị soi mỏng đi', () => {
+    /* `depth.PLAN` cũ cho `state` ở medium mà KHÔNG ở high: band cao nhất thiếu một trục band thấp có. */
+    for (const t of depth.PLAN.medium) expect(depth.PLAN.high, `medium có ${t}`).toContain(t);
+    for (const t of depth.PLAN.low) expect(depth.PLAN.medium, `low có ${t}`).toContain(t);
+  });
+
+  test('mọi trục trong `PLAN` đều CÓ MÁY sinh artefact', () => {
+    /*
+     * `concurrency` từng nằm ở band high mà không máy nào sinh artefact cho nó — một dòng chữ không gì
+     * đối chiếu được. Test này chặn việc thêm lại một khoá như thế.
+     */
+    for (const band of ['high', 'medium', 'low']) {
+      for (const k of depth.PLAN[band]) {
+        const t = axes.theoKhoa(k);
+        expect(t, `trục \`${k}\` ở band ${band} không có trong axes.js`).toBeTruthy();
+        expect(t.artefact && t.artefact.re, `trục \`${k}\` không khai artefact`).toBeTruthy();
+      }
+    }
+  });
+
+  test('chiều ngược KHÔNG nằm trong danh sách trục', () => {
+    /* `CLAUDE.md` §3: "5 trục quanh case (…) **+** chiều ngược `spec:gap`". Dấu cộng đó có nghĩa. */
+    expect(axes.khoaTruc()).not.toContain(axes.CHIEU_NGUOC.key);
+    for (const band of ['high', 'medium', 'low']) {
+      expect(depth.PLAN[band], `band ${band}`).not.toContain('reverse');
+    }
+  });
+
+  test('`finding.AXES` sinh TỪ `axes.js` — id, số khoanh và phase không gõ tay', () => {
+    /* eslint-disable @typescript-eslint/no-var-requires, global-require */
+    const fnd = require(path.join(REPO, 'scripts/lib/expansion/finding.js'));
+    /* eslint-enable @typescript-eslint/no-var-requires, global-require */
+    expect(Object.keys(fnd.AXES)).toEqual([...axes.khoaTruc(), axes.CHIEU_NGUOC.key]);
+    for (const t of axes.TRUC) {
+      expect(fnd.AXES[t.key].id, `id của ${t.key}`).toBe(axes.idTruc(t));
+      expect(fnd.AXES[t.key].phase, `phase của ${t.key}`).toBe(t.phase);
+    }
+    /* Số khoanh phải DUY NHẤT: v2.8.1 thêm trục mới, và ⑥⑦ từng bị hai khoá chữ-chết chiếm sẵn. */
+    const ids = axes.TRUC.map((t: { so: number }) => t.so);
+    expect(new Set(ids).size, 'hai trục KHÔNG được trùng số khoanh').toBe(ids.length);
+    expect(fnd.AXES[axes.CHIEU_NGUOC.key].id, 'chiều ngược không mang số').toBe(axes.CHIEU_NGUOC.key);
+  });
+
+  test('`leak_report.AXES` khớp `axes.js` về khoá và thứ tự', () => {
+    const src = fs.readFileSync(path.join(REPO, 'scripts/qa/leak_report.js'), 'utf8');
+    const keys = [...src.matchAll(/^\s*key: '([a-z_]+)',$/gm)].map((m) => m[1]);
+    expect(keys, 'leak_report giữ bảng riêng vì nó mang thêm `rx` — nhưng khoá phải khớp nguồn')
+      .toEqual(axes.khoaTruc());
+  });
+});

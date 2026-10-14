@@ -46,9 +46,36 @@ test.describe('@infra mutation_check — phép tiêm phải thật sự tiêm đ
     expect(r.original).toBeNull();
   });
 
+  test('⑥ mutant quyền: lật cờ false→true, và KHÔNG chạm field nghiệp vụ có chữ "quyền"', () => {
+    const body = {
+      data: {
+        canEdit: false, duoc_phep: false,
+        so_quyen_sach: 3, quyen_su_dung_dat: 'có', canhBaoHienThi: false, island: false,
+      },
+    };
+    const r = mut.mutateBody(body, 'grant_permission');
+    expect(r.changed, 'phải tiêm được vào cờ quyền thật').toContain('canEdit');
+    expect(body.data.canEdit).toBe(true);
+    /*
+     * VẾ ÂM — chỗ mẫu này suýt sai HAI lần. Dò chữ `quyen` trần thì `so_quyen_sach` và
+     * `quyen_su_dung_dat` đều trúng; và bật cờ `/i` cho mẫu camelCase thì `canhBaoHienThi`/`island`
+     * trúng, vì `[A-Z]` khi đó khớp luôn chữ thường. Tiêm nhầm làm mutant "sống sót" vì bộ kiểm đúng ra
+     * KHÔNG phải bắt — tức điểm mutation tụt vì một lý do bịa ra.
+     */
+    expect(body.data.so_quyen_sach, 'số quyển sách không phải quyền').toBe(3);
+    expect(body.data.quyen_su_dung_dat).toBe('có');
+    expect(body.data.canhBaoHienThi, '`canh`… không phải `can`+chữ HOA').toBe(false);
+    expect(body.data.island, '`is`+`l` thường không phải cờ `isX`').toBe(false);
+  });
+
+  test('⑥ cờ quyền đã `true` thì KHÔNG tiêm — bật thứ đang bật không chứng minh gì', () => {
+    const r = mut.mutateBody({ data: { canEdit: true, isAdmin: true } }, 'grant_permission');
+    expect(r.changed, 'không có gì để lật thì phải báo KHÔNG tiêm được').toBeNull();
+  });
+
   test('bộ mutant mặc định nhắm đúng các lớp bug ĐÃ từng lọt', () => {
     const ids = mut.DEFAULT_MUTANTS.map((m: any) => m.id);
-    for (const id of ['zero_out', 'drop_field', 'halve_number', 'stringify_num']) expect(ids).toContain(id);
+    for (const id of ['zero_out', 'drop_field', 'halve_number', 'stringify_num', 'grant_permission']) expect(ids).toContain(id);
     for (const m of mut.DEFAULT_MUTANTS) expect(String(m.why).length, 'mỗi mutant phải nói rõ nhắm lớp bug nào').toBeGreaterThan(10);
   });
 });

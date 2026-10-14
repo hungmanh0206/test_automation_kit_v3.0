@@ -85,8 +85,36 @@ function docSo() {
 }
 
 /** Chạy cả bộ THẬT rồi ghi sổ. Trả bản ghi. */
+/*
+ * TYPECHECK TRƯỚC KHI CHẠY SUITE (thêm 13/10/2026, v2.8.1).
+ *
+ * Vì sao: Playwright chạy spec `.ts` qua transpile-only — nó KHÔNG kiểm kiểu. Nên một spec sai kiểu vẫn
+ * chạy xanh trong repo, rồi `npm run typecheck` của `release:verify` mới đỏ, tức lỗi lộ ra ở bước phát
+ * hành chứ không phải lúc viết. Đã xảy ra thật với `oracle-calc.spec.ts`: 3 lỗi `TS2339` đi qua trọn
+ * một lượt `full:suite` xanh và chỉ chết trong gói.
+ *
+ * Sổ KHÔNG được ghi khi typecheck đỏ: nói "cả bộ xanh" về một cây không biên dịch nổi là nói sai.
+ */
+function kiemKieu() {
+  const r = spawnSync('npm', ['run', 'typecheck'], {
+    cwd: REPO, encoding: 'utf8', shell: process.platform === 'win32', maxBuffer: 1024 * 1024 * 32,
+  });
+  if (r.status === 0) return null;
+  const out = `${r.stdout || ''}${r.stderr || ''}`;
+  const loi = out.split(/\r?\n/).filter((l) => /error TS\d+/.test(l)).slice(0, 8);
+  return loi.length ? loi : [out.slice(-400)];
+}
+
 function chay({ im = false } = {}) {
   const truoc = vanTayGoi();
+  if (!im) {
+    console.log('[full-suite] typecheck trước — Playwright chạy transpile-only nên KHÔNG tự bắt lỗi kiểu.');
+  }
+  const loiKieu = kiemKieu();
+  if (loiKieu) {
+    const dau = "\n    ";
+    return { loi: `typecheck ĐỎ — không ghi sổ:${dau}${loiKieu.join(dau)}` };
+  }
   if (!im) {
     console.log(`[full-suite] chạy ${PHAM_VI} với --workers=${WORKERS} — đây là lượt ĐO, không phải lời khai.`);
   }

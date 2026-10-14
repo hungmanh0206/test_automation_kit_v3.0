@@ -17,6 +17,7 @@ const fs = require('fs');
 const path = require('path');
 const REPO = process.argv[2] || path.resolve(__dirname, '..', '..');
 const depth = require(path.join(REPO, 'scripts/lib/expansion/depth.js'));
+const axes = require(path.join(REPO, 'scripts/lib/expansion/axes.js'));
 const canonical = require(path.join(REPO, 'scripts/lib/testcase'));
 // Thư mục testcase lấy từ MỘT nguồn (runtime_config) — ghép tay ở đây là tự tạo lại đúng lỗi mà
 // check "thêm nguồn mới không được làm script đếm thiếu" sinh ra để chống.
@@ -25,16 +26,56 @@ const { getTestcaseDirs } = require(path.join(REPO, 'scripts/utils/runtime_confi
 const glob1 = (dir, rx) => (fs.existsSync(dir) ? fs.readdirSync(dir).filter((f) => rx.test(f)) : []);
 
 /** Bản sao NGUYÊN VĂN cách self_review #10 xét "trục đã chạy chưa". */
+/**
+ * Trục nào đã có artefact trong task này.
+ *
+ * ĐỌC TỪ MỘT NGUỒN `scripts/lib/expansion/axes.js` (v2.8.1 bước 1a). Trước đó file này khai bộ khoá
+ * RIÊNG — `fixture` (tên artefact, gánh cả ④ lẫn ⑤) và `reverse` — khác với `leak_report.AXES`, khác
+ * `depth.PLAN`, khác bảng của `self_review`. Bốn bộ từ vựng cho cùng một thứ, và hệ quả là không máy
+ * nào đối chiếu được "band này đòi trục nào" với "trục nào đã chạy".
+ *
+ * BƯỚC 1a KHÔNG ĐỔI HÀNH VI: khoá `fixture` GIỮ NGUYÊN (④⑤ vẫn chung một ô), chỉ là định nghĩa của nó
+ * nay lấy từ nguồn chung. Việc tách `fixture` thành `branch`/`state` là bước 1b, commit riêng — gom và
+ * sửa cùng lúc thì khi một máy vỡ, không biết nó vỡ vì gom hay vì sửa.
+ */
 function axesRan(taskDir) {
   const resDir = path.join(taskDir, 'test-results');
   const repDir = path.join(taskDir, 'reports');
-  return {
-    field: glob1(resDir, /^conformance/).some((d) => fs.existsSync(path.join(resDir, d, 'conformance_report.json'))),
-    reverse: glob1(repDir, /spec-gap/i).length > 0,
-    surface: glob1(repDir, /cross-surface/i).length > 0,
-    persist: glob1(repDir, /persist|probe/i).length > 0,
-    fixture: glob1(repDir, /fixture-matrix/i).length > 0,
+  const thuMuc = { 'test-results': resDir, reports: repDir };
+  const co = (t) => {
+    const a = t.artefact;
+    const ds = glob1(thuMuc[a.thuMuc], a.re);
+    if (!a.doiFile) return ds.length > 0;
+    return ds.some((d) => fs.existsSync(path.join(thuMuc[a.thuMuc], d, a.doiFile)));
   };
+  const ra = {};
+  for (const t of axes.TRUC) ra[t.key] = co(t);
+  /*
+   * `reverse` TÁCH RIÊNG, không nằm trong `truc` (v2.8.1 bước 1b).
+   *
+   * `CLAUDE.md` §3 viết "5 trục quanh case (…) **+** chiều ngược `spec:gap`" — dấu cộng đó có nghĩa:
+   * nó đi từ build về tài liệu, ngược hướng với năm trục kia. Đếm nó vào mẫu số trục làm một task chỉ
+   * chạy `spec:gap` trông như "đã soi 1/5 trục", trong khi chưa trục nào được soi.
+   *
+   * Và `fixture` (tên ARTEFACT, gánh cả ④ lẫn ⑤) nay tách thành `branch` + `state`. Hệ quả có thật:
+   * một task có `fixture-matrix` trước đây đếm 1, nay đếm 2 — vì bảng fixture-matrix thật sự phủ cả
+   * hai trục. Đây là đổi hành vi CÓ CHỦ Ý của 1b, đo được ở bảng so sánh trong commit.
+   */
+  return { truc: ra, reverse: co(axes.CHIEU_NGUOC) };
+}
+
+/**
+ * Trục mà band này ĐÒI nhưng task CHƯA chạy.
+ *
+ * Đây là phép đối chiếu `band → trục` đầu tiên của kit. Trước 1b, bảng `depth.PLAN` chỉ được in ra:
+ * hai nơi dùng đều ở `expansion_plan` (một `console.log`, một dòng markdown), còn `axesRan` và bảng
+ * `self_review` dùng khoá riêng và không đọc `PLAN`. Nên câu "case band high này đã mở đủ trục chưa"
+ * KHÔNG máy nào trả lời được — chỉ trả lời được "có artefact nào không".
+ */
+function trucThieu(band, ranTruc) {
+  /* `band === null` ⇒ không đọc được band nào ⇒ KHÔNG đòi trục nào. Xem ghi chú ở chỗ tính `bandNang`. */
+  if (!band) return [];
+  return (depth.PLAN[band] || []).filter((k) => !ranTruc[k]);
 }
 
 /** Báo cáo tồn tại nhưng proven=0 thì KHÔNG tính là đã soi (self_review cũng bắt điểm này). */
@@ -102,7 +143,21 @@ function readExecuted(taskDir) {
       }
       const ran = axesRan(taskDir);
       const hasPlan = glob1(path.join(taskDir, 'reports'), /expansion-plan/i).length > 0;
-      rows.push({ task, executed: executed.length, ...bands, ran, hasPlan, ranCount: Object.values(ran).filter(Boolean).length, provenZero: provenZero(taskDir) });
+      /*
+       * Band NẶNG NHẤT của task, và `null` khi KHÔNG ĐỌC ĐƯỢC band nào.
+       *
+       * Bản đầu của tôi viết `… : 'low'` ở nhánh cuối, nên một task chỉ có case `unknown` band bị gán
+       * `low` rồi báo "thiếu trục ③" — tức SUY BAND TỪ KHÔNG CÓ DỮ LIỆU. Đó đúng cái `depth.thieuBand`
+       * sinh ra để chống: một ô trống không được lặng lẽ thành một tầng. `null` ⇒ không đòi trục nào,
+       * và con số `?` ở bảng đã nói ra có bao nhiêu case không tra được band.
+       */
+      const bandNang = bands.high > 0 ? 'high' : (bands.medium > 0 ? 'medium' : (bands.low > 0 ? 'low' : null));
+      rows.push({
+        task, executed: executed.length, ...bands, ran: ran.truc, reverse: ran.reverse, hasPlan,
+        ranCount: Object.values(ran.truc).filter(Boolean).length,
+        bandNang, thieu: trucThieu(bandNang, ran.truc),
+        provenZero: provenZero(taskDir),
+      });
     }
   }
 
@@ -112,7 +167,7 @@ function readExecuted(taskDir) {
   console.log('-'.repeat(96));
   for (const r of rows) {
     const names = Object.entries(r.ran).filter(([, v]) => v).map(([k]) => k).join(',') || '—';
-    console.log(pad(r.task, 14) + pad(r.executed, 6) + pad(r.high, 6) + pad(r.medium, 5) + pad(r.low, 5) + pad(r.unknown, 5) + pad(`${r.ranCount}/5`, 14) + names);
+    console.log(pad(r.task, 14) + pad(r.executed, 6) + pad(r.high, 6) + pad(r.medium, 5) + pad(r.low, 5) + pad(r.unknown, 5) + pad(`${r.ranCount}/${axes.TRUC.length}`, 14) + names);
   }
 
   // ĐANG ÁP trong self_review #10 — hai luật này phải khớp với code ở đó, không thì phép đo vô nghĩa.
@@ -122,7 +177,8 @@ function readExecuted(taskDir) {
   };
   // CHƯA áp — để cân nhắc siết tiếp khi hai luật trên đã thành nếp.
   const NEXT = {
-    'có case high mà 0/5 trục': (r) => r.high > 0 && r.ranCount === 0,
+    'có case high mà 0 trục': (r) => r.high > 0 && r.ranCount === 0,
+    'thiếu trục mà band đòi': (r) => r.thieu.length > 0,
     'bắt buộc trục ③ persist': (r) => r.high > 0 && !r.ran.persist,
   };
   const show = (title, V) => {

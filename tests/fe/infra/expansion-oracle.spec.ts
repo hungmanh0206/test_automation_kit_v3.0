@@ -72,8 +72,20 @@ test.describe('@infra độ sâu theo risk band (chi phí là thật)', () => {
 
   test('high mở đủ trục runtime; medium/low thu hẹp', () => {
     const hi = depth.axesFor({ risk: 'Critical' });
-    for (const a of ['field', 'surface', 'persist', 'concurrency', 'reverse']) expect(hi).toContain(a);
-    expect(depth.axesFor({ risk: 'Major' })).toEqual(['persist', 'state']);
+    /*
+     * Danh sách này đổi ở v2.8.1 1b: `concurrency` và `reverse` RA, `branch` và `state` VÀO. Không phải
+     * nới test cho xanh — số trục của band high vẫn là 5, và hai khoá bị bỏ là hai khoá KHÔNG có máy nào
+     * sinh artefact (`concurrency`) hoặc không phải trục (`reverse` = "+ chiều ngược" của CLAUDE.md §3).
+     * Đổi lại, band high nay phủ TRỌN band medium, chuyện trước đây không đúng.
+     */
+    for (const a of ['field', 'surface', 'persist', 'branch', 'state', 'authz', 'oracle_calc']) expect(hi).toContain(a);
+    /* 7 từ v2.8.1: ⑥`authz` (bước 2) và ⑦`oracle_calc` (bước 3). Số này chỉ TĂNG khi trục mới có máy. */
+    expect(hi, 'bỏ trục phải là bỏ CÓ LÝ DO, không phải thu nhỏ độ sâu').toHaveLength(7);
+    /*
+     * Medium nhận thêm ⑦ chứ không nhận ⑥: oracle là code thuần (`chi_phi` {loads:0, shots:0}), nên lý
+     * lẽ "band thấp phải thu hẹp vì chi phí" không áp cho nó. ⑥ thì cần drive app theo từng vai trò.
+     */
+    expect(depth.axesFor({ risk: 'Major' })).toEqual(['persist', 'state', 'oracle_calc']);
     expect(depth.axesFor({ risk: 'Minor', priority: 'Low' })).toEqual(['persist']);
   });
 
@@ -89,8 +101,10 @@ test.describe('@infra độ sâu theo risk band (chi phí là thật)', () => {
   test('④branch/⑤state được đánh dấu thuộc Phase 1 (đoán trước được từ tài liệu)', () => {
     expect(fnd.AXES.branch.phase, 'case ④ sinh được từ permission matrix ⇒ Phase 1').toBe(1);
     expect(fnd.AXES.state.phase, 'case ⑤ sinh được từ state machine ⇒ Phase 1').toBe(1);
-    for (const a of ['field', 'surface', 'persist', 'concurrency', 'reverse']) {
+    for (const a of ['field', 'surface', 'persist', 'reverse', 'authz']) {
       expect(fnd.AXES[a].phase, `${a} cần DOM/response thật ⇒ Phase 2`).toBe(2);
     }
+    expect(fnd.AXES.concurrency, '`concurrency` đã bỏ ở 1b — chưa máy nào sinh artefact cho nó').toBeUndefined();
+    expect(fnd.AXES.reverse.id, 'chiều ngược KHÔNG mang số khoanh: nó không phải trục thứ N').toBe('reverse');
   });
 });

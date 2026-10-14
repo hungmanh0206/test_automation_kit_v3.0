@@ -31,7 +31,7 @@
     "Backlog bug gate",
     "Sync execution lên Google Sheet (Phase 2 QA-gated)",
     "Cleanup",
-    "5 trục mở rộng quanh case (Phase 2)",
+    "7 trục mở rộng quanh case (Phase 2)",
     "Mở rộng quanh case: ĐIỀU KIỆN SỐNG CÒN là oracle",
     "ASSERT tín hiệu môi trường",
     "Chứng minh bộ kiểm bắt được bug",
@@ -42,5 +42,8 @@
     "Biến thiên data theo `RUN_ID`",
     "Verification theo ASSERTION",
     "Visual regression"
+  ],
+  "_doi_ten": [
+    "13/10/2026 (v2.8.1): \"5 trục…\" → \"7 trục…\" — thêm ⑥ phân quyền và ⑦ oracle tính toán. ĐỔI TÊN, không phải thêm/bớt luật: nội dung gạch đầu dòng vẫn là một luật, và số luật không đổi."
   ]
 }

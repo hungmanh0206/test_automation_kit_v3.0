@@ -84,7 +84,14 @@ test.describe('@infra load_map — điều kiện nạp phải là lời khai, k
     const covSrc = fs.readFileSync(path.join(REPO, 'scripts/qa/dimension_coverage.js'), 'utf8');
     const anh = MAP.luong.phase1_chieu_coverage.anh_xa as Record<string, string>;
     const khoa = Object.keys(anh);
-    expect(khoa.length, 'phải đủ 20 chiều').toBe(20);
+    /*
+     * Số này KHÔNG gõ tay nữa (v2.8.1 bước 4): nó từng là `20` và phải sửa tay mỗi lần thêm chiều — tức
+     * đúng loại hằng số làm người ta sửa test cho xanh thay vì hỏi vì sao test đỏ. Mẫu số lấy từ thư mục
+     * chiều, là nguồn duy nhất của câu "có bao nhiêu chiều".
+     */
+    const soFileChieu = fs.readdirSync(path.join(REPO, 'prompt_templates/phase1/dimensions'))
+      .filter((f) => /^\d+_.*\.md$/.test(f)).length;
+    expect(khoa.length, `phải đủ ${soFileChieu} chiều (bằng số file trong dimensions/)`).toBe(soFileChieu);
     for (const k of khoa) {
       expect(covSrc, `khoá chiều "${k}" không có trong dimension_coverage.js`).toContain(`'${k}'`);
     }

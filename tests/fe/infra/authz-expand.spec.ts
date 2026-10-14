@@ -1,0 +1,166 @@
+import { test, expect } from '@playwright/test';
+import * as fs from 'fs';
+import * as path from 'path';
+import { execFileSync } from 'child_process';
+import { gateEnv } from './_gate_env';
+import { thuMucTam, donThuMucTam } from './_thu_muc_tam';
+
+/*
+ * Trục ⑥ `authz` — `scripts/qa/authz_expand.js`.
+ *
+ * Điều cần khoá KHÔNG phải "máy chạy được", mà là **máy không bao giờ báo đã phủ khi chưa đo**. Phân
+ * quyền là chỗ dễ nhất để một báo cáo trông đầy đủ: mọi ô ghi "bị chặn" đọc rất yên tâm, kể cả khi chưa
+ * ô nào được thử. Nên mỗi test dưới đây đều có một vế ÂM: thứ máy KHÔNG được kết luận.
+ */
+
+const REPO = path.resolve(__dirname, '..', '..', '..');
+const node = process.execPath;
+const MAY = path.join(REPO, 'scripts', 'qa', 'authz_expand.js');
+
+type Ket = { ma: number; ra: string; bao: string };
+
+function chay(tmp: string, them: string[] = []): Ket {
+  const out = path.join(tmp, 'authz-expansion.md');
+  let ma = 0;
+  let ra = '';
+  try {
+    ra = execFileSync(node, [MAY, '--out', out, ...them], {
+      cwd: REPO, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'],
+      env: gateEnv({ TASK_KEY: 'DEMO-AUTHZ', PROJECT_OUTPUT_DIR: tmp }),
+    });
+  } catch (e) {
+    const err = e as { status?: number; stdout?: string; stderr?: string };
+    ma = err.status ?? 1;
+    ra = `${err.stdout || ''}${err.stderr || ''}`;
+  }
+  return { ma, ra, bao: fs.existsSync(out) ? fs.readFileSync(out, 'utf8') : '' };
+}
+
+/** Dựng một task giả: thư mục case + (tuỳ chọn) ma trận vai trò × route. */
+function dungTask(tmp: string, o: { cases?: string; maTran?: unknown }): void {
+  const d = path.join(tmp, 'tasks', 'DEMO-AUTHZ');
+  fs.mkdirSync(path.join(d, 'test-cases'), { recursive: true });
+  fs.mkdirSync(path.join(d, 'test-results'), { recursive: true });
+  if (o.cases) fs.writeFileSync(path.join(d, 'test-cases', 'tc.md'), o.cases);
+  if (o.maTran) fs.writeFileSync(path.join(d, 'test-results', 'roles.json'), JSON.stringify(o.maTran, null, 2));
+}
+
+/* Một bảng canonical tối thiểu: 1 case band HIGH (band high là band duy nhất đòi trục ⑥). */
+const BANG = [
+  '| ID | Module | Tiêu đề | Tiền điều kiện | Dữ liệu | Các bước | Kết quả mong đợi | Ưu tiên |',
+  '|---|---|---|---|---|---|---|---|',
+  '| TC-01 | Hồ sơ | Sửa hồ sơ trường | Đăng nhập bằng tài khoản `hieu_truong` | — | 1. Mở màn | 1. Lưu được | High |',
+  '',
+].join('\n');
+
+const MA_TRAN = {
+  roles: [
+    { ten: 'hieu_truong', co_tai_khoan: true },
+    { ten: 'giao_vien', co_tai_khoan: true },
+    { ten: 'thanh_tra', co_tai_khoan: false },
+  ],
+  role_route_matrix: [
+    { role: 'giao_vien', route: '/ho-so', quan_sat: 'bi_chan', muc_bang_chung: 'verified', vai_khac_thay: [] },
+    { role: 'giao_vien', route: '/bao-cao', quan_sat: 'khong_ro', muc_bang_chung: 'unknown', vai_khac_thay: [] },
+    { role: 'thanh_tra', route: '/ho-so', quan_sat: 'khong_co_tai_khoan', muc_bang_chung: 'unknown', vai_khac_thay: [] },
+  ],
+  expansion_findings: [
+    { role: 'giao_vien', route: '/admin', vi_sao: 'ẩn khỏi menu giao_vien, hieu_truong thấy, mở thẳng URL thì vào được' },
+  ],
+};
+
+let tmp = '';
+test.beforeEach(() => { tmp = thuMucTam('authz'); });
+test.afterEach(() => { donThuMucTam(tmp); });
+
+test.describe('@infra trục ⑥ authz — liệt kê biến thể phân quyền', () => {
+  test('THIẾU ma trận ⇒ CHƯA ĐO (exit 2, proven=0), KHÔNG phải "không có vấn đề"', () => {
+    dungTask(tmp, { cases: BANG });
+    const k = chay(tmp);
+
+    /* exit 2, không phải 0 và cũng không phải 1: "không phán được" có mã riêng của nó. */
+    expect(k.ma, 'thiếu đầu vào là KHÔNG PHÁN ĐƯỢC, không phải đạt và cũng không phải sai').toBe(2);
+    expect(k.bao).toContain('<!-- gate: proven=0');
+    expect(k.bao).toContain('CHƯA ĐO ĐƯỢC');
+    /* VẾ ÂM — chỗ nguy hiểm nhất: một báo cáo rỗng đọc thành một báo cáo sạch. */
+    expect(k.bao, 'proven=0 KHÔNG được kể như đã kiểm').not.toMatch(/không có vấn đề|đạt|an toàn|OK\b/i);
+    expect(k.bao).toContain('KHÔNG có nghĩa "phân quyền ổn"');
+    expect(k.ra, 'phải chỉ ra chạy gì để đo được').toContain('discover');
+  });
+
+  test('KHÔNG khai `thu_bac` ⇒ không tự xếp hạng vai trò, và nói thẳng là chưa phủ chiều dọc', () => {
+    dungTask(tmp, { cases: BANG, maTran: MA_TRAN });
+    const k = chay(tmp, ['--config', path.join(tmp, 'khong-co.json')]);
+
+    expect(k.ma).toBe(0);
+    /*
+     * Tiền đề của thiết kế ("mỗi vai trò THẤP HƠN") bị bác khi đo: repo không khai thứ bậc ở đâu cả.
+     * Máy vẫn liệt kê biến thể, nhưng phải gọi đúng tên nhóm — `doc_chua_xep_hang`, không phải `doc`.
+     */
+    expect(k.bao).toContain('doc_chua_xep_hang');
+    expect(k.bao, 'không được in ra như đã phủ chiều dọc').not.toMatch(/\| doc \|/);
+    expect(k.bao).toMatch(/Khai `thu_bac`/);
+  });
+
+  test('khai `thu_bac` ⇒ chỉ sinh biến thể cho vai trò THẤP HƠN, không sinh cho vai trò cao hơn', () => {
+    dungTask(tmp, { cases: BANG, maTran: MA_TRAN });
+    const cfg = path.join(tmp, 'authz_matrix.json');
+    fs.writeFileSync(cfg, JSON.stringify({ thu_bac: ['hieu_truong', 'giao_vien', 'thanh_tra'] }));
+    const k = chay(tmp, ['--config', cfg]);
+
+    expect(k.ma).toBe(0);
+    expect(k.bao).toMatch(/\| doc \| TC-01 \| giao_vien/);
+    expect(k.bao).toMatch(/\| doc \| TC-01 \| thanh_tra/);
+    /* VẾ ÂM: `hieu_truong` là vai trò của chính case — không có biến thể "leo lên chính mình". */
+    expect(k.bao, 'không sinh biến thể dọc cho vai trò của chính case').not.toMatch(/\| doc \| TC-01 \| hieu_truong/);
+  });
+
+  test('ô `unknown` và `needs_account` KHÔNG tính vào `proven`', () => {
+    dungTask(tmp, { cases: BANG, maTran: MA_TRAN });
+    const cfg = path.join(tmp, 'authz_matrix.json');
+    fs.writeFileSync(cfg, JSON.stringify({ thu_bac: ['hieu_truong', 'giao_vien', 'thanh_tra'] }));
+    const k = chay(tmp, ['--config', cfg]);
+
+    const m = k.bao.match(/proven=(\d+) inconclusive=(\d+)/);
+    expect(m, 'báo cáo phải có dòng máy đọc được').toBeTruthy();
+    const proven = Number(m![1]);
+    const inconclusive = Number(m![2]);
+
+    /*
+     * Ma trận dựng sẵn có ĐÚNG hai ô là bằng chứng: 1 ô `verified` của `giao_vien` (/ho-so) và 1
+     * EXPANSION_FINDING ẩn≠cấm. Mọi ô còn lại là `unknown` / `needs_account` / `needs_config` /
+     * `chi_chay_tay` — phép đo CHƯA xảy ra.
+     */
+    expect(proven, 'chỉ ô verified + finding ẩn≠cấm mới là bằng chứng').toBe(2);
+    expect(inconclusive, 'phần còn lại phải nằm ở cột chưa kết luận, không bị nuốt').toBeGreaterThan(0);
+    expect(k.bao).toContain('needs_account');
+    expect(k.bao).toMatch(/Xin tài khoản vai trò `thanh_tra`/);
+  });
+
+  test('ẩn ≠ cấm ⇒ FAIL, và `--enforce` chặn', () => {
+    dungTask(tmp, { cases: BANG, maTran: MA_TRAN });
+    const cfg = path.join(tmp, 'authz_matrix.json');
+    fs.writeFileSync(cfg, JSON.stringify({ thu_bac: ['hieu_truong', 'giao_vien', 'thanh_tra'] }));
+
+    expect(chay(tmp, ['--config', cfg]).ma, 'không có --enforce thì chỉ báo cáo').toBe(0);
+    const k = chay(tmp, ['--config', cfg, '--enforce']);
+    expect(k.ma, '--enforce phải chặn khi có leo thang quyền').toBe(1);
+    expect(k.bao).toMatch(/\| an_khac_cam \|.*\| fail \|/);
+  });
+
+  test('biến thể GHI được liệt kê nhưng KHÔNG tự chạy — và máy không gửi request nào', () => {
+    dungTask(tmp, { cases: BANG, maTran: MA_TRAN });
+    const cfg = path.join(tmp, 'authz_matrix.json');
+    fs.writeFileSync(cfg, JSON.stringify({ thu_bac: ['hieu_truong', 'giao_vien', 'thanh_tra'] }));
+    const k = chay(tmp, ['--config', cfg]);
+
+    expect(k.bao).toMatch(/\| ghi \|.*\| chi_chay_tay \|/);
+    /*
+     * Khoá theo HƯỚNG, không theo một chuỗi: máy này không được phép mở mạng. Ngày nào ai thêm `fetch`,
+     * `axios`, `http.request` hay `page.goto` vào đây là ngày test này đỏ — vì gửi một request GHI để
+     * thử 403 nghĩa là NẾU phân quyền hỏng thì đã ghi thật vào UAT.
+     */
+    const src = fs.readFileSync(MAY, 'utf8').replace(/\/\*[\s\S]*?\*\/|^\s*\/\/.*$/gm, '');
+    expect(src, 'máy LIỆT KÊ không được tự gửi request').not.toMatch(/\bfetch\s*\(|require\(['"](?:http|https|axios|node-fetch)['"]\)|page\.goto/);
+  });
+});

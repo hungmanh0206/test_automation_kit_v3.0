@@ -42,7 +42,16 @@ const TASK = arg('task', process.env.TASK_KEY || '');
 const BASE = String(process.env.BACKLOG_BASE_URL || '').replace(/\/+$/, '');
 const API_KEY = process.env.BACKLOG_API_KEY || '';
 
-// Trục phát hiện: mỗi trục = một loại máy. Từ khoá lấy từ cách bug thật được mô tả trong task.
+/*
+ * Trục phát hiện: mỗi trục = một loại máy. Từ khoá lấy từ cách bug thật được mô tả trong task.
+ *
+ * `id`/`key`/`ten`/`may` PHẢI KHỚP `scripts/lib/expansion/axes.js` — nguồn duy nhất của danh mục trục
+ * (v2.8.1). Ở đây KHÔNG sinh từ nguồn đó, và lý do là `rx`: nó phân loại VĂN BẢN BUG, thuộc việc của
+ * `leak:report`, và đưa nó vào nguồn chung thì ba máy kia phải mang theo một thứ chúng không dùng.
+ *
+ * Đổi lại, có máy canh: `tests/fe/infra/expansion-gates.spec.ts` đối chiếu `key` và thứ tự của bảng này
+ * với `axes.TRUC`. Hai bản sao KHÔNG có máy canh mới là chỗ trôi — đợt v2.8.0 đã trả giá năm lần.
+ */
 const AXES = [
   {
     id: 1,
@@ -78,6 +87,36 @@ const AXES = [
     ten: 'Trạng thái kế cận (sau hủy/hoàn/lost)',
     may: 'fixture_matrix — npm run fixture:matrix',
     rx: /sau khi (?:hủy|huỷ|hoàn|thanh toán|xác nhận|edit)|đã hủy|cancel(?:led)? order|deal lost|trạng thái .*(?:không|vẫn)|guard|chặn .*trạng thái/i,
+  },
+  {
+    id: 6,
+    key: 'authz',
+    ten: 'Phân quyền quanh case (dọc · ngang/IDOR · ẩn≠cấm)',
+    may: 'authz_expand — npm run authz:expand',
+    /*
+     * ĐỐI CHỨNG khi viết mẫu này (13/10/2026) — bắt được: "tài khoản giáo viên vẫn vào được màn quản
+     * trị", "ẩn nút Xoá nhưng gọi API vẫn xoá được", "xem được hồ sơ trường khác". KHÔNG bắt (đúng): "ô
+     * Quyền sử dụng đất hiển thị sai" (chữ `quyền` trong tên field nghiệp vụ, không phải phân quyền) và
+     * "phân bổ hạn mức tín dụng sai" (chuyện nghiệp vụ). Vì thế mẫu KHÔNG dò chữ `quyền` trần — nó đòi
+     * một động từ truy cập đứng cùng, hoặc một từ khoá phân quyền rõ nghĩa.
+     *
+     * `401`/`403` phải chặn hai đầu bằng lookbehind/lookahead số: đối chứng âm bắt được "mã 4030 hiển
+     * thị lệch" khớp vì `403` nằm TRONG `4030`. Một mã lỗi HTTP viết trần là mồi dương tính giả.
+     */
+    rx: /phân quyền|không có quyền|leo thang quyền|(?:vai trò|role|tài khoản) .*(?:vẫn (?:vào|xem|sửa|xoá|xóa)|truy cập được|không bị chặn)|ẩn .*(?:nhưng|mà) .*(?:vẫn|gọi|api)|(?<![0-9])(?:401|403)(?![0-9])|idor|xem được .*(?:của )?(?:người|đơn vị|trường|lớp|khách) khác/i,
+  },
+  {
+    id: 7,
+    key: 'oracle_calc',
+    ten: 'Giá trị tính toán (tổng · ngưỡng · giá trị dẫn xuất)',
+    may: 'oracle_calc_check — npm run oracle:calc',
+    /*
+     * ĐỐI CHỨNG khi viết mẫu (13/10/2026) — bắt được: "ô tổng không cộng lại khi sửa chi tiết", "sĩ số
+     * 40 vượt ngưỡng 35 vẫn lưu được", "thành tiền tính sai", "làm tròn sai ở chữ số thứ hai". KHÔNG bắt
+     * (đúng): "tổng đài hỗ trợ không phản hồi", "danh sách tổng hợp không mở được", "tổng quan hiển thị
+     * chậm". Vì thế mẫu KHÔNG dò chữ `tổng` trần — `tổng đài`, `tổng hợp`, `tổng quan` đều là từ khác.
+     */
+    rx: /(?:tính|cộng|trừ|nhân|chia|làm tròn) (?:sai|lệch|nhầm|thiếu|thừa)|sai (?:công thức|phép tính)|ô tổng .*(?:không|sai|lệch)|tổng (?:không (?:khớp|cộng|bằng)|bị sai|sai)|vượt ngưỡng .*(?:vẫn|không bị)|(?:thành tiền|số tiền|điểm trung bình|sĩ số) .*(?:sai|lệch)/i,
   },
 ];
 

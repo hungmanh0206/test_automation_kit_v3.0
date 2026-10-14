@@ -158,6 +158,8 @@ const COLOR = {
 const DIMENSION_TO_TEST_TYPE = {
   positive: "Positive", negative: "Negative", boundary: "Boundary", validation: "Validation",
   security: "Security", perf: "Performance", api: "API", dbpersist: "Database",
+  // §24/§25 (v2.8.1): cả hai là hành vi chức năng, không phải loại case riêng ở TCM.
+  time: "Functional", legacy: "Functional",
   regression: "Regression", e2e: "E2E", a11y: "Accessibility", ui: "UI", display: "UI",
   // — bổ sung 25/09/2026 —
   calc: "Business Rule",        // §13 giá trị TÍNH ra theo rule nghiệp vụ
