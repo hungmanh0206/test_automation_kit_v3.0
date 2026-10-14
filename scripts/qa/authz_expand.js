@@ -61,6 +61,19 @@ const TT = {
   unknown: 'unknown',              // CHƯA THỬ — không phải pass
   needs_account: 'needs_account',  // thiếu tài khoản vai trò đó (security_check: NEEDS_ACCOUNT)
   needs_config: 'needs_config',    // thiếu khai báo (thứ bậc / chủ sở hữu) nên chưa sinh được biến thể
+  /*
+   * KHÁC `needs_account`: vai trò đó KHÔNG TỒN TẠI và sẽ không có, nên không phải "chờ xin".
+   *
+   * Vì sao phải tách (14/10/2026): chủ dự án xác nhận QEMIS chỉ có tài khoản admin, không có tài khoản
+   * trường. Để nguyên `needs_account` thì mỗi lượt chạy lại sinh một câu hỏi Critical "xin tài khoản
+   * vai trò truong" cho thứ không bao giờ có — và một cửa kêu mãi về chuyện không sửa được là một cửa
+   * người ta học cách bỏ qua. Nhưng nó cũng KHÔNG được thành PASS: phép đo vẫn chưa xảy ra.
+   *
+   * Điều kiện để dùng: config phải khai `khong_co_tai_khoan[<vai trò>]` với `vi_sao`, `xac_nhan_boi`,
+   * `ngay`. Thiếu một trong ba thì máy vẫn coi là `needs_account` — một khoảng trống năng lực không có
+   * người chịu trách nhiệm thì nó chỉ là một chỗ bỏ qua được viết cho gọn.
+   */
+  thieu_nang_luc: 'thieu_nang_luc',
   chi_chay_tay: 'chi_chay_tay',    // biến thể GHI — không tự chạy trên UAT
 };
 /* Chỉ hai trạng thái này là BẰNG CHỨNG. `unknown`/`needs_*`/`chi_chay_tay` đều là phép đo CHƯA xảy ra. */
@@ -145,6 +158,16 @@ function main() {
   const traKq = (ref, moTa) => kq.find((x) => String(x.oracle_ref) === String(ref)
     && String(x.mo_ta || '').trim() === String(moTa || '').trim());
 
+  /*
+   * Vai trò ĐƯỢC KHAI LÀ KHÔNG CÓ, kèm đủ ba thứ: vì sao · ai xác nhận · ngày. Thiếu một thứ thì không
+   * tính — xem chú thích ở `TT.thieu_nang_luc`.
+   */
+  const khongCoTk = new Map();
+  for (const [ten, o] of Object.entries(cfg.khong_co_tai_khoan || {})) {
+    if (!o || typeof o !== 'object') continue;
+    if (o.vi_sao && o.xac_nhan_boi && o.ngay) khongCoTk.set(ten, o);
+  }
+
   const luat = Array.isArray(cfg.luat) ? cfg.luat : [];
   /*
    * VAI TRÒ NÀO ĐANG CÓ TÀI KHOẢN — đọc từ ma trận, không đoán.
@@ -163,6 +186,9 @@ function main() {
     const apDung = Array.isArray(l.vai_tro_ap_dung) ? l.vai_tro_ap_dung : null;
     const coVaiDung = !apDung || apDung.some((t) => vaiCoTk.has(t));
     const du = Number(l.can_vai_tro || 1) <= vaiCoTk.size && coVaiDung;
+    /* Luật nói về một vai trò đã được khai là KHÔNG CÓ ⇒ thiếu năng lực đo, không phải chờ xin. */
+    const vaiKhongCo = apDung ? apDung.filter((t) => khongCoTk.has(t)) : [];
+    const laThieuNangLuc = !du && !coVaiDung && apDung && vaiKhongCo.length === apDung.length;
     /* Đã chạy thật thì lấy trạng thái của lượt chạy, không để `unknown`. */
     const r = traKq(l.oracle_ref, l.mo_ta);
     bienThe.push({
@@ -172,14 +198,16 @@ function main() {
       base_tc: `luật ${l.oracle_ref}`,
       trang_thai: r && (r.trang_thai === TT.pass || r.trang_thai === TT.fail)
         ? r.trang_thai
-        : (du ? TT.unknown : TT.needs_account),
+        : (du ? TT.unknown : (laThieuNangLuc ? TT.thieu_nang_luc : TT.needs_account)),
       oracle_ref: l.oracle_ref || null,
       vi_sao: r && r.bang_chung
         ? `${l.mo_ta} — đo ${r.do_luc || '(không khai giờ)'}, evidence \`${r.bang_chung}\``
         : (du
         ? l.mo_ta
         : (!coVaiDung
-          ? `${l.mo_ta} — luật này nói về vai trò ${apDung.join('/')}, tài khoản đang có: ${[...vaiCoTk].join('/') || '(không có)'}`
+          ? (laThieuNangLuc
+            ? `${l.mo_ta} — vai trò ${apDung.join('/')} KHÔNG TỒN TẠI (${khongCoTk.get(vaiKhongCo[0]).vi_sao}; xác nhận bởi ${khongCoTk.get(vaiKhongCo[0]).xac_nhan_boi} ngày ${khongCoTk.get(vaiKhongCo[0]).ngay}). CHƯA ĐO ĐƯỢC, và KHÔNG phải đạt.`
+            : `${l.mo_ta} — luật này nói về vai trò ${apDung.join('/')}, tài khoản đang có: ${[...vaiCoTk].join('/') || '(không có)'}`)
           : `${l.mo_ta} — cần ≥${l.can_vai_tro} vai trò, hiện có ${vaiCoTk.size}`)),
     });
   }
@@ -283,6 +311,19 @@ function main() {
       });
     }
     for (const t of khongTaiKhoan) {
+      /*
+       * Vai trò đã được khai là KHÔNG CÓ thì ĐỪNG xin nữa — hỏi lại mỗi lượt về thứ không sửa được là
+       * cách nhanh nhất dạy người đọc bỏ qua cửa này. Nhưng vẫn phải NÊU ra như một khoảng trống.
+       */
+      if (khongCoTk.has(t)) {
+        const o = khongCoTk.get(t);
+        cauHoi.push({
+          muc: 'Major',
+          cau_hoi: `Vai trò \`${t}\` không có tài khoản — mọi biến thể phân quyền của nó CHƯA ĐO ĐƯỢC.`,
+          vi_sao: `${o.vi_sao} (xác nhận bởi ${o.xac_nhan_boi} ngày ${o.ngay}). Đây là khoảng trống năng lực đo, KHÔNG phải một lượt đo đạt.`,
+        });
+        continue;
+      }
       cauHoi.push({
         muc: 'Critical',
         cau_hoi: `Xin tài khoản vai trò \`${t}\` để kiểm chứng biến thể phân quyền.`,

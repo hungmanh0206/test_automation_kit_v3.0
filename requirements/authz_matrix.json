@@ -22,9 +22,7 @@
       "nhom": "an_khac_cam",
       "can_vai_tro": 1,
       "mo_ta": "Đổi `isview=1` → `isview=0` trên URL màn Xem KHÔNG được chuyển sang chế độ Sửa.",
-      "vai_tro_ap_dung": [
-        "truong"
-      ]
+      "_vi_sao_moi_vai_tro": "Câu thứ ba của BR-NHANSU-029 KHÔNG có vế vai trò: nó nói tham số URL không được quyết chế độ Xem/Sửa. Chế độ phải do server quyết. Vì thế đo được bằng tài khoản admin, và chỉ cần KHÔNG bấm Ghi — mở form là một lượt GET."
     },
     {
       "oracle_ref": "BR-NHANSU-029",
@@ -48,5 +46,17 @@
       "mo_ta": "Quyền module Hồ sơ lớp thuộc \"Quản trị viên / người dùng có quyền quản trị hệ thống\" — vai trò KHÔNG có quyền đó phải bị chặn."
     }
   ],
-  "_vai_tro_ap_dung": "Luật nói về vai trò NÀO. Thiếu khoá này = áp cho mọi vai trò. Thêm 14/10/2026 sau khi suýt đo `BR-NHANSU-029` bằng session `masteradmin`: luật đó nói về tài khoản TRƯỜNG, còn masteradmin thấy cả 5 cấp — \"xem được đơn vị khác\" với nó rất có thể là ĐÚNG. Đo bằng tài khoản sai vai trò là đường ngắn nhất tới một bug bịa ra từ một tiền đề chỉ đúng một nửa."
+  "_vai_tro_ap_dung": "Luật nói về vai trò NÀO. Thiếu khoá này = áp cho mọi vai trò. Thêm 14/10/2026 sau khi suýt đo `BR-NHANSU-029` bằng session `masteradmin`: luật đó nói về tài khoản TRƯỜNG, còn masteradmin thấy cả 5 cấp — \"xem được đơn vị khác\" với nó rất có thể là ĐÚNG. Đo bằng tài khoản sai vai trò là đường ngắn nhất tới một bug bịa ra từ một tiền đề chỉ đúng một nửa.",
+  "khong_co_tai_khoan": {
+    "truong": {
+      "vi_sao": "QEMIS UAT chỉ cấp tài khoản admin; không có tài khoản cấp trường để test",
+      "xac_nhan_boi": "chủ dự án",
+      "ngay": "2026-10-14"
+    },
+    "truong_mot_phan_hieu": {
+      "vi_sao": "không có tài khoản cấp trường, nên càng không có tài khoản gán đúng một phân hiệu",
+      "xac_nhan_boi": "chủ dự án",
+      "ngay": "2026-10-14"
+    }
+  }
 }

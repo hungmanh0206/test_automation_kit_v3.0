@@ -7,6 +7,118 @@
 > `.agent/**`, `tests/support/**` đều là **shared change** (xem `RULE_GLOBAL.md` §Shared Change Gate) —
 > ảnh hưởng mọi story đang chạy. Mỗi mục ghi **vấn đề → cách chữa**, không chỉ liệt kê tính năng.
 
+## v2.8.2 — 2026-10-14 — Trả nợ v2.8.1: lượt bò tất định, và trục ⑥ đo được bằng tài khoản đang có
+
+**Vấn đề.** Báo cáo cuối v2.8.1 ghi ra hai món nợ: hai spec nhạy tải đỏ-rồi-xanh trong `full:suite`, và
+hai trục mới (⑥ ⑦) chưa chạy trên dữ liệu thật. Đợt này trả cả hai — và phần có giá trị nhất lại là
+những chỗ **phép đo bác bỏ chính thiết kế của tôi**, chứ không phải những chỗ nó xác nhận.
+
+### Ca flaky: ba giả thuyết bị bác, một cuộc đua bị dẹp, nguyên nhân vẫn mở
+
+`discovery-api-inventory` (`goi_tu`) và `discovery-injection` (`gộp theo (nhóm, màn)`) mỗi cái đỏ một
+lượt rồi xanh **3/3 khi chạy riêng**. Lượt đỏ đếm `tong=12` trong khi mốc ghim **11**.
+
+| Giả thuyết | Phép đo | Kết quả |
+|---|---|---|
+| nhạy tải CPU | đốt 6 tiến trình CPU, bò 8 lượt | **8/8 giống nhau** — bác |
+| state tầng module dùng chung qua `require` cache | đọc cả ba file discovery | **không có** — bác |
+| request về MUỘN bị tính/bỏ tuỳ lịch chạy | thêm chờ mạng lặng có biên, bò 6 lượt | **tất định 6/6, và vẫn 11** — bác |
+
+Cũng loại: trùng cổng (`listen(0)`), state fixture dùng chung (`store` tạo trong `start()`), spec khác
+ghi `.agent/config/discovery.json` (không spec nào ghi), và 6 spec discovery chạy cùng lúc 4 lượt
+(**4/4 xanh**).
+
+**Sửa được một thứ thật, dù nó không phải nguyên nhân.** `crawl.js` nay chờ mạng lặng **có biên** (lặng
+250ms thì đi; dù sao không quá 2500ms) trước khi đọc dấu vân tay trang. Trước đó tập request mà
+`api_inventory` nhìn thấy là *"những request KỊP về trước khi đóng trang"*, không phải *"những request
+trang này gửi"* — tức một cuộc đua, dù hôm nay nó đua ra kết quả nào. Biên là điều kiện để nó không
+thành một `waitForTimeout` trá hình: long-polling sẽ không bao giờ lặng, gặp nó thì hết trần rồi đi.
+
+**Con số 12 CHƯA giải thích được, và tôi không nói là đã sửa.** Thay vào đó hai test **tự khai chỗ lệch**:
+khi đỏ chúng in trọn danh sách điểm nhập / bảng `goi_tu`. Lượt trước mất một lượt chạy cả bộ 6 phút mà
+vẫn không biết nó thừa cái gì.
+
+### Trục ⑥: ba chỗ sai chỉ lộ ra khi chạy trên dữ liệu thật
+
+Một lượt `discover` **CHỈ ĐỌC** trên UAT (CSDL-9001, chủ dự án xác nhận) dựng được ma trận vai trò ×
+route: **240 ô — 120 `verified`** (masteradmin) · **120 `unknown`** (vai trò `truong`) · 0 finding ẩn≠cấm.
+
+| # | Sai gì | Trước | Sau |
+|---|---|---|---|
+| ① | nổ tổ hợp: một biến thể cho mỗi (case, vai trò, **route**) trong vòng lặp case | **3.035** biến thể | 179 |
+| ② | `proven` tính ô `verified` thành PASS | **proven=2880** | proven=1 |
+| ③ | báo cáo ẩn bảng biến thể khi thiếu ma trận | 5 biến thể vô hình | luôn hiện |
+
+① sai cả về lượng lẫn về bản chất: planner **không biết** case này đụng route nào, nên nhân case với MỌI
+route là bịa ra một quan hệ không có.
+② là chỗ dễ tự lừa nhất: 120 ô đó chỉ nói *"masteradmin VÀO ĐƯỢC route này"* — không ô nào được so với
+một kỳ vọng. Phân quyền chỉ PASS/FAIL khi có neo nói vai trò nào ĐƯỢC hay KHÔNG ĐƯỢC vào đâu
+(`CLAUDE.md` §3). Nay chúng in ra như **QUAN SÁT**.
+
+### ⑥ KHÔNG cần ≥2 tài khoản — và luật phải khai nó nói về vai trò nào
+
+Thiết kế v2.8.1 bắt cả ba nhóm biến thể chờ ma trận, tức chờ ≥2 tài khoản. Hệ quả: một dự án một-vai-trò
+thì **không bao giờ** đo được phân quyền. `knowledge/domain` có hai rule `active` phủ đúng hai nhóm còn
+lại: `BR-NHANSU-029` (cách ly đơn vị) và `BR-HSLOP-025` (quyền theo phân hiệu). Nay `requirements/authz_matrix.json`
+khai `luat` kèm `oracle_ref` + số vai trò tối thiểu, và máy sinh biến thể từ chúng **không cần ma trận**.
+
+Nhưng chạy chúng bằng tài khoản sai vai trò là đường ngắn nhất tới **bug bịa**: `BR-NHANSU-029` nói về
+tài khoản TRƯỜNG, còn session đang có là `masteradmin` thấy cả 5 cấp — với nó, *"xem được đơn vị khác"*
+rất có thể là **ĐÚNG**. Nên luật khai thêm `vai_tro_ap_dung`, và máy đọc vai-trò-có-tài-khoản **từ ma
+trận** rồi đánh `needs_account` **kèm tên vai trò cần**. Hệ quả ngay: **4/5 luật chuyển sang chờ tài
+khoản — bốn bug bịa bị chặn trước khi sinh ra.**
+
+### "Xin được" khác "không bao giờ có"
+
+Chủ dự án xác nhận QEMIS UAT **chỉ có tài khoản admin**, không có tài khoản cấp trường. Để nguyên
+`needs_account` thì mỗi lượt chạy lại sinh một câu hỏi Critical *"xin tài khoản vai trò truong"* cho thứ
+không bao giờ có — và một cửa kêu mãi về chuyện không sửa được là một cửa người ta học cách bỏ qua.
+
+Nay có trạng thái riêng `thieu_nang_luc`, và **điều kiện để dùng nó**: config phải khai
+`khong_co_tai_khoan[<vai trò>]` với đủ **`vi_sao` · `xac_nhan_boi` · `ngay`**. Thiếu một trong ba thì máy
+vẫn coi là `needs_account` — một khoảng trống năng lực không có người chịu trách nhiệm thì nó chỉ là một
+chỗ bỏ qua được viết cho gọn. Câu hỏi hạ xuống `Major` và nêu như một khoảng trống, **không bao giờ**
+thành PASS.
+
+### ⑥ có `proven=1` bằng một phép đo thật
+
+Vế thứ ba của `BR-NHANSU-029` không phụ thuộc vai trò — *"chưa đăng nhập"* là cùng một trạng thái với
+mọi tài khoản.
+
+| | |
+|---|---|
+| route | `/C2/HoSoTruongDetail.aspx`, một lượt GET ở context SẠCH |
+| app làm gì | đẩy về `Login.aspx?returnUrl=~/C2/HoSoTruongDetail.aspx` |
+| oracle | neo **cấu trúc**: 1 ô `input[type=password]` · **0** nút `Ghi` của form hồ sơ — không dò chữ |
+| verdict | **PASS** · `oracle_ref: BR-NHANSU-029` · evidence `.png` (§4) · chạy 2 lượt cùng kết quả |
+
+Cơ chế nối: probe ghi `test-results/authz_ket_qua.json` (`oracle_ref` · `mo_ta` · `trang_thai` ·
+`bang_chung` · `do_luc`); `authz:expand` khớp theo (`oracle_ref`, `mo_ta`) rồi nâng trạng thái. Planner
+**vẫn không gửi request nào** — có test khoá theo hướng chuyện đó; phép đo thuộc Phase 2 nơi có evidence.
+
+### ⑦ trên dữ liệu thật
+
+`oracle:calc` cho CSDL-9001: **`proven=2`**, 118 rule trong kho, 0 vi phạm. `expansion_audit` nay thấy
+task đó chạy **2/7 trục** (`persist, oracle_calc`) thay vì 1/7.
+
+### `full:suite` giờ typecheck trước
+
+Phát hiện khi đóng gói v2.8.1: 3 lỗi `TS2339` đi qua **trọn một lượt `full:suite` xanh** và chỉ chết
+trong gói, vì Playwright chạy `.ts` **transpile-only** — nó không kiểm kiểu. Nay `full:suite` typecheck
+TRƯỚC và **không ghi sổ** khi typecheck đỏ: nói "cả bộ xanh" về một cây không biên dịch nổi là nói sai.
+Đối chứng đã chạy — cài một lỗi kiểu thì cửa trả `CHƯA ĐO ĐƯỢC` và giữ nguyên sổ cũ.
+
+### Việc còn lại
+
+- **Nguyên nhân ca flaky vẫn mở.** Suite xanh ở lượt chạy, KHÔNG phải xanh ổn định.
+- **Câu `isview` của `BR-NHANSU-029` đo được bằng tài khoản admin nhưng CHƯA đo** (`unknown`): nó cần một
+  màn Xem nhận tham số đó, và evidence phải **mask PII** vì hồ sơ nhân sự chứa họ tên/CCCD/SĐT —
+  `page.screenshot({ mask: … })` lên mọi ô nhập là đường đi, nhưng chưa làm.
+- **Hai luật `thieu_nang_luc`** chỉ đo được khi có tài khoản cấp trường; hiện không có.
+- **Nhóm dọc** cần vai trò thứ hai để khai `thu_bac`.
+
+---
+
 ## v2.8.1 — 2026-10-13 — Hai trục mở rộng, hai chiều Phase 1, và bảy bản sao của cùng một danh mục
 
 **Vấn đề.** `CLAUDE.md` §3 bắt mở rộng 5 trục quanh mỗi case, nhưng không máy nào trả lời được câu
