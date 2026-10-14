@@ -7,6 +7,69 @@
 > `.agent/**`, `tests/support/**` đều là **shared change** (xem `RULE_GLOBAL.md` §Shared Change Gate) —
 > ảnh hưởng mọi story đang chạy. Mỗi mục ghi **vấn đề → cách chữa**, không chỉ liệt kê tính năng.
 
+## v2.8.3 — 2026-10-14 — CI đỏ, và bốn tài liệu dẫn xuất đã trôi khỏi nguồn
+
+**Vấn đề.** Sau khi đẩy `main` lần đầu, GitHub báo **2 check đỏ**. Không phải một lỗi, mà là bốn chuyện
+khác nhau — và chỉ hai trong số đó là do đợt này gây ra.
+
+### Hai check đỏ, bốn nguyên nhân
+
+| Check | Nguyên nhân | Của ai |
+|---|---|---|
+| `static-check` | `.agent/config/GATES.md` thiếu 3 gate mới | **đợt này** |
+| `static-check` | `docs/RULE_COVERAGE.md` lệch sau khi RULE_GLOBAL đổi 5→7 trục | **đợt này** |
+| `static-check` | trang thư viện ghi 110 máy / 76 CHẶN, repo có 132 / 93 | có từ trước |
+| `release` | suite chạy TRONG gói đỏ 20 test trên Linux CI (v2.6.0, v2.6.1 — 11/10) | có từ trước |
+
+Ba mục đầu cùng một lớp: **tài liệu SINH TỪ NGUỒN mà nguồn đã đổi**. Kit có gate canh từng cái, và cả
+ba gate đều làm đúng việc — vấn đề là tôi đổi nguồn rồi không sinh lại.
+
+### Hai lỗi trình tự của tôi, cùng một kiểu
+
+1. Sinh `GATES.md` từ worktree ở HEAD **cũ**, rồi sửa `release.yml` trong **cùng commit** — bảng lệch lại
+   ngay lúc commit được tạo. Tài liệu dẫn xuất phải là thứ sinh **sau cùng**.
+2. Thay số bằng một danh sách file gõ tay, và sót đúng file quan trọng nhất: `gates_kit.js` không phải
+   `gates.js`.
+
+Từ lượt thứ ba tôi đổi cách: **quét trọn 22 bước của `static-check` trong một worktree sạch ở đúng HEAD
+trước khi đẩy**, thay vì đẩy rồi chờ CI chỉ ra từng cái một.
+
+### Cửa `full:suite` chặn CI vĩnh viễn
+
+Sổ `knowledge/metrics/full-suite.json` nằm trong `.gitignore` — nó là **biên bản một lượt chạy trên một
+máy**, không phải tài sản của repo. Nên CI không bao giờ có nó, và `package:kit` chặn với lý do
+*"CHƯA CÓ SỔ"*: một thông báo đúng mà sai chỗ, vì vấn đề thật nằm ở chỗ khác.
+
+Sửa đúng hướng: **CI tự chạy cả bộ** trước khi đóng gói, không mượn sổ của ai. Thêm
+`npx playwright install --with-deps chromium` + `npm run full:suite` vào `release.yml`.
+
+### `dry_run` của release.yml chưa bao giờ chạy được
+
+`version_check` đọc thẳng `GITHUB_REF_NAME` như thể đó luôn là tên tag. Nhưng nó là **tên nhánh** khi sự
+kiện không phải tag. Hệ quả: chạy `workflow_dispatch` trên `main` thì máy so chuỗi `"main"` với `"2.8.2"`
+rồi CHẶN — tức chế độ `dry_run`, vốn sinh ra để *"chỉ đóng gói + verify mà không tạo Release"*, **không
+bao giờ qua nổi bước đầu tiên**. Một đường chẩn đoán không chạy được thì lúc cần nhất nó vắng mặt.
+
+Nay chỉ coi là tag khi `GITHUB_REF_TYPE === 'tag'` (hoặc tên có dạng `vX.Y.Z` khi biến đó vắng). Đối
+chứng hai chiều: nhánh ⇒ *"không chạy từ tag — bỏ qua kiểm khớp tag"*; tag sai ⇒ vẫn CHẶN.
+
+### Trang thư viện: 6 máy chưa có mục
+
+3 máy của đợt này (`full:suite`, `authz:expand`, `oracle:calc`) và 3 máy có từ trước
+(`canonical:check`, `db:paths:check`, `db:query`). Thêm đủ mục (`def` · `detail` · `why` · `cmd` ·
+`trap` · `src` · `rel`), sửa 4 liên kết `rel` trỏ sang id không tồn tại, cập nhật bốn con số đếm và
+phiên bản 2.7.0 → 2.8.2.
+
+### Việc còn lại
+
+- **20 test đỏ trong gói trên Linux (11/10) chưa đo lại.** `ci.yml` chạy theo lịch trên `main` CŨ
+  (`0e0cf8e`) nên nó không nói gì về cây hiện tại. Nghi ngờ: phân biệt hoa/thường trong đường dẫn —
+  Windows không phân biệt nên lỗi kiểu `require('./Foo')` khớp `foo.js` chỉ chết trên Linux. **Chưa đo
+  nên mới là nghi ngờ.**
+- Mọi món nợ của v2.8.2 vẫn còn: nguyên nhân ca flaky, câu `isview` chưa đo, hai luật `thieu_nang_luc`.
+
+---
+
 ## v2.8.2 — 2026-10-14 — Trả nợ v2.8.1: lượt bò tất định, và trục ⑥ đo được bằng tài khoản đang có
 
 **Vấn đề.** Báo cáo cuối v2.8.1 ghi ra hai món nợ: hai spec nhạy tải đỏ-rồi-xanh trong `full:suite`, và

@@ -60,8 +60,25 @@ function main() {
   if (!version) problems.push('package.json THIẾU field `version` — không có version thì không phát hành được, và dự án không biết mình đang ở bản nào.');
   else if (!SEMVER.test(version)) problems.push(`version "${version}" không hợp semver (X.Y.Z).`);
 
-  // 2) Nếu chạy từ tag: version phải KHỚP tag.
-  const tag = arg('tag') || process.env.GITHUB_REF_NAME || process.env.CI_COMMIT_TAG || (hasGit ? git(['describe', '--exact-match', '--tags', 'HEAD']) : null) || '';
+  /*
+   * 2) Nếu chạy TỪ TAG: version phải KHỚP tag.
+   *
+   * `GITHUB_REF_NAME` là TÊN NHÁNH khi sự kiện không phải tag — nó chỉ là tên tag khi
+   * `GITHUB_REF_TYPE === 'tag'`. Bản đầu đọc thẳng nó, nên chạy `workflow_dispatch` trên `main` thì máy
+   * so chuỗi "main" với "2.8.2" rồi CHẶN. Hệ quả đo được 14/10/2026: chế độ `dry_run` của release.yml —
+   * vốn sinh ra để "chỉ đóng gói + verify" mà không tạo Release — KHÔNG BAO GIỜ qua nổi bước đầu tiên.
+   * Một đường chẩn đoán không chạy được thì lúc cần nhất nó vắng mặt.
+   *
+   * `--tag` truyền tay vẫn luôn được tôn trọng: nó là lời khai có chủ đích của người gọi.
+   */
+  const refLaTag = process.env.GITHUB_REF_TYPE
+    ? process.env.GITHUB_REF_TYPE === 'tag'
+    : /^v?\d+\.\d+\.\d+/.test(String(process.env.GITHUB_REF_NAME || ''));
+  const tag = arg('tag')
+    || (refLaTag ? process.env.GITHUB_REF_NAME : '')
+    || process.env.CI_COMMIT_TAG
+    || (hasGit ? git(['describe', '--exact-match', '--tags', 'HEAD']) : null)
+    || '';
   if (tag) {
     const want = tag.replace(/^v/, '');
     if (want !== version) {
