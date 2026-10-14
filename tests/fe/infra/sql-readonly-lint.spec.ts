@@ -120,13 +120,13 @@ test.describe('@infra sql lint — câu đọc hợp lệ phải QUA (chống b�
      * `END` không mở đầu được statement nào, nó chỉ đóng `BEGIN`/`CASE`/`TRY`. Chặn `BEGIN` đã đủ. Thêm
      * `END` chỉ báo oan 62/748 câu đọc thật trong repo.
      */
-    const src = fs.readFileSync(path.join(REPO, 'tests/support/setup/db/sql_readonly_lint.ts'), 'utf8');
+    const src = fs.readFileSync(path.join(REPO, 'tests/support/setup/db/sql_readonly_lint.impl.js'), 'utf8');
     expect(src).toContain('`END` CỐ Ý KHÔNG CÓ Ở ĐÂY');
     expect(lyDoChan('SELECT CASE WHEN a IS NULL THEN 1 ELSE 0 END AS c FROM t')).toBeNull();
   });
 
   test('`FETCH` của phân trang KHÔNG bị cấm — con trỏ đã bị chặn ở `declare`/`open`', () => {
-    const src = fs.readFileSync(path.join(REPO, 'tests/support/setup/db/sql_readonly_lint.ts'), 'utf8');
+    const src = fs.readFileSync(path.join(REPO, 'tests/support/setup/db/sql_readonly_lint.impl.js'), 'utf8');
     expect(src).toContain('`FETCH` CŨNG KHÔNG CÓ Ở ĐÂY');
     expect(lyDoChan('SELECT 1 DECLARE c CURSOR FOR SELECT 1'), 'con trỏ vẫn phải bị chặn').toBeTruthy();
   });

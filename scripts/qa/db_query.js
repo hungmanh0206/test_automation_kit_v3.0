@@ -100,7 +100,7 @@ async function main() {
   const params = docParams();
 
   /* Lint TRƯỚC để ghi được audit kể cả khi câu bị chặn — lượt bị chặn cũng là một lượt cần dấu vết. */
-  const { lyDoChan } = require(path.join(REPO, 'tests', 'support', 'setup', 'db', 'sql_readonly_lint.ts'));
+  const { lyDoChan } = require(path.join(REPO, 'tests', 'support', 'setup', 'db', 'sql_readonly_lint.impl.js'));
   const viPham = lyDoChan(sql);
   const batDau = Date.now();
 
@@ -120,7 +120,30 @@ async function main() {
     process.exit(1);
   }
 
-  const { queryUatReadonly } = require(path.join(REPO, 'tests', 'support', 'setup', 'db', 'uatDbClient.ts'));
+  /*
+   * ĐƯỜNG TRUY VẤN THẬT còn `require()` một file `.ts` — và điều đó chỉ chạy từ Node ≥23 (tự bóc kiểu).
+   * Kit khai `engines: >=20`, nên trên Node 20 chỗ này VỠ.
+   *
+   * Luật lint đã chuyển sang `sql_readonly_lint.impl.js` (14/10/2026) vì nó nhỏ và là lớp chặn ghi duy
+   * nhất; `uatDbClient.ts` thì gắn với `mssql` và chưa chuyển. Chừng nào chưa chuyển, ít nhất lỗi phải
+   * ĐỌC ĐƯỢC: bản trước ném `Unexpected token ':'` — một câu không ai đoán được là nói về chuyện gì, và
+   * nó đã làm hai test đỏ trên CI suốt từ 11/10 mà không ai lần ra.
+   *
+   * Exit 2 = KHÔNG PHÁN ĐƯỢC, không phải 1 = đo rồi và sai.
+   */
+  let queryUatReadonly;
+  try {
+    ({ queryUatReadonly } = require(path.join(REPO, 'tests', 'support', 'setup', 'db', 'uatDbClient.ts')));
+  } catch (e) {
+    if (e instanceof SyntaxError) {
+      console.error(`[db:query] ✗ KHÔNG PHÁN ĐƯỢC: Node ${process.version} không nạp được \`uatDbClient.ts\`.`);
+      console.error('          Đường truy vấn thật require một file TypeScript, và chỉ Node ≥23 tự bóc kiểu.');
+      console.error('          Luat lint da chuyen sang .impl.js nen phan KIEM cau van chay o moi Node;');
+      console.error('          phần CHẠY câu thì chưa. Dùng Node >=23, hoac chuyen not uatDbClient.ts.');
+      process.exit(2);
+    }
+    throw e;
+  }
   let rows;
   try {
     rows = await queryUatReadonly(sql, params);
