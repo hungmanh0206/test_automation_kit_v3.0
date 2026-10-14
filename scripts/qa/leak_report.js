@@ -120,6 +120,47 @@ const AXES = [
   },
 ];
 
+/*
+ * NHÓM PHÂN LOẠI BUG THÊM — KHÔNG phải trục mở rộng.
+ *
+ * Hai nhóm này phân loại bug theo CƠ CHẾ gây ra nó, để đo rò theo hai mặt mà v2.8.4 vừa dựng máy.
+ * Chúng KHÔNG nằm trong `axes.js`, và đó là cố ý: một nhóm phân loại trộn vào danh sách trục sẽ âm
+ * thầm thổi phồng con số "N trục" ở `expansion_audit` và `self_review` — đúng thứ v2.8.1 vừa mất một
+ * đợt để dọn. Máy canh `expansion-gates.spec.ts` đối chiếu `AXES` với `axes.khoaTruc()`, nên bảng này
+ * phải đứng RIÊNG.
+ */
+const NHOM_THEM = [
+  {
+    id: 8,
+    key: 'dua',
+    ten: 'Đua / đồng thời (duyệt đúp · submit đúp · oversell · callback trùng)',
+    may: 'concurrency_check — npm run concurrency:check',
+    /*
+     * ĐỐI CHỨNG khi viết mẫu (14/10/2026) — bắt: "duyệt hai lần cùng lúc ra hai bản ghi", "bấm submit
+     * đúp tạo 2 đơn", "trừ kho song song xuống âm", "callback gửi lại cộng tiền hai lần", "thiếu
+     * idempotency-key nên tạo trùng". KHÔNG bắt (đúng): "đơn đã duyệt không sửa được" (luật trạng thái,
+     * không phải đua), "tổng cộng sai công thức" (⑦), "cộng dồn điểm sai".
+     * Vì thế mẫu KHÔNG dò chữ `cộng` trần — nó là động từ của mọi phép tính.
+     */
+    rx: /(?:đua|tranh chấp|đồng thời|song song|duyệt (?:hai|2) lần|submit (?:đúp|hai lần)|trùng (?:bản ghi|đơn)|idempoten|race|oversell|gửi lại .{0,20}(?:cộng|tạo|hai lần)|cộng .{0,12}(?:đôi|hai lần)|kho .{0,10}âm)/i,
+  },
+  {
+    id: 9,
+    key: 'phien_token',
+    ten: 'Phiên / token (logout · hết hạn · JWT)',
+    may: 'security_check — npm run security:check',
+    /*
+     * ĐỐI CHỨNG — bắt: "token sau logout vẫn gọi được API", "token hết hạn vẫn được chấp nhận", "JWT đổi
+     * role không ký lại vẫn qua", "alg=none được chấp nhận", "phiên cũ không bị vô hiệu", "chữ ký sai vẫn
+     * được nhận". KHÔNG bắt (đúng): "mã token hàng hoá hiển thị sai" — `token` ở đây là từ nghiệp vụ, và
+     * "chữ ký số của hiệu trưởng hiển thị" — `chữ ký` cũng vậy.
+     * Vì thế `token` chỉ tính khi đứng cạnh một từ về trạng thái phiên, không tính khi đứng trần.
+     */
+    rx: /(?:phiên|session|logout|đăng xuất|jwt|alg=none|chữ ký (?:sai|không)|cookie .{0,20}(?:httponly|secure))|token (?:sau|cũ|hết hạn|vẫn|còn|bị|không|đã)|(?:hết hạn|thu hồi|vô hiệu) .{0,15}token/i,
+  },
+];
+
+
 function apiUrl(pathname, params = {}) {
   const url = new URL(BASE + pathname);
   url.searchParams.set('apiKey', API_KEY);
@@ -138,7 +179,7 @@ async function backlog(pathname, params) {
 }
 
 function classify(text) {
-  const hits = AXES.filter((a) => a.rx.test(text));
+  const hits = [...AXES, ...NHOM_THEM].filter((a) => a.rx.test(text));
   return hits.length ? hits : [];
 }
 
@@ -175,12 +216,12 @@ function classify(text) {
     const m = machineMap[r.key];
     r.machine = m && (typeof m === 'string' ? m : m.machine) ? (typeof m === 'string' ? m : m.machine) : null;
     // Không có bản đồ tay thì máy suy ra từ trục đã phân loại — vẫn là GỢI Ý, không phải phán quyết.
-    r.machineGuess = r.machine || (r.axes.length ? AXES.filter((a) => r.axes.includes(a.key)).map((a) => a.may).join(' · ') : null);
+    r.machineGuess = r.machine || (r.axes.length ? [...AXES, ...NHOM_THEM].filter((a) => r.axes.includes(a.key)).map((a) => a.may).join(' · ') : null);
   }
   const noMachine = humanFound.filter((r) => !r.machineGuess);
 
   const bySource = rows.reduce((m, r) => { m[r.source] = (m[r.source] || 0) + 1; return m; }, {});
-  const byAxis = AXES.map((a) => ({ ...a, n: rows.filter((r) => r.axes.includes(a.key)).length }));
+  const byAxis = [...AXES, ...NHOM_THEM].map((a) => ({ ...a, n: rows.filter((r) => r.axes.includes(a.key)).length }));
   const unclassified = rows.filter((r) => !r.axes.length);
   const needLabel = rows.filter((r) => r.source === 'chưa phân loại');
   if (process.argv.includes('--require-machine')) {

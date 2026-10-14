@@ -1,0 +1,66 @@
+{
+  "_doc": "BẢN MẪU cho `npm run security:check`. Chép sang `requirements/security_catalog.json` của task rồi điền endpoint thật. Bản mẫu này CỐ Ý dùng endpoint giả — một bản mẫu mang endpoint thật của một dự án là dữ liệu dự án đi lạc vào kit.",
+  "_vi_sao_co_file_nay": "Đo 14/10/2026: repo KHÔNG có catalog nào, kể cả bản mẫu, trong khi `security_check.js` đòi `--catalog` và thoát nếu thiếu. Tức máy bảo mật nhiều khả năng CHƯA TỪNG CHẠY. Thêm nhóm control vào một máy không ai chạy được thì cũng không ai chạy — cùng lớp lỗi với `knowledge/domain` rỗng trong gói phát hành.",
+  "_an_toan": "Mọi control ở đây là ĐỌC. Ngoại lệ duy nhất là `session.logoutPath`: nó đổi trạng thái PHIÊN của chính tài khoản test, và không có cách nào kiểm 'token sau logout còn dùng được không' mà không logout. Nhóm cần GHI thật (mass assignment · upload độc · đổi mật khẩu thật) KHÔNG thuộc kit — fixture hoặc thủ công.",
+  "_base": "URL KHÔNG khai ở đây: scripts/qa/security_check.js lấy nó từ BIẾN MÔI TRƯỜNG (mặc định OPS_BASE_URL, đổi được bằng khoá baseUrlEnv). Khai host trong file này thì nó vừa bị bỏ qua vừa là một chỉ dẫn sai.",
+  "baseUrlEnv": "OPS_BASE_URL",
+  "headerTarget": "/",
+  "checkTransport": true,
+  "auth": {
+    "loginPath": "/auth/login",
+    "userField": "username",
+    "passField": "password",
+    "tokenPath": "token",
+    "scheme": "Bearer"
+  },
+  "_accounts": "HAI tài khoản test KHÁC ĐƠN VỊ và khác quyền. Thiếu một cái ⇒ các nhóm liên quan ra NEEDS_ACCOUNT, KHÔNG phải FAIL và cũng KHÔNG phải PASS: phép đo chưa xảy ra.",
+  "accounts": {
+    "low": {
+      "userEnv": "SEC_LOW_USER",
+      "passEnv": "SEC_LOW_PASS"
+    },
+    "high": {
+      "userEnv": "SEC_HIGH_USER",
+      "passEnv": "SEC_HIGH_PASS"
+    }
+  },
+  "highPrivEndpoints": [
+    {
+      "name": "màn quản trị",
+      "url": "/api/admin/nguoi-dung"
+    }
+  ],
+  "idorEndpoints": [
+    {
+      "name": "hồ sơ của tài khoản khác",
+      "url": "/api/ho-so/999"
+    }
+  ],
+  "_session": "Nhóm QUẢN LÝ PHIÊN. `probeEndpoint` là một endpoint ĐỌC đòi đăng nhập — dùng để hỏi 'token ở trạng thái này còn dùng được không'. `expiredToken` là TÊN BIẾN MÔI TRƯỜNG chứa một token đã hết hạn; không khai thì control đó ra NEEDS_ACCOUNT chứ máy không tự chế token.",
+  "session": {
+    "probeEndpoint": "/api/toi",
+    "logoutPath": "/auth/logout",
+    "expiredToken": "SEC_TOKEN_HET_HAN"
+  },
+  "_tenantIsolation": "Rò ở mức TẬP dữ liệu, khác IDOR theo một id. `dauHieuDonViKhac` là chuỗi định danh của đơn vị B do bạn khai — máy tìm đúng chuỗi đó trong body, KHÔNG dò chữ chung chung.",
+  "tenantIsolation": {
+    "listEndpoints": [
+      {
+        "name": "danh sách hồ sơ",
+        "url": "/api/ho-so?trang=1",
+        "dauHieuDonViKhac": "DV-B"
+      },
+      {
+        "name": "tìm kiếm",
+        "url": "/api/tim-kiem?q=a",
+        "dauHieuDonViKhac": "DV-B"
+      }
+    ]
+  },
+  "_jwt": "Chỉ chạy nếu token có dạng JWT ba phần; không phải thì máy ghi `n/a`. Ba ca: sửa payload không ký lại · alg=none · chữ ký sai. Token dị dạng CHỈ gửi tới endpoint ĐỌC, quan sát bị từ chối — không khai thác, không ghi.",
+  "jwt": {
+    "probeEndpoint": "/api/toi",
+    "truongDonVi": "don_vi",
+    "donViKhac": "DV-B"
+  }
+}

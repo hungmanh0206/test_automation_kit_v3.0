@@ -429,6 +429,71 @@ function start() {
   };
   const nghi = (ms) => new Promise((r) => { setTimeout(r, ms); });
 
+  /*
+   * VÙNG CHO BA NHÓM BẢO MẬT READ-ONLY (v2.8.4 mục B): phiên · cô lập đơn vị · JWT.
+   *
+   * Token ở đây là JWT THẬT về hình dạng (ba phần, base64url, chữ ký HMAC) nhưng khoá là hằng số của
+   * fixture. Không dùng thư viện: cả mục B chỉ cần biết BE có TỪ CHỐI token dị dạng không, và tự ký bằng
+   * `crypto` làm rõ chính xác thứ đang được thử.
+   */
+  const crypto = require('crypto');
+  const KHOA = 'fixture-khoa-bi-mat';
+  const b64u = (o) => Buffer.from(JSON.stringify(o)).toString('base64url');
+  const ky = (h, pl) => crypto.createHmac('sha256', KHOA).update(`${h}.${pl}`).digest('base64url');
+  const phatToken = (sub, donVi, hetHanGiay) => {
+    const h = b64u({ alg: 'HS256', typ: 'JWT' });
+    /*
+     * `jti` NGẪU NHIÊN cho mỗi lượt đăng nhập.
+     *
+     * Bản đầu chỉ ký (sub, don_vi, exp), nên hai lần đăng nhập trong CÙNG MỘT GIÂY ra token GIỐNG HỆT
+     * nhau — và logout phiên này thu hồi luôn phiên kia. Phép thử cô lập đơn vị đỏ vì đúng chuyện đó,
+     * không phải vì app rò dữ liệu. Token thật luôn có thành phần phân biệt từng phiên.
+     */
+    const pl = b64u({ sub, don_vi: donVi, jti: crypto.randomUUID(), exp: Math.floor(Date.now() / 1000) + hetHanGiay });
+    return `${h}.${pl}.${ky(h, pl)}`;
+  };
+  const baoMat = {
+    daLogout: new Set(),
+    nguoi: {
+      'u-a': { matKhau: 'pw-a', don_vi: 'DV-A' },
+      'u-b': { matKhau: 'pw-b', don_vi: 'DV-B' },
+    },
+    banGhi: [
+      { id: 1, ten: 'hồ sơ của đơn vị A', don_vi: 'DV-A' },
+      { id: 2, ten: 'hồ sơ của đơn vị B', don_vi: 'DV-B' },
+    ],
+  };
+
+  /*
+   * Đọc token: trả `{ ok, pl, vi_sao }`. `hong` bật từng lỗi KIỂM TRA — mỗi lỗi một cặp hỏng/đúng, vì
+   * một control chỉ được thử trên bản đúng thì chưa ai biết nó bắt được gì.
+   */
+  const docToken = (raw, hong) => {
+    const t = String(raw || '').replace(/^Bearer\s+/i, '');
+    const phan = t.split('.');
+    if (phan.length !== 3) return { ok: false, vi_sao: 'token không đủ ba phần' };
+    const [h, pl, sig] = phan;
+    let head = {};
+    let tai = {};
+    try {
+      head = JSON.parse(Buffer.from(h, 'base64url').toString('utf8'));
+      tai = JSON.parse(Buffer.from(pl, 'base64url').toString('utf8'));
+    } catch (e) { return { ok: false, vi_sao: 'token không giải mã được' }; }
+
+    /* alg=none: bản hỏng chấp nhận vì nó tin trường `alg` do CHÍNH TOKEN khai. */
+    if (String(head.alg).toLowerCase() === 'none') {
+      if (!hong.alg_none) return { ok: false, vi_sao: 'alg=none' };
+      return { ok: true, pl: tai };
+    }
+    /* Chữ ký: bản hỏng bỏ qua phép so. Đây là lỗ cho cả "sửa payload" lẫn "chữ ký sai". */
+    if (!hong.bo_qua_chu_ky && sig !== ky(h, pl)) return { ok: false, vi_sao: 'chữ ký sai' };
+    /* Hạn: bản hỏng chấp nhận token quá hạn. */
+    if (!hong.nhan_het_han && tai.exp && tai.exp * 1000 < Date.now()) return { ok: false, vi_sao: 'token hết hạn' };
+    /* Logout: bản hỏng vẫn nhận token đã thu hồi. */
+    if (!hong.nhan_sau_logout && baoMat.daLogout.has(t)) return { ok: false, vi_sao: 'token đã logout' };
+    return { ok: true, pl: tai };
+  };
+
   const srv = http.createServer((req, res) => {
     const u = new URL(req.url, 'http://localhost');
     const p = u.pathname;
@@ -468,6 +533,48 @@ function start() {
       store.soLanGhi += 1;
       store.nhatKyGhi.push({ method: req.method, path: p, luc: Date.now() });
       return json({ ok: true });
+    }
+
+    /* ---- BẢO MẬT READ-ONLY (v2.8.4 mục B) ---- */
+    const hongBM = {
+      alg_none: q.get('alg_none') === '1',
+      bo_qua_chu_ky: q.get('bo_qua_chu_ky') === '1',
+      nhan_het_han: q.get('nhan_het_han') === '1',
+      nhan_sau_logout: q.get('nhan_sau_logout') === '1',
+    };
+
+    if (p === '/auth/login' && req.method === 'POST') {
+      let body = '';
+      req.on('data', (c) => { body += c; });
+      return req.on('end', () => {
+        let o = {};
+        try { o = JSON.parse(body || '{}'); } catch (e) { o = {}; }
+        const u = baoMat.nguoi[o.username];
+        if (!u || u.matKhau !== o.password) return json({ ok: false }, 401);
+        const songGiay = Number(q.get('song_giay') || 3600);
+        return json({ token: phatToken(o.username, u.don_vi, songGiay) });
+      });
+    }
+
+    if (p === '/auth/logout' && req.method === 'POST') {
+      const t = String(req.headers.authorization || '').replace(/^Bearer\s+/i, '');
+      if (t) baoMat.daLogout.add(t);
+      return json({ ok: true });
+    }
+
+    if (p === '/api/bm/toi' && req.method === 'GET') {
+      const r = docToken(req.headers.authorization, hongBM);
+      if (!r.ok) return json({ ok: false, vi_sao: r.vi_sao }, 401);
+      return json({ sub: r.pl.sub, don_vi: r.pl.don_vi });
+    }
+
+    /* Danh sách theo đơn vị — chỗ rò ở mức TẬP dữ liệu, khác IDOR theo một id. */
+    if (p === '/api/bm/danh-sach' && req.method === 'GET') {
+      const r = docToken(req.headers.authorization, hongBM);
+      if (!r.ok) return json({ ok: false, vi_sao: r.vi_sao }, 401);
+      const loDonVi = q.get('lo_don_vi') === '1';     /* bản hỏng: trả hết, không lọc theo đơn vị */
+      const items = loDonVi ? baoMat.banGhi : baoMat.banGhi.filter((x) => x.don_vi === r.pl.don_vi);
+      return json({ items });
     }
 
     /*
