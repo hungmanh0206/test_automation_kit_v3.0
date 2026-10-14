@@ -100,6 +100,15 @@ test.describe('@infra trục ⑦ — oracle giá trị tính toán', () => {
   });
 
   test('máy canh: bộ oracle thật phải SẠCH', () => {
+    /*
+     * Phép kiểm này ghim KHO RULE CỦA REPO. Bản đóng gói mang `knowledge/domain/` rỗng — kho rule là tài
+     * sản của từng dự án, không đi theo kit — nên trong gói nó không còn nghĩa. Bỏ qua KÈM LÝ DO, đúng
+     * cách `_trong_repo.ts` xử mấy phép kiểm ghim mẫu số của repo (v2.8.0).
+     */
+    const soRule = fs.existsSync(path.join(REPO, 'knowledge/domain'))
+      ? fs.readdirSync(path.join(REPO, 'knowledge/domain')).filter((f) => f.endsWith('.json')).length : 0;
+    test.skip(soRule === 0, 'bộ oracle đối chiếu với `knowledge/domain` của repo, mà bản đóng gói mang kho rule RỖNG');
+
     const k = chayMay([]);
     expect(k.ma, 'bộ oracle trong repo phải qua được máy canh của chính nó').toBe(0);
     expect(k.bao).toMatch(/proven=[1-9]/);
@@ -132,6 +141,21 @@ test.describe('@infra trục ⑦ — oracle giá trị tính toán', () => {
       expect(k.ra, 'oracle ma').toContain('oracle ma');
       expect(k.ra, 'thiếu ca lệch').toMatch(/ca LỆCH/);
       expect(k.ra, 'oracle đọc DOM').toMatch(/locator|đọc app|đọc DOM/);
+    } finally { donThuMucTam(tmp); }
+  });
+
+  test('kho rule RỖNG ⇒ CHƯA KIỂM, KHÔNG phải "mọi oracle đều là ma"', () => {
+    /*
+     * Phân biệt hai tình huống khác hẳn nhau. Bản đầu gộp chúng, nên người nhận kit vừa cài xong đã thấy
+     * hai "oracle ma" bịa ra — `release:verify` bắt đúng chuyện đó trong gói, repo không thấy gì.
+     */
+    const tmp = thuMucTam('oracle-khorong');
+    try {
+      const k = chayMay(['--rules-dir', tmp]);
+      expect(k.ma, 'kho rỗng là KHÔNG PHÁN ĐƯỢC').toBe(2);
+      expect(k.bao).toContain('CHƯA KIỂM');
+      expect(k.bao, 'phải nói kho rỗng, không đổ cho oracle').toMatch(/KHÔNG có rule nào/);
+      expect(k.ra, 'KHÔNG được kết luận oracle ma khi kho rỗng').not.toContain('oracle ma');
     } finally { donThuMucTam(tmp); }
   });
 

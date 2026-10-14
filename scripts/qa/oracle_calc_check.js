@@ -60,8 +60,8 @@ function thanMa(src) {
 }
 
 /** Đọc danh mục rule trong knowledge/domain → Map(id → {status, file}). */
-function napRule() {
-  const dir = path.join(REPO, 'knowledge', 'domain');
+function napRule(duong) {
+  const dir = duong || path.join(REPO, 'knowledge', 'domain');
   const m = new Map();
   if (!fs.existsSync(dir)) return m;
   for (const f of fs.readdirSync(dir).filter((x) => x.endsWith('.json'))) {
@@ -99,7 +99,7 @@ function docOracle(src, ten) {
 function main() {
   const dir = path.resolve(arg('dir', path.join(REPO, 'tests', 'fe', 'lib', 'oracles')));
   const out = path.resolve(arg('out', path.join(REPO, 'reports', 'oracle-calc.md')));
-  const rules = napRule();
+  const rules = napRule(arg('rules-dir'));
 
   const files = fs.existsSync(dir)
     ? fs.readdirSync(dir).filter((f) => f.endsWith('.ts') && f !== 'index.ts')
@@ -139,7 +139,24 @@ function main() {
     }
   }
 
-  const chuaKiem = oracles.length === 0;
+  /*
+   * KHO RULE RỖNG ⇒ KHÔNG PHÁN ĐƯỢC, không phải "mọi oracle đều là ma".
+   *
+   * Bản đóng gói mang `knowledge/domain/` RỖNG — kho rule là tài sản của từng dự án, không đi theo kit.
+   * Bản đầu của máy này vì thế kết cả hai oracle tham chiếu là "oracle ma" và exit 1, tức người nhận kit
+   * vừa cài xong đã thấy hai lỗi bịa. `release:verify` bắt đúng chuyện đó.
+   *
+   * Phân biệt hai tình huống khác hẳn nhau: kho CÓ rule mà không tra ra ref ⇒ oracle ma (lỗi thật);
+   * kho KHÔNG có rule nào ⇒ phép đối chiếu chưa xảy ra.
+   */
+  const khoRong = rules.size === 0;
+  if (khoRong) {
+    for (let i = loi.length - 1; i >= 0; i -= 1) {
+      if (/oracle ma|trạng thái/.test(loi[i].vi_sao)) loi.splice(i, 1);
+    }
+  }
+
+  const chuaKiem = oracles.length === 0 || khoRong;
   const proven = chuaKiem ? 0 : oracles.length - new Set(loi.filter((l) => l.ref !== '—').map((l) => l.ref)).size;
 
   const L = [
@@ -151,7 +168,10 @@ function main() {
   ];
   if (chuaKiem) {
     L.push('## CHƯA KIỂM', '',
-      `- Không oracle nào đăng ký trong \`${path.relative(REPO, dir)}\`.`, '',
+      khoRong
+        ? `- \`knowledge/domain/\` KHÔNG có rule nào (${oracles.length} oracle đang khai). Kho rule là tài sản của `
+          + 'từng dự án và không đi theo kit — chưa có rule thì chưa đối chiếu được `oracle_ref` nào.'
+        : `- Không oracle nào đăng ký trong \`${path.relative(REPO, dir)}\`.`, '',
       '`proven=0` ở đây KHÔNG có nghĩa "không có vấn đề tính toán" — nghĩa là chưa ai đo giá trị dẫn xuất nào.', '');
   } else {
     L.push(`- Oracle: **${oracles.length}** · rule trong kho: **${rules.size}**`, '',
@@ -172,7 +192,9 @@ function main() {
   for (const l of loi) console.error(`[oracle] ✗ ${l.file} ${l.ref} — ${l.vi_sao}`);
 
   if (chuaKiem) {
-    console.error('[oracle] ✗ CHƯA KIỂM (exit 2) — chưa oracle nào đăng ký. Đó KHÔNG phải một lượt đo đạt.');
+    console.error(khoRong
+      ? '[oracle] ✗ CHƯA KIỂM (exit 2) — `knowledge/domain/` rỗng, không đối chiếu được `oracle_ref` nào.'
+      : '[oracle] ✗ CHƯA KIỂM (exit 2) — chưa oracle nào đăng ký. Đó KHÔNG phải một lượt đo đạt.');
     process.exit(2);
   }
   if (loi.length && flag('enforce')) process.exit(1);

@@ -73,10 +73,18 @@ Và **đối chứng âm** cứu bốn mẫu dò khỏi dương tính giả: `40
   trò × route (cần ≥2 tài khoản UAT) và có case gắn `[Time]`/`[Legacy]`. Đó là trạng thái ĐÚNG — máy nói
   thẳng nó chưa đo được gì — nhưng nó có nghĩa hai trục mới **chưa chứng minh được gì trên dữ liệu
   thật**. Chủ dự án đã chốt: đóng v2.8.1 trước, chạy UAT ở lượt sau.
-- **Flaky dưới tải chưa sửa.** `discovery-api-inventory.spec.ts` (`goi_tu`) đỏ một lượt rồi xanh ở lượt
-  sau trên cùng commit; chạy riêng 3 lượt đều xanh. Nguyên nhân khả dĩ: `boVaTongHop` cache một lượt bò
-  với `doTre: 0`, tức một phép đo nhạy thời gian chạy dưới tải tuỳ ý. Con số **1.980 xanh · 0 đỏ** ở §1
-  là lượt chạy đạt — nhưng nó kèm một ca đỏ-dưới-tải đã biết, và tôi không lấy lượt xanh làm kết luận.
+- **Suite KHÔNG xanh ổn định — hai spec nhạy tải.** `discovery-api-inventory.spec.ts` (`goi_tu`) và
+  `discovery-injection.spec.ts` (`gộp theo (nhóm, màn)`) mỗi cái đỏ một lượt trong `full:suite` rồi xanh
+  **3/3 khi chạy riêng**. Cả hai đều bò app fixture rồi ghim con số đếm được.
+
+  Chi tiết đáng chú ý hơn cả việc nó flaky: lượt đỏ của `discovery-injection` tìm ra **12** điểm nhập
+  trong khi mốc ghim **11** — tức dưới tải nó thấy NHIỀU hơn, không phải ít hơn. Nếu vậy thì con số 11
+  đang ghim có thể chính là phía **đếm thiếu**, và lượt "xanh" là lượt bò chưa tới nơi. Một công cụ khám
+  phá mà kết quả đổi theo tải máy thì nó báo bề mặt khác nhau vào những ngày khác nhau.
+
+  Vì thế con số **1.981 xanh · 0 đỏ** ở §1 là **một lượt chạy đạt**, KHÔNG phải bằng chứng suite xanh ổn
+  định. Chưa sửa: chủ dự án chốt đóng v2.8.1 trước, và sửa đúng cách là làm lượt bò tất định (chờ mạng
+  lặng / DOM ổn định) chứ không phải nới con số cho khớp.
 - **Band của ⑥ chỉ `high`.** Thiết kế ghi "medium: khuyến nghị", nhưng `PLAN` không có bậc khuyến nghị —
   chỉ có đòi hoặc không. Nâng lên medium khi đã có ma trận thật ở vài task, kèm số đo.
 
