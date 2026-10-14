@@ -136,8 +136,26 @@ test.describe('@infra trục ⑦ — oracle giá trị tính toán', () => {
         '  dung: [{ input: {}, ky_vong: 1 }], lech: [{ input: {}, app_tra: 2, vi_sao: "v" }] });',
       ].join('\n'));
 
-      const k = chayMay(['--dir', tmp, '--enforce']);
+      /*
+       * KHO RULE RIÊNG cho đối chứng, không mượn kho của repo.
+       *
+       * Bản đầu mượn `knowledge/domain` của repo, nên nó ĐỎ TRONG GÓI: gói mang kho rỗng, mà kho rỗng
+       * nay là `CHƯA KIỂM` chứ không phải "oracle ma". Một đối chứng phụ thuộc dữ liệu của nơi nó chạy
+       * thì nó đo nơi chạy, không đo cái máy nó định canh.
+       */
+      const kho = thuMucTam('oracle-kho');
+      fs.writeFileSync(path.join(kho, 'a.json'), JSON.stringify({ id: 'BR-HSLOP-035', status: 'active', rule: 'x' }));
+      fs.writeFileSync(path.join(kho, 'b.json'), JSON.stringify({ id: 'BR-HSTRUONG-010', status: 'active', rule: 'x' }));
+      fs.writeFileSync(path.join(kho, 'c.json'), JSON.stringify({ id: 'BR-NHAP-001', status: 'draft', rule: 'x' }));
+      fs.writeFileSync(path.join(tmp, 'rule-nhap.ts'), [
+        "import { dangKy } from './index';",
+        "export const d = dangKy({ oracle_ref: 'BR-NHAP-001', ten: 'neo vào bản nháp', doi: ['x'],",
+        '  tinh: () => 1, dung: [{ input: {}, ky_vong: 1 }], lech: [{ input: {}, app_tra: 2, vi_sao: "v" }] });',
+      ].join(String.fromCharCode(10)));
+      const k = chayMay(['--dir', tmp, '--rules-dir', kho, '--enforce']);
+      donThuMucTam(kho);
       expect(k.ma, '--enforce phải chặn').toBe(1);
+      expect(k.ra, 'rule draft TRÔNG như có neo nên phải bị bắt').toMatch(/draft/);
       expect(k.ra, 'oracle ma').toContain('oracle ma');
       expect(k.ra, 'thiếu ca lệch').toMatch(/ca LỆCH/);
       expect(k.ra, 'oracle đọc DOM').toMatch(/locator|đọc app|đọc DOM/);
