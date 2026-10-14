@@ -7,7 +7,7 @@
 > **T1** chỉ chặn ở cửa ra, lúc đang làm thì cảnh báo và ghi `reports/gate-debt.json` · **T2** không
 > bao giờ chặn. T0 khai tay trong `.agent/config/gate_tiers.json`; không khai thì mặc định T1.
 
-Tổng **129** máy — **90 CHẶN** · 22 SINH (ghi artifact) · 17 BÁO CÁO (chỉ in).
+Tổng **132** máy — **93 CHẶN** · 22 SINH (ghi artifact) · 17 BÁO CÁO (chỉ in).
 
 SINH/BÁO CÁO **không phải gate bị nới** — chúng không kiểm vi phạm. Ví dụ `bugs:checklist` in brief bug
 lịch sử, còn việc CHẶN nằm ở `dim:coverage` (chiều `bug_history` §20).
@@ -33,6 +33,7 @@ lịch sử, còn việc CHẶN nằm ở `dim:coverage` (chiều `bug_history` 
 | T1 | CHẶN | `exit:gate` | BA CỬA RA (v2.7.0 §A2). | `scripts/qa/exit_gate.js` | prompt_templates · .claude/commands · tests/fe/infra |
 | T1 | CHẶN | `expansion:audit` | ĐO ĐỘ PHỦ 5 TRỤC trên MỌI task đã execute, để quyết định siết gate bằng SỐ. | `scripts/qa/expansion_audit.js` | RULE_GLOBAL.md · .claude/commands · tests/fe/infra |
 | T0 | CHẶN | `expected:check`, `expected:snapshot` | CHẶN "đổi expected để case xanh" (non-negotiable §6, tầng T0). | `scripts/qa/expected_ledger.js` | RULE_GLOBAL.md · prompt_templates · .claude/commands · tests/fe/infra |
+| T1 | CHẶN | `full:suite`, `full:suite:check` | SỔ GHI LƯỢT CHẠY CẢ BỘ, và cửa chặn đóng gói khi sổ đã cũ. | `scripts/qa/full_suite_ledger.js` | QUICKSTART.md · tests/fe/infra |
 | T1 | CHẶN | `golden:check`, `golden:snapshot` | BỘ DỮ LIỆU VÀNG cho parser canonical, và HAI PHÉP ĐẾM ĐỘC LẬP (v2.7.0 §A10.4 + §A10.5). | `scripts/qa/golden_check.js` | .gitlab-ci.yml · RULE_GLOBAL.md · .github/workflows · tests/fe/infra |
 | T1 | CHẶN | `json:check` | kiểm MỌI file .json ĐANG ĐƯỢC TRACK có parse được không. | `scripts/qa/json_check.js` | .gitlab-ci.yml · .github/workflows · tests/fe/infra |
 | T1 | CHẶN | `judge` | CHẤM PHẦN MÁY KHÔNG ĐO ĐƯỢC, có lấy mẫu và có hiệu chuẩn (v2.7.0 §A11). | `scripts/qa/judge.js` | RULE_GLOBAL.md · prompt_templates · tests/fe/infra |
@@ -41,7 +42,7 @@ lịch sử, còn việc CHẶN nằm ở `dim:coverage` (chiều `bug_history` 
 | T1 | CHẶN | `learn:bugs`, `learn:bugs:apply` | nối mắt xích còn ĐỨT: bug đã log Backlog → knowledge/bugs/ (+ root_causes ref, index). | `scripts/qa/learn_bugs.js` | README.md · USER_GUIDE.md · QUICKSTART.md · scripts/qa/README.md · .agent/workflows · prompt_templates |
 | T1 | CHẶN | `library:drift` | CHẶN "thư viện thuật ngữ đã trôi khỏi repo". | `scripts/qa/library_drift.js` | .gitlab-ci.yml · README.md · .github/workflows |
 | T0 | CHẶN | `gate:output`, `gate:output:fix`, `gate:gen-testcase` | Gate chất lượng output THỰC THI, tự chạy trước khi push Backlog/Sheet. | `scripts/qa/output_gate.js` | RULE_GLOBAL.md · README.md · scripts/qa/README.md · .agent/workflows · .agent/skills · prompt_templates · .claude/commands · tests/fe/infra |
-| T0 | CHẶN | `package:kit` | đóng gói bản phát hành SẠCH của kit vào `dist/`. | `scripts/qa/package_kit.js` | README.md · .github/workflows · tests/fe/infra |
+| T0 | CHẶN | `package:kit` | đóng gói bản phát hành SẠCH của kit vào `dist/`. | `scripts/qa/package_kit.js` | README.md · QUICKSTART.md · .github/workflows · tests/fe/infra |
 | T1 | CHẶN | `gate:policy` | giữ 1 NGUỒN policy duy nhất: RULE_GLOBAL.md là canonical. | `scripts/qa/policy_source_check.js` | .gitlab-ci.yml · RULE_GLOBAL.md · README.md · USER_GUIDE.md · .github/workflows · .agent/rules · .agent/skills · prompt_templates · .claude/commands · tests/fe/infra |
 | T0 | CHẶN | `preflight`, `preflight:lanes` | round-3) — CHẶN "miss đọc file / input hỏng" TRƯỚC khi workflow chạy. | `scripts/qa/preflight_gate.js` | .gitlab-ci.yml · README.md · USER_GUIDE.md · QUICKSTART.md · scripts/qa/README.md · .github/workflows · .agent/workflows · prompt_templates · .claude/commands · tests/fe/infra |
 | T1 | CHẶN | `probe:page` | biến artifact KHÁM PHÁ thành bản đồ field DÙNG ĐƯỢC cho spec. | `scripts/qa/probe_to_page.js` | **KHÔNG BỀ MẶT NÀO** |
@@ -62,13 +63,14 @@ lịch sử, còn việc CHẶN nằm ở `dim:coverage` (chiều `bug_history` 
 | T1 | CHẶN | `sync:canonical` | MỘT BỘ GHI, TOẢ BA NƠI (v2.8.0 §0c). | `scripts/qa/testcases/sync_canonical.js` | RULE_GLOBAL.md · README.md · USER_GUIDE.md · QUICKSTART.md · .agent/skills · prompt_templates · tests/fe/infra |
 | T1 | CHẶN | `trace:matrix` | sinh ma trận REQ → TC → AUTO → EXEC → BUG dạng artifact. | `scripts/qa/traceability_matrix.js` | README.md · .agent/workflows · prompt_templates |
 | T1 | CHẶN | `ui:conformance` | "visual oracle" tự động. | `scripts/qa/ui_conformance_check.js` | prompt_templates |
-| T1 | CHẶN | `release:verify` | CHỨNG MINH bản phát hành chạy được từ con số 0. Đây là thước đo chính của cả luồng CD, | `scripts/qa/verify_release.js` | README.md · .github/workflows · .agent/skills · tests/fe/infra |
+| T1 | CHẶN | `release:verify` | CHỨNG MINH bản phát hành chạy được từ con số 0. Đây là thước đo chính của cả luồng CD, | `scripts/qa/verify_release.js` | README.md · QUICKSTART.md · .github/workflows · .agent/skills · tests/fe/infra |
 | T1 | CHẶN | `version:check` | CHẶN phát hành thiếu sót. | `scripts/qa/version_check.js` | README.md · .github/workflows · tests/fe/infra |
 | T1 | CHẶN | `writing:lint`, `writing:lint:docs` | output phải đọc như QA viết, không như máy viết. | `scripts/qa/writing_lint.js` | RULE_GLOBAL.md · tests/fe/infra |
 | T1 | CHẶN | `profile:create` | Tạo profile task từ template: profiles/task.env.example -> profiles/<TASK_KEY>/task.env | `scripts/utils/create_profile.js` | RULE_GLOBAL.md · README.md · USER_GUIDE.md · .claude/commands · tests/fe/infra |
 | T1 | CHẶN | `user-guide:images` | User Guide board renderer (HTML/CSS + Playwright) | `scripts/utils/generate_user_guide_images.mjs` | README.md · tests/fe/infra |
 | T1 | CHẶN | `test:task`, `test:task:fe`, `test:task:api` | const { spawn } = require('child_process'); | `scripts/utils/run_playwright_task.js` | README.md · USER_GUIDE.md · QUICKSTART.md · prompt_templates |
 | T1 | CHẶN | `sync:gitlab` | đẩy `main` sang nhánh GitLab, TRỪ những đường dẫn khai trong | `scripts/utils/sync_gitlab.js` | tests/fe/infra |
+| T1 | CHẶN (có cờ --enforce) | `authz:expand` | TRỤC ⑥: liệt kê biến thể PHÂN QUYỀN quanh mỗi case. | `scripts/qa/authz_expand.js` | RULE_GLOBAL.md |
 | T0 | CHẶN (có cờ --enforce) | `auto:review`, `auto:review:enforce` | GATE chất lượng code automation, phần `lint:locator` KHÔNG gác. | `scripts/qa/automation_review.js` | RULE_GLOBAL.md · .agent/workflows · .agent/rules · .agent/skills · prompt_templates · tests/fe/infra |
 | T0 | CHẶN (có cờ --enforce) | `canonical:check` | GÁC MÔ HÌNH "MD CANONICAL, EXCEL/SHEET PHÁI SINH" (v2.8.0 §0c.4). | `scripts/qa/canonical_check.js` | USER_GUIDE.md · prompt_templates · tests/fe/infra |
 | T0 | CHẶN (có cờ --enforce) | `canonical:drift`, `canonical:drift:enforce` | ĐO ĐỘ TRÔI giữa Markdown canonical và bản xuất `.xlsx`. | `scripts/qa/canonical_drift.js` | RULE_GLOBAL.md · README.md · USER_GUIDE.md · .agent/workflows · .agent/rules · .agent/skills · prompt_templates · tests/fe/infra |
@@ -87,6 +89,7 @@ lịch sử, còn việc CHẶN nằm ở `dim:coverage` (chiều `bug_history` 
 | T1 | CHẶN (có cờ --enforce) | `manual:check`, `manual:check:enforce` | MÁY cho nhánh `manual-run/`: lượt CHẠY TAY của case `Manual-only`. | `scripts/qa/manual_run_check.js` | README.md · manual-run · .claude/commands · tests/fe/infra |
 | T1 | CHẶN (có cờ --enforce) | `matrix:coverage`, `matrix:coverage:enforce` | PAIRWISE PHỦ CẶP GIÁ TRỊ, KHÔNG PHỦ KẾT QUẢ. | `scripts/qa/matrix_coverage.js` | .agent/skills · prompt_templates · tests/fe/infra |
 | T1 | CHẶN (có cờ --enforce) | `mutation:check`, `proof:nightly` | NEGATIVE CONTROL: cố ý tiêm lỗi rồi xem máy kiểm có ĐỎ không. | `scripts/qa/mutation_check.js` | .gitlab-ci.yml · RULE_GLOBAL.md · README.md · .github/workflows · .agent/workflows · .agent/rules · prompt_templates · .claude/commands · tests/fe/infra |
+| T1 | CHẶN (có cờ --enforce) | `oracle:calc` | TRỤC ⑦: canh bộ oracle giá trị tính toán. | `scripts/qa/oracle_calc_check.js` | RULE_GLOBAL.md |
 | T1 | CHẶN (có cờ --enforce) | `probe:persist` | TRỤC 3: chuỗi lưu trữ `form → payload → đọc lại (API) → UI`. | `scripts/qa/persistence_probe.js` | RULE_GLOBAL.md · README.md · prompt_templates |
 | T1 | CHẶN (có cờ --enforce) | `phase1:check`, `phase2:check` | BÓ các gate của một phase vào MỘT lượt gọi. | `scripts/qa/phase_check.js` | .agent/workflows · prompt_templates |
 | T1 | CHẶN (có cờ --enforce) | `prompt:budget` | ĐO TĨNH: mỗi điểm vào bảo AI đọc bao nhiêu token hướng dẫn. | `scripts/qa/prompt_budget.js` | .gitlab-ci.yml · RULE_GLOBAL.md · README.md · .github/workflows · .claude/commands · tests/fe/infra |

@@ -52,6 +52,16 @@ jobs:
           npm run json:check
           npm run ci:scope
 
+      # 2b) CỬA `full:suite`: không đóng gói từ một cây chưa ai chạy cả bộ.
+      #
+      #     Sổ `knowledge/metrics/full-suite.json` nằm trong .gitignore — nó là BIÊN BẢN MỘT LƯỢT CHẠY
+      #     trên một máy, không phải tài sản của repo. Nên CI phải TỰ CHẠY, chứ không mượn sổ của ai.
+      #     Thiếu bước này thì `package:kit` chặn vĩnh viễn với lý do "CHƯA CÓ SỔ" — một thông báo đúng
+      #     mà chỉ sai chỗ, vì vấn đề thật nằm ở chỗ khác.
+      - run: npx playwright install --with-deps chromium
+      - name: Chạy CẢ BỘ (ghi sổ cho cửa đóng gói)
+        run: npm run full:suite
+
       # 3) Đóng gói CHỈ lớp GENERIC; script tự quét lại gói và tự xoá nếu bẩn.
       - name: Đóng gói
         run: npm run package:kit
