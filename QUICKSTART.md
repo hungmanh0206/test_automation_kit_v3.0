@@ -54,9 +54,9 @@ không". Hai câu khác nhau, và câu thứ hai mới là câu người nhận 
 
 | | GitHub | GitLab |
 |---|---|---|
-| file được track | 744 | 744 |
+| file được track | 742 | 742 |
 | `npx playwright test tests/fe/infra` | **1.983 test · 0 đỏ** (đo 14/10/2026, `npm run full:suite`) | **1.983 test · 0 đỏ** |
-| `npm run ci:scope` đếm | 144 spec | 144 spec |
+| `npm run ci:scope` đếm | 142 spec | 142 spec |
 | `release:verify` — suite chạy TRONG gói | **1.874 test · 0 đỏ** (1.830 chạy · 44 bỏ qua) — đo 14/10/2026, v2.8.2 | — |
 
 ### Link trong skill: `npm run skills:refcheck`
