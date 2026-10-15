@@ -3,7 +3,7 @@
  *   - trạng thái pass/fail theo từng step,
  *   - 1 ảnh evidence highlight vào đúng element được kiểm ở step đó.
  *
- * Ảnh lưu: <projectOutputDir>/tasks/<taskKey>/test-results/evidence/<TC_ID>/step-NN-<status>.png
+ * Ảnh lưu: <projectOutputDir>/tasks/<taskKey>/test-results/evidence/<TC_ID>/<CẤP>/step-NN-<status>.png
  * Ghi ra:  <projectOutputDir>/tasks/<taskKey>/test-results/testcase-status.json
  *   schema đúng với push_test_execution.js:
  *   { taskKey, generatedAt, runId?, tests: [ { tcId, status, comment, evidence:[...], steps:[ {status, comment, evidence:[...]} ] } ] }
@@ -60,6 +60,24 @@ function writeJsonAtomic(file, obj) {
  *
  * Trả `null` khi không có biến nào: task không chạy QEMIS thì không bịa ra dấu.
  */
+/**
+ * Mã cấp học ngắn, an toàn cho tên thư mục: MN · TH · THCS · THPT · GDTX.
+ *
+ * Trùng bảng quy đổi của `scripts/qa/result_ledger.js` — cùng một khái niệm thì phải cùng một phép
+ * quy đổi, nếu không ảnh nằm ở `THCS/` mà verdict đóng dấu `THPT` và không ai đối soát được.
+ * Không suy được cấp thì dùng `khong-ro-cap` chứ KHÔNG gộp vào gốc: gộp là quay lại đúng lỗi ghi đè.
+ */
+function maCapAn() {
+  const s = String(process.env.QEMIS_CAP_HOC_LAM_VIEC || process.env.QEMIS_CAP_HOC || '')
+    .normalize('NFC').toLowerCase();
+  if (s.includes('mầm non')) return 'MN';
+  if (s.includes('thường xuyên') || s.includes('gdtx')) return 'GDTX';
+  if (s.includes('trung học phổ thông') || s.includes('thpt')) return 'THPT';
+  if (s.includes('trung học cơ sở') || s.includes('thcs')) return 'THCS';
+  if (s.includes('tiểu học')) return 'TH';
+  return 'khong-ro-cap';
+}
+
 function scopeHienTai() {
   const g = (k) => {
     const v = process.env[k];
@@ -145,7 +163,21 @@ class Case {
      * Sửa ở ĐÂY thay vì ở 9 chỗ gọi: spec mới viết sai thứ tự vẫn không để lại kết quả cũ.
      */
     if (recorder && recorder._dangTreo) recorder._dangTreo.add(tcId);
-    this.dir = path.join(recorder.artifactsRoot, tcId);
+    /*
+     * TÁCH THEO CẤP HỌC — không có tầng này thì evidence của các cấp GHI ĐÈ nhau.
+     *
+     * Đường dẫn cũ là `evidence/<TC_ID>/step-NN-<status>.png`, không mang chiều cấp. Case khai
+     * "Áp dụng cho cấp = Tất cả" chạy ở 5 cấp thì cả 5 lượt ghi vào CÙNG tên file: thứ còn lại là
+     * mảnh ghép của nhiều lượt, mỗi cặp (step, status) giữ dấu của lượt ghi sau cùng.
+     *
+     * Đo CSDL-9001 ngày 15/10/2026: 41/210 thư mục chứa ảnh của ≥2 lượt, thêm 129 thư mục mà Excel
+     * khai kết quả ở ≥2 cấp nhưng chỉ còn ảnh của một lượt ⇒ 170/210 (81%) có ảnh không khớp verdict.
+     * Nhìn tận mắt `TC_059`: `step-03-passed.png` chụp ở GDTX, `step-04-failed.png` chụp ở THPT.
+     *
+     * Hệ quả nặng nhất là CLAUDE.md §4 ("mọi case đã execute phải có ảnh đúng màn") không còn đúng
+     * trên thực tế, mà gate vẫn xanh vì nó chỉ kiểm CÓ FILE, không kiểm file thuộc đúng lượt nào.
+     */
+    this.dir = path.join(recorder.artifactsRoot, tcId, maCapAn());
     fs.mkdirSync(this.dir, { recursive: true });
   }
 
