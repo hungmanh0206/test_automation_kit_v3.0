@@ -862,8 +862,8 @@ body.lropen{overflow:hidden}
 
     <h3 class="subhead"><span class="num">5</span>Lệnh hay dùng</h3>
     <p class="sectip">Danh mục gate của kit là <b>tự sinh từ source</b>, không viết tay — bản hiện tại đếm được
-      <b>132 máy: 93 CHẶN · 22 SINH · 17 BÁO CÁO</b>. Sinh lại bằng <code>npm run gates:index</code>.
-      Phiên bản kit: <b>2.8.2</b>.</p>
+      <b>134 máy: 95 CHẶN · 22 SINH · 17 BÁO CÁO</b>. Sinh lại bằng <code>npm run gates:index</code>.
+      Phiên bản kit: <b>2.9.1</b>.</p>
     <div id="cmdList"></div>
 
     <h3 class="subhead"><span class="num">6</span>Quy ước bắt buộc</h3>
@@ -994,7 +994,7 @@ body.lropen{overflow:hidden}
       </ul>
 
       <h3>Vì sao cần</h3>
-      <p>Kit có 25 skill, 132 máy kiểm (76 trong đó CHẶN thật) và một bộ từ vựng riêng (oracle độc lập, tautology, failureLayer,
+      <p>Kit có 26 skill, 134 máy kiểm (95 trong đó CHẶN thật) và một bộ từ vựng riêng (oracle độc lập, tautology, failureLayer,
         readiness, TRI, chiều coverage…). Người mới vào phải đọc rải rác nhiều file mới ghép được bức tranh.
         Trang này gom lại một chỗ, giữ nguyên nguồn, và cố tình <b>không</b> diễn giải thêm ngoài những gì repo đã ghi.</p>
 
@@ -1763,7 +1763,7 @@ const TERMS_GATE3 = [
   src:'scripts/qa/scope_anchor.js', rel:['g-dimension_coverage','c-canonical','g-preflight_gate'] },
 { id:'g-gate_index', t:'gates:index', cat:'gate',
   def:'Sinh DANH MỤC GATE của kit từ chính source. Trả lời được "kit có bao nhiêu gate, mỗi cái CHẶN gì, gọi ở đâu".',
-  detail:'Quét source rồi suy mức từ code: exit 1 là CHẶN · ghi artifact là SINH · chỉ in là BÁO CÁO. Bảng hiện tại: 132 máy — 93 CHẶN, 22 SINH, 17 BÁO CÁO. Bản --check chặn khi bảng lệch source.',
+  detail:'Quét source rồi suy mức từ code: exit 1 là CHẶN · ghi artifact là SINH · chỉ in là BÁO CÁO. Bảng hiện tại: 134 máy — 95 CHẶN, 22 SINH, 17 BÁO CÁO. Bản --check chặn khi bảng lệch source.',
   why:'Kit có hơn 30 npm script dạng gate và gần 60 file trong scripts/qa/, nhưng không chỗ nào trả lời được câu trên. Hệ quả không phải bất tiện: luận đề của kit là "luật cần MÁY", mà máy không LIỆT KÊ ĐƯỢC thì không kiểm toán được. Không ai biết một gate đã âm thầm tụt thành cảnh báo, hay đã mất nơi gọi.',
   how:['npm run gates:index để sinh lại bảng.','npm run gates:index:check để chặn khi bảng lệch source.'],
   cmd:'npm run gates:index   ·   npm run gates:index:check',
@@ -1885,7 +1885,7 @@ const TERMS_GATE3 = [
 { id:'g-skills_lint', t:'skills:lint', cat:'gate',
   def:'Mô tả của một skill có đủ thông tin để CHỌN nó hay chưa.',
   detail:'Kiểm mô tả có nói "dùng khi nào" và "không dùng khi nào", và mọi đường dẫn trong skill phải tồn tại. Phần kiểm đường dẫn chỉ soi thư mục gốc của repo, KHÔNG soi `knowledge/**` (gitignore) hay đường dẫn tương đối theo task.',
-  why:'25 skill không auto-load: agent phải tự chọn. Một mô tả không nói "khi nào" thì nó không giúp chọn, và skill đó coi như không tồn tại.',
+  why:'26 skill không auto-load: agent phải tự chọn. Một mô tả không nói "khi nào" thì nó không giúp chọn, và skill đó coi như không tồn tại.',
   how:['Mô tả nêu điều kiện kích hoạt, không nêu tính năng.','Đường dẫn trong skill phải là đường dẫn thật.'],
   cmd:'npm run skills:lint   ·   npm run skills:lint -- --enforce',
   ex:'Bản đầu soi cả `knowledge/**` nên xanh ở máy local mà chặn 5 chỗ trên cây sạch.',
@@ -1929,6 +1929,24 @@ const TERMS_GATE3 = [
   trap:'Mỗi oracle bắt buộc có CẶP ĐỐI CHỨNG: một ca đúng và một ca LỆCH (giá trị app có thể trả, mà oracle phải khác). Ca lệch lấy từ examples của chính rule trong knowledge/domain, đừng tự nghĩ ra.',
   ex:'Kho rule RỖNG là CHƯA KIỂM (exit 2), không phải "mọi oracle đều là ma" — gói mang knowledge/domain rỗng, và bản đầu kết oracle thật là ma.',
   src:'scripts/qa/oracle_calc_check.js', rel:['c-oracle','g-domain_rules'] },
+
+{ id:'g-concurrency_check', t:'concurrency:check', cat:'gate',
+  def:'Đo TÍNH ĐÚNG ĐẮN khi nhiều lượt gọi cùng chạm một tài nguyên — không đo tốc độ.',
+  detail:'Bắn N lượt gọi đã chuẩn bị sẵn bằng Promise.all rồi ĐO độ lệch thả thật. Lệch quá ngưỡng (mặc định 50ms) thì trả CHUA_KIEM chứ không phán: không thể bắn N request đúng cùng thời điểm, nên máy đo độ lệch thay vì giả vờ nó bằng 0. Trần N cứng là 10, config chỉ hạ xuống được. Ba nơi chạy: fixture · uat_doc (chỉ đọc lại kiểm bất biến) · uat_ghi (mặc định TỪ CHỐI).',
+  why:'Lỗi tranh chấp không lộ ra ở một lượt chạy tuần tự. Duyệt hai lần, trừ kho xuống âm, callback xử lý trùng — tất cả chỉ xuất hiện khi hai lượt chen vào giữa khoảng đọc-rồi-ghi của nhau.',
+  cmd:'npm run concurrency:check',
+  trap:'Kịch bản không khai BẤT BIẾN ở trạng thái cuối thì ra CHUA_KIEM, không được tính là PASS vì "chạy không lỗi". Và HTTP 500 là FAIL, không phải "đã chặn có kiểm soát".',
+  ex:'Đây KHÔNG phải load test. Muốn đo thông lượng thì dùng K6 ở tests/load/ — hai câu hỏi khác nhau.',
+  src:'scripts/qa/concurrency_check.js', rel:['g-security','c-oracle'] },
+
+{ id:'g-skills_refcheck', t:'skills:refcheck', cat:'gate',
+  def:'Mọi link nội bộ trong skill phải trỏ file có thật — và phân biệt link THẬT với đường dẫn MINH HOẠ.',
+  detail:'Ba dấu hiệu nhận ra đường dẫn minh hoạ: chứa placeholder dạng ngoặc nhọn · nằm trong khối mã · là ô bảng mô tả file đầu ra. Những dạng đó KHÔNG tính là link, nên không bị gắn cờ.',
+  why:'Một bộ skill có link chết thì người đọc bấm vào không ra gì, và không có gì đỏ. Nhưng đếm ngây thơ còn tệ hơn: nó gắn cờ cả ví dụ, và cách sửa nhanh nhất là gỡ ví dụ khỏi tài liệu — tức làm tài liệu nghèo đi để chiều một cái máy đếm sai.',
+  cmd:'npm run skills:refcheck',
+  trap:'Luật "đứng sau chữ VD thì bỏ qua" đã bị BỎ: nó từng bỏ qua ba link tới một file CÓ THẬT. Một luật bỏ qua được link thật thì nó nuốt luôn link gãy thật.',
+  ex:'Đối chứng hai chiều lấy từ bộ skill của một kit khác: ba dạng minh hoạ phải đi qua, một link thật gãy phải bị chặn.',
+  src:'scripts/qa/skills_refcheck.js', rel:['g-skills_index'] },
 
 { id:'g-canonical_check', t:'canonical:check', cat:'gate',
   def:'Canh ranh giới nguồn-sự-thật của bộ testcase: MD canonical, Excel là bản xuất.',
@@ -2134,7 +2152,7 @@ const TERMS_GATE5 = [
 
 ];
 
-/* NHÓM 3 — 25 skill (nguồn: .agent/skills/INDEX.md + từng SKILL.md) */
+/* NHÓM 3 — 26 skill (nguồn: .agent/skills/INDEX.md + từng SKILL.md) */
 const TERMS_SKILL = [
 
 /* ── Phase 1 ── */
@@ -2165,6 +2183,14 @@ const TERMS_SKILL = [
   detail:'Sinh risk-register ở dạng suggest-only, rồi gate độ sâu test theo band. Mặc định chỉ cảnh báo. Bật --enforce mới chặn. QA có quyền override band nhưng phải ghi lý do.',
   why:'Thời gian test luôn ít hơn thứ cần test. Câu hỏi thật không phải "test hết chưa" mà "chỗ nguy hiểm nhất đã test đủ sâu chưa", và câu đó cần một con số để trả lời nhất quán giữa các người, các sprint.',
   src:'.agent/skills/phase1/risk_scorer/SKILL.md', rel:['c-rbt','g-risk_gate','g-risk_score','f-risk-model'] },
+
+{ id:'sk-tc_design_guide', t:'tc_design_guide', cat:'skill', phase:'Phase 1',
+  def:'Dạy THIẾT KẾ testcase: sáu thành phần, ranh giới Actor ↔ Context ↔ Tiền điều kiện, chọn kỹ thuật, anti-pattern.',
+  detail:'Phần luôn-nạp nhỏ (dưới 2.500 token) và chỉ tóm tắt rồi trỏ; phần dày nằm ở references/ và chỉ nạp khi cần — kỹ thuật, checklist theo loại field, checklist component ngoài form, anti-pattern. Phủ 8 kỹ thuật, thêm Pairwise và Classification Tree so với bộ sáu mã cũ.',
+  why:'Kiến thức thiết kế vốn rải trong 22 chiều và RULE_GLOBAL, không có chỗ dạy tập trung. Nhưng điểm khác là skill này không chỉ DẠY: mỗi điểm dạy nối tới một máy kiểm CÓ THẬT, và chỗ nào chưa có máy thì ghi thẳng "chưa có máy — review tay" thay vì để trống.',
+  ex:'Bảng "điểm dạy → máy kiểm" có 11 dòng trỏ npm script thật và 4 chỗ nói thẳng là chưa có máy.',
+  trap:'Bịa một tên máy làm hỏng cả bảng chứ không chỉ một dòng, vì bảng chỉ có giá trị khi người đọc kiểm lại được từng dòng. Có test đối chiếu mọi lệnh nhắc trong skill với package.json.',
+  src:'.agent/skills/phase1/tc_design_guide/SKILL.md', rel:['c-pairwise','c-chieu-coverage','f-phase1','sk-tc_reviewer'] },
 
 { id:'sk-tc_reviewer', t:'tc_reviewer', cat:'skill', phase:'Phase 1',
   def:'Chấm chất lượng bộ testcase theo rubric 8 tiêu chí — máy chấm 6, người chấm 2.',
@@ -3080,7 +3106,7 @@ const TERMS_FLOW = [
   src:'.agent/config/kit-layers.md', rel:['r-scope','g-policy_source_check'] },
 
 { id:'f-skills-index', t:'.agent/skills/INDEX.md', cat:'flow',
-  def:'Bảng tra 25 skill, sinh tự động, không sửa tay.',
+  def:'Bảng tra 26 skill, sinh tự động, không sửa tay.',
   detail:'Skill của kit nằm ở .agent/skills/** chứ không phải .claude/skills/, nên harness không tự phát hiện. Bảng này là cách agent biết có skill nào và nằm ở đâu; SessionStart hook tự bơm danh sách tên vào ngữ cảnh.',
   why:'Skill không được biết tới thì coi như không tồn tại. Sinh tự động để bảng không bao giờ lệch với thực tế thư mục.',
   cmd:'npm run skills:index',
@@ -3108,7 +3134,7 @@ const TERMS_FLOW2 = [
 
 { id:'f-gate-catalog', t:'Danh mục gate (tự sinh)', cat:'flow',
   def:'Bảng liệt kê mọi máy của kit kèm mức chặn, sinh tự động từ source.',
-  detail:'Con số hiện tại: 132 máy — 93 CHẶN · 22 SINH (ghi artifact) · 17 BÁO CÁO (chỉ in). Mức được suy từ code chứ không khai tay: exit 1 là CHẶN, ghi artifact là SINH, chỉ in là BÁO CÁO. Bảng còn ghi mỗi máy được gọi từ đâu, và ghi ra .agent/config/GATES.md.',
+  detail:'Con số hiện tại: 134 máy — 95 CHẶN · 22 SINH (ghi artifact) · 17 BÁO CÁO (chỉ in). Mức được suy từ code chứ không khai tay: exit 1 là CHẶN, ghi artifact là SINH, chỉ in là BÁO CÁO. Bảng còn ghi mỗi máy được gọi từ đâu, và ghi ra .agent/config/GATES.md.',
   why:'Luận đề của kit là "luật cần MÁY". Nhưng máy mà không liệt kê được thì không kiểm toán được. Không ai biết một gate đã âm thầm tụt xuống thành cảnh báo, hay đã mất hết nơi gọi và thành mồ côi.',
   how:['Sinh lại: npm run gates:index.','Chặn khi bảng lệch source: npm run gates:index:check.'],
   trap:'SINH và BÁO CÁO không phải gate bị nới. Chúng không kiểm vi phạm, chỉ tạo dữ liệu cho máy khác chặn.',
@@ -3291,7 +3317,7 @@ const TREE = [
   [0,'.agent/','cấu hình, workflow, skill, rule của agent','dir'],
   [1,'config/','project_context · risk_model · verdict_taxonomy · kit-layers · impact-map','dir'],
   [1,'workflows/','entry + step của phase1 (01–04), phase2 (01–04), rerun (01–03)','dir'],
-  [1,'skills/','25 skill theo phase1 / phase2 / shared','dir'],
+  [1,'skills/','26 skill theo phase1 / phase2 / shared','dir'],
   [1,'rules/','core_rules · qa_instincts · locator_strategy · playwright_fe/api','dir'],
   [0,'prompt_templates/','prompt chạy từng phase','dir'],
   [1,'phase1/dimensions/','15 chương chiều coverage — mở đúng chiều task cần, không nạp cả 15','dir'],
@@ -3396,7 +3422,7 @@ const CMD_GROUPS = [
     ['npm run merge:execution-status -- --task <KEY>','Ghép kết quả execute vào bộ canonical']
   ]},
   { g:'Kit: tự kiểm toán & phát hành', items:[
-    ['npm run gates:index  ·  npm run gates:index:check','Danh mục gate tự sinh — 132 máy, 93 CHẶN; :check chặn khi bảng lệch source'],
+    ['npm run gates:index  ·  npm run gates:index:check','Danh mục gate tự sinh — 134 máy, 95 CHẶN; :check chặn khi bảng lệch source'],
     ['npm run rule -- <mục>  ·  npm run rule:toc','Tra RULE_GLOBAL theo mục (287 token) thay vì đọc cả file (12,8k)'],
     ['npm run version:check','Chặn phát hành thiếu số phiên bản; kiểm khớp tag'],
     ['npm run package:kit','Đóng gói dist/ CHỈ lớp GENERIC — không để lọt secret hay oracle của dự án khác'],

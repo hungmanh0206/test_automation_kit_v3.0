@@ -1,4 +1,4 @@
-/* NHÓM 3 — 25 skill (nguồn: .agent/skills/INDEX.md + từng SKILL.md) */
+/* NHÓM 3 — 26 skill (nguồn: .agent/skills/INDEX.md + từng SKILL.md) */
 const TERMS_SKILL = [
 
 /* ── Phase 1 ── */
@@ -29,6 +29,14 @@ const TERMS_SKILL = [
   detail:'Sinh risk-register ở dạng suggest-only, rồi gate độ sâu test theo band. Mặc định chỉ cảnh báo. Bật --enforce mới chặn. QA có quyền override band nhưng phải ghi lý do.',
   why:'Thời gian test luôn ít hơn thứ cần test. Câu hỏi thật không phải "test hết chưa" mà "chỗ nguy hiểm nhất đã test đủ sâu chưa", và câu đó cần một con số để trả lời nhất quán giữa các người, các sprint.',
   src:'.agent/skills/phase1/risk_scorer/SKILL.md', rel:['c-rbt','g-risk_gate','g-risk_score','f-risk-model'] },
+
+{ id:'sk-tc_design_guide', t:'tc_design_guide', cat:'skill', phase:'Phase 1',
+  def:'Dạy THIẾT KẾ testcase: sáu thành phần, ranh giới Actor ↔ Context ↔ Tiền điều kiện, chọn kỹ thuật, anti-pattern.',
+  detail:'Phần luôn-nạp nhỏ (dưới 2.500 token) và chỉ tóm tắt rồi trỏ; phần dày nằm ở references/ và chỉ nạp khi cần — kỹ thuật, checklist theo loại field, checklist component ngoài form, anti-pattern. Phủ 8 kỹ thuật, thêm Pairwise và Classification Tree so với bộ sáu mã cũ.',
+  why:'Kiến thức thiết kế vốn rải trong 22 chiều và RULE_GLOBAL, không có chỗ dạy tập trung. Nhưng điểm khác là skill này không chỉ DẠY: mỗi điểm dạy nối tới một máy kiểm CÓ THẬT, và chỗ nào chưa có máy thì ghi thẳng "chưa có máy — review tay" thay vì để trống.',
+  ex:'Bảng "điểm dạy → máy kiểm" có 11 dòng trỏ npm script thật và 4 chỗ nói thẳng là chưa có máy.',
+  trap:'Bịa một tên máy làm hỏng cả bảng chứ không chỉ một dòng, vì bảng chỉ có giá trị khi người đọc kiểm lại được từng dòng. Có test đối chiếu mọi lệnh nhắc trong skill với package.json.',
+  src:'.agent/skills/phase1/tc_design_guide/SKILL.md', rel:['c-pairwise','c-chieu-coverage','f-phase1','sk-tc_reviewer'] },
 
 { id:'sk-tc_reviewer', t:'tc_reviewer', cat:'skill', phase:'Phase 1',
   def:'Chấm chất lượng bộ testcase theo rubric 8 tiêu chí — máy chấm 6, người chấm 2.',

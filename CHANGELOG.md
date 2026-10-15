@@ -205,6 +205,25 @@ hỏng theo hướng tệ nhất. Nay có 5 phép kiểm, hai cái đáng nhất
 Thêm một điều kiện cho mọi bước "bỏ bớt file": máy phải **đếm và nói ra** đã bỏ bao nhiêu. Im lặng thu
 hẹp phạm vi đúng là cách một bộ kiểm teo dần mà vẫn báo xanh.
 
+### Kiểm 6 cửa rồi kết luận về CI — chỗ tôi hụt
+
+Đẩy xong thì `static-check` ĐỎ ngay, ở `library:drift`. Tôi đã kiểm 6 cửa ở worktree sạch tại HEAD và
+thấy xanh, rồi đẩy — nhưng `static-check` chạy **20 bước**, không phải 6. Kiểm một tập con rồi kết
+luận về cả CI chính là lỗi **mẫu số tự chọn** mà bản này đi sửa ở ba chỗ khác.
+
+Chỗ trôi thì CÓ TỪ TRƯỚC v2.9.0, không phải do bản này sinh ra:
+
+- trang ghi `25 skill`, repo có **26** (ba nơi);
+- trang ghi `132 máy — 93 CHẶN`, `GATES.md` ghi **134 / 95** (bốn nơi, viết bằng ba kiểu dấu khác nhau
+  — và chính vì viết nhiều kiểu nên bản đầu của `library_drift` từng chỉ bắt được một chỗ);
+- hai máy chưa bao giờ có mục trên trang: `concurrency_check.js` (v2.8.4) và `skills_refcheck.js`
+  (v2.9.0), cộng skill `tc_design_guide`. Thêm máy mà quên trang là **lỗi lặp được**, và trang là chỗ
+  người ngoài đọc để biết kit có gì;
+- trang còn ghi phiên bản kit là 2.8.2.
+
+Thêm `rule --check` đỏ do chính tôi sửa `RULE_GLOBAL` (thêm luật link môi trường, sửa mục lục trỏ
+`§7 trục`): mục lục ghim SỐ DÒNG và chi phí token nên nội dung dời là lệch. `rule:toc` sinh lại.
+
 ### Số đo của bản này
 
 | | |
