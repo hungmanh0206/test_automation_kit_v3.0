@@ -7,6 +7,175 @@
 > `.agent/**`, `tests/support/**` đều là **shared change** (xem `RULE_GLOBAL.md` §Shared Change Gate) —
 > ảnh hưởng mọi story đang chạy. Mỗi mục ghi **vấn đề → cách chữa**, không chỉ liệt kê tính năng.
 
+## v2.9.0 — 2026-10-15 — Skill `tc_design_guide`: dạy thiết kế TC, và mỗi điểm dạy nối tới một máy
+
+> Bản này gói cả nội dung **v2.8.4** (harness đồng thời + bù bảo mật read-only) — xem mục ngay dưới.
+
+**Vấn đề.** Kit A (QIG QA) mạnh ở phần **dạy thiết kế testcase**: bảng kỹ thuật, checklist field,
+checklist component, anti-pattern. Kit B không có skill dạy tập trung như vậy — kiến thức rải trong 22
+chiều và `RULE_GLOBAL`. Nhưng A chỉ **dạy**; đợt này vừa dạy vừa **ép**: mỗi điểm dạy nối tới một máy
+kiểm có thật, hoặc ghi thẳng *"chưa có máy — review tay"*.
+
+### Số đo, không ước lượng
+
+| | A (`rbt-manual-testing`) | `tc_design_guide` |
+|---|---|---|
+| Phần **luôn-nạp** | **16.204** token, một file 937 dòng | **1.558** token |
+| Tổng nội dung | 16.204 | 1.558 + **4.594** (`references/`, nạp khi cần) |
+| Điểm dạy có máy kiểm | 0 (AI tự chấm bằng văn) | **11** |
+| Chỗ chưa có máy, nói thẳng | — | **4** |
+| Kỹ thuật phủ | 3 dòng bắt buộc (EP+BVA · DT · ST) | **8** (thêm UC · EG · **PW** · **CT**) |
+
+### Hai lần test bắt chính tôi
+
+1. **Tôi bịa tên máy.** Bảng "điểm dạy → máy kiểm" ghi `npm run matrix` cho Decision Table và Pairwise —
+   **script đó không tồn tại**. Bịa tên máy là điều kiện DỪNG của đợt, và test *"chỉ nêu máy CÓ THẬT"*
+   bắt ngay lượt chạy đầu. Tên đúng: `matrix:coverage`.
+2. **Tôi nói THIẾU, không phải nói thừa.** Bản đầu ghi *"pairwise: chưa có máy đếm cặp — review tay"*.
+   Thật ra `matrix_coverage.js` **là** máy pairwise, và nó kiểm hơn thế: phủ **cặp** lẫn phủ **lớp kết
+   quả** — một bộ đủ mọi cặp vẫn có thể bỏ sót một lớp kết quả theo spec. Chỗ thật sự chưa có máy là
+   **classification tree**.
+
+### Có máy từ v2.5.0 mà không có đường khai
+
+`matrix_coverage.js` là máy pairwise từ v2.5.0, nhưng `design_techniques.json` chỉ có 6 mã ISTQB và
+**không mã nào cho pairwise** — tức có máy mà case không có cách khai, nên **không case nào từng mang
+tag đó**. Thêm `PW` và `CT`. Gate `design-technique-gate` vẫn **đòi đủ 6 mã ISTQB**, chỉ thôi cấm mã bổ
+sung; mã mới vẫn phải qua `kich_hoat` + `dau_hieu_may_kiem` nên thêm một mã rỗng nghĩa vẫn đỏ.
+
+### Cửa `skills:refcheck` — và cái bẫy nó tránh
+
+Kit A bị đếm là **"5 link chết"**. Mở từng cái ra: **cả 5 là đường dẫn MINH HOẠ** — placeholder
+`<module>`, ví dụ trong bảng, tên file **đầu ra** vẽ trong sơ đồ luồng, phần lớn nằm trong khối mã. Đo
+lại bằng máy: A có **23 link, 0 gãy**.
+
+Một cửa viết ngây thơ sẽ tái tạo đúng dương tính giả đó — rồi người ta "sửa" bằng cách **gỡ ví dụ khỏi
+tài liệu**, tức làm tài liệu nghèo hơn để chiều một cái máy đếm sai. Nên cửa phân biệt ba dạng minh hoạ,
+và **đã bỏ một luật của chính nó**: luật *"đứng sau chữ VD"* bỏ qua 3 link **THẬT** tới
+`CODE_TEMPLATES.md` của A — một file có thật. Luật nào bỏ qua được link thật thì nó nuốt luôn link gãy
+thật. Đối chứng hai chiều dùng **chính các ca của A** làm âm bản.
+
+### Ba mâu thuẫn của A, sửa thế nào
+
+- **Quan sát ≠ oracle.** A để tiêu đề *"ảnh thắng"* (thân mục nói *"KHÔNG tự chọn bên nào"*, nhưng vẫn
+  bảo **viết TC theo những gì ảnh cho thấy** — tức quan sát trở thành kỳ vọng ĐÃ VIẾT). B: quan sát ở
+  lại `observed`, lệch nhau ⇒ câu hỏi cho Ambiguity Gate, case mang `OBSERVATION`.
+- **Evidence:** skill **không đặt luật nào**, chỉ trỏ `CLAUDE.md` §4. A đặt luật ở hai nơi và chúng mâu
+  thuẫn.
+- **Locator:** skill **không nói về locator** — đã có `locator_strategy`.
+
+Mỗi cái một test grep chặn nó quay lại.
+
+### Việc còn lại
+
+- **Ranh giới Actor/Context/Tiền điều kiện chưa có máy** — điểm dạy giá trị nhất port từ A, vẫn review
+  tay.
+- **Classification tree chưa có máy đếm độ phủ nhánh.** Mã `CT` thêm để case gắn được tag, không phải để
+  giả vờ có người gác.
+- **Skill chưa dùng để viết một bộ TC thật.** Nó dạy đúng theo các máy đang có, nhưng chưa ai đo xem bộ
+  case viết theo nó có tốt hơn không. Phép đo đó thuộc lượt sau.
+- **Ca flaky họ `discovery/` vẫn mở**, nay **ba** instance (`discovery-api-inventory` ·
+  `discovery-injection` · `discovery-cli`). Cả ba xanh khi chạy riêng, chỉ đỏ dưới tải. Nguyên nhân chưa
+  tìm ra từ v2.8.2.
+
+---
+
+## v2.8.4 — 2026-10-14 — Harness đồng thời, bù bảo mật read-only, và ba lần phép đo bác chính thiết kế
+
+> **Không có tag riêng — nội dung này phát hành CÙNG `v2.9.0`.** Tôi bắt tay vào v2.9.0 trước khi
+> đóng v2.8.4, nên hai bản nằm chồng trên cùng một nhánh. Đặt tag `v2.8.4` ở HEAD sẽ gói cả code
+> v2.9.0 vào một tag mang số 2.8.4 — tức tag nói sai về thứ nó chứa. Giữ mục này vì nội dung có thật
+> và tra được; chỉ con số phiên bản là không có. Lỗi trình tự thuộc về tôi.
+
+**Vấn đề.** Kit có chiều §8 (sinh case) và K6 (tải), nhưng **không có máy kiểm bất biến khi nhiều
+request đua trên cùng một bản ghi**. Và `security_check.js` tuy chạy 6 nhóm (header · cookie · unauth ·
+authz dọc · IDOR · transport) thì **chưa từng chạy**: repo không có `security_catalog.json` nào, kể cả
+bản mẫu, trong khi máy đòi `--catalog` và thoát nếu thiếu.
+
+### Mục A — `concurrency:check`: đo ĐÚNG ĐẮN khi đua, không đo tốc độ
+
+K6 hỏi *"chậm bao nhiêu khi 200 người cùng vào"*; máy này hỏi *"**kết quả có đúng không khi 2 người cùng
+bấm**"*. Một hệ duyệt đúp vẫn có thể có p95 rất đẹp — K6 xanh, tiền vẫn mất. Nên `concurrency.json` khai
+**bất biến**, không khai ngưỡng thời gian.
+
+**Chỗ không hứa được, và nó quyết định cả thiết kế:** không thể bắn N request đúng cùng một thời điểm.
+Node một luồng, mạng không hứa thứ tự. Thứ làm được là dựng sẵn N thunk rồi thả cùng lúc, và **đo độ
+lệch thật**. Lệch quá ngưỡng ⇒ `CHUA_KIEM`, không phải PASS: hai request cách nhau 300ms thì chúng không
+đua, và *"không đua mà không lỗi"* chẳng chứng minh gì. Một harness đồng thời không đo được mình có đồng
+thời không thì nó chỉ là một vòng lặp gọi API.
+
+**Hai lần phép đo bác thiết kế, cả hai chỉ lộ khi chạy thật:**
+
+1. **Bản "ĐÚNG" của fixture cũng đua.** Tôi đọc trạng thái TRƯỚC `await` rồi mới kiểm — đúng lỗi TOCTOU.
+   Chạy ra: bản đúng cho cả 3 lượt duyệt thành công, y như bản hỏng. Không chạy cả hai vế thì tôi đã ship
+   một fixture mà vế ĐÚNG cũng hỏng, và harness sẽ *trông như* hoạt động.
+   Lỗi trừ kho phải sửa lần hai: bản hỏng ghi đè cùng một giá trị nên dừng ở 0 thay vì xuống âm — tức
+   oversell **không lộ ra**.
+2. **Phép thử độ lệch sai cơ chế.** Tôi cho `goi` NGỦ để giả lập "không đua" — nhưng mạng chậm thì N
+   request vẫn chồng nhau trong lúc bay, tức **vẫn đua**. Thứ phá cuộc đua là **dispatch bị trễ**. Test
+   sai đó báo PASS, và chính nó làm lộ ra rằng tôi đang đo nhầm thứ.
+
+**Cặp hỏng/đúng** — điều kiện để tin harness:
+
+| Kịch bản | fixture ĐÚNG | fixture CÀI LỖI |
+|---|---|---|
+| duyệt một lần | `200,409,409,409` · 1 lần duyệt | `200×4` · **4 lần duyệt** |
+| submit đúp | 1 bản ghi | **4 bản ghi** |
+| trừ kho | còn 0 | **còn −3** (oversell) |
+| callback trùng | tổng 100 | **tổng 400** |
+
+**An toàn, không nới:** `chay_o: fixture` TỪ CHỐI trên target không loopback · `uat_ghi` mặc định TỪ
+CHỐI, cần `--resource-test` + người xác nhận từng lượt · N có trần **cứng 10**, config chỉ hạ được không
+nâng được · trên UAT mọi verdict là **ADVISORY**.
+
+### Mục B — ba nhóm bảo mật read-only, và bản mẫu catalog chưa từng có
+
+`session` (token sau logout · token hết hạn) · `tenantIsolation` (danh sách lẫn đơn vị khác — rò ở mức
+**TẬP** dữ liệu, khác IDOR theo một id) · `jwt` (sửa payload không ký lại · `alg=none` · chữ ký sai).
+
+Việc đầu tiên **không phải** thêm control mà là dựng `security_catalog.example.json`: thêm nhóm vào một
+máy không ai chạy được thì cũng không ai chạy — cùng lớp lỗi với `knowledge/domain` rỗng trong gói mà
+v2.8.2 vừa xử. Bản mẫu dùng **host giả**: bản mẫu phát cho người nhận kit không mang endpoint thật của
+một dự án.
+
+**Ba chỗ phép đo bác thiết kế:**
+
+1. **Bản mẫu của tôi khai `base`** — mà máy **không đọc** trường đó; nó lấy URL từ biến môi trường
+   (`OPS_BASE_URL`, đổi được bằng `baseUrlEnv`). Khai host trong file vừa bị bỏ qua vừa là một chỉ dẫn
+   sai.
+2. **Fixture sinh token chỉ từ (user, đơn vị, exp)** ⇒ hai lần đăng nhập trong **cùng một giây** ra token
+   giống hệt nhau, nên logout phiên này thu hồi luôn phiên kia. Phép thử cô lập đơn vị đỏ vì đúng chuyện
+   đó, không phải vì app rò dữ liệu. Thêm `jti` mỗi phiên.
+3. **Cửa một-nguồn CHẶN tôi** nối `dua`/`phien_token` vào `leak_report.AXES` — chúng là nhóm **phân loại
+   bug**, không phải trục mở rộng. Trộn vào sẽ âm thầm thổi phồng con số "N trục" ở `expansion_audit`,
+   đúng thứ v2.8.1 vừa mất một đợt để dọn. Và cách sửa trông hiển nhiên nhất lại chính là nối chúng vào
+   `AXES` — nên cửa nay chỉ đọc trong đúng bảng `AXES` thay vì quét cả file.
+
+Năm control, năm cặp hỏng/đúng, tất cả phân biệt được. Thiếu tài khoản thứ hai ⇒ `NEEDS_ACCOUNT`, không
+FAIL giả. Không `--confirm-nonprod` ⇒ TỪ CHỐI. Nhóm cần **GHI** thật (mass assignment · upload độc · đổi
+mật khẩu thật) **không thuộc đợt này** — ghi rõ trong bản mẫu để không ai đọc báo cáo rồi tưởng đã phủ.
+
+### Nối vào kit
+
+`gate:policy` bắt `concurrency:check` là **npm script mồ côi** — đúng cửa đã bắt `full:suite` ở v2.8.0.
+Nối: `smoke:run --concurrency` opt-in **mặc định tắt** (smoke là lượt chạy nhanh; gộp kịch bản đua vào
+mặc định làm nó chậm và đổi nghĩa), cộng một mục ở QUICKSTART. `lenhDongThoi` **trả lệnh chứ không tự
+spawn**: smoke đã có ba lớp chặn riêng, một máy tự gọi máy khác thì *"lớp chặn nào áp cho lượt nào"*
+thành câu khó trả lời.
+
+`leak_report` thêm hai nhóm phân loại, mỗi cái có **đối chứng hai chiều**: mẫu "đua" KHÔNG dò chữ `cộng`
+trần (động từ của mọi phép tính); mẫu "phiên" chỉ tính `token` khi đứng cạnh từ về trạng thái phiên —
+nếu không thì *"mã token hàng hoá hiển thị sai"* bị bắt oan.
+
+### Việc còn lại
+
+- **Ca flaky họ `discovery/` vẫn mở**, và nay có **ba** instance: `discovery-api-inventory` ·
+  `discovery-injection` · `discovery-cli`. Cả ba là spec bò fixture, đều xanh khi chạy riêng, đều chỉ đỏ
+  dưới tải. Nguyên nhân chưa tìm ra từ v2.8.2.
+- Kịch bản `uat_ghi` chưa chạy lần nào — đúng thiết kế, nó đòi resource test dùng một lần.
+
+---
+
 ## v2.8.3 — 2026-10-14 — CI đỏ, và bốn tài liệu dẫn xuất đã trôi khỏi nguồn
 
 **Vấn đề.** Sau khi đẩy `main` lần đầu, GitHub báo **2 check đỏ**. Không phải một lỗi, mà là bốn chuyện
