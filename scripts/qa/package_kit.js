@@ -64,6 +64,18 @@ const KEEP_DIRS = [
    * 10 ảnh ở đây. Ảnh đã gỡ sạch nhận diện công ty nên mang đi được.
    */
   'docs/user-guide-images',
+  /*
+   * `vendor/`: tarball của `xlsx`, ghim bằng `file:vendor/xlsx-0.20.3.tgz` trong `package.json`.
+   *
+   * Vì sao phải mang: `xlsx@0.20.3` CHỈ có trên `cdn.sheetjs.com`, không có trên npm registry (registry
+   * dừng ở `0.18.5`, bản còn CVE). Mạng chặn CDN đó ⇒ `npm ci` chết. Gói mang `package.json` trỏ
+   * `file:vendor/…` mà không mang chính file đó thì `npm ci` trong gói chết NGAY, và `release:verify`
+   * sẽ đỏ toàn bộ chứ không chỉ một test — tức thiếu thư mục này là lỗi chặn gói, không phải lỗi nhẹ.
+   *
+   * Tarball giữ nguyên `integrity` sha512 cũ trong `package-lock.json` (đo 15/10/2026: khớp đúng chuỗi
+   * lockfile đang ghim trước khi đổi), nên vendor KHÔNG nới lỏng phép kiểm toàn vẹn.
+   */
+  'vendor',
 ];
 const KEEP_FILES = [
   '.gitlab-ci.yml', 'playwright.config.js', 'package.json', 'package-lock.json',
@@ -336,7 +348,13 @@ function scanPackage(root, files) {
       try { body = fs.readFileSync(path.join(root, f), 'utf8'); } catch (e) { /* nhị phân */ }
       if (CRED_CONTENT.test(body)) { hits.push(`${f} — tên VÀ nội dung kiểu credential`); continue; }
     }
-    if (/\.(png|jpe?g|webp|mp4|webm|xlsx|zip|gz|ico|woff2?|ttf)$/i.test(f)) continue;
+    /*
+     * `tgz|tar` thêm 15/10/2026 cùng lúc với `vendor/`. Luật cũ có `gz` nhưng `\.` đòi dấu chấm NGAY
+     * trước, nên `xlsx-0.20.3.tgz` KHÔNG khớp: file bị `readFileSync(…, 'utf8')` (đọc nhị phân kiểu
+     * utf8 không ném lỗi, chỉ ra rác) rồi đem rác đó quét PATTERNS secret — dương tính giả chực chờ,
+     * và dương tính giả ở cửa secret là loại làm người ta học cách bỏ qua màu đỏ.
+     */
+    if (/\.(png|jpe?g|webp|mp4|webm|xlsx|zip|gz|tgz|tar|ico|woff2?|ttf)$/i.test(f)) continue;
     let body;
     try { body = fs.readFileSync(path.join(root, f), 'utf8'); } catch (e) { continue; }
     for (const p of PATTERNS) if (p.re.test(body)) hits.push(`${f} — secret: ${p.name}`);

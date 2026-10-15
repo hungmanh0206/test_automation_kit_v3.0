@@ -3,6 +3,7 @@ import fs from 'fs';
 import os from 'os';
 import path from 'path';
 import { execFileSync, spawnSync } from 'child_process';
+import { createHash } from 'crypto';
 import { gateEnv } from './_gate_env';
 
 /*
@@ -49,6 +50,33 @@ function cayGia(pkg: object, allow: object, ma = '// khong dung gi\n') {
 function chay(d: string) {
   const r = spawnSync(process.execPath, [DEPS, '--repo', d], { cwd: REPO, encoding: 'utf8', env: gateEnv() });
   return { code: r.status, out: `${r.stdout || ''}${r.stderr || ''}` };
+}
+
+/**
+ * Cây giả cho phép kiểm ⑤: một dep `file:` trỏ tarball nằm trong cây, kèm lockfile ghim ĐÚNG băm của
+ * chính file đó.
+ *
+ * Băm phải TÍNH TỪ FILE, không gõ tay: gõ tay thì âm bản vẫn xanh khi phép kiểm hỏng theo chiều
+ * "không bao giờ so được băm nào", vì khi đó nó cũng im lặng.
+ *
+ * Nội dung tarball không cần là tarball thật — phép kiểm ⑤ so byte, không giải nén.
+ */
+function cayGiaVendor(noiDung = 'khong-phai-tarball-that-nhung-du-de-so-bam\n') {
+  const d = cayGia(
+    { dependencies: { thu: 'file:vendor/thu-1.0.0.tgz' } },
+    { mien_tru: { thu: { url_ok: true, noi_dung: 'x', vi_sao: 'y' } } },
+  );
+  fs.mkdirSync(path.join(d, 'vendor'), { recursive: true });
+  const p = path.join(d, 'vendor', 'thu-1.0.0.tgz');
+  fs.writeFileSync(p, noiDung, 'utf8');
+  const bam = createHash('sha512').update(fs.readFileSync(p)).digest('base64');
+  fs.writeFileSync(
+    path.join(d, 'package-lock.json'),
+    JSON.stringify({ lockfileVersion: 3, packages: { 'node_modules/thu': { integrity: `sha512-${bam}` } } }, null, 2),
+    'utf8',
+  );
+  execFileSync('git', ['add', '-A'], { cwd: d, stdio: 'pipe' });
+  return d;
 }
 
 const LOCK_CO_HASH = {
@@ -170,9 +198,85 @@ test.describe('@infra deps:check — dependency phải có nơi dùng hoặc có
     expect(src).not.toMatch(/require\(\s*['"]form-data['"]/);
   });
 
-  test('mục "Mạng cần mở" khai host ngoài registry — người dựng CI phải biết trước', () => {
+  test('mục "Mạng cần mở" nói đúng trạng thái SAU khi vendor — không còn host nào ngoài registry', () => {
+    /*
+     * Test này trước 15/10/2026 ghim ĐÚNG NGƯỢC LẠI: nó đòi README phải chứa `cdn.sheetjs.com` và `403`.
+     * Lúc đó đúng. Sau khi vendor tarball vào repo thì câu đó thành SAI, và một test ghim câu sai còn
+     * tệ hơn không có test — nó biến tài liệu lạc hậu thành điều kiện để pipeline xanh.
+     *
+     * Nên bây giờ ghim theo hướng khác: README phải khai KHÔNG cần host ngoài registry, và vẫn phải
+     * KỂ LẠI chuyện cũ (người dựng CI gặp một pipeline cũ 403 cần đọc được vì sao, và vì sao không
+     * phải cứ hạ về registry là xong).
+     */
     const r = fs.readFileSync(path.join(REPO, '.github/workflows/README.md'), 'utf8');
-    expect(r).toContain('cdn.sheetjs.com');
-    expect(r, 'phải nói thiếu thì sao').toMatch(/403/);
+    expect(r, 'phải khai rõ không cần mở host nào').toMatch(/Không host nào ngoài registry/i);
+    expect(r, 'phải còn kể lý do không hạ về registry').toMatch(/CVE-2023-30533/);
+    expect(r, 'phải trỏ tới tarball trong repo').toContain('vendor/xlsx-0.20.3.tgz');
+  });
+
+  test('`xlsx` khai bằng `file:` và tarball CÓ THẬT trong repo', () => {
+    const pkg = JSON.parse(fs.readFileSync(path.join(REPO, 'package.json'), 'utf8'));
+    const co = { ...(pkg.dependencies || {}), ...(pkg.devDependencies || {}) };
+    expect(co.xlsx, 'đổi về URL CDN là mang lại đúng ca `npm ci` 403 sau proxy').toMatch(/^file:/);
+    const duong = path.join(REPO, String(co.xlsx).replace(/^file:/, ''));
+    expect(fs.existsSync(duong), 'khai `file:` mà không có file thì `npm ci` chết ở MỌI máy nhận').toBe(true);
+  });
+
+  test('gói phát hành mang `vendor/` — thiếu nó thì `npm ci` trong gói chết', () => {
+    /*
+     * Lỗi lặp được: `KEEP_DIRS` của `package_kit.js` đã bỏ sót `manual-run`, `tests/fe/lib`,
+     * `.claude/agents`. Lần này thứ bỏ sót sẽ không làm vài test đỏ mà làm CẢ `release:verify` đỏ,
+     * vì gói mang `package.json` trỏ `file:vendor/…` trong khi file không có ở đó.
+     */
+    /* eslint-disable @typescript-eslint/no-var-requires, global-require */
+    const pk = require(path.join(REPO, 'scripts/qa/package_kit.js'));
+    /* eslint-enable @typescript-eslint/no-var-requires, global-require */
+    expect(pk.KEEP_DIRS, '`vendor` phải nằm trong danh sách mang đi').toContain('vendor');
+    expect(pk.collect().includes('vendor/xlsx-0.20.3.tgz'), 'tarball phải thật sự được thu vào gói').toBe(true);
+  });
+
+  test('⑤ băm tarball `file:` KHỚP `integrity` lockfile ⇒ ĐẠT (ÂM BẢN)', () => {
+    const d = cayGiaVendor();
+    try {
+      const r = chay(d);
+      expect(r.out, 'tarball nguyên thì KHÔNG được có dòng băm nào').not.toMatch(/KHÔNG khớp `integrity`/);
+      expect(r.code, r.out).toBe(0);
+    } finally { fs.rmSync(d, { recursive: true, force: true }); }
+  });
+
+  test('⑤ đổi MỘT bit trong tarball ⇒ CHẶN (DƯƠNG BẢN)', () => {
+    /*
+     * Đây là phép kiểm duy nhất còn lại trên một blob nhị phân 2,3 MB: không ai đọc được nó trong code
+     * review, nên nếu băm không có máy so thì vendor = tin tưởng mù vào một file không ai mở.
+     */
+    const d = cayGiaVendor();
+    try {
+      const p = path.join(d, 'vendor/thu-1.0.0.tgz');
+      const b = fs.readFileSync(p);
+      b[Math.floor(b.length / 2)] ^= 0xff;
+      fs.writeFileSync(p, b);
+      const r = chay(d);
+      expect(r.code, r.out).toBe(1);
+      expect(r.out).toMatch(/KHÔNG khớp `integrity`/);
+    } finally { fs.rmSync(d, { recursive: true, force: true }); }
+  });
+
+  test('⑤ tarball `file:` MẤT khỏi repo ⇒ CHẶN, và nói rõ `npm ci` sẽ chết', () => {
+    const d = cayGiaVendor();
+    try {
+      fs.rmSync(path.join(d, 'vendor/thu-1.0.0.tgz'));
+      const r = chay(d);
+      expect(r.code, r.out).toBe(1);
+      expect(r.out).toContain('KHÔNG có trong repo');
+    } finally { fs.rmSync(d, { recursive: true, force: true }); }
+  });
+
+  test('⑤ nhãn bảng in `FILE`, không in `URL` — nhãn sai làm người đọc tin dep vẫn tải qua mạng', () => {
+    const d = cayGiaVendor();
+    try {
+      const r = chay(d);
+      expect(r.out).toMatch(/thu\s+FILE/);
+      expect(r.out, '`file:` không phải URL dù đi qua cùng nhánh luật').not.toMatch(/thu\s+URL/);
+    } finally { fs.rmSync(d, { recursive: true, force: true }); }
   });
 });

@@ -16,11 +16,17 @@
  * Nên máy này không chỉ tìm dep chết. Nó bắt mọi dep KHÔNG tự chứng minh được phải có một dòng trong
  * `.agent/config/deps_allow.json` nói rõ nơi dùng và lý do. Lần rà sau đọc dòng đó thay vì đoán lại.
  *
- * BỐN PHÉP KIỂM:
+ * NĂM PHÉP KIỂM:
  *   ① dep không có nơi dùng và không có miễn trừ            ⇒ CHẶN
  *   ② dep khai bằng URL/`git+` mà miễn trừ không có `url_ok` ⇒ CHẶN
  *   ③ dep khai bằng URL mà lockfile KHÔNG có `integrity`     ⇒ CHẶN (tải về không khoá băm)
  *   ④ miễn trừ thừa (dep đã tự chứng minh, hoặc không còn trong package.json) ⇒ CẢNH BÁO
+ *   ⑤ dep `file:` trỏ tarball trong repo mà băm KHÔNG khớp `integrity` của lockfile ⇒ CHẶN
+ *
+ * ⑤ thêm 15/10/2026 cùng lúc với `vendor/xlsx-0.20.3.tgz`. Vendor một tarball đổi hình dạng của rủi
+ * ro chứ không xoá nó: hết chuyện mạng chặn CDN, nhưng thêm 2,3 MB nhị phân mà KHÔNG AI đọc được
+ * trong code review. Một blob như vậy chỉ còn đúng một phép kiểm là so băm với `integrity` —
+ * và nếu phép kiểm đó chỉ nằm trong một dòng văn ở `deps_allow.json` thì nó không phải phép kiểm.
  *
  * ④ là cảnh báo chứ không chặn, nhưng nó quan trọng: một danh sách miễn trừ không ai dọn sẽ dần che
  * đúng thứ nó phải soi.
@@ -124,7 +130,12 @@ function main() {
     const noi = duocDung(ten, ma, lenh);
     const m = MIEN[ten];
     const url = laUrl(ver);
-    bang.push({ ten, ver, noi: noi || (m ? 'miễn trừ' : '—'), url });
+    /*
+     * `nhan`: `file:` ĐI QUA cùng nhánh luật với URL (xem `laUrl`), nhưng in nó ra là "URL" thì bảng
+     * nói sai sự thật — đo 15/10/2026, `xlsx` đã vendor rồi mà bảng vẫn in "URL miễn trừ", và đó đúng
+     * là loại nhãn làm người đọc tin dep vẫn tải qua mạng.
+     */
+    bang.push({ ten, ver, noi: noi || (m ? 'miễn trừ' : '—'), url, nhan: /^file:/.test(String(ver)) ? 'FILE ' : (url ? 'URL  ' : '     ') });
 
     // ① không nơi dùng, không miễn trừ
     if (!noi && !m) {
@@ -144,6 +155,40 @@ function main() {
         + ' Tải về không khoá băm thì nội dung có thể đổi dưới chân mình mà lockfile vẫn "khớp".');
     }
 
+    /*
+     * ⑤ dep `file:` trỏ tarball TRONG repo: băm file phải khớp `integrity` lockfile.
+     *
+     * Thiếu file ⇒ CHẶN, vì `npm ci` sẽ chết chứ không degrade — và nó chết ở MỌI máy nhận gói, nên
+     * bắt tại đây rẻ hơn nhiều so với bắt ở `release:verify`.
+     *
+     * `integrity` có thể mang nhiều băm cách nhau bằng dấu cách; chỉ so những thuật toán Node có.
+     * Không có băm nào so được ⇒ CHƯA PHÁN ĐƯỢC, và đó là CẢNH BÁO, không phải "đạt": một phép kiểm
+     * im lặng vì không chạy nổi thì nhìn y hệt một phép kiểm vừa thấy mọi thứ ổn.
+     */
+    if (/^file:/.test(String(ver))) {
+      const duong = path.join(REPO, String(ver).replace(/^file:/, ''));
+      if (!fs.existsSync(duong)) {
+        chan.push(`${ten}: khai \`${ver}\` nhưng file KHÔNG có trong repo.`
+          + ' `npm ci` sẽ chết ở mọi máy nhận — thêm file vào repo, hoặc đổi dep về registry.');
+      } else {
+        const want = integrityCuaLock(ten);
+        const buf = fs.readFileSync(duong);
+        const sanCo = want.split(/\s+/).filter(Boolean).map((h) => h.split('-')[0]);
+        const doDuoc = sanCo.filter((a) => {
+          try { require('crypto').createHash(a); return true; } catch (e) { return false; }
+        });
+        if (!doDuoc.length) {
+          if (want) canh.push(`${ten}: \`integrity\` lockfile dùng thuật toán Node này không có (${sanCo.join(', ')}) — CHƯA so được băm.`);
+        } else {
+          const khop = doDuoc.some((alg) => want.includes(`${alg}-${require('crypto').createHash(alg).update(buf).digest('base64')}`));
+          if (!khop) {
+            chan.push(`${ten}: băm của \`${String(ver).replace(/^file:/, '')}\` KHÔNG khớp \`integrity\` trong \`package-lock.json\`.`
+              + ' Tarball trong repo đã bị đổi, hoặc lockfile ghim một bản khác — hai bên phải là CÙNG một file.');
+          }
+        }
+      }
+    }
+
     // ④ miễn trừ thừa
     if (m && noi && noi !== 'miễn trừ' && !url) {
       canh.push(`${ten}: có miễn trừ nhưng dep đã tự chứng minh (thấy ở ${noi}) — xoá dòng miễn trừ đi.`);
@@ -161,7 +206,7 @@ function main() {
   }
 
   console.log(`[deps] ${bang.length} dependency:`);
-  for (const r of bang) console.log(`  ${r.ten.padEnd(22)} ${r.url ? 'URL ' : '    '}${r.noi}`);
+  for (const r of bang) console.log(`  ${r.ten.padEnd(22)} ${r.nhan}${r.noi}`);
 
   if (canh.length) {
     console.log(`\n[deps] ⚠ ${canh.length} cảnh báo:`);

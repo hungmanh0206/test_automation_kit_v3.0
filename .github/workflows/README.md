@@ -49,16 +49,20 @@ Hiện tại:
 
 ## Mạng cần mở
 
-`npm ci` kéo một gói KHÔNG qua registry npm, nên môi trường có proxy phải mở thêm một host:
+**Không host nào ngoài registry npm.** `npm ci` chạy được sau proxy chỉ-cho-registry, và chạy được cả
+khi offline hoàn toàn (đo 15/10/2026: `npm install --offline` từ tarball trong repo, cài xong và
+`xlsx` đọc-ghi vòng tròn ổn).
 
-| Host | Gói | Thiếu thì sao |
-| --- | --- | --- |
-| `cdn.sheetjs.com` | `xlsx@0.20.3` | `npm ci` trả **403 và dừng** — không phải lỗi im lặng, nhưng cả pipeline không chạy được. |
+Trước 15/10/2026 thì **không** như vậy: `xlsx@0.20.3` khai bằng URL tới `cdn.sheetjs.com`, và mạng
+chặn host đó thì `npm ci` trả **403 và dừng** — cả pipeline không chạy được. Gói đó vẫn không có trên
+registry (registry dừng ở `0.18.5`, mang 2 lỗ đã công bố CVE-2023-30533 + CVE-2024-22363, chỉ vá từ
+`0.19.3`/`0.20.2`), nên cách ra không phải hạ cấp mà là **mang tarball vào repo**:
+`vendor/xlsx-0.20.3.tgz`, khai `file:vendor/xlsx-0.20.3.tgz`.
 
-Lý do không chuyển về registry: bản trên registry dừng ở `0.18.5`, mang 2 lỗ đã công bố
-(CVE-2023-30533, CVE-2024-22363) và chỉ vá từ `0.19.3`/`0.20.2` — hai bản đó chỉ có trên CDN. Đầy đủ
-lý do, nơi dùng và điều kiện gỡ được: `.agent/config/deps_allow.json`. `npm run deps:check` gác chỗ này
-— thêm một dep dạng URL mà không khai lý do thì nó CHẶN.
+Vendor đổi hình dạng rủi ro chứ không xoá nó: hết chuyện mạng, nhưng thêm 2,3 MB nhị phân mà không ai
+đọc được trong code review. Nên băm của tarball **có máy gác**: `npm run deps:check` phép kiểm ⑤ so
+sha512 của file với `integrity` trong `package-lock.json` và CHẶN khi lệch hoặc khi file mất. Đầy đủ
+lý do, nơi dùng và điều kiện gỡ được: `.agent/config/deps_allow.json`.
 
 ## Gotchas kỹ thuật
 
