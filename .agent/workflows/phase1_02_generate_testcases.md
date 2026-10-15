@@ -12,6 +12,9 @@ Sinh bộ testcase đủ chi tiết để automation engineer có thể execute 
 | TC ID | Loại case | Tag | Module | Trường hợp kiểm thử | Tiền điều kiện | Dữ liệu Test | Các bước thực hiện | Kết quả mong đợi | Ưu tiên |
 ```
 
+> **Cách thiết kế** (chọn kỹ thuật · checklist field/component · anti-pattern): skill
+> [`tc_design_guide`](../skills/phase1/tc_design_guide/SKILL.md) — nạp khi đang viết case, không nạp ở bước khai manifest.
+
 ## Workflow
 
 > (Optional) Nếu task có branch/PR code liên quan tới TASK_KEY: chạy skill `git_impact_analyzer` (base mặc định `main`) để sinh `<TASK_OUTPUT_DIR>/requirements/git-impact.md` — input cho Change Impact / Regression Ripple (mục 17, Bước 1). Suggest-only, không tự đổi scope.

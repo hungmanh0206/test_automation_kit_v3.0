@@ -411,6 +411,89 @@ function escHtml(s) {
 function start() {
   const store = { truong: DU_LIEU_GOC.map((r) => ({ ...r })), soLanGhi: 0, nhatKyGhi: [] };
 
+  /*
+   * VÙNG CHO KỊCH BẢN ĐUA (v2.8.4).
+   *
+   * `loiDua` bật/tắt từng lỗi — mỗi lỗi phải có CẶP bản hỏng/bản đúng, vì một harness chỉ được thử trên
+   * bản đúng thì chưa ai biết nó bắt được gì.
+   *
+   * MỌI handler dưới đây có một KHE CHỜ thật (`await nghi(0)`) giữa lúc ĐỌC trạng thái và lúc GHI. Thiếu
+   * khe đó thì Node một luồng xử lý nguyên tử, không có cuộc đua nào để bắt, và fixture sẽ "chứng minh"
+   * một điều không đúng: rằng app không bao giờ đua.
+   */
+  const dua = {
+    donDuyet: { trangThai: 'cho_duyet', soLanDuyet: 0 },
+    datCho: [],              // mỗi phần tử: { key, id }
+    kho: { conLai: 1 },
+    callback: { daNhan: [], tong: 0 },
+  };
+  const nghi = (ms) => new Promise((r) => { setTimeout(r, ms); });
+
+  /*
+   * VÙNG CHO BA NHÓM BẢO MẬT READ-ONLY (v2.8.4 mục B): phiên · cô lập đơn vị · JWT.
+   *
+   * Token ở đây là JWT THẬT về hình dạng (ba phần, base64url, chữ ký HMAC) nhưng khoá là hằng số của
+   * fixture. Không dùng thư viện: cả mục B chỉ cần biết BE có TỪ CHỐI token dị dạng không, và tự ký bằng
+   * `crypto` làm rõ chính xác thứ đang được thử.
+   */
+  const crypto = require('crypto');
+  const KHOA = 'fixture-khoa-bi-mat';
+  const b64u = (o) => Buffer.from(JSON.stringify(o)).toString('base64url');
+  const ky = (h, pl) => crypto.createHmac('sha256', KHOA).update(`${h}.${pl}`).digest('base64url');
+  const phatToken = (sub, donVi, hetHanGiay) => {
+    const h = b64u({ alg: 'HS256', typ: 'JWT' });
+    /*
+     * `jti` NGẪU NHIÊN cho mỗi lượt đăng nhập.
+     *
+     * Bản đầu chỉ ký (sub, don_vi, exp), nên hai lần đăng nhập trong CÙNG MỘT GIÂY ra token GIỐNG HỆT
+     * nhau — và logout phiên này thu hồi luôn phiên kia. Phép thử cô lập đơn vị đỏ vì đúng chuyện đó,
+     * không phải vì app rò dữ liệu. Token thật luôn có thành phần phân biệt từng phiên.
+     */
+    const pl = b64u({ sub, don_vi: donVi, jti: crypto.randomUUID(), exp: Math.floor(Date.now() / 1000) + hetHanGiay });
+    return `${h}.${pl}.${ky(h, pl)}`;
+  };
+  const baoMat = {
+    daLogout: new Set(),
+    nguoi: {
+      'u-a': { matKhau: 'pw-a', don_vi: 'DV-A' },
+      'u-b': { matKhau: 'pw-b', don_vi: 'DV-B' },
+    },
+    banGhi: [
+      { id: 1, ten: 'hồ sơ của đơn vị A', don_vi: 'DV-A' },
+      { id: 2, ten: 'hồ sơ của đơn vị B', don_vi: 'DV-B' },
+    ],
+  };
+
+  /*
+   * Đọc token: trả `{ ok, pl, vi_sao }`. `hong` bật từng lỗi KIỂM TRA — mỗi lỗi một cặp hỏng/đúng, vì
+   * một control chỉ được thử trên bản đúng thì chưa ai biết nó bắt được gì.
+   */
+  const docToken = (raw, hong) => {
+    const t = String(raw || '').replace(/^Bearer\s+/i, '');
+    const phan = t.split('.');
+    if (phan.length !== 3) return { ok: false, vi_sao: 'token không đủ ba phần' };
+    const [h, pl, sig] = phan;
+    let head = {};
+    let tai = {};
+    try {
+      head = JSON.parse(Buffer.from(h, 'base64url').toString('utf8'));
+      tai = JSON.parse(Buffer.from(pl, 'base64url').toString('utf8'));
+    } catch (e) { return { ok: false, vi_sao: 'token không giải mã được' }; }
+
+    /* alg=none: bản hỏng chấp nhận vì nó tin trường `alg` do CHÍNH TOKEN khai. */
+    if (String(head.alg).toLowerCase() === 'none') {
+      if (!hong.alg_none) return { ok: false, vi_sao: 'alg=none' };
+      return { ok: true, pl: tai };
+    }
+    /* Chữ ký: bản hỏng bỏ qua phép so. Đây là lỗ cho cả "sửa payload" lẫn "chữ ký sai". */
+    if (!hong.bo_qua_chu_ky && sig !== ky(h, pl)) return { ok: false, vi_sao: 'chữ ký sai' };
+    /* Hạn: bản hỏng chấp nhận token quá hạn. */
+    if (!hong.nhan_het_han && tai.exp && tai.exp * 1000 < Date.now()) return { ok: false, vi_sao: 'token hết hạn' };
+    /* Logout: bản hỏng vẫn nhận token đã thu hồi. */
+    if (!hong.nhan_sau_logout && baoMat.daLogout.has(t)) return { ok: false, vi_sao: 'token đã logout' };
+    return { ok: true, pl: tai };
+  };
+
   const srv = http.createServer((req, res) => {
     const u = new URL(req.url, 'http://localhost');
     const p = u.pathname;
@@ -450,6 +533,123 @@ function start() {
       store.soLanGhi += 1;
       store.nhatKyGhi.push({ method: req.method, path: p, luc: Date.now() });
       return json({ ok: true });
+    }
+
+    /* ---- BẢO MẬT READ-ONLY (v2.8.4 mục B) ---- */
+    const hongBM = {
+      alg_none: q.get('alg_none') === '1',
+      bo_qua_chu_ky: q.get('bo_qua_chu_ky') === '1',
+      nhan_het_han: q.get('nhan_het_han') === '1',
+      nhan_sau_logout: q.get('nhan_sau_logout') === '1',
+    };
+
+    if (p === '/auth/login' && req.method === 'POST') {
+      let body = '';
+      req.on('data', (c) => { body += c; });
+      return req.on('end', () => {
+        let o = {};
+        try { o = JSON.parse(body || '{}'); } catch (e) { o = {}; }
+        const u = baoMat.nguoi[o.username];
+        if (!u || u.matKhau !== o.password) return json({ ok: false }, 401);
+        const songGiay = Number(q.get('song_giay') || 3600);
+        return json({ token: phatToken(o.username, u.don_vi, songGiay) });
+      });
+    }
+
+    if (p === '/auth/logout' && req.method === 'POST') {
+      const t = String(req.headers.authorization || '').replace(/^Bearer\s+/i, '');
+      if (t) baoMat.daLogout.add(t);
+      return json({ ok: true });
+    }
+
+    if (p === '/api/bm/toi' && req.method === 'GET') {
+      const r = docToken(req.headers.authorization, hongBM);
+      if (!r.ok) return json({ ok: false, vi_sao: r.vi_sao }, 401);
+      return json({ sub: r.pl.sub, don_vi: r.pl.don_vi });
+    }
+
+    /* Danh sách theo đơn vị — chỗ rò ở mức TẬP dữ liệu, khác IDOR theo một id. */
+    if (p === '/api/bm/danh-sach' && req.method === 'GET') {
+      const r = docToken(req.headers.authorization, hongBM);
+      if (!r.ok) return json({ ok: false, vi_sao: r.vi_sao }, 401);
+      const loDonVi = q.get('lo_don_vi') === '1';     /* bản hỏng: trả hết, không lọc theo đơn vị */
+      const items = loDonVi ? baoMat.banGhi : baoMat.banGhi.filter((x) => x.don_vi === r.pl.don_vi);
+      return json({ items });
+    }
+
+    /*
+     * ---- KỊCH BẢN ĐUA (v2.8.4) ----
+     * `?hong=1` chạy bản CÓ LỖI; mặc định chạy bản ĐÚNG. Cặp hỏng/đúng là điều kiện để tin harness.
+     */
+    const hong = q.get('hong') === '1';
+
+    if (p === '/api/dua/duyet' && req.method === 'POST') {
+      return (async () => {
+        const truoc = dua.donDuyet.trangThai;              /* ảnh chụp CŨ — bản hỏng dùng nó */
+        await nghi(0);                                     /* khe chờ: chỗ cuộc đua xảy ra */
+        /* Bản ĐÚNG đọc LẠI sau khe chờ. Dùng ảnh chụp cũ chính là lỗi TOCTOU mà bản hỏng mô phỏng. */
+        if (!hong && dua.donDuyet.trangThai !== 'cho_duyet') {
+          return json({ ok: false, vi_sao: 'đã duyệt rồi' }, 409);
+        }
+        dua.donDuyet.trangThai = 'da_duyet';
+        dua.donDuyet.soLanDuyet += 1;
+        return json({ ok: true, so_lan: dua.donDuyet.soLanDuyet }, 200);
+      })();
+    }
+
+    if (p === '/api/dua/dat' && req.method === 'POST') {
+      return (async () => {
+        const key = req.headers['idempotency-key'] || '';
+        const daCo = dua.datCho.find((x) => x.key === key);  /* ảnh chụp CŨ */
+        await nghi(0);
+        const daCoMoi = dua.datCho.find((x) => x.key === key);
+        if (!hong && key && daCoMoi) { const d = daCoMoi; return json({ ok: true, id: d.id, trung: true }, 200); }
+        if (false && daCo) return json({ ok: true, id: daCo.id, trung: true }, 200);
+        const id = dua.datCho.length + 1;
+        dua.datCho.push({ key, id });
+        return json({ ok: true, id }, 201);
+      })();
+    }
+
+    if (p === '/api/dua/tru' && req.method === 'POST') {
+      return (async () => {
+        const conLai = dua.kho.conLai;                     /* ảnh chụp CŨ */
+        await nghi(0);
+        /*
+         * Cả hai bản đều TRỪ TỪ GIÁ TRỊ HIỆN TẠI; khác nhau ở chỗ KIỂM bằng giá trị nào.
+         * Bản hỏng kiểm bằng ảnh chụp CŨ nên N request cùng tưởng còn hàng ⇒ kho xuống ÂM (oversell).
+         * Bản đầu của fixture này trừ từ ảnh chụp cũ, và nó dừng ở 0 thay vì âm — tức lỗi oversell
+         * KHÔNG lộ ra, và harness sẽ báo xanh cho một fixture đáng ra phải đỏ.
+         */
+        const conHang = hong ? conLai : dua.kho.conLai;
+        if (conHang <= 0) return json({ ok: false, vi_sao: 'hết hàng' }, 409);
+        dua.kho.conLai -= 1;
+        return json({ ok: true, con_lai: dua.kho.conLai }, 200);
+      })();
+    }
+
+    if (p === '/api/dua/callback' && req.method === 'POST') {
+      return (async () => {
+        const ref = q.get('ref') || '';
+        const daNhan = dua.callback.daNhan.includes(ref);   /* ảnh chụp CŨ */
+        await nghi(0);
+        if (!hong && ref && dua.callback.daNhan.includes(ref)) return json({ ok: true, trung: true }, 200);
+        if (false && daNhan) return json({ ok: true, trung: true }, 200);
+        dua.callback.daNhan.push(ref);
+        dua.callback.tong += 100;
+        return json({ ok: true, tong: dua.callback.tong }, 200);
+      })();
+    }
+
+    /* Tầng ĐỌC để kiểm bất biến ở trạng thái cuối — harness không đoán từ mã trả về. */
+    if (p === '/api/dua/trang-thai' && req.method === 'GET') {
+      return json({
+        don_trang_thai: dua.donDuyet.trangThai,
+        so_lan_duyet: dua.donDuyet.soLanDuyet,
+        so_ban_ghi_dat: dua.datCho.length,
+        kho_con_lai: dua.kho.conLai,
+        callback_tong: dua.callback.tong,
+      });
     }
 
     // ---- API đọc ----

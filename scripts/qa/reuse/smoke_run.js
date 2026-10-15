@@ -89,4 +89,23 @@ function main() {
 
 if (require.main === module) main();
 
-module.exports = { kiemTruocKhiChay, gocUrl };
+/**
+ * Nhóm ĐỒNG THỜI của smoke — opt-in, MẶC ĐỊNH TẮT.
+ *
+ * Vì sao mặc định tắt: smoke là lượt chạy nhanh để biết "hệ còn sống không". Kịch bản đua bắn N request
+ * lên cùng một resource, và dù chúng chỉ chạy trên fixture thì gộp vào mặc định vẫn làm smoke chậm đi và
+ * đổi nghĩa của nó. Bật bằng `--concurrency`.
+ *
+ * Trả lệnh để nơi gọi chạy, KHÔNG tự spawn: smoke đã có ba lớp chặn riêng, và một máy tự gọi máy khác thì
+ * lớp chặn nào áp cho lượt nào trở thành câu khó trả lời.
+ */
+function lenhDongThoi({ argv = process.argv, baseUrl = '' } = {}) {
+  if (!argv.includes('--concurrency')) return null;
+  if (!baseUrl) return { loi: 'thiếu base-url cho nhóm đồng thời' };
+  return {
+    lenh: 'node',
+    doiSo: ['scripts/qa/concurrency_check.js', '--config', 'requirements/concurrency.json', '--base-url', baseUrl],
+  };
+}
+
+module.exports = { kiemTruocKhiChay, gocUrl, lenhDongThoi };

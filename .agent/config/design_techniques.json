@@ -1,13 +1,9 @@
 {
   "_doc": "Sáu kỹ thuật thiết kế testcase (ISTQB). NGUỒN DUY NHẤT — prompt, validate.js, model.js và mọi gate đọc file này, KHÔNG chép danh sách ra chỗ khác. Cùng khuôn với case_types.json.",
   "_vi_sao": "prompt_templates/phase1/02_gen_testcases.md §2 vốn đã NHẮC TÊN bốn kỹ thuật, nhưng không có gì đo xem case có thật sự được thiết kế theo kỹ thuật đó hay không. Nhắc tên là lời dặn; lời dặn không có máy đứng sau thì lần nào quên cũng không ai biết. File này biến 'nên dùng BVA' thành 'có field min/max thì PHẢI có BVA', tức một điều kiện đo được.",
-
   "_khop_chinh_xac": "Mã kỹ thuật so bằng === trên TÊN TAG đã bóc, TUYỆT ĐỐI không dùng includes(). Đo 09/10/2026 trên 25 chiều đang khai: [ST] là chuỗi con của 'bughistory' và 'dbpersist'; [EG] là chuỗi con của 'negative' và 'regression'. Viết techniquesOf() theo kiểu includes() như dimensionsOf() thì mọi case mang [Negative] của mọi bộ TC cũ bỗng 'đã khai kỹ thuật EG', và mọi case [BugHistory] thành 'ST'. tagNamesOf() đã bóc sẵn từng tag thành tên rời nên so === là đủ — không cần đổi cú pháp sang [T:BVA], và giữ được đúng cú pháp của tài liệu nguồn.",
-
   "_cach_ghi": "Tag kỹ thuật ghi ở cột `Tag`, đứng cạnh tag loại, tag chiều và oracle-ref. Ví dụ: `[Boundary][Validation][BVA][BR-HSLOP-004]`. KHÔNG thêm cột mới, KHÔNG nhét mã kỹ thuật vào `TC ID` — đã có hàng nghìn case publish trên Google Sheet, đổi TC ID là mất truy vết và hỏng cơ chế chống trùng bug.",
-
   "_hai_tang": "Gate áp theo mẫu của case_types.json. Bộ CHƯA có case nào mang tag kỹ thuật ⇒ tự từ chối chặn, nhưng PHẢI in rõ 'bộ này chưa được gác theo kỹ thuật thiết kế'. Bộ ĐÃ có từ một case trở lên ⇒ case thiếu tag = CHẶN, mã lạ = CHẶN. Im lặng bỏ qua là mất luôn luật.",
-
   "techniques": [
     {
       "code": "EP",
@@ -56,9 +52,25 @@
       "kich_hoat": "Đã có bug lịch sử ở vùng này, hoặc đã quan sát được hành vi lạ trong lượt dò.",
       "cach_lam": "Neo vào một quan sát CÓ THẬT. Đoán không có chỗ neo thì nó là cảm tính, không phải kỹ thuật.",
       "dau_hieu_may_kiem": "Case [EG] phải kèm [BugHistory] hoặc một oracle-ref. Thiếu cả hai ⇒ cảnh báo: đoán mà không nêu được dựa vào đâu."
+    },
+    {
+      "code": "PW",
+      "name": "Pairwise (tổ hợp từng cặp)",
+      "definition": "Khi nhiều tham số độc lập nhân nhau, phủ MỌI CẶP giá trị thay vì mọi tổ hợp — đa số lỗi tổ hợp lộ ra ở mức cặp, trong khi số case giảm theo cấp số.",
+      "kich_hoat": "Từ BA tham số độc lập trở lên, mỗi tham số từ hai giá trị. Dưới ba tham số thì liệt kê đủ còn rẻ hơn, và pairwise chỉ làm mờ ý định.",
+      "cach_lam": "Liệt kê tham số và tập giá trị, sinh bộ phủ cặp (npm run matrix), rồi mỗi dòng là một case. Ghi rõ case này phủ những cặp nào.",
+      "dau_hieu_may_kiem": "Có case [PW] mà `combinatorial_matrix` không sinh được bộ phủ tương ứng, hoặc số case ít hơn số cặp tối thiểu.",
+      "_them": "Thêm 14/10/2026 (v2.9.0). Trước đó kit dạy sáu mã và KHÔNG có mã nào cho pairwise, trong khi `combinatorial_matrix` đã tồn tại — tức có máy mà không có cách khai, nên không case nào từng mang tag này."
+    },
+    {
+      "code": "CT",
+      "name": "Classification Tree",
+      "definition": "Phân rã đầu vào thành các lớp phân loại theo cây, rồi chọn tổ hợp lá — cách nhìn có cấu trúc khi miền đầu vào phân tầng.",
+      "kich_hoat": "Đầu vào phân TẦNG: loại đối tượng quyết định tập thuộc tính tiếp theo (vd cấp học quyết định bộ ô bắt buộc). Bảng phẳng EP/BVA không diễn đạt được quan hệ cha-con này.",
+      "cach_lam": "Vẽ cây: nhánh là tiêu chí phân loại, lá là lớp giá trị. Mỗi case chọn một lá ở mỗi nhánh đang xét. Ghi đường đi từ gốc tới lá trong dữ liệu test.",
+      "dau_hieu_may_kiem": "CHƯA CÓ MÁY đếm độ phủ cây — review tay. Khai ở đây để case gắn được tag, không phải để giả vờ có người gác."
     }
   ],
-
   "_nguong": {
     "_doc": "Mức của từng phép kiểm. Đổi mức phải kèm số đo tỉ lệ báo oan trên bộ TC thật, đừng đổi theo cảm giác.",
     "ma_la": "chan",

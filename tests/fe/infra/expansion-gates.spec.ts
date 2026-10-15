@@ -460,7 +460,17 @@ test.describe('@infra trục mở rộng — một nguồn, không bốn bộ t�
 
   test('`leak_report.AXES` khớp `axes.js` về khoá và thứ tự', () => {
     const src = fs.readFileSync(path.join(REPO, 'scripts/qa/leak_report.js'), 'utf8');
-    const keys = [...src.matchAll(/^\s*key: '([a-z_]+)',$/gm)].map((m) => m[1]);
+    /*
+     * CHỈ đọc trong bảng `AXES`, không quét cả file.
+     *
+     * `leak_report` còn `NHOM_THEM` — nhóm phân loại bug theo CƠ CHẾ (`dua`, `phien_token`), KHÔNG phải
+     * trục mở rộng. Quét cả file thì hai khoá đó lọt vào phép so và cửa này đỏ oan; tệ hơn, cách sửa
+     * trông hiển nhiên nhất lại là nối chúng vào `AXES` — tức đúng chỗ thổi phồng con số "N trục" mà
+     * v2.8.1 vừa mất một đợt để dọn.
+     */
+    const dau = src.indexOf('const AXES = [');
+    const bang = src.slice(dau, src.indexOf('\n];', dau));
+    const keys = [...bang.matchAll(/^\s*key: '([a-z_]+)',$/gm)].map((m) => m[1]);
     expect(keys, 'leak_report giữ bảng riêng vì nó mang thêm `rx` — nhưng khoá phải khớp nguồn')
       .toEqual(axes.khoaTruc());
   });

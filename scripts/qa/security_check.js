@@ -198,6 +198,123 @@ const add = (group, name, verdict, detail) => checks.push({ group, name, verdict
     } finally { await lowCtx.dispose(); }
   }
 
+  /*
+   * ───────────────── BA NHÓM READ-ONLY BÙ THÊM (v2.8.4 mục B) ─────────────────
+   *
+   * Tất cả chỉ GỌI GET với token ở các trạng thái khác nhau. Không ghi dữ liệu nghiệp vụ, không
+   * brute-force, không khai thác. Ngoại lệ DUY NHẤT là `logout`: nó đổi trạng thái PHIÊN của chính tài
+   * khoản test, và không có cách nào kiểm "token sau logout còn dùng được không" mà không logout.
+   *
+   * Nhóm cần thao tác GHI thật (mass assignment · upload độc · đổi mật khẩu thật) KHÔNG thuộc đợt này —
+   * ghi rõ ở đây để không ai đọc báo cáo rồi tưởng đã phủ.
+   */
+
+  // 4b) Quản lý phiên.
+  if (sec.session && tokenLow) {
+    const sess = sec.session;
+    const thu = async (token, nhan, kyVong) => {
+      const c = await request.newContext({ extraHTTPHeaders: { Authorization: `${scheme} ${token}` } });
+      try {
+        const r = await c.get(abs(sess.probeEndpoint)).catch(() => null);
+        const st = r ? r.status() : 0;
+        add('session', nhan, kyVong.includes(st) ? 'PASS' : 'FAIL', `status ${st} (kỳ vọng ${kyVong.join('/')})`);
+      } finally { await c.dispose(); }
+    };
+
+    if (!sess.probeEndpoint) {
+      add('session', 'probeEndpoint', 'NEEDS_ACCOUNT', 'catalog chưa khai `session.probeEndpoint` — không có endpoint nào để thử token');
+    } else {
+      if (sess.expiredToken && process.env[sess.expiredToken]) {
+        await thu(process.env[sess.expiredToken], 'token HẾT HẠN bị từ chối', [401, 403]);
+      } else {
+        add('session', 'token HẾT HẠN bị từ chối', 'NEEDS_ACCOUNT', `thiếu env \`${sess.expiredToken || '(chưa khai)'}\` chứa token hết hạn — không đoán`);
+      }
+
+      if (sess.logoutPath) {
+        /*
+         * Lấy token RIÊNG cho phép thử này rồi mới logout. Dùng `tokenLow` thì các nhóm sau mất token,
+         * và thứ tự chạy trở thành một phụ thuộc ẩn — loại lỗi chỉ lộ khi ai đó đổi thứ tự.
+         */
+        const tokenTam = await getToken(sec.auth, accLow.userEnv, accLow.passEnv);
+        if (!tokenTam) {
+          add('session', 'token sau LOGOUT bị từ chối', 'NEEDS_ACCOUNT', 'không lấy được token riêng cho phép thử logout');
+        } else {
+          const lc = await request.newContext({ extraHTTPHeaders: { Authorization: `${scheme} ${tokenTam}` } });
+          try { await lc.post(abs(sess.logoutPath)).catch(() => null); } finally { await lc.dispose(); }
+          await thu(tokenTam, 'token sau LOGOUT bị từ chối', [401, 403]);
+        }
+      } else {
+        add('session', 'token sau LOGOUT bị từ chối', 'n/a', 'catalog không khai `session.logoutPath`');
+      }
+
+      /* Phiên song song: CHỈ kiểm khi spec nói. Không có spec thì đây là lựa chọn thiết kế, không phải lỗi. */
+      if (sess.phienSongSong === undefined) {
+        add('session', 'đăng nhập lần hai vô hiệu phiên một', 'n/a', 'spec không quy định — không tự đặt kỳ vọng');
+      }
+    }
+  } else if (sec.session) {
+    add('session', 'nhóm phiên', 'NEEDS_ACCOUNT', 'thiếu token tài khoản test → không chạy được nhóm phiên');
+  }
+
+  // 4c) Cô lập đơn vị/tenant ở mức DANH SÁCH.
+  if (sec.tenantIsolation) {
+    const ti = sec.tenantIsolation;
+    if (!tokenLow || !tokenHigh) {
+      add('tenantIsolation', 'danh sách không lẫn đơn vị khác', 'NEEDS_ACCOUNT',
+        'cần HAI tài khoản khác đơn vị (accounts.low + accounts.high) — thiếu thì KHÔNG đoán');
+    } else {
+      const c = await request.newContext({ extraHTTPHeaders: { Authorization: `${scheme} ${tokenLow}` } });
+      try {
+        for (const ep of ti.listEndpoints || []) {
+          const r = await c.get(abs(ep.url)).catch(() => null);
+          const st = r ? r.status() : 0;
+          if (!r || st !== 200) { add('tenantIsolation', ep.name || ep.url, 'FAIL', `status ${st} — không đọc được danh sách để kiểm`); continue; }
+          const raw = await r.text().catch(() => '');
+          /*
+           * Khác IDOR theo id: ở đây hỏi TẬP dữ liệu trả về có lẫn đơn vị khác không. Dấu hiệu là
+           * `ep.dauHieuDonViKhac` — một chuỗi định danh của đơn vị B do catalog khai, không phải dò chữ.
+           */
+          const lan = ep.dauHieuDonViKhac && raw.includes(ep.dauHieuDonViKhac);
+          add('tenantIsolation', ep.name || ep.url, lan ? 'FAIL' : 'PASS',
+            lan ? `danh sách CÓ chứa dấu hiệu đơn vị khác (\`${ep.dauHieuDonViKhac}\`)` : 'không thấy dấu hiệu đơn vị khác');
+          if (lan) { try { scanExposure(JSON.parse(raw), findings, `tenant:${ep.name}`); } catch (e) { /* body không phải JSON */ } }
+        }
+      } finally { await c.dispose(); }
+    }
+  }
+
+  // 4d) JWT/token dị dạng — chỉ GỬI TỚI ENDPOINT ĐỌC, quan sát bị từ chối.
+  if (sec.jwt && tokenLow) {
+    const je = sec.jwt.probeEndpoint || (sec.session && sec.session.probeEndpoint);
+    const phan = String(tokenLow).split('.');
+    if (!je) {
+      add('jwt', 'probeEndpoint', 'NEEDS_ACCOUNT', 'chưa khai endpoint đọc để thử token dị dạng');
+    } else if (phan.length !== 3) {
+      add('jwt', 'nhóm JWT', 'n/a', 'token của hệ này KHÔNG có dạng JWT ba phần — nhóm này không áp dụng');
+    } else {
+      const b64u = (o) => Buffer.from(JSON.stringify(o)).toString('base64url');
+      const doc = (x) => { try { return JSON.parse(Buffer.from(x, 'base64url').toString('utf8')); } catch (e) { return {}; } };
+      const tai = doc(phan[1]);
+      const taiSua = b64u({ ...tai, role: 'admin', ...(sec.jwt.truongDonVi ? { [sec.jwt.truongDonVi]: sec.jwt.donViKhac || 'DON-VI-KHAC' } : {}) });
+
+      const ca = [
+        ['sửa payload KHÔNG ký lại', [phan[0], taiSua, phan[2]].join('.')],
+        ['alg=none', [b64u({ alg: 'none', typ: 'JWT' }), taiSua, ''].join('.')],
+        ['chữ ký sai', [phan[0], phan[1], `${phan[2].slice(0, -2)}xx`].join('.')],
+      ];
+      for (const [nhan, tok] of ca) {
+        const c = await request.newContext({ extraHTTPHeaders: { Authorization: `${scheme} ${tok}` } });
+        try {
+          const r = await c.get(abs(je)).catch(() => null);
+          const st = r ? r.status() : 0;
+          add('jwt', nhan, [401, 403].includes(st) ? 'PASS' : 'FAIL', `status ${st} (kỳ vọng 401/403)`);
+        } finally { await c.dispose(); }
+      }
+    }
+  } else if (sec.jwt) {
+    add('jwt', 'nhóm JWT', 'NEEDS_ACCOUNT', 'thiếu token tài khoản test → không dựng được token dị dạng');
+  }
+
   // 5) Transport: http → https redirect.
   if (sec.checkTransport !== false && base.startsWith('https://')) {
     const httpUrl = base.replace('https://', 'http://');

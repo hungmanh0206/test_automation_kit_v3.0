@@ -54,10 +54,31 @@ không". Hai câu khác nhau, và câu thứ hai mới là câu người nhận 
 
 | | GitHub | GitLab |
 |---|---|---|
-| file được track | 726 | 726 |
-| `npx playwright test tests/fe/infra` | **1.983 test · 0 đỏ** (đo 14/10/2026, `npm run full:suite`) | **1.983 test · 0 đỏ** |
-| `npm run ci:scope` đếm | 139 spec | 139 spec |
-| `release:verify` — suite chạy TRONG gói | **1.874 test · 0 đỏ** (1.830 chạy · 44 bỏ qua) — đo 14/10/2026, v2.8.2 | — |
+| file được track | 742 | 742 |
+| `npx playwright test tests/fe/infra` | **2.014 test · 0 đỏ** (đo 15/10/2026, `npm run full:suite`) | **2.014 test · 0 đỏ** |
+| `npm run ci:scope` đếm | 142 spec | 142 spec |
+| `release:verify` — suite chạy TRONG gói | **1.906 test · 0 đỏ** (1.862 chạy · 44 bỏ qua) — đo 15/10/2026, v2.9.0 | — |
+
+### Link trong skill: `npm run skills:refcheck`
+
+Mọi link nội bộ của skill phải trỏ file có thật. Cửa này **phân biệt link thật với đường dẫn minh hoạ**
+(placeholder `<…>` · trong khối mã · ô bảng mô tả đầu ra) — đếm ngây thơ thì nó gắn cờ cả ví dụ, và
+cách "sửa" nhanh nhất là gỡ ví dụ đi, tức làm tài liệu nghèo hơn để chiều một cái máy đếm sai.
+
+### Đồng thời/tranh chấp: `npm run concurrency:check`
+
+Đo **tính đúng đắn khi đua**, không đo tốc độ — K6 (`tests/load/`) trả lời câu khác. Bắn N request
+(mặc định ≤5, trần cứng 10) lên cùng một resource rồi kiểm **bất biến ở trạng thái cuối**: đúng một 2xx ·
+không tạo bản ghi trùng · kho không âm · callback trùng chỉ cộng một lần.
+
+```bash
+npm run concurrency:check -- --config requirements/concurrency.json --base-url <url> [--enforce]
+```
+
+Hai chỗ nó **từ chối báo xanh**: kịch bản không khai bất biến ⇒ `CHUA_KIEM`; và độ lệch thả vượt ngưỡng
+⇒ `CHUA_KIEM`, vì hai request cách nhau 300ms thì chúng không đua, và "không đua mà không lỗi" chẳng
+chứng minh gì. Kịch bản khai `chay_o: fixture` bị từ chối trên target không phải loopback; kịch bản GHI
+trên UAT cần `--resource-test` và người xác nhận từng lượt.
 
 ### Trước khi đóng gói: `npm run full:suite`
 

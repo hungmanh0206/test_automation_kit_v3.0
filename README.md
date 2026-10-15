@@ -115,7 +115,7 @@ test-automation-kit/
 │   │   ├── rerun_01_map_bug_to_testcase.md
 │   │   ├── rerun_02_rerun_and_verify.md
 │   │   └── rerun_03_update_backlog_and_report.md
-│   ├── skills/       # 22 skill theo vai trò; phase2/ui_debug_agent = khám phá DOM tìm locator bền
+│   ├── skills/       # 26 skill theo vai trò; phase2/ui_debug_agent = khám phá DOM tìm locator bền
 │   └── rules/
 ├── prompt_templates/
 │   ├── run_phase1_template.md
@@ -167,7 +167,7 @@ test-automation-kit/
 | [RULE_GLOBAL.md](RULE_GLOBAL.md) | Quy tắc chung về ngôn ngữ, bảo mật, output và cleanup. |
 | `.agent/workflows/` | Workflow chính dạng flat: mỗi flow gồm 1 file entry (`phase1_generate_tc.md`, `phase2_execute.md`, `rerun.md`) và các step file `*_NN_*.md` cùng thư mục. Step đánh số reset theo từng flow (phase1_01..04, phase2_01..04, rerun_01..03). |
 | `.claude/commands/` | **Slash command — điểm vào chuẩn hoá** cho 10 luồng: `/preflight` `/phase1` `/phase2` `/rerun` `/partial-rerun` `/explore` `/ui-debug` `/manual-run` `/gates` `/publish`. Mỗi command là **con trỏ mỏng**: chỉ nói đọc workflow nào · chạy npm script nào · dừng ở gate nào — **không** chép policy (kit đã có `gate:policy` giữ `RULE_GLOBAL.md` là canonical). Máy giữ chúng khỏi mục rữa: `tests/fe/infra/slash-commands.spec.ts` kiểm mọi npm script/đường dẫn được nhắc phải tồn tại, và mọi nhánh trong `branch_parity.json` phải có command cùng tên. |
-| `.agent/skills/` | Skill instructions cho agent theo vai trò chuyên biệt (**22 skill**). Danh mục: `.agent/skills/INDEX.md` (sinh lại: `npm run skills:index`). |
+| `.agent/skills/` | Skill instructions cho agent theo vai trò chuyên biệt (**26 skill**). Danh mục: `.agent/skills/INDEX.md` (sinh lại: `npm run skills:index`). |
 | `.agent/rules/` | Rule bắt buộc cho core behavior, locator, Playwright FE/API. |
 | `prompt_templates/` | Prompt dùng để chạy Phase 1, Phase 2 và rerun. Lưu ý đánh số: prompt con là sub-prompt theo hoạt động, số chạy liên tục theo trình tự pipeline (`phase1/01..04` chuẩn bị→sinh testcase→test data→publish Sheet; `phase2/04..08` execute FE→execute API→triage review→flaky→log bug Backlog) — KHÁC với workflow `.agent/workflows/` đánh số reset theo từng phase (phase2_01..04). Số prompt không ánh xạ 1:1 với số workflow; chạy từng prompt khi cần đúng hoạt động đó. **`phase1/dimensions/`** giữ 20 chương **chiều coverage** (§3–§23; tách khỏi `02_gen_testcases.md` ngày 14/08/2026) — mở đúng chiều task khai `required`, không nạp cả 20; **`phase1/02b_output_format.md`** giữ Summary Report + Export Excel, chỉ nạp ở cuối lượt. |
 | `partial-rerun/` | Nhánh phụ độc lập; không là dependency của Main Flow và có thể xóa mà Main Flow vẫn chạy. |
