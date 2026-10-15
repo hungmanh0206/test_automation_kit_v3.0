@@ -1,6 +1,7 @@
 import { test, expect } from '@playwright/test';
 import fs from 'fs';
 import path from 'path';
+import { docSach } from './_doc_sach';
 
 /*
  * Máy giữ `.claude/commands/*` khỏi MỤC RỮA.
@@ -30,10 +31,71 @@ const files = fs.existsSync(DIR) ? fs.readdirSync(DIR).filter((f) => f.endsWith(
  * người checkout mới trên Windows thì đỏ — kết quả phụ thuộc môi trường checkout thì "xanh" hết nghĩa.
  * Đây là cửa đọc thứ năm cùng lớp lỗi, sau `library_drift`, `build.js`, `course_parse.js` và
  * `course_maturity.js`.
+ *
+ * Cửa đọc nay nằm ở `./_doc_sach` — DÙNG CHUNG, vì sau file này còn một cửa thứ SÁU mắc đúng lỗi đó
+ * (`tc-design-guide.spec.ts`, đo 15/10/2026). Sáu lần thì cái thiếu không phải thêm một lần nhớ.
  */
-const CR = String.fromCharCode(13);
-const docSach = (p: string) => fs.readFileSync(p, 'utf8').split(CR + '\n').join('\n');
 const body = (f: string) => docSach(path.join(DIR, f));
+
+test.describe('@infra cửa đọc CRLF — chặn lần thứ BẢY', () => {
+  /*
+   * Lớp lỗi này đã tái phát SÁU lần, nên một dòng ghi chú không đủ: cái chặn được nó là một máy.
+   *
+   * Luật hẹp và CÓ CHỦ Ý hẹp: chỉ bắt spec nào kiểm frontmatter (`startsWith('---\n')` hay tương
+   * đương) mà đọc bằng `readFileSync` thô. Đó đúng là hình dạng của cả sáu ca, và luật hẹp thì KHÔNG
+   * báo oan — một cửa báo oan là cửa người ta tắt.
+   *
+   * Chỗ này KHÔNG tự xưng là bắt mọi dạng so-sánh-có-`\n`. Dạng rộng hơn (`.split('\n')` trên nội
+   * dung file) còn hở, và nói thẳng ra thì tốt hơn là để người đọc tưởng đã kín.
+   */
+  const DIR_SPEC = path.resolve(__dirname);
+  const DAU_FM = `startsWith('---${String.fromCharCode(92)}n')`;
+
+  function viPham(ma: string): boolean {
+    if (!ma.includes(DAU_FM)) return false;
+    const coChuanHoa = ma.includes('_doc_sach') || ma.includes('docSach') || /\\r\\n|fromCharCode\(13\)/.test(ma);
+    return !coChuanHoa;
+  }
+
+  test('không file nào kiểm frontmatter bằng `readFileSync` thô (spec VÀ scripts)', () => {
+    /*
+     * Quét CẢ `scripts/qa` chứ không chỉ spec: trong sáu ca cũ có `build.js`, `course_parse.js`,
+     * `course_maturity.js` — tức lớp lỗi này không riêng của test. Hôm nay `scripts/` không có vi phạm
+     * nào, nên mở rộng không thêm màu đỏ; nó chỉ làm luật đứng sẵn ở chỗ lỗi đã từng xảy ra.
+     */
+    const xau: string[] = [];
+    const goc = path.resolve(DIR_SPEC, '..', '..', '..');
+    const vung: [string, RegExp][] = [[DIR_SPEC, /\.spec\.ts$/], [path.join(goc, 'scripts', 'qa'), /\.js$/]];
+    for (const [d, duoi] of vung) {
+      if (!fs.existsSync(d)) continue;
+      for (const f of fs.readdirSync(d).filter((x) => duoi.test(x))) {
+        if (viPham(fs.readFileSync(path.join(d, f), 'utf8'))) xau.push(path.relative(goc, path.join(d, f)));
+      }
+    }
+    expect(xau, `spec kiểm frontmatter mà không chuẩn hoá CRLF — dùng \`docSach\` ở \`./_doc_sach\`: ${xau.join(', ')}`)
+      .toEqual([]);
+  });
+
+  test('ĐỐI CHỨNG DƯƠNG: mã đọc thô + kiểm frontmatter ⇒ bị bắt', () => {
+    const ma = `const b = fs.readFileSync(p, 'utf8');\nexpect(b.startsWith('---${String.fromCharCode(92)}n')).toBe(true);\n`;
+    expect(viPham(ma), 'luật phải bắt được chính hình dạng của sáu ca đã xảy ra').toBe(true);
+  });
+
+  test('ĐỐI CHỨNG ÂM: cùng phép kiểm nhưng qua `docSach` ⇒ KHÔNG bị bắt', () => {
+    const ma = `import { docSach } from './_doc_sach';\nexpect(docSach(p).startsWith('---${String.fromCharCode(92)}n')).toBe(true);\n`;
+    expect(viPham(ma), 'dùng cửa đọc chung rồi mà vẫn bị bắt thì đây là cửa báo oan').toBe(false);
+  });
+
+  test('cửa đọc chung thật sự bỏ `\\r` — không chỉ tồn tại', () => {
+    /* eslint-disable @typescript-eslint/no-var-requires, global-require */
+    const { boCR } = require('./_doc_sach');
+    /* eslint-enable @typescript-eslint/no-var-requires, global-require */
+    const cr = String.fromCharCode(13);
+    expect(boCR(`---${cr}\nname: x${cr}\n`)).toBe('---\nname: x\n');
+    expect(boCR('---\nname: x\n'), 'file vốn LF thì không được đổi').toBe('---\nname: x\n');
+    expect(boCR(`a${cr}b`), '`\\r` lẻ giữa dòng KHÔNG phải CRLF — đừng xoá nó').toBe(`a${cr}b`);
+  });
+});
 
 test.describe('@infra slash commands — con trỏ phải trỏ đúng chỗ', () => {
   test('có thư mục command và ít nhất 5 lệnh', () => {

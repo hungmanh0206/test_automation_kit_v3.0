@@ -5,6 +5,7 @@ import path from 'path';
 import { execFileSync, spawnSync } from 'child_process';
 import { createHash } from 'crypto';
 import { gateEnv } from './_gate_env';
+import { canRepoGit } from './_trong_repo';
 
 /*
  * @infra — MỖI DEPENDENCY PHẢI CÓ NƠI DÙNG, HOẶC CÓ MỘT DÒNG GIẢI THÍCH.
@@ -222,17 +223,37 @@ test.describe('@infra deps:check — dependency phải có nơi dùng hoặc có
     expect(fs.existsSync(duong), 'khai `file:` mà không có file thì `npm ci` chết ở MỌI máy nhận').toBe(true);
   });
 
-  test('gói phát hành mang `vendor/` — thiếu nó thì `npm ci` trong gói chết', () => {
+  test('`vendor/` NẰM TRONG danh sách đóng gói', () => {
     /*
      * Lỗi lặp được: `KEEP_DIRS` của `package_kit.js` đã bỏ sót `manual-run`, `tests/fe/lib`,
      * `.claude/agents`. Lần này thứ bỏ sót sẽ không làm vài test đỏ mà làm CẢ `release:verify` đỏ,
      * vì gói mang `package.json` trỏ `file:vendor/…` trong khi file không có ở đó.
+     *
+     * `collect()` CỐ Ý ném khi không có `.git` — nó từ chối đóng gói khi không chứng minh được gói
+     * mang những gì. Nên phép kiểm này chỉ phán được trong repo, và trong gói thì BỎ QUA KÈM LÝ DO.
+     * Bản đầu của tôi gọi thẳng `collect()`, và `release:verify` đỏ đúng bước "chạy suite TRONG gói" —
+     * lặp lại nguyên lớp lỗi mà `_trong_repo.ts` sinh ra để chặn.
      */
+    canRepoGit(REPO, 'đối chiếu danh sách file `package_kit.collect()` với `vendor/`');
     /* eslint-disable @typescript-eslint/no-var-requires, global-require */
     const pk = require(path.join(REPO, 'scripts/qa/package_kit.js'));
     /* eslint-enable @typescript-eslint/no-var-requires, global-require */
     expect(pk.KEEP_DIRS, '`vendor` phải nằm trong danh sách mang đi').toContain('vendor');
     expect(pk.collect().includes('vendor/xlsx-0.20.3.tgz'), 'tarball phải thật sự được thu vào gói').toBe(true);
+  });
+
+  test('tarball có mặt cạnh `package.json` — kiểm được CẢ trong gói', () => {
+    /*
+     * Phép kiểm trên bỏ qua trong gói, nên nếu dừng ở đó thì đúng chỗ quan trọng nhất lại không ai
+     * canh: gói phát hành CÓ mang tarball hay không. Phép kiểm này không cần git — nó hỏi thẳng cây
+     * đang đứng, và khi `release:verify` chạy nó thì "cây đang đứng" CHÍNH LÀ gói đã giải nén.
+     */
+    const pkg = JSON.parse(fs.readFileSync(path.join(REPO, 'package.json'), 'utf8'));
+    const co = { ...(pkg.dependencies || {}), ...(pkg.devDependencies || {}) };
+    const duong = String(co.xlsx || '').replace(/^file:/, '');
+    expect(duong, '`xlsx` không còn khai bằng `file:` — test này mất đối tượng').toMatch(/^vendor\//);
+    expect(fs.existsSync(path.join(REPO, duong)),
+      `thiếu \`${duong}\` ⇒ \`npm ci\` chết ngay ở máy người nhận kit`).toBe(true);
   });
 
   test('⑤ băm tarball `file:` KHỚP `integrity` lockfile ⇒ ĐẠT (ÂM BẢN)', () => {

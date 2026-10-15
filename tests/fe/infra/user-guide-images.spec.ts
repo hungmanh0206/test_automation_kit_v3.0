@@ -87,6 +87,36 @@ test.describe('@infra ảnh tài liệu — gate đọc văn bản không thấy
     expect(broken, `USER_GUIDE.md nhúng ảnh không tồn tại: ${broken.join(', ')}`).toEqual([]);
   });
 
+  test('số bản Node vẽ trong ảnh phải khớp `engines` + `.nvmrc`', () => {
+    /*
+     * Ảnh `qa-environment.png` khai `Node.js >= 18` từ 25/09/2026, trong khi `package.json` khai
+     * `engines: >=20` và `.nvmrc` là 20. Không ai thấy, vì chẳng có gì đối chiếu chữ TRONG sơ đồ với
+     * nguồn thật — hai test cũ chỉ kiểm ảnh CÓ MẶT và ảnh KHÔNG CŨ HƠN generator, tức kiểm sự tồn tại
+     * và tuổi, không kiểm nội dung.
+     *
+     * Và nó không vô hại: 20 test đỏ trên Linux CI (v2.8.3) có nguyên nhân là Node 20 không bóc kiểu
+     * khi `require()` file `.ts`. Một người mới đọc sơ đồ onboarding rồi cài Node 18 sẽ gặp lớp lỗi
+     * khác nữa, ở chỗ xa nguyên nhân.
+     */
+    /* eslint-disable @typescript-eslint/no-var-requires, global-require */
+    const pkg = require(path.join(REPO, 'package.json'));
+    /* eslint-enable @typescript-eslint/no-var-requires, global-require */
+    const sanNode = Number(String(pkg.engines?.node || '').replace(/[^0-9]/g, ''));
+    expect(sanNode, '`engines.node` không đọc ra số — neo mất thì phép kiểm này vô nghĩa').toBeGreaterThan(0);
+
+    const nvmrc = Number(fs.readFileSync(path.join(REPO, '.nvmrc'), 'utf8').replace(/[^0-9]/g, ''));
+    expect(nvmrc, '`.nvmrc` phải cùng bản với `engines.node` — hai nguồn lệch thì ảnh khớp cái nào cũng sai')
+      .toBe(sanNode);
+
+    const gen = fs.readFileSync(path.join(REPO, 'scripts/utils/generate_user_guide_images.mjs'), 'utf8');
+    /* Chỉ lấy chuỗi ĐƯA VÀO SƠ ĐỒ (trong nháy), không lấy số trong comment giải thích. */
+    const khai = [...gen.matchAll(/['"]Node\.js\s*>=\s*(\d+)['"]/g)].map((m) => Number(m[1]));
+    expect(khai.length, 'generator không còn khai bản Node — nếu bỏ hẳn thì xoá luôn test này').toBeGreaterThan(0);
+    for (const n of khai) {
+      expect(n, `sơ đồ vẽ "Node.js >= ${n}" mà kit đòi >= ${sanNode} — sinh lại ảnh sau khi sửa`).toBe(sanNode);
+    }
+  });
+
   test('ảnh KHÔNG được cũ hơn generator trong lịch sử git', () => {
     /*
      * Lớp lỗi này khác vụ nhãn-viết-tắt: sửa nội dung sơ đồ trong generator rồi commit mà QUÊN chạy

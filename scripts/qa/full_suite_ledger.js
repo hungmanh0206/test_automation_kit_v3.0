@@ -47,6 +47,39 @@ const SO = path.join(REPO, 'knowledge', 'metrics', 'full-suite.json');
 const PHAM_VI = 'tests/fe/infra';
 
 /**
+ * Tập file mà lượt chạy phải phủ: spec ĐÃ GIT TRACK, không phải mọi file trên đĩa.
+ *
+ * VÌ SAO. Sổ này là cửa chặn `package:kit`, và `package_kit.collect()` CHỈ lấy file đã track — nó còn
+ * in thẳng "bỏ N file CHƯA git track (không được phát ra ngoài)". Nhưng lượt chạy thì quét cả thư mục.
+ * Hai mẫu số khác nhau cho cùng một quyết định, và chỗ lệch đó có hai hậu quả thật:
+ *
+ *   · ĐỎ OAN. Đo 15/10/2026: một spec probe chưa track (chạm UAT, timeout 30s) làm `full:suite` đỏ và
+ *     chặn đóng gói — trong khi nó KHÔNG BAO GIỜ nằm trong gói. Cây đang phát hành vẫn sạch.
+ *   · CHẠM UAT KHÔNG AI XÁC NHẬN (CLAUDE.md §2). Những probe đó drive app thật, nên để chúng trong
+ *     phạm vi `full:suite` nghĩa là mỗi lượt chạy lệnh PHÁT HÀNH lại chạm UAT — như một tác dụng phụ
+ *     chứ không phải một quyết định. `ci:scope` đã gác đúng chuyện này cho tập ĐÃ TRACK; sổ thì chưa.
+ *
+ * Đây KHÔNG phải nới phạm vi để dễ xanh: tập đã track chính là tập được phát ra ngoài, nên nó là mẫu
+ * số ĐÚNG cho câu hỏi "bản sắp đóng gói có chạy không". File chưa track vẫn phải xanh trước khi commit,
+ * nhưng đó là việc của lượt commit, không phải của cửa đóng gói.
+ *
+ * Không có git ⇒ quét cả thư mục và NÓI RA (`theoThuMuc`), chứ không im lặng: lúc đó không phân biệt
+ * được track hay chưa, nên con số mang nghĩa khác và người đọc cần biết.
+ */
+function phamViChay() {
+  try {
+    const dsTrack = execFileSync('git', ['ls-files', `${PHAM_VI}/*.spec.ts`],
+      { cwd: REPO, encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] })
+      .split('\n').map((x) => x.trim()).filter((x) => x.endsWith('.spec.ts'));
+    if (!dsTrack.length) return { mucTieu: [PHAM_VI], boQuaChuaTrack: 0, theoThuMuc: true };
+    const trenDia = fs.readdirSync(path.join(REPO, PHAM_VI)).filter((f) => f.endsWith('.spec.ts')).length;
+    return { mucTieu: dsTrack, boQuaChuaTrack: trenDia - dsTrack.length, theoThuMuc: false };
+  } catch (e) {
+    return { mucTieu: [PHAM_VI], boQuaChuaTrack: 0, theoThuMuc: true };
+  }
+}
+
+/**
  * `--workers=2`, cùng lý lẽ với `verify_release`: vài spec đo HÀNH VI THEO THỜI GIAN trên app fixture,
  * và dưới `workers` mặc định chúng bị bỏ đói rồi vượt `timeout` — đỏ vì tải, không vì sai. Đo
  * 12–13/10/2026: workers mặc định ⇒ 46 đỏ trong gói; `--workers=1` chạy riêng ⇒ 30/30 xanh.
@@ -115,10 +148,20 @@ function chay({ im = false } = {}) {
     const dau = "\n    ";
     return { loi: `typecheck ĐỎ — không ghi sổ:${dau}${loiKieu.join(dau)}` };
   }
-  if (!im) {
-    console.log(`[full-suite] chạy ${PHAM_VI} với --workers=${WORKERS} — đây là lượt ĐO, không phải lời khai.`);
+  const { mucTieu, boQuaChuaTrack, theoThuMuc } = phamViChay();
+  if (theoThuMuc && !im) {
+    console.log('[full-suite] ⚠ không đọc được `git ls-files` — quét CẢ thư mục, gồm cả file chưa track.');
   }
-  const r = spawnSync('npx', ['playwright', 'test', PHAM_VI, `--workers=${WORKERS}`, '--reporter=line'], {
+
+  if (!im) {
+    console.log(`[full-suite] chạy ${mucTieu.length === 1 ? PHAM_VI : `${mucTieu.length} spec ĐÃ TRACK`}`
+      + ` với --workers=${WORKERS} — đây là lượt ĐO, không phải lời khai.`);
+    if (boQuaChuaTrack > 0) {
+      console.log(`[full-suite] bỏ ${boQuaChuaTrack} spec CHƯA git track — chúng không vào gói, nên không`
+        + ' được quyết định chuyện đóng gói (và vài cái trong đó chạm UAT).');
+    }
+  }
+  const r = spawnSync('npx', ['playwright', 'test', ...mucTieu, `--workers=${WORKERS}`, '--reporter=line'], {
     cwd: REPO,
     encoding: 'utf8',
     shell: process.platform === 'win32',
@@ -254,4 +297,4 @@ function main() {
 
 if (require.main === module) main();
 
-module.exports = { chay, kiem, docSo, vanTayGoi, PHAM_VI, SO };
+module.exports = { chay, kiem, docSo, vanTayGoi, phamViChay, PHAM_VI, SO };

@@ -2,8 +2,9 @@ import { test, expect } from '@playwright/test';
 import * as fs from 'fs';
 import * as os from 'os';
 import * as path from 'path';
-import { spawnSync } from 'child_process';
+import { spawnSync, execFileSync } from 'child_process';
 import { gateEnv } from './_gate_env';
+import { canRepoGit } from './_trong_repo';
 
 /*
  * KIỂM CHÍNH MÁY KIỂM (v2.7.0 §A10) — phần A10.1 và A10.6.
@@ -155,6 +156,38 @@ test.describe('@infra A10.7 — bản đồ LUẬT → GATE → SPEC: không ô 
     const d = rc.dungBang();
     const trong = d.banDo.filter((x: { gate: unknown[]; khai: unknown }) => !x.gate.length && !x.khai);
     expect(trong.map((x: { muc: string }) => x.muc), 'ô trống sẽ được đọc thành "không có lỗ"').toEqual([]);
+  });
+
+  test('mẫu số spec đếm theo `git ls-files`, KHÔNG theo đĩa', () => {
+    /*
+     * ĐÂY LÀ LÝ DO `rule:coverage:check` CỨ ĐỎ LẠI TRÊN CI.
+     *
+     * Máy sinh từng đếm bằng `readdirSync`, tức gộp cả spec WIP chưa commit của người đang chạy. Đo
+     * 15/10/2026: đĩa **150** spec trong `tests/fe/infra`, git track **137** — chênh 13 file probe
+     * đang dở. Ai sinh lại tài liệu lúc có WIP sẽ commit số 150, rồi CI (chỉ có file đã track) tính ra
+     * 137 và CHẶN. Người đó không làm gì sai; cái sai là phép đếm phụ thuộc thứ KHÔNG nằm trong commit.
+     *
+     * Test này neo vào `git ls-files` chứ không neo vào một con số cố định — con số sẽ đổi, còn luật
+     * "mẫu số phải là thứ CI nhìn thấy" thì không.
+     */
+    // eslint-disable-next-line @typescript-eslint/no-var-requires, global-require
+    const rc = require(path.join(REPO, 'scripts/qa/rule_coverage.js'));
+    canRepoGit(REPO, 'đối chiếu mẫu số spec của `rule_coverage` với `git ls-files`');
+
+    const d = rc.dungBang();
+    expect(rc.THEO_DIA, 'trong repo git thì KHÔNG được rơi về nhánh đếm theo đĩa').toBe(false);
+
+    const track = execFileSync('git', ['ls-files', 'tests/fe/infra/*.spec.ts'], { cwd: REPO, encoding: 'utf8' })
+      .split('\n').map((x) => x.trim()).filter((x) => x.endsWith('.spec.ts')).length;
+    expect(d.soSpec, 'mẫu số phải bằng số spec ĐÃ TRACK — đó là thứ CI nhìn thấy').toBe(track);
+
+    const dia = fs.readdirSync(path.join(REPO, 'tests/fe/infra')).filter((f) => f.endsWith('.spec.ts')).length;
+    if (dia === track) {
+      test.skip(true, `cây đang sạch (đĩa ${dia} = track ${track}) — hai phép đếm trùng nhau nên lượt này `
+        + 'không phân biệt được chúng. Phép kiểm chỉ có răng khi có file chưa track.');
+      return;
+    }
+    expect(d.soSpec, `đĩa có ${dia} spec, track ${track} — lấy số đĩa là lấy cả WIP chưa commit`).not.toBe(dia);
   });
 
   test('nhãn trong lời khai phải là nhãn CÓ ĐỊNH NGHĨA, không phải chuỗi gõ tay', () => {

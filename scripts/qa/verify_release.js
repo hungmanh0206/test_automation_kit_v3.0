@@ -44,6 +44,27 @@ function cleanEnv(extra = {}) {
 }
 
 const steps = [];
+/**
+ * Tên MỌI test đỏ trong gói, mỗi cái một dòng.
+ *
+ * Bản trước cắt cả cụm ở 200 ký tự, mà một dòng tên test đã gần 200 — nên "2 đỏ" chỉ in ra được MỘT,
+ * và lượt sửa sau phải chạy lại cả `release:verify` (gần 10 phút) chỉ để biết cái thứ hai tên gì.
+ * Kit đã trả giá đúng kiểu này một lần rồi: "mất một lượt chạy cả bộ mà vẫn không biết nó thừa cái gì".
+ *
+ * Neo vào ĐỊNH DẠNG DANH SÁCH LỖI của Playwright (`  1) ...`), không neo vào "dòng nào có chữ spec.ts"
+ * — dòng tiến trình cũng có chữ đó, và lọc theo nó thì cắt nhầm sang test đang chạy chứ không phải test
+ * đỏ.
+ */
+function tenCaDo(out, tran = 12) {
+  const dong = String(out).split(/\r?\n/)
+    .filter((l) => /^\s*\d+\)\s/.test(l))
+    .map((l) => l.trim().replace(/\s+/g, ' ').slice(0, 170));
+  if (!dong.length) return '    (không tách được tên test — xem log đầy đủ ở trên)';
+  const ra = dong.slice(0, tran).map((l) => `    ${l}`);
+  if (dong.length > tran) ra.push(`    … (+${dong.length - tran} nữa)`);
+  return ra.join('\n');
+}
+
 function record(name, ok, detail) {
   steps.push({ name, ok, detail: detail || '' });
   console.log(`  ${ok ? '✓' : '✗'} ${name}${detail ? ` — ${detail}` : ''}`);
@@ -195,7 +216,7 @@ function main() {
       record('tests/fe/infra chạy TRONG gói', pwRun.code === 0 && doFail === 0,
         pwRun.code === 0 && doFail === 0
           ? `${mp ? mp[1] : '?'} xanh · ${soSkip} bỏ qua (kèm lý do, xem _trong_repo.ts)`
-          : `${doFail} đỏ — ${pwRun.out.split(/\r?\n/).filter((l) => /\u203a.*spec\.ts/.test(l)).slice(0, 2).join(' | ').slice(0, 200)}`);
+          : `${doFail} đỏ:\n${tenCaDo(pwRun.out)}`);
     }
 
     // 8) version:check phải chạy được từ gói (không git, không tag)

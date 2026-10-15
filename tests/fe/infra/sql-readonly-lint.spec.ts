@@ -7,6 +7,7 @@ import {
 import { assertReadOnlyQuery } from '../../support/setup/db/guard';
 import { assertReadOnlySql } from '../../support/setup/db/uatDbClient';
 import { DbGuardError } from '../../support/setup/db/types';
+import { goEscape } from './_go_escape';
 
 /*
  * `sql_readonly_lint` — NGUỒN DUY NHẤT của luật "câu này có phải câu đọc không" (v2.8.0 §0b).
@@ -165,6 +166,40 @@ test.describe('@infra sql lint — MỘT nguồn, không hai bản trôi khỏi 
   });
 });
 
+test.describe('@infra sql lint — ĐỐI CHỨNG: giải escape trước khi soi', () => {
+  /*
+   * Phép quét dưới đây bốc chuỗi ra khỏi SOURCE, nên nó phải giải escape trước. Không có đối chứng
+   * thì ngày ai đó bỏ bước giải, cửa sẽ chặn oan một câu đọc hợp lệ — và cách "sửa" nhanh nhất là cho
+   * file đó vào danh sách bỏ qua, tức mất luôn phép canh.
+   */
+  const BS = String.fromCharCode(92);
+  const MOT_CAU_KEM_COMMENT = `SELECT TEN FROM dbo.LOP WHERE MA_TRUONG = 1;${BS}n${BS}n-- ghi chu`;
+
+  test('DƯƠNG TÍNH GIẢ: chưa giải escape ⇒ câu đọc hợp lệ bị chặn', () => {
+    expect(lyDoChan(MOT_CAU_KEM_COMMENT), 'đây chính là hình dạng đã làm `full:suite` đỏ 15/10/2026')
+      .toMatch(/stacked/i);
+  });
+
+  test('ĐÃ GIẢI: cùng câu đó ⇒ CHO QUA', () => {
+    expect(lyDoChan(goEscape(MOT_CAU_KEM_COMMENT)), 'một câu rồi một comment là SQL đọc hợp lệ')
+      .toBeFalsy();
+  });
+
+  test('giải escape KHÔNG làm mất răng: stacked query thật vẫn bị chặn', () => {
+    /* Điều kiện quan trọng nhất — một bước "chống báo oan" mà nuốt luôn ca thật thì tệ hơn báo oan. */
+    expect(lyDoChan(goEscape(`SELECT 1;${BS}nDELETE FROM dbo.t`))).toMatch(/stacked/i);
+    expect(lyDoChan(goEscape(`SELECT 1;${BS}n-- vo hai${BS}nDELETE FROM dbo.t`))).toMatch(/stacked/i);
+  });
+
+  test('chỉ giải escape của chuỗi JS, KHÔNG giải `\\uXXXX`', () => {
+    /* Giải nửa vời thì tệ hơn không giải: người đọc sẽ tưởng hàm trả đúng chuỗi lúc chạy mọi trường hợp. */
+    expect(goEscape(`a${BS}u0041b`), 'giữ nguyên để không ai tưởng nó xử lý được mọi escape')
+      .toBe(`a${BS}u0041b`);
+    expect(goEscape(`x${BS}ny`)).toBe('x\ny');
+    expect(goEscape(`q${BS}${BS}nz`), 'gạch chéo đôi là gạch chéo thật, không phải xuống dòng').toBe(`q${BS}nz`);
+  });
+});
+
 test.describe('@infra sql lint — mọi câu SQL THẬT trong repo phải qua', () => {
   test('0 câu đọc thật bị chặn', () => {
     /*
@@ -206,7 +241,25 @@ test.describe('@infra sql lint — mọi câu SQL THẬT trong repo phải qua',
       try { t = fs.readFileSync(f, 'utf8'); } catch { continue; }
       for (const re of [/`([^`]*)`/g, /'((?:[^'\\]|\\.)*)'/g, /"((?:[^"\\]|\\.)*)"/g]) {
         for (const m of t.matchAll(re)) {
-          const s = String(m[1] || '').trim();
+          /*
+           * GIẢI ESCAPE TRƯỚC KHI SOI — không soi văn bản nguồn.
+           *
+           * `m[1]` là chuỗi NHƯ NÓ NẰM TRONG SOURCE, nên một câu SQL viết trong nháy kép mang `\n`
+           * dưới dạng HAI ký tự (`\` và `n`), không phải xuống dòng. Lint thì soi SQL thật.
+           *
+           * Đo 15/10/2026, ca có thật trong `outputs/**`: `SELECT … WHERE … ;\n\n-- ghi chú`.
+           *   · `\n` là xuống dòng thật ⇒ lint CHO QUA (đúng: một câu, rồi một comment);
+           *   · `\n` là hai ký tự      ⇒ sau khi bóc comment tới cuối dòng, phần còn lại sau dấu `;`
+           *     vẫn còn mấy ký tự `\n` chưa giải ⇒ lint kết luận "còn statement nữa" và CHẶN.
+           *
+           * Tức dương tính giả, và nó chỉ lộ ra khi ai đó viết câu SQL nhiều dòng bằng nháy kép thay
+           * vì nháy ngược. Dương tính giả ở cửa SQL là loại nguy hiểm nhất: cách "sửa" nhanh nhất
+           * luôn là thêm file vào `BO_QUA`, và thế là mất luôn phép canh trên file đó.
+           *
+           * Hàm giải escape nằm ở `./_go_escape` — MỘT nguồn, để bản trong phép quét và bản trong đối
+           * chứng không trôi khỏi nhau.
+           */
+          const s = goEscape(String(m[1] || '')).trim();
           if (!/^(select|with)\b/i.test(s) || s.length < 15) continue;
           if (s.includes('${')) continue;      /* template literal chưa nội suy — không phải SQL thật */
           dem += 1;

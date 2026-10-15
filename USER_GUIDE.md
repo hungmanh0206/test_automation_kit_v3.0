@@ -662,7 +662,7 @@ node scripts/convert_excel/merge_execution_status.js <local .xlsx> test-results/
 |---|---|
 | Ghi đè | Mỗi lần đồng bộ là ghi đè lại đúng cột `Result` của case khớp `tcId` — không đụng ô khác (Test Type/Priority/ghi chú QA) |
 | Trạng thái | Lấy từ **1 nguồn** `.agent/config/verdict_taxonomy.json` (cột `sheet`) → `Pass` / `Fail` / `Pending` |
-| Hai gate trước khi ghi | (1) `output_gate` chất lượng output; (2) **mở rộng 5 trục** — task có case band *high* đã execute mà chưa có `reports/expansion-plan.md` thì CHẶN. Cố ý bỏ qua: `--qa-approved` |
+| Hai gate trước khi ghi | (1) `output_gate` chất lượng output; (2) **mở rộng 7 trục** — task có case band *high* đã execute mà chưa có `reports/expansion-plan.md` thì CHẶN. Cố ý bỏ qua: `--qa-approved` |
 | An toàn | Run **0 conclusive** (toàn Not Run) không ghi đè (`--force` nếu vẫn muốn); case `carriedOver` của lượt trước tự bị loại (`--include-carried-over` để giữ) |
 
 Schema: `{ "tests": [ { "tcId", "status", "comment", "evidence": [], "steps": [{ "status", "evidence": [] }] } ] }` — `tcId` phải khớp TC ID canonical (cột `ID_TC`) vì đó là khoá nối sang đúng dòng trên Sheet. **Tuyệt đối không khớp theo tiêu đề**: nhiều case trùng tiêu đề ở nhóm khác nhau, khớp kiểu đó dồn nhiều run vào một case (đã mất 12 run khi migrate, thời còn dùng Google Sheet).

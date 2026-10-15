@@ -4,6 +4,7 @@ import os from 'os';
 import path from 'path';
 import { execFileSync } from 'child_process';
 import { gateEnv } from './_gate_env';
+import { docSach } from './_doc_sach';
 
 /*
  * Test cho nhóm gate MỞ RỘNG 5 TRỤC — tách khỏi `gates.spec.ts` có chủ đích.
@@ -473,5 +474,85 @@ test.describe('@infra trục mở rộng — một nguồn, không bốn bộ t�
     const keys = [...bang.matchAll(/^\s*key: '([a-z_]+)',$/gm)].map((m) => m[1]);
     expect(keys, 'leak_report giữ bảng riêng vì nó mang thêm `rx` — nhưng khoá phải khớp nguồn')
       .toEqual(axes.khoaTruc());
+  });
+
+  test('BỀ MẶT TÀI LIỆU cũng phải khớp nguồn — không chỉ code', () => {
+    /*
+     * CỬA MỘT-NGUỒN CŨ CHỈ QUÉT `.js`, NÊN TÀI LIỆU TRÔI MÀ KHÔNG AI THẤY.
+     *
+     * Đo 15/10/2026, sau khi `axes.js` lên 7 trục: `README.md` còn ghi *"Mở 5 trục cho MỌI case"* và
+     * *"5 trục mở rộng quanh case"* (kèm danh sách chỉ 5 tên), `USER_GUIDE.md` còn ghi *"mở rộng 5
+     * trục"*, và mục lục `RULE_GLOBAL.md` còn trỏ `§5 trục` — link neo đó đã CHẾT vì tiêu đề thật đã
+     * đổi thành `7 trục`. Bốn chỗ, không chỗ nào có máy canh.
+     *
+     * Đây là bề mặt NGƯỜI ĐỌC: lệch ở đây dạy người dùng mở thiếu hai trục, trong khi `expansion:plan`
+     * vẫn đòi đủ — tức tài liệu và máy nói hai chuyện khác nhau, và người ta tin tài liệu.
+     *
+     * LUẬT HẸP CÓ CHỦ Ý: chỉ bắt câu khẳng định TỔNG SỐ (`N trục mở rộng` · `mở/mở rộng/cả/đủ N
+     * trục`). KHÔNG bắt mọi số đứng trước chữ "trục", vì có hai câu hợp lệ nói về TẬP CON —
+     * `README` "Lý do 2 trục này" (trục ④+⑤) và `RULE_GLOBAL` "vượt 4 trục" (một ngưỡng). Bắt cả
+     * chúng là báo oan, và một cửa báo oan là cửa người ta tắt.
+     *
+     * Câu KỂ LẠI phép đo cũ vẫn viết được, và cách viết đã có sẵn trong file: chữ ("cùng năm trục")
+     * hoặc phân số ("0/5 trục", "5/5"). Cả hai dạng đó không khớp luật này.
+     */
+    const SO_TRUC = axes.TRUC.length;
+    const BE_MAT = ['README.md', 'USER_GUIDE.md', 'QUICKSTART.md', 'RULE_GLOBAL.md', 'CLAUDE.md', 'docs/CHEATSHEET.md'];
+    const RE = /(?:mở(?:\s+rộng|\s+cả|\s+đủ)?|đủ|cả)\s+(\d+)\s+trục|(\d+)\s+trục\s+mở\s+rộng/gi;
+
+    const lech: string[] = [];
+    for (const f of BE_MAT) {
+      const p = path.join(REPO, f);
+      if (!fs.existsSync(p)) continue;
+      const dong = docSach(p).split('\n');
+      dong.forEach((d, i) => {
+        for (const m of d.matchAll(RE)) {
+          const n = Number(m[1] ?? m[2]);
+          if (n !== SO_TRUC) lech.push(`${f}:${i + 1} khai "${m[0].trim()}" — nguồn có ${SO_TRUC}`);
+        }
+      });
+    }
+    expect(lech, `bề mặt tài liệu lệch \`axes.js\`:\n  ${lech.join('\n  ')}`).toEqual([]);
+  });
+
+  test('ĐỐI CHỨNG luật bề mặt tài liệu: bắt đúng 3 câu đã trôi, bỏ qua 2 câu hợp lệ', () => {
+    /*
+     * Cây đã sửa thì phép kiểm trên im lặng — và im lặng của một luật chưa bao giờ bắt gì thì không
+     * phân biệt được với im lặng của một luật viết sai. Nên ghim lại NGUYÊN VĂN cả ba câu đã trôi thật
+     * (đo trên HEAD 632a79e) và cả hai câu hợp lệ nói về tập con.
+     */
+    const SO_TRUC = axes.TRUC.length;
+    const RE = /(?:mở(?:\s+rộng|\s+cả|\s+đủ)?|đủ|cả)\s+(\d+)\s+trục|(\d+)\s+trục\s+mở\s+rộng/gi;
+    const bat = (s: string) => [...s.matchAll(RE)].map((m) => Number(m[1] ?? m[2])).filter((n) => n !== SO_TRUC);
+
+    /* DƯƠNG BẢN — ba câu có thật trong README/USER_GUIDE trước 15/10/2026. */
+    expect(bat('Mở 5 trục cho MỌI case là không khả thi'), 'câu README dòng 325').toEqual([5]);
+    expect(bat('và theo **5 trục mở rộng quanh case** (field cùng khối …)'), 'câu README dòng 330').toEqual([5]);
+    expect(bat('(2) **mở rộng 5 trục** — task có case band *high*'), 'câu USER_GUIDE dòng 665').toEqual([5]);
+
+    /* ÂM BẢN — hai câu nói về TẬP CON, vẫn phải đi qua. */
+    expect(bat('Lý do 2 trục này ra trước các trục khác'), '④+⑤ là tập con, không phải tổng').toEqual([]);
+    expect(bat('vượt 4 trục.'), '"vượt 4 trục" là một ngưỡng, không phải tổng').toEqual([]);
+
+    /* ÂM BẢN — hai cách KỂ LẠI phép đo cũ mà file đang dùng. */
+    expect(bat('bốn máy khai bốn bộ từ vựng cho cùng năm trục'), 'số viết bằng chữ là cách kể chuyện cũ').toEqual([]);
+    expect(bat('task đó mở **0/5 trục**, còn task duy nhất đủ 5/5'), 'phân số là cách kể chuyện cũ').toEqual([]);
+  });
+
+  test('mục lục `RULE_GLOBAL` trỏ đúng TIÊU ĐỀ mục trục — link neo phải còn sống', () => {
+    /*
+     * Đổi tiêu đề mục mà quên mục lục thì link vẫn TRÔNG như link: người bấm vào không nhảy đâu cả, và
+     * không có gì đỏ. Nên neo vào chính tiêu đề, không gõ lại chuỗi neo.
+     */
+    const rg = docSach(path.join(REPO, 'RULE_GLOBAL.md'));
+    const tieuDe = rg.split('\n').find((d) => /^#{1,4}\s.*\d+ trục mở rộng/.test(d));
+    expect(tieuDe, 'không tìm thấy tiêu đề mục trục trong RULE_GLOBAL').toBeTruthy();
+
+    /* Quy tắc neo của GitHub: bỏ `#`, hạ chữ thường, bỏ ký tự không phải chữ/số/gạch, dấu cách → `-`. */
+    const neo = String(tieuDe).replace(/^#+\s*/, '').toLowerCase()
+      .replace(/[^\p{L}\p{N}\s-]/gu, '').trim().replace(/\s/g, '-');
+    const link = rg.match(/\[§\d+ trục mở rộng\]\(#([^)]+)\)/);
+    expect(link, 'mục lục không còn dòng trỏ tới mục trục').toBeTruthy();
+    expect(String(link![1]), `mục lục trỏ neo chết — tiêu đề thật sinh ra "#${neo}"`).toBe(neo);
   });
 });

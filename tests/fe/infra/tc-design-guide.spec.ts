@@ -2,6 +2,7 @@ import { test, expect } from '@playwright/test';
 import * as fs from 'fs';
 import * as path from 'path';
 import { thuMucTam, donThuMucTam } from './_thu_muc_tam';
+import { docSach } from './_doc_sach';
 
 /*
  * Skill `tc_design_guide` (v2.9.0) + cửa `skills:refcheck`.
@@ -16,7 +17,21 @@ import { thuMucTam, donThuMucTam } from './_thu_muc_tam';
 
 const REPO = path.resolve(__dirname, '..', '..', '..');
 const SKILL = path.join(REPO, '.agent/skills/phase1/tc_design_guide');
-const doc = (p: string) => fs.readFileSync(path.join(SKILL, p), 'utf8');
+/*
+ * CHUẨN HOÁ CRLF ngay ở cửa đọc — cửa thứ SÁU cùng lớp lỗi của kit, sau `library_drift`, `build.js`,
+ * `course_parse.js`, `course_maturity.js` và `slash-commands.spec.ts` (xem ghi chú ở file đó).
+ *
+ * Đo 15/10/2026: test "thiếu frontmatter" ĐỎ trong `full:suite` dù không ai sửa skill. Trong git file
+ * là `---\n`, trên đĩa là `---\r\n` vì `core.autocrlf=true`, và `git status` vẫn sạch vì git chuẩn hoá
+ * lúc commit. Nên một assertion ghim đúng byte LF trên file trong CÂY LÀM VIỆC chỉ xanh khi lần
+ * checkout gần nhất tình cờ cho LF: CI Linux xanh, Windows checkout mới thì đỏ. Kết quả phụ thuộc
+ * môi trường checkout thì "xanh" hết nghĩa.
+ *
+ * Chuẩn hoá ở cửa đọc chứ không nới assertion: test vẫn đòi file MỞ ĐẦU bằng dấu frontmatter. Và nó
+ * sửa luôn phép đếm token — CRLF làm `s.length` phồng lên một byte mỗi dòng, tức trần 2.500 đang được
+ * đo trên một con số không phải nội dung thật.
+ */
+const doc = (p: string) => docSach(path.join(SKILL, p));
 const tok = (s: string) => Math.round(s.length / 3.6);
 
 /* eslint-disable @typescript-eslint/no-var-requires, global-require */

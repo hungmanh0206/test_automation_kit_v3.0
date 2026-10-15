@@ -42,7 +42,17 @@ const boards = [
   },
   {
     file: 'qa-environment.png', number: '0', title: 'QA Setup', role: 'Team QA',
-    inputs: ['VS Code', 'AI chat extension', 'Node.js >= 18', 'Playwright runtime', 'Backlog/tài liệu nguồn/Figma quyền đọc'],
+    /*
+     * `Node.js >= 20` — KHÔNG phải 18.
+     *
+     * Ảnh khai `>= 18` từ 25/09/2026, trong khi `package.json` khai `engines: >=20` và `.nvmrc` là 20.
+     * Không phải chuyện câu chữ: 20 test đỏ trên Linux CI (v2.8.3) có nguyên nhân là Node 20 KHÔNG bóc
+     * kiểu khi `require()` một file `.ts`, còn Node 24 thì bóc. Người mới đọc ảnh này rồi cài Node 18
+     * sẽ gặp một lớp lỗi khác nữa, ở một chỗ xa nguyên nhân.
+     *
+     * `tests/fe/infra/user-guide-images.spec.ts` nay neo con số này vào `engines` + `.nvmrc`.
+     */
+    inputs: ['VS Code', 'AI chat extension', 'Node.js >= 20', 'Playwright runtime', 'Backlog/tài liệu nguồn/Figma quyền đọc'],
     steps: [
       { icon: 'VS', c: C.info, title: '0.1 Mở đúng workspace root', body: 'Không mở nhầm folder con' },
       { icon: 'AI', c: C.ink, title: '0.2 AI đọc prompt/rule', body: 'Sinh testcase, report, evidence' },

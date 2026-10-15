@@ -64,11 +64,55 @@ function specCua(tenLenh, specs) {
   return specs.filter((s) => tenLenh.some((t) => s.txt.includes(t))).map((s) => s.ten);
 }
 
+/**
+ * Danh sách spec hạ tầng — ĐẾM THEO FILE ĐÃ GIT TRACK, không theo đĩa.
+ *
+ * ĐÂY LÀ LÝ DO CỬA `rule:coverage:check` CỨ ĐỎ LẠI. Bản trước đọc `readdirSync`, tức đếm mọi file trên
+ * đĩa kể cả spec WIP chưa commit. Đo 15/10/2026: đĩa có **150** spec trong `tests/fe/infra`, git track
+ * **137** — chênh đúng 13 file probe đang dở của người dùng. Ai sinh lại tài liệu lúc có WIP sẽ commit
+ * con số 150, rồi CI (chỉ có file đã track) tính ra 137 và CHẶN. Người đó không làm gì sai; cái sai là
+ * phép đếm phụ thuộc thứ KHÔNG nằm trong commit.
+ *
+ * Cùng lớp lỗi với ca CRLF ở `_doc_sach.ts`: kết quả phụ thuộc trạng thái máy người chạy thì "xanh"
+ * hết nghĩa. Và nó tệ hơn một bậc, vì ở đây máy sinh và máy kiểm là HAI lượt chạy khác môi trường.
+ *
+ * Không có git ⇒ NÉM, không im lặng quay về đếm đĩa: quay về đếm đĩa đúng là cách con số sai lọt ra.
+ */
 function docSpecs() {
   const d = path.join(REPO, 'tests', 'fe', 'infra');
   if (!fs.existsSync(d)) return [];
-  return fs.readdirSync(d).filter((f) => f.endsWith('.spec.ts'))
-    .map((f) => ({ ten: `tests/fe/infra/${f}`, txt: docAn(path.join(d, f)) }));
+  let ra = null;
+  try {
+    ra = require('child_process')
+      /*
+       * `stdio` nuốt stderr CÓ CHỦ Ý: chạy trong gói phát hành (không `.git`) thì git in
+       * `fatal: not a git repository`, và dòng đó nằm giữa output của một lệnh đang chạy BÌNH THƯỜNG
+       * sẽ làm người nhận kit tưởng hỏng. Việc thiếu git đã được xử lý tử tế ngay dưới.
+       */
+      .execFileSync('git', ['ls-files', 'tests/fe/infra/*.spec.ts'],
+        { cwd: REPO, encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] });
+  } catch (e) { ra = null; }
+
+  if (ra === null) {
+    /*
+     * KHÔNG có git ⇒ đếm theo đĩa, nhưng BẬT CỜ và cấm ghi tài liệu (xem `THEO_DIA`).
+     *
+     * Ném thẳng ở đây là bản đầu của tôi, và `release:verify` bác nó: trong GÓI phát hành không có
+     * `.git` (cố ý — đó là một bước kiểm riêng), nên `selfcheck.spec.ts` gọi `dungBang()` liền chết.
+     *
+     * Rủi ro thật mà luật này chặn KHÔNG phải "đếm theo đĩa", mà là "sinh tài liệu với số theo đĩa rồi
+     * COMMIT, để CI tính ra số khác". Chuyện đó chỉ xảy ra trong repo git. Ngoài repo thì không ai
+     * commit tài liệu, và ở đó đĩa cũng chính là tập file đã phát hành — không có WIP nào lẫn vào.
+     *
+     * Nên phạm vi đúng là: cấm GHI khi không có git, chứ không cấm ĐỌC.
+     */
+    module.exports.THEO_DIA = true;
+    return fs.readdirSync(d).filter((f) => f.endsWith('.spec.ts'))
+      .map((f) => ({ ten: `tests/fe/infra/${f}`, txt: docAn(path.join(d, f)) }));
+  }
+  module.exports.THEO_DIA = false;
+  return ra.split('\n').map((x) => x.trim()).filter((x) => x.endsWith('.spec.ts'))
+    .map((f) => ({ ten: f, txt: docAn(path.join(REPO, f)) }));
 }
 
 /**
@@ -225,6 +269,20 @@ function main() {
     return;
   }
   if (process.argv.includes('--write')) {
+    /*
+     * CẤM GHI khi mẫu số đếm theo đĩa.
+     *
+     * Đây là chỗ rủi ro thật nằm: ghi một con số đếm theo đĩa rồi commit, xong CI (chỉ có file đã
+     * track) tính ra số khác và CHẶN. Đo 15/10/2026: đĩa 150 spec, git track 137 — chênh 13 file WIP
+     * chưa commit. Đọc thì vẫn cho (gói phát hành không có `.git` nhưng vẫn cần `dungBang()`); ghi
+     * thì không.
+     */
+    if (module.exports.THEO_DIA) {
+      console.error('[rule-coverage] CHẶN ghi: không đọc được `git ls-files`, nên mẫu số đang đếm THEO ĐĨA.');
+      console.error('  Đĩa gộp cả spec WIP chưa commit, nên con số ghi ra sẽ khác con số CI tính được.');
+      console.error('  Chạy lại từ một bản clone git đầy đủ.');
+      process.exit(2);
+    }
     fs.mkdirSync(path.dirname(OUT), { recursive: true });
     fs.writeFileSync(OUT, md, 'utf8');
     const coGate = d.banDo.filter((x) => x.gate.length).length;

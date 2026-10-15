@@ -18,7 +18,7 @@
 > | Nhiều story chạy song song, đụng file dùng chung | [§Parallel Story Safety](#parallel-story-safety) · [§Shared Change Gate](#shared-change-gate) |
 > | Sửa/đặt automation ở đâu | [§Task-Scoped Automation Code](#task-scoped-automation-code) · [§Automation Promote Review](#automation-promote-review) |
 > | **Phase 1** — requirement mơ hồ, hỏi trước khi gen | [§Analysis & Ambiguity Gate](#analysis--ambiguity-gate-phase-1--đọc-kỹ-hỏi-trước-khi-gen) |
-> | **Phase 2** — 7 trục mở rộng quanh case + luật đóng vòng | [§5 trục mở rộng](#5-trục-mở-rộng-quanh-case--luật-đóng-vòng-phase-2--có-máy-đứng-sau) |
+> | **Phase 2** — 7 trục mở rộng quanh case + luật đóng vòng | [§7 trục mở rộng](#7-trục-mở-rộng-quanh-case--luật-đóng-vòng-phase-2--có-máy-đứng-sau) |
 > | **Phase 1** — chiều coverage: khai phạm vi, gắn tag, máy đếm | [§Chiều coverage](#chiều-coverage-phase-1--khai-phạm-vi-gắn-tag-có-máy-đếm) |
 > | **Phase 2** — chạy sao cho thông suốt, không TODO/SKIP bừa | [§Execution Discipline](#execution-discipline-kỷ-luật-thực-thi--chạy-thông-suốt) |
 > | Ghi kết quả, verdict, rerun | [§Execute Results](#execute-results) |
@@ -154,6 +154,13 @@ không phải AI đọc, nhưng vẫn đúng template"*.
   nằm chỗ khác, không nằm trong phần người đọc.
 - **Kết quả mong đợi nói điều kiểm được**, và nêu luôn nhánh chấp nhận được nếu có. "Hoặc chặn và báo
   phiên đã hết hạn", chứ không chỉ "phải xử lý đúng".
+- **`Tiền điều kiện` mở đầu bằng ĐƯỜNG LINK MÔI TRƯỜNG TEST** — URL đầy đủ của đúng màn xảy ra lỗi,
+  lấy từ chính lượt execute chứ không gõ lại từ trí nhớ. Không ghi tên môi trường suông, không ghi
+  link trang chủ. Màn cần tham số thì giữ nguyên tham số, vì cùng đường dẫn mà khác tham số thường là
+  màn khác hẳn. Màn chỉ tới được bằng thao tác nên URL không đổi thì ghi URL gần nhất cộng một dòng
+  đường đi. Che PII trong URL theo §1. Thiếu dòng này thì việc đầu tiên dev làm là đi hỏi lại, và vòng
+  hỏi đáp đó tốn hơn toàn bộ thời gian viết bug. Chi tiết thao tác:
+  `prompt_templates/phase2/08_log_bug_backlog.md`.
 
 Máy kiểm: `npm run writing:lint <file>`. Ngưỡng ở `.agent/config/writing_style.json` đặt ở **mức cao
 nhất** của 34 bài mẫu, không phải phân vị 75. Mốc mà đánh 25% mẫu là mốc sai, vì mẫu chính là đích.
@@ -431,7 +438,7 @@ kiểm thử. Máy KHÔNG tự thăng band hộ — tự thăng là tự nhân c
      quy đổi, `form/payload/api/ui` đều `10` trong khi đúng là `260.500`). Bắt buộc kèm câu hỏi mở; không vào pass-rate.
    Máy ép: `scripts/lib/expansion/finding.js` tự hạ cấp PASS→OBSERVATION khi thiếu neo; `self_review` **CHẶN** nếu
    file finding có PASS/FAIL không neo (kể cả bị sửa tay).
-8. **Độ sâu theo RISK BAND, không mở 5 trục cho mọi case.** Chi phí là thật: một task đang giữ
+8. **Độ sâu theo RISK BAND, không mở cả 7 trục cho mọi case.** Chi phí là thật: một task đang giữ
    **1021 file, 136 MB** evidence. Mở đủ trục cho một bộ 530 case ước lượng **~3740 lượt tải trang, ~9,4 giờ,
    ~335 MB**. Band lấy **cái nặng hơn** giữa `Mức độ rủi ro` và `Ưu tiên`: high thì đủ trục runtime, medium thì
    ③⑤⑦, low thì ③. ⑦ vào cả medium vì oracle là **code thuần**: 0 lượt tải trang, 0 ảnh — lý lẽ "band

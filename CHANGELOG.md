@@ -7,6 +7,226 @@
 > `.agent/**`, `tests/support/**` đều là **shared change** (xem `RULE_GLOBAL.md` §Shared Change Gate) —
 > ảnh hưởng mọi story đang chạy. Mỗi mục ghi **vấn đề → cách chữa**, không chỉ liệt kê tính năng.
 
+## v2.9.1 — 2026-10-15 — `npm ci` thôi cần mạng ngoài registry, và cửa đọc CRLF có chủ
+
+**Vấn đề.** Ba điểm yếu được chỉ ra sau khi v2.9.0 ra mắt. Đo lại từng cái thì **hai đúng, một sai một
+nửa** — và chỗ sai một nửa đáng ghi hơn hai chỗ đúng.
+
+| Điểm được nêu | Đo ra |
+|---|---|
+| `gates:index:check` đỏ vì `GATES.md` thiếu **3** dòng gate | **Đúng, và nặng hơn**: thiếu **12** dòng. Đã sửa ở `5a9aec7`. |
+| `npm ci` gãy trên mạng chặn `cdn.sheetjs.com` — nên vendor tarball | **Đúng.** Làm ở bản này. |
+| 20 test đỏ trên Linux CI, changelog vẫn ghi "chưa đo lại", nguyên nhân là phân biệt hoa-thường | **Sai một nửa.** Đã đo và đã sửa từ 15/10 (`release:verify` 15/15 trên Linux, run 38532446437). Nhưng **dòng changelog thì đúng là còn ghi "chưa đo lại"** — và nguyên nhân KHÔNG phải hoa-thường. Xem mục "Việc còn lại" của v2.8.3. |
+
+Chỗ sai một nửa đó không phải chuyện nhỏ: bản ghi còn mở bằng *"chưa đo lại"* vì lần trước tôi chèn
+kết luận vào **giữa câu nghi ngờ cũ**, nên bullet vừa khẳng định đã sửa vừa kết bằng *"chưa đo nên mới
+là nghi ngờ"*. Người đọc không biết tin câu nào, và họ đọc đúng câu sai. Nay viết lại cả bullet.
+
+### Vendor `xlsx`: đổi hình dạng rủi ro, không xoá nó
+
+`xlsx@0.20.3` khai bằng URL tới `cdn.sheetjs.com`. Registry npm **không** có cách ra: nó dừng ở
+`0.18.5`, mang CVE-2023-30533 + CVE-2024-22363, chỉ vá từ `0.19.3`/`0.20.2`, và hai bản đó chỉ có trên
+CDN. Hạ về registry là hạ cấp vào hai lỗ đã biết. Nên: mang tarball vào repo,
+`file:vendor/xlsx-0.20.3.tgz`.
+
+Đo **trước** khi đổi: sha512 file tải về khớp đúng chuỗi `integrity` lockfile đang ghim — vendor không
+đổi thứ được cài. Đo **sau**: `npm install --offline` cài xong, đọc-ghi vòng tròn ổn.
+
+Nhưng vendor không phải thắng không mất gì: hết chuyện mạng, **thêm 2,3 MB nhị phân mà không ai đọc
+được trong code review**. Một blob như vậy chỉ còn đúng một phép kiểm là so băm — và một phép kiểm chỉ
+tồn tại dưới dạng một dòng văn trong config thì **không phải phép kiểm**. Nên `deps_check.js` thêm:
+
+- **phép kiểm ⑤** — dep `file:` trỏ file trong repo ⇒ so sha512 với `integrity` lockfile. Lệch băm ⇒
+  CHẶN. File mất ⇒ CHẶN (`npm ci` sẽ chết ở **mọi** máy nhận; bắt ở đây rẻ hơn bắt ở `release:verify`).
+  Không có thuật toán nào so được ⇒ **CẢNH BÁO**, không phải "đạt".
+- đối chứng hai chiều ghim thành test. Băm trong fixture **tính từ file**, không gõ tay — gõ tay thì
+  âm bản vẫn xanh khi phép kiểm hỏng theo chiều "không bao giờ so được băm nào", vì khi đó nó cũng im.
+
+Hai chỗ phải sửa cùng lúc, cả hai là **lỗi lặp được** của kit:
+
+- `KEEP_DIRS` của `package_kit.js` thiếu `vendor` ⇒ gói mang `package.json` trỏ `file:vendor/…` mà
+  không mang file. Cùng lớp với ca `manual-run` / `tests/fe/lib` / `.claude/agents` đã ghi.
+- luật bỏ-qua-nhị-phân có `gz`, nhưng `\.` đòi dấu chấm NGAY trước nên `.tgz` **không** khớp: tarball
+  bị đọc như utf8 (không ném lỗi, chỉ ra rác) rồi đem rác đi quét pattern secret.
+
+Và một test đang ghim câu **nay sai**: nó đòi `.github/workflows/README.md` phải chứa `cdn.sheetjs.com`
++ `403`. Đúng trước hôm nay. Một test ghim câu sai còn tệ hơn không có test — nó biến tài liệu lạc hậu
+thành **điều kiện để pipeline xanh**. Nay ghim ngược: README phải khai không cần host nào ngoài
+registry, và vẫn phải kể lý do không hạ về registry.
+
+### Cửa đọc CRLF: lần thứ sáu, nên lần này có máy
+
+`full:suite` đỏ ở `tc-design-guide.spec.ts` với thông điệp **"thiếu frontmatter"** — dù không ai sửa
+skill. Trong git file là `---\n`, trên đĩa là `---\r\n` (`core.autocrlf=true`), và `git status` vẫn
+SẠCH vì git chuẩn hoá lúc commit. Nên một assertion ghim đúng byte LF trên file trong **cây làm việc**
+chỉ xanh khi lần checkout gần nhất tình cờ cho LF: CI Linux xanh, Windows checkout mới thì đỏ.
+
+Đây là **lần thứ sáu** cùng lớp lỗi (`library_drift`, `build.js`, `course_parse.js`,
+`course_maturity.js`, `slash-commands.spec.ts`, và nay là test của chính tôi ở v2.9.0). Sáu lần thì cái
+thiếu không phải thêm một lần nhớ:
+
+- `tests/fe/infra/_doc_sach.ts` — **một cửa đọc dùng chung** (`docSach` / `boCR`), để người viết máy
+  kiểm sau không phải biết chuyện CRLF mới viết đúng;
+- một máy chặn **lần thứ bảy**: quét source của `tests/fe/infra/**` và `scripts/qa/**`, bắt chỗ kiểm
+  frontmatter bằng `readFileSync` thô. Luật **hẹp có chủ ý** — đúng hình dạng của cả sáu ca, nên không
+  báo oan; và nó **không** tự xưng bắt mọi dạng so-sánh-có-`\n` (dạng `.split('\n')` còn hở, nói thẳng
+  ra tốt hơn để người đọc tưởng đã kín).
+
+Chuẩn hoá ở cửa đọc chứ **không** nới assertion: test vẫn đòi file mở đầu bằng dấu frontmatter. Và nó
+sửa luôn phép đếm token — CRLF làm `length` phồng một byte mỗi dòng, tức trần 2.500 của `SKILL.md`
+trước nay đo trên một con số không phải nội dung thật.
+
+### Tài liệu người đọc đã trôi — và cửa một-nguồn không quét tới đó
+
+Câu hỏi "lâu nay chưa thấy update user guide, readme, quickstart và ảnh nhỉ" hoá ra đúng một nửa, và
+nửa đúng nằm ở chỗ ít ai nhìn. README · USER_GUIDE · QUICKSTART đều **đã** cập nhật trong ngày cho
+v2.9.0. Nhưng:
+
+| Chỗ | Khai | Thật |
+|---|---|---|
+| `README.md` ×2 | "Mở **5 trục** cho MỌI case" · "**5 trục** mở rộng quanh case" (liệt kê 5 tên) | `axes.js` có **7** |
+| `README.md` | band `medium → ③+⑤` | `medium → ③⑤⑦` |
+| `USER_GUIDE.md` | "mở rộng **5 trục**" | **7** |
+| `RULE_GLOBAL.md` mục lục | trỏ `§5 trục` → neo `#5-trục-…` | tiêu đề thật đã là `7 trục` ⇒ **link neo CHẾT** |
+| `docs/user-guide-images/qa-environment.png` | `Node.js >= 18` | `engines: >=20` · `.nvmrc` 20 |
+
+Ảnh sai bản Node không phải chuyện câu chữ: 20 test đỏ trên Linux (v2.8.3) có nguyên nhân là **Node 20
+không bóc kiểu** khi `require()` file `.ts`. Người mới đọc sơ đồ onboarding rồi cài Node 18 sẽ gặp một
+lớp lỗi khác nữa, ở chỗ xa nguyên nhân.
+
+**Vì sao không ai thấy.** Cửa một-nguồn của trục (v2.8.1) chỉ quét `.js` — nó đối chiếu `depth.PLAN`,
+`finding.AXES`, `leak_report.AXES` với `axes.js`, và làm tốt việc đó. Bề mặt **người đọc** thì không
+ai canh. Hệ quả: tài liệu dạy mở 5 trục trong khi `expansion:plan` đòi đủ 7 — máy và tài liệu nói hai
+chuyện khác nhau, và người ta tin tài liệu. Ảnh cũng vậy: hai test cũ chỉ kiểm ảnh **có mặt** và ảnh
+**không cũ hơn generator**, tức kiểm sự tồn tại và tuổi, không kiểm nội dung.
+
+Nay có ba máy mới:
+
+- **bề mặt tài liệu khớp `axes.js`** — quét 6 file người đọc. Luật **hẹp có chủ ý**: chỉ bắt câu
+  khẳng định TỔNG SỐ, vì có hai câu hợp lệ nói về **tập con** (`README` "Lý do 2 trục này" cho ④+⑤,
+  `RULE_GLOBAL` "vượt 4 trục" là một ngưỡng). Bắt cả chúng là báo oan, mà một cửa báo oan là cửa người
+  ta tắt. Câu **kể lại** phép đo cũ vẫn viết được bằng chữ ("cùng năm trục") hoặc phân số ("0/5 trục").
+- **mục lục trỏ đúng tiêu đề** — sinh neo TỪ tiêu đề thật, không gõ lại chuỗi neo. Đổi tiêu đề mà quên
+  mục lục thì link vẫn *trông như* link: bấm vào không nhảy đâu cả, và không có gì đỏ.
+- **số bản Node trong sơ đồ khớp `engines` + `.nvmrc`** — và kiểm luôn hai nguồn đó khớp nhau, vì nếu
+  chúng lệch thì ảnh khớp cái nào cũng sai.
+
+Đối chứng hai chiều ghim nguyên văn **ba câu đã trôi thật** làm dương bản, và **bốn câu hợp lệ** (hai
+tập con + hai cách kể chuyện cũ) làm âm bản. Cây đã sửa thì luật im lặng — mà im lặng của một luật chưa
+bao giờ bắt gì thì không phân biệt được với im lặng của một luật viết sai.
+
+### `rule:coverage` đỏ trên CI, và lý do nó cứ đỏ lại
+
+`rule:coverage:check` **nằm trong CI** (`static-check.yml` + `.gitlab-ci.yml`) và nó đang CHẶN ở HEAD:
+`docs/RULE_COVERAGE.md` ghi 132 gate / 134 spec, thật là 134 / 137.
+
+Nhưng chạy `npm run rule:coverage` để sinh lại thì ra **150 spec** — lệch tiếp. Nguyên nhân: máy sinh
+đếm bằng `readdirSync`, tức **đếm file trên đĩa**, gộp cả 13 spec WIP chưa commit của người đang chạy.
+Người đó không làm gì sai; cái sai là **phép đếm phụ thuộc thứ không nằm trong commit** — rồi CI (chỉ
+có file đã track) tính ra số khác và CHẶN. Đó là vòng lặp làm cửa này đỏ đi đỏ lại.
+
+Nay đếm theo `git ls-files`, và không có git thì **NÉM** chứ không im lặng quay về đếm đĩa — quay về
+đếm đĩa đúng là cách con số sai lọt ra.
+
+### Prompt log bug: văn phong cho dev, và link môi trường bắt buộc
+
+Yêu cầu của chủ dự án: *"nội dung bug ngắn gọn, dễ hiểu cho dev và con người đọc, nhưng vẫn theo
+template"*, và *"tiền điều kiện gán thêm một đường link môi trường test cụ thể"*.
+
+Bản đầu tôi viết bảy luật văn phong vào thẳng prompt, rồi tự bác: `RULE_GLOBAL.md` §Giọng văn output
+ĐÃ là nguồn canonical cho đúng chuyện này, nên bảy luật đó là **bản sao thứ hai sẽ trôi** — chính thứ
+đợt này vừa mất một mục để dọn. Prompt nay **trỏ về RULE_GLOBAL**, kèm một dòng tóm để dùng ngay và
+hai chỗ hay sai nhất (lượng từ mơ hồ · bê lập luận vào bug), cộng ba câu tự kiểm trước khi gửi.
+
+`Tiền điều kiện` nay **bắt buộc mở đầu bằng URL đầy đủ của đúng màn xảy ra lỗi**, và luật nằm ở
+`RULE_GLOBAL` còn phần thao tác ở prompt. Bốn điểm, mỗi điểm chống một kiểu hỏng đã gặp: lấy URL từ
+chính lượt execute chứ không gõ lại từ trí nhớ (gõ tay sinh link 404, rồi dev kết luận "không tái hiện
+được") · giữ nguyên tham số vì cùng đường dẫn khác tham số thường là màn khác hẳn · màn mở bằng thao
+tác thì ghi URL gần nhất cộng một dòng đường đi · che PII trong URL. Account ghi theo **vai trò**,
+không ghi mật khẩu, nên luật mới không đụng §1.
+
+Hai mục đó đẩy `08_log_bug_backlog.md` chạm đúng trần thẻ chạy 9k. Luật của kit là **cắt bù trong cùng
+luồng, không nới số**, nên tôi rút gọn chính hai mục vừa viết — giữ nguyên mọi yêu cầu, bỏ chữ đệm,
+đúng thứ mà mục đó đang dạy. Nay **8.8k / 9k**, không ngưỡng nào bị nới.
+
+### Dương tính giả ở cửa SQL, và nó suýt làm mất một phép canh
+
+`full:suite` đỏ ở `sql-readonly-lint`, trỏ vào một file automation của task. Sáu ca đối chứng cho thấy
+lint **đúng cả sáu**, kể cả câu có `;` rồi comment. Nguyên nhân nằm ở spec: nó bốc chuỗi SQL ra khỏi
+**văn bản nguồn** mà không giải escape, nên `\n` còn là hai ký tự. Sau khi bóc comment tới cuối dòng,
+phần sót lại sau dấu `;` vẫn còn mấy ký tự đó, và lint kết luận "còn statement nữa".
+
+Tách bạch bằng một phép đo: `\n` là xuống dòng thật ⇒ **cho qua**; `\n` là hai ký tự ⇒ **chặn**.
+
+Dương tính giả ở cửa SQL là loại nguy hiểm nhất, vì cách "sửa" nhanh nhất luôn là ném file vào danh
+sách bỏ qua — và thế là mất luôn phép canh trên file đó. Nay giải escape trước khi soi, hàm dùng chung
+ở `tests/fe/infra/_go_escape.ts`, kèm bốn đối chứng. Cái quan trọng nhất trong bốn: **stacked query
+thật vẫn phải bị chặn** — một bước chống-báo-oan mà nuốt luôn ca thật thì tệ hơn báo oan.
+
+### Luật đặt quá rộng, và `release:verify` bác nó
+
+Bản đầu của bản sửa `rule_coverage` cho hàm đếm spec **NÉM** khi không đọc được `git ls-files`. Trong
+repo thì đúng. Nhưng gói phát hành **cố ý không mang `.git`**, nên `selfcheck.spec.ts` gọi `dungBang()`
+là chết ngay — `release:verify` ra 14/15.
+
+Rủi ro thật mà luật đó cần chặn không phải "đếm theo đĩa", mà là "sinh tài liệu với số theo đĩa rồi
+COMMIT, để CI tính ra số khác". Chuyện đó chỉ xảy ra trong repo git. Ngoài repo thì không ai commit
+tài liệu, và ở đó đĩa cũng chính là tập file đã phát hành. Phạm vi đúng: **cấm GHI, không cấm ĐỌC**.
+
+Đo trong môi trường không-git THẬT (giải nén gói, mượn `node_modules` bằng junction), không suy luận:
+`dungBang()` chạy được · `--write` từ chối với exit 2 · `selfcheck.spec.ts` trong gói 28/28 xanh.
+
+### Cửa chặn đóng gói đo sai mẫu số — và nó chưa từng có máy nào canh
+
+`full:suite` quyết định `package:kit` có được chạy hay không. Nó quét **cả thư mục**, còn
+`package_kit.collect()` thì **chỉ lấy file đã git track** — nó còn in thẳng *"bỏ N file CHƯA git track
+(không được phát ra ngoài)"*. Hai mẫu số khác nhau cho cùng một quyết định, và chỗ lệch có hai hậu quả
+thật:
+
+- **Đỏ oan chặn phát hành.** Một spec probe chưa track (chạm UAT, timeout 30s) làm `full:suite` đỏ
+  trong khi nó **không bao giờ** nằm trong gói. Cây đang phát hành vẫn sạch.
+- **Chạm UAT không ai xác nhận (§2).** Những probe đó drive app thật. Để chúng trong phạm vi
+  `full:suite` nghĩa là mỗi lượt chạy lệnh PHÁT HÀNH lại chạm UAT — như một tác dụng phụ, không phải
+  một quyết định. `ci:scope` đã gác đúng chuyện này cho tập đã track; sổ thì chưa.
+
+Đây **không** phải nới phạm vi cho dễ xanh: tập đã track chính là tập được phát ra ngoài, nên nó là
+mẫu số ĐÚNG cho câu hỏi *"bản sắp đóng gói có chạy không"*. File chưa track vẫn phải xanh trước khi
+commit, nhưng đó là việc của lượt commit.
+
+Và `full_suite_ledger.js` trước nay **không có spec nào canh** — một cửa chặn hỏng im lặng là cửa
+hỏng theo hướng tệ nhất. Nay có 5 phép kiểm, hai cái đáng nhất:
+
+- **mọi spec sẽ phát ra ngoài đều phải nằm trong lượt chạy.** Thiếu là cửa đang gật đầu cho thứ nó
+  chưa đo. Quan hệ đúng là **gói ⊆ lượt chạy** chứ không phải bằng nhau — bản đầu tôi viết "bằng nhau"
+  và nó đỏ ngay, vì hai spec `db-verify-*` được track nên phải chạy ở repo nhưng `DENY` cố ý loại khỏi
+  gói. Phần dư nay neo vào chính `DENY`, không neo vào danh sách tên file gõ tay.
+- **thu hẹp phạm vi không được làm mất răng**: sổ vẫn ghi `head` + vân tay gói, `--kiem` vẫn chặn.
+
+Thêm một điều kiện cho mọi bước "bỏ bớt file": máy phải **đếm và nói ra** đã bỏ bao nhiêu. Im lặng thu
+hẹp phạm vi đúng là cách một bộ kiểm teo dần mà vẫn báo xanh.
+
+### Số đo của bản này
+
+| | |
+|---|---|
+| `full:suite` (138 spec đã track) | **2.026 xanh · 0 đỏ · 0 bỏ qua** |
+| `release:verify` | **15/15 bước** — suite trong gói **1.882 xanh · 49 bỏ qua** |
+| gói | 618 file · 7,63 MB (tăng 2,3 MB: tarball `xlsx`) |
+| file được track | 746 · 143 spec |
+
+Con số `full:suite` **không so được** với các bản trước: từ bản này nó đo 138 spec đã track, không còn
+đo cả probe WIP trên đĩa. Nói ra chỗ đứt gãy đó thay vì để người đọc tưởng bộ kiểm vừa teo đi.
+
+`kit-2.9.0.tar.gz` **giữ nguyên**, không bị ghi đè — artifact của tag cũ vẫn khớp tag.
+
+### Tự bác một lần nữa
+
+Tôi báo `gates:index:check` trả **exit 0** khi không phán được, và định sửa nó. Đo lại không qua pipe:
+nó trả **exit 2**, đúng chuẩn. Con số 0 là exit của `tail` trong `cmd | tail`, không phải của `node` —
+cùng lớp lỗi đo đã ghi ở `release:verify dùng gói cũ`. **Kit không có lỗi đó; phép đo của tôi có.**
+
+---
+
 ## v2.9.0 — 2026-10-15 — Skill `tc_design_guide`: dạy thiết kế TC, và mỗi điểm dạy nối tới một máy
 
 > Bản này gói cả nội dung **v2.8.4** (harness đồng thời + bù bảo mật read-only) — xem mục ngay dưới.
@@ -231,15 +451,21 @@ phiên bản 2.7.0 → 2.8.2.
 
 ### Việc còn lại
 
-- **20 test đỏ trong gói trên Linux (11/10) chưa đo lại.** `ci.yml` chạy theo lịch trên `main` CŨ
-  **Đã đo và đã sửa trong cùng ngày** (bổ sung 15/10/2026): nguyên nhân KHÔNG phải phân biệt hoa-thường
-  trong đường dẫn — đó là giả thuyết của tôi và nó SAI. Nguyên nhân thật: `db_query.js` `require()` thẳng một
-  file `.ts`, mà Node 20 (mức kit tự khai `engines: >=20`) không bóc được kiểu nên chết ở dấu `:` đầu tiên;
-  cộng hai test của tôi ghim giả định CÓ Ổ ĐĨA, vốn không tồn tại trên Linux. Sau khi sửa:
-  `release:verify` **15/15 trên Linux** (run 38532446437), và `full:suite` trên Linux xanh.
-  (`0e0cf8e`) nên nó không nói gì về cây hiện tại. Nghi ngờ: phân biệt hoa/thường trong đường dẫn —
-  Windows không phân biệt nên lỗi kiểu `require('./Foo')` khớp `foo.js` chỉ chết trên Linux. **Chưa đo
-  nên mới là nghi ngờ.**
+- ~~20 test đỏ trong gói trên Linux (11/10) chưa đo lại.~~ **ĐÃ ĐO VÀ ĐÃ SỬA** (15/10/2026).
+
+  Nguyên nhân **không** phải phân biệt hoa-thường trong đường dẫn. Đó là nghi ngờ ghi ở đây, và nó
+  SAI — `require('./Foo')` khớp `foo.js` trên Windows là một lớp lỗi có thật, nhưng không phải lớp lỗi
+  này. Nguyên nhân thật, hai cái cộng lại:
+  - `db_query.js` `require()` thẳng một file `.ts`. Node 24 ở máy tôi tự bóc kiểu nên im; Node 20 —
+    đúng mức kit tự khai `engines: >=20` — không bóc, nên chết ở dấu `:` đầu tiên.
+  - hai test của chính tôi ghim giả định **có ổ đĩa** (`path.parse(REPO).root`), vốn là `/` trên Linux.
+
+  Sau khi sửa: `release:verify` **15/15 trên Linux** (run 38532446437), `full:suite` trên Linux xanh.
+
+  Bài học không phải "nhớ thử trên Linux". Là: **nghi ngờ viết trong changelog có tuổi thọ dài hơn
+  trí nhớ của người viết nó**, nên một bullet mở bằng "chưa đo" phải được khâu lại ngay khi đo xong —
+  bản ghi ở đây từng bị tôi chèn kết luận vào GIỮA câu nghi ngờ cũ, nên nó vừa khẳng định đã sửa vừa
+  kết bằng "chưa đo nên mới là nghi ngờ", và người đọc không biết tin câu nào.
 - Mọi món nợ của v2.8.2 vẫn còn: nguyên nhân ca flaky, câu `isview` chưa đo, hai luật `thieu_nang_luc`.
 
 ---

@@ -154,7 +154,7 @@ const RULES = [
      *    hết hôm nay.
      * Chỉ thấy khi chạy `--include-tasks`, và đó là đúng chỗ của nó.
      */
-    why: 'Spec gọi `page.locator` trực tiếp thay vì đi qua Page Object hoặc `safe_target`. Đo được 1381 lượt ở 254/354 spec theo task — locator nằm rải trong spec thì UI đổi một nhãn là phải sửa hàng trăm chỗ.',
+    why: 'Spec gọi `page.locator` trực tiếp thay vì đi qua Page Object hoặc `safe_target`. Đo được 1522 lượt ở tổng 402 spec theo task (15/10/2026). Grep thô đếm 1562 lượt trong 290 spec; chênh 40 vì gate chỉ phán trên phần LÀ CODE, chuỗi và chú thích đã làm trắng. Con số này đi theo `outputs/**` nên nó trôi khi task chạy — locator nằm rải trong spec thì UI đổi một nhãn là phải sửa hàng trăm chỗ.',
     fix: 'Đưa locator về Page Object (`tests/fe/pages/`) hoặc `safe_target.one()/section()`. Đây là nền của thư viện bước dùng lại (v2.8.0), nên con số này là mốc để đo tiến độ.',
   },
   {

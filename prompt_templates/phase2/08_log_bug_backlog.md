@@ -203,9 +203,28 @@ Description:
 `textFormattingRule = markdown`, nên `**đậm**` render thật. Đổi project sang chế độ `backlog` thì phải
 đổi cú pháp thành `''đậm''` — và phải ĐO lại bằng chính API đó chứ đừng đoán.
 
-**Nội dung NGẮN GỌN, SÚC TÍCH, nhưng cực kỳ dễ hiểu.** Người đọc là dev đang sửa, không phải người
-nghiệm thu. Mỗi dòng một ý, bỏ chữ đệm, bỏ câu dẫn kiểu "như đã nêu ở trên". Viết dài không làm bug rõ
-hơn, nó chỉ làm dev đọc lướt rồi bỏ sót đúng chỗ cần sửa.
+### Văn phong: viết cho DEV ĐỌC
+
+Người đọc là một người đang sửa code, không phải người nghiệm thu và không phải một cái máy. Viết dài
+không làm bug rõ hơn. Nó làm dev đọc lướt rồi bỏ sót đúng chỗ cần sửa.
+
+Luật canonical ở **`RULE_GLOBAL.md` §Giọng văn output → "Thân bug Backlog"**; mâu thuẫn thì theo đó.
+Máy kiểm: `npm run writing:lint <file>`.
+
+Tóm để dùng ngay: mỗi ý một dòng · câu ngắn, kể theo thứ tự xảy ra · có số thì đưa số (`3/10 bản ghi`,
+không `một vài bản ghi`) · chuỗi, mã lỗi, id và tên field bọc nháy ngược · nói hành vi sản phẩm chứ
+không nói công cụ đo · bỏ chữ đệm (`hiện đang không thực hiện việc hiển thị` thành `không hiển thị`).
+
+Hai chỗ hay sai nhất:
+
+- **Lượng từ mơ hồ** (`một số`, `khá nhiều`, `thỉnh thoảng`) bắt dev đoán. Dev đoán sai thì bug quay lại.
+- **Bê lập luận vào bug.** Đối chứng, các lượt rerun, suy luận loại trừ ở lại claim và report local.
+  Backlog chỉ nhận kết luận và cách tái hiện. Bug kèm ba đoạn lập luận trông như bug chưa chắc chắn.
+
+Tự kiểm trước khi gửi, ba câu:
+- Dev chưa từng mở màn này có tái hiện được chỉ bằng `Tiền điều kiện` cộng `Bước` không?
+- Có dòng nào không giúp sửa bug không? Có thì xoá.
+- Có chỗ nào bắt dev đoán không? Có thì thay bằng giá trị cụ thể.
 
 Description chỉ được có đúng 4 phần bên dưới, theo đúng thứ tự. Tất cả nội dung phải mô tả theo testcase/requirement đang fail:
 1. `Tiền điều kiện`
@@ -216,8 +235,19 @@ Description chỉ được có đúng 4 phần bên dưới, theo đúng thứ t
 Không thêm các phần khác vào description như `Tham chiếu`, `Reference`, `Evidence`, `Xác nhận trước khi log`, `Mức độ ảnh hưởng`, `Execution summary`, `TC ID`, `Source`, `Generated`, `Finding`, đường dẫn report/file, link tài liệu, bảng kết quả test, hoặc metadata automation. Các thông tin đó nếu cần thì ghi ở execution summary/report local, không đưa vào description.
 
 Tiền điều kiện:
-- Nếu có tiền điều kiện, ghi rõ dữ liệu/account/trạng thái cần có.
-- Nếu không có, ghi `Không có`.
+- **Dòng ĐẦU TIÊN là link môi trường test: URL đầy đủ của đúng màn xảy ra lỗi.** Dev mở link là tới
+  thẳng màn đó. Không ghi tên môi trường suông, không ghi link trang chủ.
+  - Lấy URL **từ lượt execute** (thanh địa chỉ lúc chụp evidence), không gõ lại từ trí nhớ. Gõ tay sinh
+    link 404, rồi dev kết luận "không tái hiện được".
+  - **Giữ nguyên tham số** (id, năm học, cấp học, tab). Cùng đường dẫn khác tham số thường là màn khác.
+  - Màn mở bằng thao tác nên URL không đổi thì ghi URL gần nhất, cộng một dòng đường đi ngắn.
+  - **Che PII trong URL** nếu tham số mang dữ liệu người thật (CLAUDE.md §1).
+- Sau dòng link: dữ liệu, account, trạng thái cần có, mỗi ý một dòng. Account ghi theo **vai trò**,
+  không ghi mật khẩu, không ghi tên người thật.
+- Không có yêu cầu nào khác thì vẫn phải có dòng link, rồi ghi `Không có yêu cầu dữ liệu riêng`.
+
+Thiếu dòng link thì việc đầu tiên dev làm là đi hỏi lại, và vòng hỏi đáp đó tốn hơn toàn bộ thời gian
+viết bug.
 
 Bước:
 - Bắt buộc dùng danh sách đánh số theo định dạng `1.`, `2.`, `3.` cho từng bước reproduce.
