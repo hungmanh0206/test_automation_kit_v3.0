@@ -232,6 +232,11 @@ phiên bản 2.7.0 → 2.8.2.
 ### Việc còn lại
 
 - **20 test đỏ trong gói trên Linux (11/10) chưa đo lại.** `ci.yml` chạy theo lịch trên `main` CŨ
+  **Đã đo và đã sửa trong cùng ngày** (bổ sung 15/10/2026): nguyên nhân KHÔNG phải phân biệt hoa-thường
+  trong đường dẫn — đó là giả thuyết của tôi và nó SAI. Nguyên nhân thật: `db_query.js` `require()` thẳng một
+  file `.ts`, mà Node 20 (mức kit tự khai `engines: >=20`) không bóc được kiểu nên chết ở dấu `:` đầu tiên;
+  cộng hai test của tôi ghim giả định CÓ Ổ ĐĨA, vốn không tồn tại trên Linux. Sau khi sửa:
+  `release:verify` **15/15 trên Linux** (run 38532446437), và `full:suite` trên Linux xanh.
   (`0e0cf8e`) nên nó không nói gì về cây hiện tại. Nghi ngờ: phân biệt hoa/thường trong đường dẫn —
   Windows không phân biệt nên lỗi kiểu `require('./Foo')` khớp `foo.js` chỉ chết trên Linux. **Chưa đo
   nên mới là nghi ngờ.**
