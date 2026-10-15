@@ -36,7 +36,17 @@ const loc = (xs: string[], re: RegExp) => xs.filter((x) => re.test(x));
 test.describe('@infra kỹ thuật thiết kế — danh sách đọc từ config, không chép vào test', () => {
   test('config là NGUỒN DUY NHẤT và khai đủ thứ gate cần', () => {
     const codes = CFG.techniques.map((t: { code: string }) => t.code);
-    expect(codes, 'đủ 6 mã ISTQB').toEqual(['EP', 'BVA', 'DT', 'ST', 'UC', 'EG']);
+    /*
+     * ĐỦ 6 mã ISTQB là điều kiện CỨNG — bỏ một mã là bỏ một lớp kỹ thuật. Nhưng danh sách KHÔNG còn
+     * đóng: v2.9.0 thêm `PW` (pairwise) và `CT` (classification tree), vì `matrix_coverage.js` đã là
+     * máy pairwise từ v2.5.0 mà KHÔNG có mã nào để case khai — tức có máy mà không có đường khai, nên
+     * không case nào từng mang tag đó.
+     *
+     * Mã mới vẫn phải qua hai phép kiểm ngay dưới (`kich_hoat`, `dau_hieu_may_kiem`), nên "mở danh
+     * sách" KHÔNG đồng nghĩa nới: thêm một mã rỗng nghĩa vẫn đỏ.
+     */
+    for (const c of ['EP', 'BVA', 'DT', 'ST', 'UC', 'EG']) expect(codes, `thiếu mã ISTQB ${c}`).toContain(c);
+    expect(new Set(codes).size, 'mã trùng nhau thì không tra được').toBe(codes.length);
     for (const t of CFG.techniques) {
       expect(String(t.kich_hoat || '').length, `${t.code} thiếu điều kiện kích hoạt`).toBeGreaterThan(20);
       expect(String(t.dau_hieu_may_kiem || '').length, `${t.code} thiếu dấu hiệu máy kiểm được`).toBeGreaterThan(20);

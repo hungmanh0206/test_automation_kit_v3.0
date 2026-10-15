@@ -1,0 +1,173 @@
+import { test, expect } from '@playwright/test';
+import * as fs from 'fs';
+import * as path from 'path';
+import { thuMucTam, donThuMucTam } from './_thu_muc_tam';
+
+/*
+ * Skill `tc_design_guide` (v2.9.0) + cửa `skills:refcheck`.
+ *
+ * Phần đáng khoá nhất không phải "skill tồn tại", mà là HAI điều kiện làm nó khác kit A:
+ *   · phần LUÔN-NẠP nhỏ (A nhồi ~16k vào một file), phần dày nằm ở `references/`;
+ *   · bảng "điểm dạy → máy kiểm" chỉ nêu máy CÓ THẬT, và chỗ nào chưa có máy thì NÓI THẲNG.
+ *
+ * Và cửa refcheck phải phân biệt link thật với đường dẫn minh hoạ — nếu không nó tái tạo đúng dương
+ * tính giả đã làm kit A bị đếm là "5 link chết" (đo 14/10/2026: cả 5 là ví dụ, A có 0 link gãy thật).
+ */
+
+const REPO = path.resolve(__dirname, '..', '..', '..');
+const SKILL = path.join(REPO, '.agent/skills/phase1/tc_design_guide');
+const doc = (p: string) => fs.readFileSync(path.join(SKILL, p), 'utf8');
+const tok = (s: string) => Math.round(s.length / 3.6);
+
+/* eslint-disable @typescript-eslint/no-var-requires, global-require */
+const rc = require(path.join(REPO, 'scripts/qa/skills_refcheck.js'));
+/* eslint-enable @typescript-eslint/no-var-requires, global-require */
+
+test.describe('@infra tc_design_guide — phần luôn-nạp phải NHỎ', () => {
+  test('`SKILL.md` có frontmatter hợp lệ và ≤ 2.500 token', () => {
+    const s = doc('SKILL.md');
+    expect(s.startsWith('---\n'), 'thiếu frontmatter').toBe(true);
+    expect(s).toMatch(/\nname: tc_design_guide\n/);
+    const d = s.match(/\ndescription: (.+)\n/);
+    expect(d, 'thiếu description').toBeTruthy();
+    expect(String(d![1]).trim().length, 'description rỗng thì skill không bao giờ được chọn').toBeGreaterThan(40);
+
+    /*
+     * Trần 2.500. A nhồi `rbt-manual-testing` ~16.200 token vào MỘT file 937 dòng, và đó là tật chính
+     * phải không mang theo: phần luôn-nạp càng to thì càng ít lượt nào thật sự đọc hết.
+     */
+    expect(tok(s), 'SKILL.md vượt trần — đẩy phần dày xuống `references/`, đừng nới trần').toBeLessThanOrEqual(2500);
+  });
+
+  test('phần dày nằm ở `references/`, không nằm trong phần luôn-nạp', () => {
+    const refs = fs.readdirSync(path.join(SKILL, 'references')).filter((f) => f.endsWith('.md'));
+    expect(refs.length, 'phải có file references').toBeGreaterThanOrEqual(4);
+    const tongRef = refs.reduce((n, f) => n + tok(doc(path.join('references', f))), 0);
+    /* Điều kiện "giàu hơn A mà không phình": tổng nội dung lớn, phần luôn-nạp nhỏ. */
+    expect(tongRef, 'references phải mang phần lớn nội dung').toBeGreaterThan(tok(doc('SKILL.md')) * 2);
+  });
+});
+
+test.describe('@infra tc_design_guide — nội dung phải đo được', () => {
+  test('bảng "điểm dạy → máy kiểm" chỉ nêu máy CÓ THẬT', () => {
+    /* eslint-disable @typescript-eslint/no-var-requires, global-require */
+    const pkg = require(path.join(REPO, 'package.json'));
+    /* eslint-enable @typescript-eslint/no-var-requires, global-require */
+    const s = doc('SKILL.md') + doc('references/techniques.md') + doc('references/anti_patterns.md')
+      + doc('references/component_checklist.md') + doc('references/field_checklist.md');
+
+    const goi = [...s.matchAll(/`npm run ([a-z0-9:_-]+)`/g)].map((m) => m[1]);
+    expect(goi.length, 'skill phải trỏ tới máy thật, không dạy chay').toBeGreaterThan(8);
+    const thieu = [...new Set(goi)].filter((g) => !pkg.scripts[g]);
+    /*
+     * Bịa một tên máy là điều kiện DỪNG của đợt này: bảng chỉ có giá trị khi người đọc kiểm lại được
+     * từng dòng, và một tên sai làm hỏng cả bảng chứ không chỉ một dòng.
+     */
+    expect(thieu, `skill nhắc npm script KHÔNG tồn tại: ${thieu.join(', ')}`).toEqual([]);
+  });
+
+  test('chỗ CHƯA có máy phải nói thẳng, không bỏ trống cũng không bịa', () => {
+    const s = doc('SKILL.md');
+    expect(s, 'phải có ít nhất một dòng ghi rõ chưa có máy').toMatch(/chưa có máy/i);
+    expect(s).toMatch(/review tay/i);
+  });
+
+  test('dạy quan sát ≠ oracle, và KHÔNG có câu kiểu "ảnh thắng tài liệu"', () => {
+    const s = doc('SKILL.md') + doc('references/anti_patterns.md');
+    expect(s, 'phải dạy quan sát không phải oracle').toMatch(/observed|quan sát/i);
+    expect(s).toMatch(/Ambiguity Gate/);
+    /*
+     * Kit A có mục tiêu đề "Xung đột giữa tài liệu và ảnh → ảnh thắng". Thân mục của A thật ra nói
+     * "KHÔNG tự chọn bên nào", nhưng nó vẫn bảo VIẾT TC theo những gì ảnh cho thấy — tức quan sát trở
+     * thành kỳ vọng đã viết. Đó là chỗ B khác, và test này chặn câu đó quay lại.
+     */
+    expect(/ảnh\s*(thắng|ưu tiên)|hình\s*thắng/i.test(s), 'không được dạy "ảnh thắng tài liệu"').toBe(false);
+  });
+
+  test('phủ rộng hơn A: có pairwise và classification tree, và hai mã có trong config', () => {
+    const t = doc('references/techniques.md');
+    expect(t).toMatch(/Pairwise/i);
+    expect(t).toMatch(/Classification Tree/i);
+
+    /* eslint-disable @typescript-eslint/no-var-requires, global-require */
+    const dt = require(path.join(REPO, '.agent/config/design_techniques.json'));
+    const m = require(path.join(REPO, 'scripts/lib/testcase/model.js'));
+    /* eslint-enable @typescript-eslint/no-var-requires, global-require */
+    const ma = dt.techniques.map((x: { code: string }) => x.code);
+    expect(ma, 'thiếu mã thì case gắn tag xong KHÔNG máy nào thấy').toContain('PW');
+    expect(ma).toContain('CT');
+
+    /* ĐỐI CHỨNG: `CT` là chuỗi con của `sideeffect`/`impact` — khớp phải CHÍNH XÁC, không `includes`. */
+    expect(m.techniquesOf('', '[SideEffect] abc'), '`CT` không được khớp nhầm trong `sideeffect`').toEqual([]);
+    expect(m.techniquesOf('', '[Impact] abc')).toEqual([]);
+    expect(m.techniquesOf('', '[CT] abc')).toEqual(['CT']);
+  });
+
+  test('KHÔNG dạy locator và KHÔNG đặt luật evidence mới', () => {
+    const s = doc('SKILL.md');
+    expect(/data-testid|getByRole|css selector|xpath/i.test(s), 'locator thuộc `locator_strategy`').toBe(false);
+    /* Được phép TRỎ tới luật evidence, nhưng không được đặt luật mới. */
+    expect(/chụp (ảnh|màn).{0,30}(mọi|khi fail)/i.test(s), 'đừng đặt luật evidence thứ hai').toBe(false);
+  });
+});
+
+test.describe('@infra skills:refcheck — link thật vs đường dẫn minh hoạ', () => {
+  test('bộ skill của repo: 0 link gãy', () => {
+    const ds = rc.quet(path.join(REPO, '.agent/skills'));
+    const gay = ds.filter((x: { minhHoa: string | null; ton_tai: boolean }) => !x.minhHoa && !x.ton_tai);
+    expect(gay, 'link trong skill phải trỏ file có thật').toEqual([]);
+  });
+
+  test('ĐỐI CHỨNG DƯƠNG: link thật gãy ⇒ bị bắt', () => {
+    const tmp = thuMucTam('ref-gay');
+    try {
+      fs.mkdirSync(path.join(tmp, 'x'));
+      fs.writeFileSync(path.join(tmp, 'x/SKILL.md'), '---\nname: x\n---\n\nXem [bảng](references/khong-co.md).\n');
+      const ds = rc.quet(tmp);
+      const gay = ds.filter((d: { minhHoa: string | null; ton_tai: boolean }) => !d.minhHoa && !d.ton_tai);
+      expect(gay.length, 'một link thật trỏ file không có phải bị bắt').toBe(1);
+    } finally { donThuMucTam(tmp); }
+  });
+
+  test('ĐỐI CHỨNG ÂM: ba dạng đường dẫn minh hoạ KHÔNG bị bắt', () => {
+    /*
+     * Ba dạng này lấy từ CHÍNH kit A — chúng là ví dụ thật, không phải ca bịa cho vừa luật. Đếm ngây
+     * thơ gắn cờ cả ba, và đó là cách con số "A có 5 link chết" ra đời.
+     */
+    const tmp = thuMucTam('ref-vidu');
+    try {
+      fs.mkdirSync(path.join(tmp, 'x'));
+      fs.writeFileSync(path.join(tmp, 'x/SKILL.md'), [
+        '---', 'name: x', '---', '',
+        'Đọc [yêu cầu](../../requirements/<module>/requirements_<module>.md).',
+        '',
+        '| File | Vai trò |',
+        '|---|---|',
+        '| [report](execution_report.md) | file đầu ra của lượt chạy |',
+        '',
+        '```markdown',
+        'docs/testcases/customers/[parts/part_01.md](parts/part_01.md)',
+        '```',
+        '',
+      ].join('\n'));
+      const ds = rc.quet(tmp);
+      const gay = ds.filter((d: { minhHoa: string | null; ton_tai: boolean }) => !d.minhHoa && !d.ton_tai);
+      expect(gay, 'đường dẫn minh hoạ KHÔNG phải link gãy — gắn cờ chúng là ép người ta gỡ ví dụ đi').toEqual([]);
+    } finally { donThuMucTam(tmp); }
+  });
+
+  test('ĐỐI CHỨNG: luật "đứng sau chữ VD" đã BỎ — link thật không bị xếp nhầm thành ví dụ', () => {
+    /*
+     * Luật đó từng bỏ qua 3 link tới `CODE_TEMPLATES.md` của kit A — một file CÓ THẬT. Một luật bỏ qua
+     * được link thật thì nó nuốt luôn link gãy thật.
+     */
+    const tmp = thuMucTam('ref-vd');
+    try {
+      fs.mkdirSync(path.join(tmp, 'x'));
+      fs.writeFileSync(path.join(tmp, 'x/SKILL.md'), '---\nname: x\n---\n\nVD: xem [mẫu](references/khong-co.md).\n');
+      const ds = rc.quet(tmp);
+      const gay = ds.filter((d: { minhHoa: string | null; ton_tai: boolean }) => !d.minhHoa && !d.ton_tai);
+      expect(gay.length, 'chữ "VD" đứng trước KHÔNG được biến một link gãy thành hợp lệ').toBe(1);
+    } finally { donThuMucTam(tmp); }
+  });
+});

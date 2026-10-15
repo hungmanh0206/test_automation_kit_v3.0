@@ -200,7 +200,8 @@
     "authz:expand": "node scripts/qa/authz_expand.js",
     "oracle:calc": "node scripts/qa/oracle_calc_check.js",
     "concurrency:check": "node scripts/qa/concurrency_check.js",
-    "security:check": "node scripts/qa/security_check.js"
+    "security:check": "node scripts/qa/security_check.js",
+    "skills:refcheck": "node scripts/qa/skills_refcheck.js"
   },
   "dependencies": {
     "axe-core": "^4.12.1",

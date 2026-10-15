@@ -30,6 +30,10 @@
         {
           "file": "prompt_templates/phase1/05_manual_quick.md",
           "khi": "Chạy nhánh Manual QUICK hoặc sub-mode CHECKLIST, KHÔNG phải pipeline chính."
+        },
+        {
+          "file": ".agent/skills/phase1/tc_design_guide/SKILL.md",
+          "khi": "Bước 3, khi đang VIẾT testcase (phase1_02) và cần quyết chọn kỹ thuật thiết kế hoặc rà checklist field/component. KHÔNG nạp ở bước khai manifest hay bước xuất Excel. Phần dày nằm ở `references/`, nạp tiếp khi cần."
         }
       ]
     },

@@ -9,6 +9,7 @@
 | `git_impact_analyzer` | phase1 | `.agent/skills/phase1/git_impact_analyzer/SKILL.md` | Đọc git diff của branch/PR gắn TASK_KEY, liệt kê file/module thay đổi và phân loại vào 7 bề mặt dùng chung của mục 17 — cấp dữ liệu diff thật làm input cho Bước 1 mục 17 thay vì đọc code đoán. Suggest-only. |
 | `requirements_analyzer` | phase1 | `.agent/skills/phase1/requirements_analyzer/SKILL.md` | Phân tích requirement/UI/API artifact để tạo scope, business rule và coverage input cho Phase 1. |
 | `risk_scorer` | phase1 | `.agent/skills/phase1/risk_scorer/SKILL.md` | Risk-Based Testing có thực thi — chấm Risk = Likelihood × Impact per module từ knowledge/ + config, sinh risk-register (Suggest-only), và gate depth theo band (default cảnh báo, --enforce chặn). QA override band. |
+| `tc_design_guide` | phase1 | `.agent/skills/phase1/tc_design_guide/SKILL.md` | Dạy cách THIẾT KẾ test case thủ công cho tốt — 6 thành phần, ranh giới Actor/Context/Tiền điều kiện, chọn kỹ thuật theo tình huống, anti-pattern. Dùng khi đang viết testcase ở Phase 1, trước khi gắn tag chiều. Không dạy locator, không đặt luật evidence. |
 | `tc_reviewer` | phase1 | `.agent/skills/phase1/tc_reviewer/SKILL.md` | Chấm chất lượng bộ testcase theo rubric 9 tiêu chí (0-2 điểm mỗi tiêu chí) — máy chấm 7, người chấm 2. Dùng trước khi publish, hoặc khi nhận bàn giao một bộ TC không phải mình viết. |
 | `tc_validator` | phase1 | `.agent/skills/phase1/tc_validator/SKILL.md` | Validate testcase Phase 1 theo template 10 cột, coverage/risk gate và khả năng execute automation. |
 | `flaky_test_analyzer` | phase2 | `.agent/skills/phase2/flaky_test_analyzer/SKILL.md` | Phân tích testcase Playwright flaky và đề xuất/sửa root cause trong phạm vi an toàn. |
@@ -31,4 +32,4 @@
 | `system_mapper` | shared | `.agent/skills/shared/system_mapper/SKILL.md` | Ghi bản đồ HỆ THỐNG đã xác nhận vào knowledge/system/ (state machine · ma trận phân quyền · surface dùng chung) để trả lời được "hành vi này là bug hay đúng thiết kế" và "sửa chỗ này phải regression đâu" mà không suy từ app. |
 | `test_data_generator` | shared | `.agent/skills/shared/test_data_generator/SKILL.md` | Sinh test data cụ thể, unique theo RUN_ID, truy vết được và rollback được cho Phase 1 và Phase 2. Dùng khi case cần dữ liệu mới thay vì dữ liệu sẵn có. KHÔNG dùng để dựng state qua DB, và KHÔNG sinh dữ liệu chứa PII khách thật. |
 
-> 25 skill. Thiếu description: 0.
+> 26 skill. Thiếu description: 0.
