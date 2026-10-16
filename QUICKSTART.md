@@ -55,7 +55,7 @@ không". Hai câu khác nhau, và câu thứ hai mới là câu người nhận 
 | | GitHub | GitLab |
 |---|---|---|
 | file được track | 757 | 757 |
-| `npm run full:suite` (142 spec ĐÃ TRACK) | **2.060 test · 0 đỏ** (đo 16/10/2026) | **2.060 test · 0 đỏ** |
+| `npm run full:suite` (142 spec ĐÃ TRACK) | **2.061 test · 0 đỏ** (đo 16/10/2026) | **2.061 test · 0 đỏ** |
 | `npm run ci:scope` đếm | 147 spec | 147 spec |
 | `release:verify` — suite chạy TRONG gói | **1.965 test · 0 đỏ** (1.912 chạy · 53 bỏ qua) — đo 16/10/2026, v2.9.2 | — |
 

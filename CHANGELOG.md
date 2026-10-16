@@ -7,6 +7,43 @@
 > `.agent/**`, `tests/support/**` đều là **shared change** (xem `RULE_GLOBAL.md` §Shared Change Gate) —
 > ảnh hưởng mọi story đang chạy. Mỗi mục ghi **vấn đề → cách chữa**, không chỉ liệt kê tính năng.
 
+## v2.9.3 — 2026-10-16 — "Không chạy nổi" không được giả làm "code sai"
+
+**Vấn đề.** Một lượt `release:verify` của v2.9.2 ra 14/15 với hai ca đỏ ở `typecheck-scripts`; lượt sau
+ra 15/15 mà **không sửa gì giữa hai lượt**. Đó đúng hình dạng của "chạy lại tới khi may mắn", nên phải
+đo thay vì bỏ qua.
+
+**Cơ chế, xác định được chứ không phỏng đoán.** `chayTsc` gọi `spawnSync(..., timeout: 5 phút)`. Hết
+giờ thì tiến trình bị giết, `status = null`, `stdout` rỗng — và đúng hai hệ quả đó khớp hai ca đỏ:
+
+- test "0 lỗi kiểu" trượt ở `expect(r.status).toBe(0)`;
+- test đối chứng "`t.id` phải ĐỎ" trượt vì không còn dòng `error TS` nào để đếm.
+
+Hai test **mâu thuẫn nhau** cùng đỏ — một cái đòi `tsc` xanh, một cái đòi `tsc` đỏ. Đó là chữ ký của
+"`tsc` không chạy", không phải của "code sai". Đo thêm: chạy `tsc` thẳng trong chính gói ấy cho exit 0,
+và cả 6 test của spec đó xanh khi chạy riêng ở đúng gói ấy.
+
+**Sửa cách máy phản ứng, không sửa được nguyên nhân.** `tsc` không chạy nổi nay là **KHÔNG PHÁN ĐƯỢC**,
+không phải FAIL. Cho nó FAIL là đổ lỗi sai chỗ: người đọc đi tìm lỗi kiểu trong code, trong khi vấn đề
+là máy chạy test đang quá tải. Và nó cũng **không** được thành PASS — `release:verify` đếm số bỏ qua
+rồi in ra, nên một lượt không đo được vẫn để lại dấu vết đọc được.
+
+Luật này là chỗ dễ biến thành nơi nuốt lỗi nhất, nên khoá cả hai chiều: `status 2` (tsc chạy xong và
+báo lỗi kiểu) **vẫn phải là FAIL thật**, chỉ `status null` hoặc lỗi spawn mới được bỏ qua.
+
+**Và vá một lỗ của chính bản cải tiến hôm qua.** `verify_release` chỉ in TÊN ca đỏ, không in lý do.
+Với một lượt ~10 phút, không biết lý do nghĩa là mất thêm 10 phút nữa chỉ để đọc một dòng `Error:` —
+tôi đã phải dựng lại gói thủ công rồi chạy tay mới biết hai test đó trượt ở đâu. Nay in kèm dòng lý do
+đầu tiên của mỗi ca.
+
+**Nói thẳng giới hạn:** đo lại **3 lượt `release:verify` đều 15/15**, tức không tái hiện. Nhưng 3 lượt
+không chứng minh nó đã hết, và **nguyên nhân vì sao `tsc` vượt 5 phút vẫn chưa tìm ra**. Bản này không
+chữa nguyên nhân — nó làm triệu chứng hiện ra đúng tên gọi của nó.
+
+`full:suite` **2.061 xanh · 0 đỏ** · `release:verify` **15/15 ba lượt liên tiếp**.
+
+---
+
 ## v2.9.2 — 2026-10-16 — Ma trận trình duyệt, chốt tiền-đẩy, và cổng mơ hồ có code đứng sau
 
 **Đo lại HEAD trước khi vá — và việc đo lại đổi phân nửa khối lượng công việc.** Prompt của đợt này mô

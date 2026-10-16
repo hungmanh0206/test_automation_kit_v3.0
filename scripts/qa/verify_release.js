@@ -56,12 +56,33 @@ const steps = [];
  * đỏ.
  */
 function tenCaDo(out, tran = 12) {
-  const dong = String(out).split(/\r?\n/)
-    .filter((l) => /^\s*\d+\)\s/.test(l))
-    .map((l) => l.trim().replace(/\s+/g, ' ').slice(0, 170));
-  if (!dong.length) return '    (không tách được tên test — xem log đầy đủ ở trên)';
-  const ra = dong.slice(0, tran).map((l) => `    ${l}`);
-  if (dong.length > tran) ra.push(`    … (+${dong.length - tran} nữa)`);
+  /*
+   * In TÊN **và LÝ DO**.
+   *
+   * Bản trước chỉ in tên, và đó là một lỗ của chính bản cải tiến hôm qua: một lượt `release:verify`
+   * mất ~10 phút, nên không biết LÝ DO nghĩa là mất thêm 10 phút nữa chỉ để đọc một dòng `Error:`.
+   * Đo 16/10/2026: hai test `typecheck-scripts` đỏ trong gói, và tôi phải dựng lại gói thủ công rồi
+   * chạy tay mới biết chúng trượt ở đâu.
+   *
+   * Lý do lấy từ dòng `Error:` hoặc `expect(...)` ĐẦU TIÊN sau tiêu đề ca đỏ, trong phạm vi 25 dòng —
+   * quá phạm vi đó thì phần in ra là của ca khác.
+   */
+  const dong = String(out).split(/\r?\n/);
+  const ca = [];
+  for (let i = 0; i < dong.length; i += 1) {
+    if (!/^\s*\d+\)\s/.test(dong[i])) continue;
+    const ten = dong[i].trim().replace(/\s+/g, ' ').slice(0, 150);
+    let vi = '';
+    for (let j = i + 1; j < Math.min(i + 25, dong.length); j += 1) {
+      if (/^\s*\d+\)\s/.test(dong[j])) break;
+      const m = dong[j].match(/(Error:.*|expect\(.*)/);
+      if (m) { vi = m[1].trim().replace(/\s+/g, ' ').slice(0, 150); break; }
+    }
+    ca.push(vi ? `    ${ten}\n        ↳ ${vi}` : `    ${ten}`);
+  }
+  if (!ca.length) return '    (không tách được tên test — xem log đầy đủ ở trên)';
+  const ra = ca.slice(0, tran);
+  if (ca.length > tran) ra.push(`    … (+${ca.length - tran} nữa)`);
   return ra.join('\n');
 }
 

@@ -35,6 +35,28 @@ const chayTsc = (args: string[]) => spawnSync(npx, ['tsc', ...args], {
 });
 const demLoi = (out: string) => (out.match(/error TS/g) || []).length;
 
+/**
+ * `tsc` CÓ CHẠY XONG hay KHÔNG CHẠY NỔI — hai chuyện khác hẳn, và bản trước gộp làm một.
+ *
+ * `spawnSync` trả `status === null` khi tiến trình bị giết (hết `timeout`) hoặc không spawn được. Khi
+ * đó `stdout` rỗng, nên:
+ *   · test "0 lỗi kiểu" trượt ở `expect(r.status).toBe(0)`;
+ *   · test đối chứng "`t.id` phải ĐỎ" trượt vì không còn dòng `error TS` nào để đếm.
+ *
+ * Hai test MÂU THUẪN NHAU cùng đỏ — một cái đòi `tsc` xanh, một cái đòi `tsc` đỏ. Đó là chữ ký của
+ * "`tsc` không chạy", không phải của "code sai". Đo 16/10/2026 trong `release:verify`: đúng hai test
+ * đó đỏ, trong khi chạy `tsc` thẳng trong chính gói ấy cho exit 0 và cả 6 test xanh.
+ *
+ * Nên ca đó phải là **KHÔNG PHÁN ĐƯỢC**, không phải FAIL. Cho nó FAIL là đổ lỗi sai chỗ: người đọc đi
+ * tìm lỗi kiểu trong code, trong khi vấn đề là máy chạy test đang quá tải.
+ *
+ * Và KHÔNG được cho nó thành PASS: `release:verify` ĐẾM số bỏ qua rồi in ra, nên một lượt không đo
+ * được vẫn để lại dấu vết đọc được.
+ */
+function khongChayNoi(r: { status: number | null; error?: Error }): boolean {
+  return r.status === null || !!r.error;
+}
+
 test.describe.configure({ mode: 'default' });
 test.setTimeout(5 * 60 * 1000);
 
@@ -55,9 +77,24 @@ test.describe('@infra typecheck:scripts — hợp đồng dữ liệu testcase',
 
   test('chạy thật `tsc -p tsconfig.scripts.json` ⇒ 0 lỗi', () => {
     const r = chayTsc(['-p', 'tsconfig.scripts.json']);
+    test.skip(khongChayNoi(r), '`tsc` KHÔNG CHẠY NỔI (bị giết do hết giờ, hoặc không spawn được) — '
+      + 'lượt này không đo được hợp đồng kiểu. Đây KHÔNG phải "0 lỗi", và cũng không phải "có lỗi".');
     const out = `${r.stdout || ''}${r.stderr || ''}`;
     expect(demLoi(out), `còn lỗi kiểu trong hợp đồng:\n${out.slice(0, 1200)}`).toBe(0);
     expect(r.status).toBe(0);
+  });
+
+  test('"không chạy nổi" KHÁC "code sai" — luật phân biệt đúng cả hai chiều', () => {
+    /*
+     * Luật `khongChayNoi` là chỗ dễ biến thành nơi nuốt lỗi nhất: nới một chút là mọi lượt `tsc` đỏ
+     * đều thành "bỏ qua", và hợp đồng kiểu mất hiệu lực mà bảng vẫn sạch. Nên khoá cả hai chiều.
+     */
+    expect(khongChayNoi({ status: null }), 'bị giết / không spawn được ⇒ không phán được').toBe(true);
+    expect(khongChayNoi({ status: 0, error: new Error('spawn EAGAIN') }), 'lỗi spawn ⇒ không phán được').toBe(true);
+
+    expect(khongChayNoi({ status: 2 }), '`tsc` CHẠY XONG và báo lỗi kiểu ⇒ là FAIL thật, KHÔNG được bỏ qua').toBe(false);
+    expect(khongChayNoi({ status: 1 }), 'exit khác 0 mà chạy xong vẫn là kết quả đo được').toBe(false);
+    expect(khongChayNoi({ status: 0 }), 'chạy xong, sạch').toBe(false);
   });
 
   test('ĐỐI CHỨNG: `t.id` thay vì `t.tcId` phải ĐỎ ở typecheck', () => {
@@ -84,10 +121,13 @@ test.describe('@infra typecheck:scripts — hợp đồng dữ liệu testcase',
       '--module', 'Node16', '--moduleResolution', 'Node16'];
 
     const sai = chayTsc([...co, viet('id')]);
+    test.skip(khongChayNoi(sai), '`tsc` KHÔNG CHẠY NỔI ở lượt ca BẨN — không đo được đối chứng. '
+      + 'Không được đọc thành "hợp đồng vô hiệu": hợp đồng chưa được thử, khác hẳn đã thử và trượt.');
     const raSai = `${sai.stdout || ''}${sai.stderr || ''}`;
     expect(raSai, 'tên trường sai phải bị gọi tên, không chỉ đỏ chung').toContain("Property 'id' does not exist on type 'TestCase'");
 
     const dung = chayTsc([...co, viet('tcId')]);
+    test.skip(khongChayNoi(dung), '`tsc` KHÔNG CHẠY NỔI ở lượt ca SẠCH — không đo được đối chứng.');
     const raDung = `${dung.stdout || ''}${dung.stderr || ''}`;
     expect(raDung, 'tên trường ĐÚNG không được đỏ — nếu đỏ thì hợp đồng vô dụng vì ai cũng phải lách').not.toContain('does not exist on type');
 
