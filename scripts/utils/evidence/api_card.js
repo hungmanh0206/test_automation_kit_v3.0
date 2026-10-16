@@ -101,7 +101,34 @@ async function renderApiCard(page, o, out) {
 
   fs.mkdirSync(path.dirname(duong), { recursive: true });
   await page.setContent(html, { waitUntil: 'load' });
-  await page.screenshot({ path: duong, fullPage: true });
+
+  /*
+   * CHỤP CÓ THỬ LẠI (trần 3), vì CDP thỉnh thoảng trả `Protocol error (Page.captureScreenshot):
+   * Unable to capture screenshot` khi máy đang tải nặng.
+   *
+   * Đo 15–16/10/2026: lỗi này làm `full:suite` đỏ hai lần ở hai ngày khác nhau, trong khi chạy riêng
+   * thì 3/3 xanh — tức nó phụ thuộc tải, không phụ thuộc nội dung thẻ.
+   *
+   * Và ở đây nó không chỉ là một test đỏ: hàm này SINH EVIDENCE. Một lượt execute thật mà chụp trượt
+   * là một case mất ảnh, rồi `output_gate` chặn vì thiếu evidence — lỗi hiện ra ở chỗ xa nguyên nhân.
+   *
+   * Hết 3 lượt vẫn hỏng thì NÉM kèm nguyên văn lỗi gốc. Khác hẳn vòng lặp chờ may mắn: có trần, và
+   * thất bại thì nói ra chứ không nuốt.
+   */
+  let loiCuoi = null;
+  for (let i = 0; i < 3; i += 1) {
+    try {
+      await page.screenshot({ path: duong, fullPage: true });
+      loiCuoi = null;
+      break;
+    } catch (e) {
+      loiCuoi = e;
+      await page.waitForTimeout(200);
+    }
+  }
+  if (loiCuoi) {
+    throw new Error(`[api-card] chụp thẻ API trượt sau 3 lượt: ${loiCuoi.message}`, { cause: loiCuoi });
+  }
 
   return {
     file: duong,

@@ -43,10 +43,29 @@ function cayGia(tenThat: string, tenViet: string) {
 }
 
 test.describe('@infra case:paths — import phải khớp tên file thật', () => {
-  test('repo thật hiện tại: ĐẠT, và quét được mẫu số thật', () => {
+  test('cây hiện tại: 0 đường lệch — và mẫu số nói rõ nó là của REPO hay của GÓI', () => {
     const kq = M.quet(REPO);
-    expect(kq.soDuong, 'quét 0 đường thì phép đo hỏng, không phải "sạch"').toBeGreaterThan(300);
+
+    /*
+     * Phần `lech` kiểm ở MỌI cây: lint chặn một đường import hợp lệ thì vẫn phải đỏ, dù mẫu số nhỏ.
+     */
     expect(kq.lech, `đường lệch: ${JSON.stringify(kq.lech)}`).toEqual([]);
+
+    /*
+     * MẪU SỐ NHỎ ⇒ BỎ QUA KÈM LÝ DO, KHÔNG đỏ và cũng KHÔNG xanh — cùng cách `sql-readonly-lint` xử lý.
+     *
+     * Đo 16/10/2026 bằng `release:verify`: repo quét **490** đường import, trong GÓI chỉ một phần —
+     * gói không mang `outputs/**` (lớp PROJECT, gitignore) và không mang spec probe chưa track. Ngưỡng
+     * 300 là ngưỡng của REPO.
+     *
+     * Bản đầu của tôi ghim thẳng `>300` nên nó ĐỎ TRONG GÓI, và đỏ vì một lý do không liên quan tới
+     * chất lượng gói. Người nhận kit mở hộp thấy bộ tự-kiểm đỏ rồi học cách bỏ qua màu đỏ — đúng cái
+     * `_trong_repo.ts` sinh ra để chặn.
+     */
+    test.skip(kq.soDuong <= 300,
+      `mẫu số chỉ ${kq.soDuong} đường import (repo có ~490) — cây này không mang \`outputs/**\` và spec `
+      + 'probe chưa track. Phép đo "0 đường lệch" cần mẫu số của REPO mới nói được về độ phủ.');
+    expect(kq.soDuong, 'quét 0 đường thì phép đo hỏng, không phải "sạch"').toBeGreaterThan(300);
   });
 
   test('ĐỐI CHỨNG DƯƠNG: `./Foo` trỏ `foo.js` ⇒ CHẶN', () => {

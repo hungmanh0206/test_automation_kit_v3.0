@@ -50,11 +50,27 @@ function dungCaySach() {
   const sha = headSha();
   if (!sha) return { loi: 'không đọc được HEAD (thiếu .git hoặc thiếu git) — không dựng được cây sạch để đo.' };
   const d = fs.mkdtempSync(path.join(os.tmpdir(), 'predeploy-'));
-  const r = spawnSync('git', ['worktree', 'add', '-q', '--detach', d, sha], { cwd: REPO, encoding: 'utf8' });
-  if (r.status !== 0) {
-    return { loi: `không dựng được worktree: ${(r.stderr || r.stdout || '').trim().slice(0, 200)}` };
+
+  /*
+   * THỬ LẠI khi `git worktree add` vấp — và đây KHÔNG phải "chạy lại tới khi may mắn".
+   *
+   * git ghi `.git/worktrees` dưới một khoá dùng chung. Hai tiến trình cùng dựng worktree thì một bên
+   * trượt, và lỗi đó TRANSIENT: lần sau là được, không phải "HEAD có vấn đề".
+   *
+   * Đo 16/10/2026: `predeploy` chạy riêng thì xanh, nhưng ĐỎ trong `full:suite` — vì spec của nó và
+   * `prompt-budget.spec.ts` đều dựng worktree sạch, và suite chạy `--workers=2`. Nếu không thử lại,
+   * một lỗi khoá của git sẽ bị báo thành "chốt tiền-đẩy không phán được", tức đổ lỗi sai chỗ.
+   *
+   * Thử có TRẦN (3 lần) và vẫn hỏng thì NÓI RA, không im: khác hẳn vòng lặp vô hạn chờ may mắn.
+   */
+  let r = null;
+  for (let i = 0; i < 3; i += 1) {
+    r = spawnSync('git', ['worktree', 'add', '-q', '--detach', d, sha], { cwd: REPO, encoding: 'utf8' });
+    if (r.status === 0) return { duong: d, sha };
+    /* Nghỉ ngắn, chặn đồng bộ: máy này là CLI, không có vòng lặp sự kiện nào để nhường. */
+    spawnSync(process.execPath, ['-e', 'setTimeout(()=>{}, 300)'], { encoding: 'utf8' });
   }
-  return { duong: d, sha };
+  return { loi: `không dựng được worktree sau 3 lần: ${(r.stderr || r.stdout || '').trim().slice(0, 200)}` };
 }
 
 function donCaySach(d) {

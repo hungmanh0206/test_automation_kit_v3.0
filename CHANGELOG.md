@@ -7,6 +7,127 @@
 > `.agent/**`, `tests/support/**` đều là **shared change** (xem `RULE_GLOBAL.md` §Shared Change Gate) —
 > ảnh hưởng mọi story đang chạy. Mỗi mục ghi **vấn đề → cách chữa**, không chỉ liệt kê tính năng.
 
+## v2.9.2 — 2026-10-16 — Ma trận trình duyệt, chốt tiền-đẩy, và cổng mơ hồ có code đứng sau
+
+**Đo lại HEAD trước khi vá — và việc đo lại đổi phân nửa khối lượng công việc.** Prompt của đợt này mô
+tả hiện trạng trên bản **2.9.0**; HEAD đang ở 2.9.1.
+
+| Việc được giao | Đo trên HEAD | Làm gì |
+|---|---|---|
+| `GATES.md` thiếu **3** dòng, `gates:index:check` ĐỎ | ở cây sạch: **exit 0** | **đã xong ở v2.9.1** (thực tế thiếu 12 dòng) |
+| `npm ci` gãy khi chặn CDN ⇒ vendor tarball | đã là `file:vendor/xlsx-0.20.3.tgz` | **đã xong ở v2.9.1** |
+| "chỉ chạy một cấu hình Chromium" | lane `CROSS_BROWSER=1` + 2 project mobile đã có; 3 engine đã cài | **sai một phần** — thiếu BỘ CHẠY, không thiếu project |
+| 20 test đỏ Linux **nghi** do import lệch hoa-thường | **490 đường import, 0 lệch** | **tiền đề sai** — xem dưới |
+| Ambiguity Gate chỉ là lời dặn | **đúng**: 0 script đọc khoá rồi `exit 1` | làm |
+
+### Ma trận trình duyệt — làm phần CÒN THIẾU
+
+`playwright.config.js` đã có lane cross-browser từ trước, nên không thêm project nào. Thiếu là một lượt
+chạy CÙNG kịch bản qua cả ma trận rồi trả lời được "màn nào vỡ ở nhân nào".
+
+`npm run smoke:matrix` + `browser_matrix.json` ⇒ `reports/browser-matrix.md`. Ba điều kiện thiết kế:
+
+- **không bắc cầu qua ba lớp chặn của `smoke_run`** — gọi lại `kiemTruocKhiChay()`. Một máy mới đi vòng
+  qua lớp chặn của máy cũ là cách lớp chặn chết lặng lẽ.
+- **ô không chạy in `▢` và ĐẾM RIÊNG.** Kit đã trả giá hai lần cho lớp "có số nhưng số nói về tập khác".
+- **nói thẳng đây là GIẢ LẬP**; test grep chặn mọi câu kiểu "đã test trên iPhone thật".
+
+Đối chứng chạy thật, offline: một spec cố ý vỡ **chỉ ở WebKit** ⇒ chromium PASS, webkit FAIL. Đây là
+phép đo duy nhất chứng minh ma trận thật sự chạy hai nhân — gom bảng đúng mà chỉ dùng một engine thì cả
+tính năng là giả.
+
+### Chốt tiền-đẩy, và nó bắt chính commit của nó
+
+v2.9.0 ra mắt khi `gates:index:check` ĐỎ, vì `release:verify` chạy `gate:policy` và `skills:index`
+nhưng **không** chạy cửa đó. v2.9.1 suýt lặp lại: tôi CÓ chạy, nhưng ở cây làm việc, nơi nó trả
+"KHÔNG PHÁN ĐƯỢC" (exit 2) vì có WIP — im lặng đó bị đọc thành "không sao".
+
+`npm run predeploy` dựng **worktree sạch tại HEAD** rồi mới đo, và coi exit 2 ở cây sạch là bất thường
+chứ không phải đạt. Ngay lượt đầu nó CHẶN chính commit vừa tạo: bảng gate tôi sinh ở cây có WIP lệch
+với bản sinh từ HEAD sạch.
+
+### H2.3: tiền đề sai, nên đổi việc chứ không bỏ việc
+
+Giao: "sửa import lệch hoa-thường, báo số đỏ trước/sau". Quét **490 đường, 0 lệch** — không có gì để
+sửa. Nguyên nhân thật của 20 test đỏ đã vá từ v2.8.3 (Node 20 không bóc kiểu khi `require()` file `.ts`,
+cộng 2 test ghim giả định có ổ đĩa). Báo "đỏ giảm 20 → 0 nhờ sửa import" sẽ là **gán công cho một việc
+không làm**.
+
+Việc còn đáng làm là cửa PHÒNG: `npm run case:paths`. Luật HẸP có chủ ý — chỉ bắt ca "có file
+khớp-không-phân-biệt mà sai hoa-thường"; đường trỏ file không tồn tại và tên gói npm đều bỏ qua.
+
+### Cổng mơ hồ: ba trạng thái có thật, không phải một
+
+Đo 5 task: `RESOLVED` (2) · `PARTIALLY RESOLVED` (2) · `RESOLVED-BY-DEFAULT` (1). **Hai cái sau chứa
+chuỗi `RESOLVED`.** Kiểm bằng `includes()` ⇒ chúng lọt im lặng; kiểm bằng `===` ⇒ chặn 3/5 task đang
+chạy. Và dòng khoá có **bốn hình dạng**, nên regex một-khuôn đọc trượt — mà "đọc trượt" ra kết quả
+"không thấy khoá", thứ mà bản phác bảo coi là CHẶN. Một lỗi ĐỌC hoá thành một lệnh CHẶN sai.
+
+Nên gate neo vào `ambiguity_states.json`: khớp chính xác, khớp dài nhất trước, và **mỗi trạng thái một
+nghĩa vụ** (`PARTIALLY RESOLVED` phải nói câu còn mở chặn gì · `RESOLVED-BY-DEFAULT` phải có người và
+ngày). Chỗ gate có răng là ở nghĩa vụ, không ở chuyện "có bằng chữ RESOLVED hay không".
+
+**Chế độ di trú chọn bằng số đo:** chạy thử trên 5 task thật — di trú **0 đỏ**, chặt **2 đỏ**. Ba ca
+đó là vi phạm THẬT (3544 Q6 thiếu creds; 9002 Q2 chạy theo assumption, Q13 đặc tả 200 ký tự vs cột
+`nvarchar(50)`), nhưng làm đỏ việc đang chạy ngay ngày đầu thì người ta tắt gate.
+
+Thêm một chỗ lệch ít ai thấy: `phase1-clarifications.md` có **hai đường dẫn** trong kit. 5/5 task dùng
+`reports/`, 0 dùng `requirements/` — mà hai tài liệu vẫn ghi `requirements/`. Gate đọc nhầm nhánh thì
+nó không thấy file, và "không thấy file" rất dễ bị cho qua.
+
+### Bảy lần phép đo bác chính tôi
+
+- config tạm nằm ngoài repo ⇒ `require('@playwright/test')` không phân giải được;
+- truyền cả đường dẫn làm bộ lọc ⇒ tham số vị trí của Playwright là **regex khớp đường dẫn**, `C:/…`
+  không khớp `C:\…`, chạy 0 test và thoát 0;
+- và lượt đó lộ một lỗ trong chính máy tôi: **bảng rỗng vẫn exit 0**, đọc y hệt bảng toàn xanh;
+- fixture đặt spec ở `os.tmpdir()` — kit đã ghi sẵn bài học này ở `_thu_muc_tam.ts` và tôi vừa lặp lại;
+- bộ đọc câu hỏi chỉ biết khuôn BẢNG ⇒ 3/5 task ra "0 câu hỏi", tức hạn chế của máy hoá thành cáo buộc
+  về công việc của người;
+- **lần thứ BẢY kit vấp CRLF**, ẩn hơn sáu lần trước: trong JS `.` không khớp `\r` và `$` không khớp
+  trước `\r`, nên regex kết thúc `(.*)$` trượt TOÀN BỘ dòng của file CRLF — im lặng, không lỗi;
+- lọc ô rỗng TRƯỚC khi tách câu hỏi khỏi câu trả lời ⇒ câu chưa có đáp trông như đã có đáp, tức phép
+  kiểm toàn vẹn xanh trên đúng ca nó sinh ra để bắt.
+
+### Số đo của bản này
+
+| | |
+|---|---|
+| `full:suite` (142 spec đã track) | **2.060 xanh · 0 đỏ · 0 bỏ qua** |
+| `release:verify` | **15/15 bước** — suite trong gói **1.912 xanh · 53 bỏ qua** |
+| `static-check` (20 bước) | xanh tại chỗ, **cả 20 bước** — không kiểm tập con rồi phán về CI |
+| gói | 628 file · 7,67 MB |
+| file được track | 757 · 147 spec · **138 gate** (134 → 138) |
+
+### Bốn ca đỏ phát sinh khi chạy cả bộ, cả bốn là của tôi
+
+Đáng ghi vì chúng chỉ lộ ra ở lượt chạy cả bộ, không lộ ở spec vừa viết:
+
+- **hai config mới không vào danh sách đóng gói** ⇒ người nhận kit sẽ có gate **tắt im lặng**, không
+  phải đỏ to tiếng. Đúng thứ `config-presence` sinh ra để bắt.
+- **tôi khai tay trường `spec` trong cặp mã**, mà registry tự tính độ phủ — khai tay là tự làm đẹp con
+  số chính nó canh.
+- **`predeploy` đỏ CHỈ trong cả bộ**, chạy riêng thì xanh: spec của nó và `prompt-budget.spec` đều dựng
+  worktree sạch, mà suite chạy `--workers=2` nên hai tiến trình đụng khoá `.git/worktrees`. Vá bằng
+  thử-lại **có trần 3 lần** — lỗi khoá git là transient, và hết lượt thì nói ra chứ không im.
+- **`case:paths` ghim mẫu số của REPO vào một spec đi theo GÓI** ⇒ đỏ trong gói vì lý do không liên
+  quan tới chất lượng gói. Theo quy ước `_trong_repo.ts`: phần "0 đường lệch" vẫn kiểm ở mọi cây, chỉ
+  mẫu số thì bỏ qua kèm lý do.
+
+Và một ca đỏ KHÔNG phải của tôi nhưng đáng sửa: `api_card` chụp thẻ API trượt với `Protocol error
+(Page.captureScreenshot)` dưới tải — đỏ hai lần ở hai ngày khác nhau, chạy riêng thì 3/3 xanh. Hàm đó
+**sinh evidence**, nên một lượt execute thật mà chụp trượt là một case mất ảnh, rồi `output_gate` chặn
+vì thiếu evidence — lỗi hiện ra ở chỗ xa nguyên nhân. Thử lại có trần 3 lượt, hết lượt thì ném kèm
+nguyên văn lỗi gốc.
+
+### Cần NGƯỜI duyệt (máy không tự khẳng định được)
+
+1. Danh sách project × kích thước suy từ **cấu hình sẵn có của kit**, không từ số liệu người dùng thật.
+2. Bao giờ bật chế độ `chat` cho `ambiguity:gate` — và ba ca vi phạm thật ở trên xử lý thế nào.
+3. Mức Critical/High của từng điểm mơ hồ: máy chỉ đọc nhãn, không thẩm định được nhãn đúng hay sai.
+
+---
+
 ## v2.9.1 — 2026-10-15 — `npm ci` thôi cần mạng ngoài registry, và cửa đọc CRLF có chủ
 
 **Vấn đề.** Ba điểm yếu được chỉ ra sau khi v2.9.0 ra mắt. Đo lại từng cái thì **hai đúng, một sai một

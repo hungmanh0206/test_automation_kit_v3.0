@@ -197,7 +197,7 @@
     },
     {
       "code": "AMBIGUITY_CHUA_MO",
-      "khop": "cổng chưa mở|AMBIGUITY_GATE|điểm mơ hồ chưa giải",
+      "khop": "cổng chưa mở|cổng mơ hồ chưa|điểm mơ hồ chưa giải",
       "y": "Task đã có testcase trong khi cổng mơ hồ còn PENDING",
       "tang": "T0",
       "vi_sao": "Sinh case khi cổng chưa mở nghĩa là viết kỳ vọng dựa trên phỏng đoán. Case sai từ gốc thì mọi verdict về sau nói về một bộ khác, và không ai phát hiện ra bằng cách chạy lại — chạy lại chỉ xác nhận cùng một kỳ vọng sai.",

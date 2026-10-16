@@ -862,8 +862,8 @@ body.lropen{overflow:hidden}
 
     <h3 class="subhead"><span class="num">5</span>Lệnh hay dùng</h3>
     <p class="sectip">Danh mục gate của kit là <b>tự sinh từ source</b>, không viết tay — bản hiện tại đếm được
-      <b>134 máy: 95 CHẶN · 22 SINH · 17 BÁO CÁO</b>. Sinh lại bằng <code>npm run gates:index</code>.
-      Phiên bản kit: <b>2.9.1</b>.</p>
+      <b>138 máy: 97 CHẶN · 23 SINH · 18 BÁO CÁO</b>. Sinh lại bằng <code>npm run gates:index</code>.
+      Phiên bản kit: <b>2.9.2</b>.</p>
     <div id="cmdList"></div>
 
     <h3 class="subhead"><span class="num">6</span>Quy ước bắt buộc</h3>
@@ -994,7 +994,7 @@ body.lropen{overflow:hidden}
       </ul>
 
       <h3>Vì sao cần</h3>
-      <p>Kit có 26 skill, 134 máy kiểm (95 trong đó CHẶN thật) và một bộ từ vựng riêng (oracle độc lập, tautology, failureLayer,
+      <p>Kit có 26 skill, 138 máy kiểm (97 trong đó CHẶN thật) và một bộ từ vựng riêng (oracle độc lập, tautology, failureLayer,
         readiness, TRI, chiều coverage…). Người mới vào phải đọc rải rác nhiều file mới ghép được bức tranh.
         Trang này gom lại một chỗ, giữ nguyên nguồn, và cố tình <b>không</b> diễn giải thêm ngoài những gì repo đã ghi.</p>
 
@@ -1763,7 +1763,7 @@ const TERMS_GATE3 = [
   src:'scripts/qa/scope_anchor.js', rel:['g-dimension_coverage','c-canonical','g-preflight_gate'] },
 { id:'g-gate_index', t:'gates:index', cat:'gate',
   def:'Sinh DANH MỤC GATE của kit từ chính source. Trả lời được "kit có bao nhiêu gate, mỗi cái CHẶN gì, gọi ở đâu".',
-  detail:'Quét source rồi suy mức từ code: exit 1 là CHẶN · ghi artifact là SINH · chỉ in là BÁO CÁO. Bảng hiện tại: 134 máy — 95 CHẶN, 22 SINH, 17 BÁO CÁO. Bản --check chặn khi bảng lệch source.',
+  detail:'Quét source rồi suy mức từ code: exit 1 là CHẶN · ghi artifact là SINH · chỉ in là BÁO CÁO. Bảng hiện tại: 138 máy — 97 CHẶN, 23 SINH, 18 BÁO CÁO. Bản --check chặn khi bảng lệch source.',
   why:'Kit có hơn 30 npm script dạng gate và gần 60 file trong scripts/qa/, nhưng không chỗ nào trả lời được câu trên. Hệ quả không phải bất tiện: luận đề của kit là "luật cần MÁY", mà máy không LIỆT KÊ ĐƯỢC thì không kiểm toán được. Không ai biết một gate đã âm thầm tụt thành cảnh báo, hay đã mất nơi gọi.',
   how:['npm run gates:index để sinh lại bảng.','npm run gates:index:check để chặn khi bảng lệch source.'],
   cmd:'npm run gates:index   ·   npm run gates:index:check',
@@ -1947,6 +1947,33 @@ const TERMS_GATE3 = [
   trap:'Luật "đứng sau chữ VD thì bỏ qua" đã bị BỎ: nó từng bỏ qua ba link tới một file CÓ THẬT. Một luật bỏ qua được link thật thì nó nuốt luôn link gãy thật.',
   ex:'Đối chứng hai chiều lấy từ bộ skill của một kit khác: ba dạng minh hoạ phải đi qua, một link thật gãy phải bị chặn.',
   src:'scripts/qa/skills_refcheck.js', rel:['g-skills_index'] },
+
+{ id:'g-ambiguity_gate', t:'ambiguity:gate', cat:'gate',
+  def:'Cổng mơ hồ có CODE đứng sau: chặn khi task đã sinh case trong lúc cổng còn `PENDING`.',
+  detail:'Đọc `AMBIGUITY_GATE` trong `task.md` rồi so khớp CHÍNH XÁC với danh sách khai ở `ambiguity_states.json`. Ba trạng thái hợp lệ, mỗi cái một nghĩa vụ riêng: `RESOLVED` đòi mọi câu Critical/High có trả lời · `PARTIALLY RESOLVED` đòi mỗi câu còn mở nói rõ nó CHẶN GÌ · `RESOLVED-BY-DEFAULT` đòi người và ngày. Mặc định chạy chế độ DI TRÚ: chỉ chặn ca rõ ràng sai, trạng thái lạ thì cảnh báo.',
+  why:'Trước v2.9.2, "DỪNG tới khi RESOLVED" là lời dặn trong workflow mà không script nào đọc rồi dừng — việc dừng phụ thuộc agent tự tuân thủ, và trạng thái do người tick. Sinh case khi cổng chưa mở nghĩa là viết kỳ vọng dựa trên phỏng đoán, và chạy lại không phát hiện ra: nó chỉ xác nhận cùng một kỳ vọng sai.',
+  cmd:'npm run ambiguity:gate -- --task <TASK_KEY>',
+  trap:'Hai trạng thái CHỨA chuỗi `RESOLVED`. Kiểm bằng `includes` thì chúng lọt qua im lặng; kiểm bằng so bằng thì chặn cả việc đang chạy hợp lệ. Phải khớp chính xác, và khớp DÀI NHẤT trước.',
+  ex:'Đo trên 5 task thật trước khi bật: chế độ di trú 0 đỏ, chế độ chặt 2 đỏ — và 2 ca đó là vi phạm thật, không phải lỗi đọc.',
+  src:'scripts/qa/ambiguity_gate.js', rel:['c-oracle','g-preflight_gate'] },
+
+{ id:'g-case_paths', t:'case:paths', cat:'gate',
+  def:'Đường import tương đối phải khớp tên file thật, ĐÚNG hoa-thường.',
+  detail:'Đọc danh sách thư mục rồi so chuỗi chính xác, không hỏi hệ điều hành — nên kết luận giống nhau ở mọi nền. Luật HẸP: chỉ bắt ca có file khớp-không-phân-biệt mà sai hoa-thường; đường trỏ file không tồn tại và tên gói npm đều bỏ qua.',
+  why:'Windows và macOS mặc định không phân biệt hoa-thường, Linux thì có. Một import lệch chạy ngon ở máy dev và chỉ chết trên CI — đúng loại "xanh ở đây, đỏ ở kia".',
+  cmd:'npm run case:paths',
+  trap:'Đây là cửa PHÒNG, không phải cửa chữa: lượt đo đầu tiên ra 0 vi phạm trên 490 đường import. Nhớ nó thành "đã sửa 20 test đỏ trên Linux" là nhớ sai hai chuyện khác nhau.',
+  ex:'`require("./Foo")` trỏ `foo.js` ⇒ CHẶN, và in luôn tên thật trên đĩa để người sửa biết sửa thành gì.',
+  src:'scripts/qa/case_paths.js', rel:['g-gate_index'] },
+
+{ id:'g-predeploy', t:'predeploy', cat:'gate',
+  def:'Chốt tiền-đẩy: dựng worktree SẠCH tại HEAD rồi mới đo bảng gate và bản đồ luật.',
+  detail:'Chạy `gates:index:check` và `rule:coverage:check` trong một worktree sạch, không đo ở cây đang đứng. Coi exit 2 ở cây sạch là KHÔNG PHÁN ĐƯỢC chứ không phải đạt.',
+  why:'Một bản đã ra mắt khi bảng gate đang đỏ, vì bước nghiệm thu gói không chạy cửa đó. Bản kế suýt lặp lại: cửa CÓ được chạy, nhưng ở cây có file chưa commit, nơi nó trả "không phán được" — và im lặng đó bị đọc thành "không sao".',
+  cmd:'npm run predeploy',
+  trap:'Đo tại chỗ cho nhanh là làm chốt gần như không bao giờ phán được, vì máy người dùng gần như luôn có file đang sửa dở.',
+  ex:'Ngay lượt đầu nó chặn chính commit vừa tạo: bảng gate sinh ở cây có WIP lệch với bản sinh từ HEAD sạch.',
+  src:'scripts/qa/predeploy_gate.js', rel:['g-gate_index','g-package_kit'] },
 
 { id:'g-canonical_check', t:'canonical:check', cat:'gate',
   def:'Canh ranh giới nguồn-sự-thật của bộ testcase: MD canonical, Excel là bản xuất.',
@@ -3134,7 +3161,7 @@ const TERMS_FLOW2 = [
 
 { id:'f-gate-catalog', t:'Danh mục gate (tự sinh)', cat:'flow',
   def:'Bảng liệt kê mọi máy của kit kèm mức chặn, sinh tự động từ source.',
-  detail:'Con số hiện tại: 134 máy — 95 CHẶN · 22 SINH (ghi artifact) · 17 BÁO CÁO (chỉ in). Mức được suy từ code chứ không khai tay: exit 1 là CHẶN, ghi artifact là SINH, chỉ in là BÁO CÁO. Bảng còn ghi mỗi máy được gọi từ đâu, và ghi ra .agent/config/GATES.md.',
+  detail:'Con số hiện tại: 138 máy — 97 CHẶN · 23 SINH (ghi artifact) · 18 BÁO CÁO (chỉ in). Mức được suy từ code chứ không khai tay: exit 1 là CHẶN, ghi artifact là SINH, chỉ in là BÁO CÁO. Bảng còn ghi mỗi máy được gọi từ đâu, và ghi ra .agent/config/GATES.md.',
   why:'Luận đề của kit là "luật cần MÁY". Nhưng máy mà không liệt kê được thì không kiểm toán được. Không ai biết một gate đã âm thầm tụt xuống thành cảnh báo, hay đã mất hết nơi gọi và thành mồ côi.',
   how:['Sinh lại: npm run gates:index.','Chặn khi bảng lệch source: npm run gates:index:check.'],
   trap:'SINH và BÁO CÁO không phải gate bị nới. Chúng không kiểm vi phạm, chỉ tạo dữ liệu cho máy khác chặn.',
@@ -3422,7 +3449,7 @@ const CMD_GROUPS = [
     ['npm run merge:execution-status -- --task <KEY>','Ghép kết quả execute vào bộ canonical']
   ]},
   { g:'Kit: tự kiểm toán & phát hành', items:[
-    ['npm run gates:index  ·  npm run gates:index:check','Danh mục gate tự sinh — 134 máy, 95 CHẶN; :check chặn khi bảng lệch source'],
+    ['npm run gates:index  ·  npm run gates:index:check','Danh mục gate tự sinh — 138 máy, 97 CHẶN; :check chặn khi bảng lệch source'],
     ['npm run rule -- <mục>  ·  npm run rule:toc','Tra RULE_GLOBAL theo mục (287 token) thay vì đọc cả file (12,8k)'],
     ['npm run version:check','Chặn phát hành thiếu số phiên bản; kiểm khớp tag'],
     ['npm run package:kit','Đóng gói dist/ CHỈ lớp GENERIC — không để lọt secret hay oracle của dự án khác'],
