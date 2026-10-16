@@ -17,6 +17,12 @@ Sinh bộ testcase đủ chi tiết để automation engineer có thể execute 
 
 ## Workflow
 
+> **TRƯỚC KHI SINH CASE — chạy `npm run ambiguity:gate -- --task <TASK_KEY>`.** Trước v2.9.2 câu
+> "KHÔNG vào bước này nếu `AMBIGUITY_GATE` chưa `RESOLVED`" chỉ là lời dặn: không script nào đọc khoá
+> đó rồi dừng. Nay có máy. Nó chặn ca `PENDING` mà task đã có testcase, và cảnh báo khi trạng thái lạ
+> hoặc nghĩa vụ chưa thoả. Ba trạng thái hợp lệ (`RESOLVED` · `PARTIALLY RESOLVED` ·
+> `RESOLVED-BY-DEFAULT`) và nghĩa vụ riêng của từng cái: `.agent/config/ambiguity_states.json`.
+
 > (Optional) Nếu task có branch/PR code liên quan tới TASK_KEY: chạy skill `git_impact_analyzer` (base mặc định `main`) để sinh `<TASK_OUTPUT_DIR>/requirements/git-impact.md` — input cho Change Impact / Regression Ripple (mục 17, Bước 1). Suggest-only, không tự đổi scope.
 
 1. Mapping requirement/business rule/API behavior thành testcase candidate.

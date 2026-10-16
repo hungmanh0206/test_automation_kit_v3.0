@@ -32,7 +32,7 @@ mục.
 | `system_map.json` | `scope_anchor` lấy mẫu số: mọi màn và API quan sát được của module task |
 | `injection_surface.json` | `dim:coverage` gác phủ injection. **Copy vào `<task>/requirements/`** |
 | `doc_coverage.json` | bốn ô phủ tài liệu. Ô `undocumented_present` là vùng mù phải hỏi BA |
-| `questions.md` | gộp vào `requirements/phase1-clarifications.md`, hỏi user **một lần** |
+| `questions.md` | gộp vào `reports/phase1-clarifications.md`, hỏi user **một lần** |
 | `summary.txt` | bản tóm tắt agent đã đọc. Giữ lại để lượt sau so `delta` |
 
 ## DỪNG xin duyệt

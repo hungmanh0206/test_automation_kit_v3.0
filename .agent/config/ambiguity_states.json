@@ -1,0 +1,56 @@
+{
+  "_doc": "Trạng thái hợp lệ của `AMBIGUITY_GATE` trong `task.md`, và NGHĨA VỤ của từng trạng thái. Nguồn duy nhất cho `npm run ambiguity:gate`.",
+
+  "_vi_sao_co_file_nay": "Trước v2.9.2, `AMBIGUITY_GATE` là lời dặn trong workflow chứ không có máy nào đọc. Khi đi dựng máy đó mới đo ra: 5 task thật đang dùng BA trạng thái khác nhau, và chỉ MỘT cái (`RESOLVED`) từng được nhắc trong tài liệu. Hai cái kia — `PARTIALLY RESOLVED` và `RESOLVED-BY-DEFAULT` — tự phát, vì công việc thật cần chúng.",
+
+  "_bay_chuoi_con": "Hai trong ba trạng thái CHỨA chuỗi `RESOLVED`. Kiểm bằng `includes('RESOLVED')` thì `PARTIALLY RESOLVED` lọt qua im lặng — gate xanh mà không gác gì. Kiểm bằng `=== 'RESOLVED'` thì chặn 3/5 task đang chạy. Phải so KHỚP CHÍNH XÁC với danh sách dưới đây, sau khi chuẩn hoá.",
+
+  "_bay_hinh_dang": "Dòng khoá có BỐN hình dạng trên 5 task: bold inline (`**AMBIGUITY_GATE: X**`), tiêu đề (`## AMBIGUITY_GATE: X`), ô bảng markdown (`| **AMBIGUITY_GATE** | **X** |`), và bold kèm hậu tố giải thích. Máy phải bóc `**`, `##`, `|` rồi mới so.",
+
+  "_do_ngay_16_10_2026": "CSDL-3544 PARTIALLY RESOLVED · CSDL-9001 RESOLVED · CSDL-9002 PARTIALLY RESOLVED · CSDL-9003 RESOLVED · CSDL-9004 RESOLVED-BY-DEFAULT. Cả 5 task đều đã có file testcase.",
+
+  "trang_thai": [
+    {
+      "ten": "PENDING",
+      "y": "Còn điểm mơ hồ chưa giải, chưa ai chốt cách đi tiếp.",
+      "cho_sinh_case": false,
+      "nghia_vu": [],
+      "_vi_sao_chan": "Sinh case khi cổng chưa mở nghĩa là viết kỳ vọng dựa trên phỏng đoán. Case sai từ gốc thì mọi verdict về sau nói về một bộ khác."
+    },
+    {
+      "ten": "RESOLVED",
+      "y": "Mọi câu Critical/High đã có câu trả lời.",
+      "cho_sinh_case": true,
+      "nghia_vu": ["cau_critical_high_phai_co_tra_loi"],
+      "_vi_sao": "Đây là trạng thái duy nhất tài liệu từng nhắc, và cũng là trạng thái dễ tick ẩu nhất — nên nó gánh phép kiểm toàn vẹn nặng nhất."
+    },
+    {
+      "ten": "PARTIALLY RESOLVED",
+      "y": "Còn câu mở, NHƯNG đã khoanh rõ câu nào mở và nó chặn gì.",
+      "cho_sinh_case": true,
+      "nghia_vu": ["cau_con_mo_phai_noi_chan_gi"],
+      "_vi_sao_hop_le": "Trạng thái này KHÔNG phải lách luật — nó là câu trả lời đúng cho tình huống thật: một số câu chỉ chặn Phase 2 (ví dụ chưa pin môi trường) mà không chặn việc viết case. CSDL-3544 và CSDL-9002 đang dùng đúng nghĩa đó, và cả hai đều ghi rõ 'chặn Phase 2'.",
+      "_cho_de_lach": "Nếu một câu còn mở mà KHÔNG nói nó chặn gì, thì trạng thái này thành chỗ trốn của `PENDING`. Đó là lý do nghĩa vụ ở trên tồn tại."
+    },
+    {
+      "ten": "RESOLVED-BY-DEFAULT",
+      "y": "QA chốt chạy tiếp theo assumption mặc định, chấp nhận rủi ro.",
+      "cho_sinh_case": true,
+      "nghia_vu": ["phai_co_nguoi_va_ngay"],
+      "_vi_sao_hop_le": "Chờ mãi một câu trả lời không bao giờ đến cũng là một quyết định, và là quyết định tệ hơn. Nhưng nó phải CÓ CHỦ, vì khi assumption sai thì người đọc cần biết hỏi ai.",
+      "_cho_de_lach": "Không có người và ngày thì nó chỉ là `PENDING` đổi tên."
+    }
+  ],
+
+  "_nghia_vu": {
+    "cau_critical_high_phai_co_tra_loi": "Mỗi câu Critical/High trong `reports/phase1-clarifications.md` phải có câu trả lời KHÔNG RỖNG, hoặc dấu chấp nhận ghi rõ người và ngày.",
+    "cau_con_mo_phai_noi_chan_gi": "Mỗi câu còn mở phải nói nó CHẶN GÌ (ví dụ `chặn Phase 2`). Không nói thì không phân biệt được với `PENDING`.",
+    "phai_co_nguoi_va_ngay": "Phải có người chốt và ngày chốt. Nhận cả `ACCEPTED-BY: <tên> <ngày>` lẫn khuôn `QA chốt <ngày>` — khuôn sau là thứ 5 task đang dùng, và ép sửa chúng để chiều một khuôn mới là bắt công việc thật chiều cái máy."
+  },
+
+  "_che_do": "di_tru",
+  "_che_do_y": "`di_tru` = chỉ CHẶN ca rõ ràng sai (`PENDING` + đã có case). Trạng thái lạ hoặc thiếu khoá ⇒ CẢNH BÁO và ghi `reports/gate-debt.json`. `chat` = chặn mọi vi phạm nghĩa vụ. Bật `chat` khi sổ nợ về 0 — bật sớm thì 3/5 task đang chạy đỏ ngay ngày đầu, và một cửa đỏ oan là cửa người ta tắt.",
+
+  "_duong_dan_clarifications": "reports/phase1-clarifications.md",
+  "_vi_sao_reports": "Đo 16/10/2026: 5/5 task thật dùng `reports/`, 0 task dùng `requirements/`. Hai tài liệu của kit (`gate_codes.json`, `phase1_000_system_discovery.md`) từng ghi `requirements/` — đã sửa ở v2.9.2. Gate đọc nhầm nhánh thì nó KHÔNG THẤY FILE, và 'không thấy file' rất dễ bị cho qua."
+}

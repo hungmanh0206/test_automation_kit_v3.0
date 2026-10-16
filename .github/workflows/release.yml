@@ -51,6 +51,19 @@ jobs:
           npm run gate:policy
           npm run json:check
           npm run ci:scope
+          npm run case:paths
+
+      # 2a) CHỐT TIỀN-ĐẨY (v2.9.2) — không phát hành khi tài liệu sinh-từ-nguồn đang lệch.
+      #
+      #     Vì sao cần thêm bước này dù đã có "Gate repo": `release:verify` chạy `gate:policy` và
+      #     `skills:index` nhưng KHÔNG chạy `gates:index:check`. Nên v2.9.0 ra mắt khi bảng gate thiếu
+      #     12 dòng, và "15/15 bước đạt" không hề nói gì về chuyện đó.
+      #
+      #     Chốt này đo ở WORKTREE SẠCH tại HEAD, không đo ở cây đang đứng: ở cây có file chưa commit,
+      #     `gates:index:check` trả "KHÔNG PHÁN ĐƯỢC" (exit 2), và im lặng đó rất dễ bị đọc thành
+      #     "không sao" — đúng cách v2.9.1 suýt lặp lại lỗi của v2.9.0.
+      - name: Chốt tiền-đẩy (bảng gate khớp nguồn ở HEAD)
+        run: npm run predeploy
 
       # 2b) CỬA `full:suite`: không đóng gói từ một cây chưa ai chạy cả bộ.
       #

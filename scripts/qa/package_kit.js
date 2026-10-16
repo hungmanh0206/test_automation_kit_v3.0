@@ -120,6 +120,8 @@ const KEEP_FILES = [
    */
   '.agent/config/GATES.md',
   '.agent/config/kit-layers.md', '.agent/config/verdict_taxonomy.json',
+  /* v2.9.2: hai config GENERIC mà script đọc — thiếu trong gói thì gate tắt IM LẶNG ở máy người nhận. */
+  '.agent/config/ambiguity_states.json', '.agent/config/browser_matrix.json',
   '.agent/config/case_types.json', '.agent/config/branch_parity.json', '.agent/config/ci_scope.json',
   '.agent/config/ci_parity.json',
   '.agent/config/locators.schema.json',

@@ -54,10 +54,10 @@ không". Hai câu khác nhau, và câu thứ hai mới là câu người nhận 
 
 | | GitHub | GitLab |
 |---|---|---|
-| file được track | 746 | 746 |
-| `npm run full:suite` (138 spec ĐÃ TRACK) | **2.026 test · 0 đỏ** (đo 15/10/2026) | **2.026 test · 0 đỏ** |
-| `npm run ci:scope` đếm | 143 spec | 143 spec |
-| `release:verify` — suite chạy TRONG gói | **1.931 test · 0 đỏ** (1.882 chạy · 49 bỏ qua) — đo 15/10/2026, v2.9.1 | — |
+| file được track | 757 | 757 |
+| `npm run full:suite` (142 spec ĐÃ TRACK) | **2.060 test · 0 đỏ** (đo 16/10/2026) | **2.060 test · 0 đỏ** |
+| `npm run ci:scope` đếm | 147 spec | 147 spec |
+| `release:verify` — suite chạy TRONG gói | **1.965 test · 0 đỏ** (1.912 chạy · 53 bỏ qua) — đo 16/10/2026, v2.9.2 | — |
 
 ### Link trong skill: `npm run skills:refcheck`
 

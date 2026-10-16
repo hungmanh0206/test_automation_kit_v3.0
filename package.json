@@ -1,6 +1,6 @@
 {
   "name": "test-automation-kit",
-  "version": "2.9.1",
+  "version": "2.9.2",
   "private": true,
   "engines": {
     "node": ">=20"
@@ -40,6 +40,8 @@
     "gate:policy": "node scripts/qa/policy_source_check.js",
     "json:check": "node scripts/qa/json_check.js",
     "deps:check": "node scripts/qa/deps_check.js",
+    "case:paths": "node scripts/qa/case_paths.js",
+    "ambiguity:gate": "node scripts/qa/ambiguity_gate.js",
     "gdoc:read": "node scripts/integrations/google_doc/doc_reader.js",
     "ci:scope": "node scripts/qa/ci_scope_check.js",
     "sync:gitlab": "node scripts/utils/sync_gitlab.js",
@@ -144,6 +146,7 @@
     "bugs:checklist": "node scripts/qa/bugs_checklist.js",
     "version:check": "node scripts/qa/version_check.js",
     "package:kit": "node scripts/qa/package_kit.js",
+    "predeploy": "node scripts/qa/predeploy_gate.js",
     "release:verify": "node scripts/qa/verify_release.js",
     "release:summary": "node scripts/qa/release_summary.js",
     "release:summary:enforce": "node scripts/qa/release_summary.js --enforce",
@@ -175,6 +178,7 @@
     "stt:map": "node scripts/qa/reuse/stt_map.js",
     "smoke:gen": "node scripts/qa/reuse/smoke_gen.js",
     "smoke:run": "node scripts/qa/reuse/smoke_run.js",
+    "smoke:matrix": "node scripts/qa/reuse/smoke_matrix.js",
     "steps:match": "node scripts/qa/reuse/steps_match.js",
     "compile:spec": "node scripts/qa/reuse/compile_spec.js",
     "compile:check": "node scripts/qa/reuse/compile_check.js",

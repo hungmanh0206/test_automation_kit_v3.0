@@ -108,6 +108,11 @@
       "code": "COMMENT_RAC",
       "gate": "scripts/qa/lib/output_rules.js",
       "mau_ban": "CSDL_HSTRUONG_TC_001: comment lẫn chuỗi debug key=value (editable=false, disabled=true)"
+    },
+    {
+      "code": "AMBIGUITY_CHUA_MO",
+      "gate": "scripts/qa/ambiguity_gate.js",
+      "mau_ban": "CHẶN: `PENDING` mà task ĐÃ CÓ testcase — case sinh qua một cổng chưa mở."
     }
   ],
   "_do_phu_spec": "Trường `spec` đã BỎ: khai tay thì số sẽ cũ. `gate:policy` tự đo mỗi lượt bằng cách tìm mảnh đặc trưng của `mau_ban` trong tests/fe/infra/**.spec.ts, và in tỉ lệ đo được."
