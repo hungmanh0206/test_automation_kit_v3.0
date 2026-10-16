@@ -350,7 +350,8 @@
         "nhập Stt {stt} = {giaTri}",
         "nhập ô Stt {stt} = {giaTri}",
         "Stt {stt} = {giaTri}",
-        "điền Stt {stt} = {giaTri}"
+        "điền Stt {stt} = {giaTri}",
+        "nhập lần lượt Stt {stt} = {giaTri}"
       ],
       "params": {
         "stt": "string",
@@ -484,6 +485,140 @@
         "screen_fingerprint": null
       },
       "ghi_chu": "Đường trỏ field bằng Stt ĐẶC TẢ. Đo trên 1.079 mệnh đề của CSDL-9001: 330 mệnh đề (31%) trỏ field bằng `Stt #` chứ không bằng nhãn. L1 tra qua bản đồ `stt_nhan` do `stt:map` sinh — KHÔNG suy theo thứ tự, vì đặc tả có 120 dòng Stt cho cả 5 cấp còn mỗi màn ít nhãn hơn, và catalog đã đo `screenIdx` chỉ khớp Stt 10/89. Trả `da-dung` khi ô vốn đã đúng — xem ghi chú của `form.checkbox.tich`."
+    },
+    {
+      "id": "widget.luoi.doc-luoi",
+      "mo_ta": "Đọc toàn bộ RadGrid thành mảng dòng × ô, đã cắt khoảng trắng thừa.",
+      "phrases": [
+        "đọc lưới",
+        "đọc toàn bộ lưới",
+        "lấy dữ liệu lưới"
+      ],
+      "params": {},
+      "impl": "tests/fe/lib/_widget/radgrid.ts#docLuoi",
+      "pre": "Đang ở màn có RadGrid và lưới đã nạp xong.",
+      "post": "Không đổi trạng thái màn — đây là bước ĐỌC.",
+      "ghi_chu": "Chọn bảng dữ liệu bằng số ô `td`, không lấy bảng đầu tiên: RadGrid render nhiều `<table>` cùng tiền tố id, và bảng đầu thường là bảng TIÊU ĐỀ (0 dòng) ⇒ kết luận nhầm \"lưới rỗng\".",
+      "screen": "*",
+      "widget": [
+        "radgrid"
+      ],
+      "version": "1.0.0",
+      "status": "draft",
+      "thong_ke": {
+        "so_lan_dung": 0,
+        "ti_le_on_dinh": null,
+        "last_verified_build": null,
+        "screen_fingerprint": null
+      }
+    },
+    {
+      "id": "widget.luoi.doc-tieu-de",
+      "mo_ta": "Đọc tiêu đề các cột của RadGrid theo đúng thứ tự hiển thị.",
+      "phrases": [
+        "đọc tiêu đề lưới",
+        "đọc tên cột",
+        "liệt kê cột của lưới"
+      ],
+      "params": {},
+      "impl": "tests/fe/lib/_widget/radgrid.ts#docTieuDe",
+      "pre": "Đang ở màn có RadGrid.",
+      "post": "Không đổi trạng thái màn.",
+      "ghi_chu": "Lưới chưa nạp trả mảng rỗng — người gọi phải tự phân biệt \"chưa nạp\" với \"không có cột\".",
+      "screen": "*",
+      "widget": [
+        "radgrid"
+      ],
+      "version": "1.0.0",
+      "status": "draft",
+      "thong_ke": {
+        "so_lan_dung": 0,
+        "ti_le_on_dinh": null,
+        "last_verified_build": null,
+        "screen_fingerprint": null
+      }
+    },
+    {
+      "id": "widget.luoi.doc-cot",
+      "mo_ta": "Đọc một cột của RadGrid THEO TIÊU ĐỀ. Không khớp tiêu đề thì trả `null`, không đoán sang cột khác.",
+      "phrases": [
+        "đọc cột {tieuDe}",
+        "lấy cột {tieuDe} của lưới",
+        "đọc giá trị cột {tieuDe}"
+      ],
+      "params": {
+        "tieuDe": "string"
+      },
+      "impl": "tests/fe/lib/_widget/radgrid.ts#docCot",
+      "pre": "Đang ở màn có RadGrid và lưới đã nạp xong.",
+      "post": "Không đổi trạng thái màn.",
+      "ghi_chu": "KHÔNG nhận chỉ số cột. Đo 02/10/2026 ở CSDL-9002: \"Tên lớp\" là cột 6 ở THCS/THPT nhưng cột 5 ở Tiểu học, nên chỉ số cứng làm mọi phép tra ở Tiểu học đọc ra mã khối, và lượt đó kết luận \"không tạo được lớp\" cho lớp đã tạo xong. Đọc nhầm cột KHÔNG làm gì đỏ — đó là lý do phải trả `null`.",
+      "screen": "*",
+      "widget": [
+        "radgrid"
+      ],
+      "version": "1.0.0",
+      "status": "draft",
+      "thong_ke": {
+        "so_lan_dung": 0,
+        "ti_le_on_dinh": null,
+        "last_verified_build": null,
+        "screen_fingerprint": null
+      }
+    },
+    {
+      "id": "widget.luoi.dem-dong",
+      "mo_ta": "Đếm số dòng dữ liệu của RadGrid.",
+      "phrases": [
+        "đếm dòng lưới",
+        "đếm số dòng",
+        "lưới có bao nhiêu dòng"
+      ],
+      "params": {},
+      "impl": "tests/fe/lib/_widget/radgrid.ts#demDong",
+      "pre": "Đang ở màn có RadGrid.",
+      "post": "Không đổi trạng thái màn.",
+      "ghi_chu": "Đếm cả `rgRow` lẫn `rgAltRow` — Telerik xen kẽ hai lớp, thiếu một cái là mất nửa lưới. Lưới rỗng và lưới chưa nạp đều trả 0.",
+      "screen": "*",
+      "widget": [
+        "radgrid"
+      ],
+      "version": "1.0.0",
+      "status": "draft",
+      "thong_ke": {
+        "so_lan_dung": 0,
+        "ti_le_on_dinh": null,
+        "last_verified_build": null,
+        "screen_fingerprint": null
+      }
+    },
+    {
+      "id": "widget.luoi.tim-dong",
+      "mo_ta": "Tìm chỉ số các dòng có ô thuộc cột `tieuDe` bằng `giaTri`. Trả MẢNG, không trả dòng đầu tiên.",
+      "phrases": [
+        "tìm dòng có {tieuDe} = {giaTri}",
+        "tìm trong lưới {tieuDe} = {giaTri}"
+      ],
+      "params": {
+        "tieuDe": "string",
+        "giaTri": "string"
+      },
+      "impl": "tests/fe/lib/_widget/radgrid.ts#timDong",
+      "pre": "Đang ở màn có RadGrid và lưới đã nạp xong.",
+      "post": "Không đổi trạng thái màn.",
+      "ghi_chu": "Trả MẢNG vì \"tìm thấy một\" và \"tìm thấy ba\" là hai sự thật khác nhau — nhiều case chống trùng sống chết ở đúng con số đó, và một hàm trả dòng đầu sẽ giấu mất chuyện trùng.",
+      "screen": "*",
+      "widget": [
+        "radgrid"
+      ],
+      "version": "1.0.0",
+      "status": "draft",
+      "thong_ke": {
+        "so_lan_dung": 0,
+        "ti_le_on_dinh": null,
+        "last_verified_build": null,
+        "screen_fingerprint": null
+      }
     }
   ]
 }
