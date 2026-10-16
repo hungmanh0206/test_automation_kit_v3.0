@@ -97,6 +97,57 @@ test.describe('@infra ambiguity:gate — đọc trạng thái, bốn hình dạn
     expect(A.docCauHoi(crlf)[0].muc).toBe('Critical');
   });
 
+  test('mức THỪA KẾ từ tiêu đề mục — và luật hẹp, không suy bừa', () => {
+    /*
+     * Bản đầu chỉ đọc mức ở DÒNG CÂU HỎI. Đo 16/10/2026 trên 5 task thật: **41/83 câu (49%)** không có
+     * mức nào máy đọc được, nên chúng KHÔNG chạm nghĩa vụ nào — gate gác im lặng nửa số câu, và phần
+     * "đã gác" của nó là lời khai chứ không phải phép đo.
+     *
+     * Nguyên nhân không phải tài liệu thiếu nhãn: `CSDL-9004` đặt mức ở `## CRITICAL` / `## HIGH`,
+     * `CSDL-9003` nhóm theo `## Blocking` / `## Non-blocking`. Nhãn có đủ, MÁY ĐỌC THIẾU.
+     */
+    const duoi = (md: string) => A.docCauHoi(md)[0];
+
+    expect(duoi('## CRITICAL\n\n### Q1 — hỏi gì đó\nthân\n').muc,
+      'mức ở tiêu đề mục phải được thừa kế').toBe('Critical');
+    expect(duoi('## HIGH — nhóm chưa có oracle\n\n### Q5 — hỏi\nthân\n').muc).toBe('High');
+    expect(duoi('## Non-blocking — áp assumption\n\n### Q4 — hỏi\nthân\n').muc,
+      '"non-blocking" là tuyên bố KHÔNG chặn ⇒ Medium').toBe('Medium');
+
+    /* LUẬT HẸP: "Blocking" nói về CHẶN GÌ, không nói về MỨC. Suy ra Critical là tạo nghĩa vụ cho câu
+     * mà người viết không hề gán mức — đúng kiểu máy tự quyết thay người. */
+    expect(['Critical', 'High', 'Medium', 'Low']).not.toContain(
+      duoi('## Blocking — đã trả lời\n\n### Q9 — hỏi\nthân\n').muc,
+    );
+
+    /* Mức ở DÒNG CÂU HỎI luôn THẮNG mức thừa kế. */
+    expect(duoi('## CRITICAL\n\n### Q1 — hỏi · Medium\nthân\n').muc,
+      'người viết ghi rõ ở dòng thì đó là ý họ').toBe('Medium');
+  });
+
+  test('câu KHÔNG gán mức ⇒ CẢNH BÁO, vì đó là đường lách im lặng', () => {
+    /*
+     * Máy KHÔNG thẩm định được "câu này gán Critical có đúng không" — đó là việc của người. Nhưng
+     * "không gán mức nào" thì máy thấy rõ, và nó là đường lách: mọi nghĩa vụ đều lọc theo Critical/High.
+     *
+     * Đo sau khi đã thừa kế: vẫn còn 25/83 câu (30%) không mức, nằm dưới mục kiểu "Câu hỏi PHÁT SINH
+     * từ dò quan hệ bảng DB" — tài liệu thật sự không gán, không phải máy đọc thiếu.
+     */
+    const c = cayTask('**AMBIGUITY_GATE: RESOLVED**', [
+      '## Câu hỏi phát sinh',
+      '',
+      '### Q9 — một câu không gán mức nào',
+      'thân có nội dung',
+      '',
+    ].join('\n'));
+    try {
+      const r = chay(c.goc, ['--chat']);
+      expect(r.out, 'phải nêu tỉ lệ câu không gán mức').toMatch(/KHÔNG gán mức/);
+      expect(r.out).toContain('Q9');
+      expect(r.code, 'cảnh báo thôi — gán mức là việc của người, chặn ở đây ép gán lấy lệ').toBe(0);
+    } finally { donThuMucTam(c.goc); }
+  });
+
   test('HAI khuôn câu hỏi: hàng bảng và tiêu đề', () => {
     expect(A.docCauHoi('| Q7 | Medium | nội dung | trả lời |').length, 'khuôn bảng').toBe(1);
     expect(A.docCauHoi('### Q2 — nội dung · High\nthân\n').length, 'khuôn tiêu đề').toBe(1);
