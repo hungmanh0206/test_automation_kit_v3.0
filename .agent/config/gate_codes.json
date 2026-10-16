@@ -165,7 +165,7 @@
       "y": "Case chưa có nguồn chống lưng, không được publish",
       "tang": "T1",
       "vi_sao": "Case chưa có nguồn chống lưng là một kỳ vọng do người viết tự đặt. Publish nó nghĩa là cả team bắt đầu chạy theo một con số chưa ai xác nhận, và sửa về sau thì mọi verdict cũ nói về bộ khác.",
-      "sua": "Tìm nguồn trong `knowledge/` hoặc tài liệu đặc tả rồi gắn `oracle_ref`. Không tìm được thì đưa câu hỏi vào `requirements/phase1-clarifications.md` và giữ `AMBIGUITY_GATE: PENDING`.",
+      "sua": "Tìm nguồn trong `knowledge/` hoặc tài liệu đặc tả rồi gắn `oracle_ref`. Không tìm được thì đưa câu hỏi vào `reports/phase1-clarifications.md` và giữ `AMBIGUITY_GATE: PENDING`.",
       "vi_du": "SAI: publish case `[NeedsVerify]` → ĐÚNG: gắn `[BR-HSTRUONG-004]`, hoặc hỏi user rồi mới publish"
     },
     {
@@ -194,6 +194,15 @@
       "vi_sao": "Lời khai trái với artifact có thật nghĩa là một trong hai sai, và artifact thắng. Khai `n/a` cho một chiều mà thư mục của chiều đó có file là tự tắt một chiều kiểm bằng một dòng config.",
       "sua": "Sửa lời khai cho khớp artifact, rồi mở đúng file hướng dẫn của chiều đó và bổ sung case. Nếu artifact kia là rác còn sót thì xoá nó, đừng để lại rồi khai ngược.",
       "vi_du": "SAI: khai `design: n/a` trong khi có `requirements/figma/**` → ĐÚNG: khai `design: required` rồi đối chiếu với thiết kế"
+    },
+    {
+      "code": "AMBIGUITY_CHUA_MO",
+      "khop": "cổng chưa mở|AMBIGUITY_GATE|điểm mơ hồ chưa giải",
+      "y": "Task đã có testcase trong khi cổng mơ hồ còn PENDING",
+      "tang": "T0",
+      "vi_sao": "Sinh case khi cổng chưa mở nghĩa là viết kỳ vọng dựa trên phỏng đoán. Case sai từ gốc thì mọi verdict về sau nói về một bộ khác, và không ai phát hiện ra bằng cách chạy lại — chạy lại chỉ xác nhận cùng một kỳ vọng sai.",
+      "sua": "Trả lời các câu Critical/High trong `reports/phase1-clarifications.md`, rồi đặt `AMBIGUITY_GATE` trong `task.md` về một trạng thái cho phép sinh case. Ba trạng thái hợp lệ và nghĩa vụ riêng của từng cái: `.agent/config/ambiguity_states.json`.",
+      "vi_du": "SAI: `AMBIGUITY_GATE: PENDING` mà `test-cases/` đã có file → ĐÚNG: giải câu Critical/High trước, hoặc chuyển sang `PARTIALLY RESOLVED` và ghi rõ câu còn mở CHẶN GÌ"
     }
   ],
   "_truong_bat_buoc": "Mỗi mã phải có: `y` (một câu nói nó là gì) · `vi_sao` · `sua` · `vi_du` (sai → đúng) · `tang`. `gates:index --check` CHẶN mã nào thiếu. Thiếu \"sửa thế nào\" thì mã chỉ là một nhãn, và người đọc vẫn phải tự đi tìm.",

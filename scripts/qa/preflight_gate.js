@@ -184,6 +184,20 @@ function runPreflight({ mode = 'generic', task = '', extraRequire = [], allowMis
         warnings.push('phase1: có `system_map.json` mà thiếu `requirements/injection_surface.json` ⇒ `dim:coverage` không gác được phủ injection, chiều security quay về chấm bằng regex trên văn bản.');
       }
     }
+
+    /*
+     * CỔNG MƠ HỒ (v2.9.2). Hai tầng, như các gate khác của kit:
+     *
+     *   · chưa có `reports/phase1-clarifications.md` ⇒ CẢNH BÁO "cổng này CHƯA ĐƯỢC GÁC". Nói ra chứ
+     *     không im: một cổng không có gì để đối chiếu trông y hệt một cổng vừa kiểm xong và thấy ổn.
+     *   · có rồi ⇒ để `npm run ambiguity:gate` phán (nó chạy trong `check` T0). Preflight KHÔNG tự
+     *     phán lại: hai máy cùng đọc một file rồi kết luận riêng là hai kết luận sẽ trôi khỏi nhau.
+     */
+    const clarif = abs(path.join(projectOutputDir, 'tasks', task, 'reports', 'phase1-clarifications.md'));
+    if (!fs.existsSync(clarif)) {
+      warnings.push('phase1: chưa có `reports/phase1-clarifications.md` ⇒ cổng mơ hồ CHƯA ĐƯỢC GÁC. '
+        + '`npm run ambiguity:gate` không có gì để đối chiếu, nên nó im — và im lặng đó không đồng nghĩa với "không có điểm mơ hồ".');
+    }
   }
   // 4) phase2 + task: testcase canonical LOCAL phải có trước execute.
   if (cfg.taskTestcase && task) {

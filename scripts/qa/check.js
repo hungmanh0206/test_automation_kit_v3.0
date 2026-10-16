@@ -271,6 +271,17 @@ const PHAI_SPAWN = {
      * Rẻ: 490 đường import, 1,6 giây. Và hôm nay 0 vi phạm — đây là cửa PHÒNG, không phải cửa chữa.
      */
     { lenh: 'case:paths', args: [] },
+    /*
+     * `ambiguity:gate` CHỈ ở Phase 1, tầng T0 (v2.9.2).
+     *
+     * Trước đợt này, "DỪNG tới khi `AMBIGUITY_GATE: RESOLVED`" là lời dặn trong workflow mà KHÔNG
+     * script nào đọc rồi `exit 1` — đo 16/10/2026: 0 máy. Việc dừng phụ thuộc agent tự tuân thủ.
+     *
+     * Chạy ở CHẾ ĐỘ DI TRÚ: chỉ chặn ca rõ ràng sai (`PENDING` mà đã có case). Trạng thái lạ hoặc
+     * thiếu khoá ⇒ cảnh báo. Đo trên 5 task thật: di trú 0 đỏ, chế độ chặt 2 đỏ — bật chặt ngay sẽ
+     * làm đỏ việc đang chạy, và cửa đỏ oan là cửa người ta tắt.
+     */
+    { lenh: 'ambiguity:gate', args: [] },
   ],
   2: [
     { lenh: 'dim:coverage', args: [] },

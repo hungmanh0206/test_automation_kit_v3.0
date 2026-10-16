@@ -41,6 +41,7 @@
     "json:check": "node scripts/qa/json_check.js",
     "deps:check": "node scripts/qa/deps_check.js",
     "case:paths": "node scripts/qa/case_paths.js",
+    "ambiguity:gate": "node scripts/qa/ambiguity_gate.js",
     "gdoc:read": "node scripts/integrations/google_doc/doc_reader.js",
     "ci:scope": "node scripts/qa/ci_scope_check.js",
     "sync:gitlab": "node scripts/utils/sync_gitlab.js",
