@@ -1,0 +1,28 @@
+{
+  "_doc": "Ma trận chạy smoke qua nhiều trình duyệt × kích thước. Dùng bởi `npm run smoke:matrix`.",
+
+  "_opt_in": "MẶC ĐỊNH TẮT. Không vào mỗi task, không vào lane PR. Chạy khi onboarding một hệ thống, trước release, hoặc khi người dùng gọi. Lý do: ma trận nhân số lượt chạy lên bằng số ô, và một lượt smoke vốn để trả lời nhanh 'hệ còn sống không'.",
+
+  "_gia_lap": "Playwright là GIẢ LẬP THIẾT BỊ, không phải thiết bị thật. WebKit là NHÂN Safari — nó bắt được phần lớn lỗi riêng của Safari/iOS ở tầng render và JS engine, nhưng KHÔNG bắt được lỗi của chính ứng dụng Safari, của iOS, của bàn phím ảo, hay của mạng di động thật. Báo cáo bắt buộc nhắc lại câu này, và có test chặn mọi câu kiểu 'đã test trên iPhone thật'.",
+
+  "_vi_sao_ba_engine": "Chromium và WebKit là hai NHÂN khác nhau và cùng phổ biến ở người dùng cuối, nên chúng mang lại thông tin khác nhau. Firefox là nhân thứ ba, giữ ở đây vì nó rẻ (đã cài sẵn) chứ không vì đo được thị phần — xem `_can_nguoi_duyet`.",
+
+  "_can_nguoi_duyet": "Danh sách dưới đây SUY TỪ CẤU HÌNH CÓ SẴN của kit, KHÔNG suy từ số liệu người dùng thật của dự án. Người duyệt phải đối chiếu với người dùng thật (ví dụ: admin dùng Chrome desktop, phụ huynh dùng Safari mobile) rồi sửa lại. Máy không tự khẳng định được chuyện này.",
+
+  "_ten_project": "Phải TRÙNG tên project khai trong `playwright.config.js`. Lane cross-browser ở đó bật bằng CROSS_BROWSER=1; ma trận này tự dựng project riêng nên không phụ thuộc biến đó.",
+  "project": [
+    { "ten": "chromium-desktop", "device": "Desktop Chrome", "nhan": "nhân Blink" },
+    { "ten": "webkit-desktop", "device": "Desktop Safari", "nhan": "nhân WebKit (Safari) — GIẢ LẬP" },
+    { "ten": "firefox-desktop", "device": "Desktop Firefox", "nhan": "nhân Gecko" }
+  ],
+
+  "_kich_thuoc": "Ba mốc: desktop rộng · laptop phổ thông · điện thoại dọc. 390x844 là khung iPhone 13 — vẫn là giả lập khung nhìn, không phải thiết bị.",
+  "kich_thuoc": [
+    { "ten": "1920x1080", "w": 1920, "h": 1080 },
+    { "ten": "1366x768", "w": 1366, "h": 768 },
+    { "ten": "390x844", "w": 390, "h": 844 }
+  ],
+
+  "_bo_qua": "Cặp (project, kích thước) KHÔNG chạy — phải kèm `vi_sao`. Ô bị bỏ qua in là `▢` trong bảng và ĐƯỢC ĐẾM RIÊNG: một ô không chạy trông giống ô xanh thì cả bảng nói dối.",
+  "bo_qua": []
+}
