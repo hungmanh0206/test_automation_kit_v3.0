@@ -74,7 +74,7 @@ lịch sử, còn việc CHẶN nằm ở `dim:coverage` (chiều `bug_history` 
 | T1 | CHẶN | `user-guide:images` | User Guide board renderer (HTML/CSS + Playwright) | `scripts/utils/generate_user_guide_images.mjs` | README.md · tests/fe/infra |
 | T1 | CHẶN | `test:task`, `test:task:fe`, `test:task:api` | const { spawn } = require('child_process'); | `scripts/utils/run_playwright_task.js` | README.md · USER_GUIDE.md · QUICKSTART.md · prompt_templates |
 | T1 | CHẶN | `sync:gitlab` | đẩy `main` sang nhánh GitLab, TRỪ những đường dẫn khai trong | `scripts/utils/sync_gitlab.js` | tests/fe/infra |
-| T1 | CHẶN (có cờ --enforce) | `authz:expand` | TRỤC ⑥: liệt kê biến thể PHÂN QUYỀN quanh mỗi case. | `scripts/qa/authz_expand.js` | RULE_GLOBAL.md · .agent/skills · tests/fe/infra |
+| T1 | CHẶN (có cờ --enforce) | `authz:expand` | TRỤC ⑥: liệt kê biến thể PHÂN QUYỀN quanh mỗi case. | `scripts/qa/authz_expand.js` | RULE_GLOBAL.md · .agent/skills |
 | T0 | CHẶN (có cờ --enforce) | `auto:review`, `auto:review:enforce` | GATE chất lượng code automation, phần `lint:locator` KHÔNG gác. | `scripts/qa/automation_review.js` | RULE_GLOBAL.md · .agent/workflows · .agent/rules · .agent/skills · prompt_templates · tests/fe/infra |
 | T0 | CHẶN (có cờ --enforce) | `canonical:check` | GÁC MÔ HÌNH "MD CANONICAL, EXCEL/SHEET PHÁI SINH" (v2.8.0 §0c.4). | `scripts/qa/canonical_check.js` | USER_GUIDE.md · prompt_templates · tests/fe/infra |
 | T0 | CHẶN (có cờ --enforce) | `canonical:drift`, `canonical:drift:enforce` | ĐO ĐỘ TRÔI giữa Markdown canonical và bản xuất `.xlsx`. | `scripts/qa/canonical_drift.js` | RULE_GLOBAL.md · README.md · USER_GUIDE.md · .agent/workflows · .agent/rules · .agent/skills · prompt_templates · tests/fe/infra |

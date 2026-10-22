@@ -63,10 +63,39 @@ const readSafe = (p) => { try { return fs.readFileSync(p, 'utf8'); } catch (e) {
 const thieuSource = [];
 const readKhai = (p) => { const t = readSafe(p); if (!t) thieuSource.push(path.relative(REPO, p).replace(/\\/g, '/')); return t; };
 
+/*
+ * Tập file ĐÃ ĐƯỢC GIT TRACK. `null` = không hỏi được git (gói phát hành không có `.git`; ở đó đĩa
+ * CHÍNH LÀ tập đã phát hành nên không có WIP lẫn vào).
+ *
+ * VÌ SAO: `corpus()` quét ĐĨA. Máy người đang làm luôn có file chưa commit, và chỉ cần MỘT file trong
+ * đó nhắc tên một gate là cột "gọi từ đâu" của gate ấy có thêm một bề mặt. Bảng sinh ở máy vì thế
+ * khác bảng CI tính ở cây sạch ⇒ `gates:index:check` đỏ, mà thông điệp lại bảo "chạy gates:index rồi
+ * commit" — chạy xong vẫn đỏ.
+ *
+ * Đã trả giá 22/10/2026, và đây là lần thứ BA của cùng lớp lỗi: `docSpecs()` (v2.9.1) và
+ * `rule_coverage.gateDuocTrack()` (cùng ngày) đã vá hai chỗ trước.
+ */
+function fileDuocTrack() {
+  try {
+    const ra = require('child_process')
+      .execFileSync('git', ['ls-files'], { cwd: REPO, encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] });
+    return new Set(ra.split('\n').map((x) => x.trim().replace(/\\/g, '/')).filter(Boolean));
+  } catch (e) { return null; }
+}
+
 /** Toàn bộ văn bản của các bề mặt, kèm nhãn ngắn để in "gọi từ đâu". */
 function corpus() {
   const out = [];
-  const push = (abs, label) => { const t = readKhai(abs); if (t) out.push({ label, txt: t }); };
+  const tracked = fileDuocTrack();
+  const boQua = (abs) => {
+    if (!tracked) return false; // không có git ⇒ giữ nguyên hành vi cũ
+    const rel = path.relative(REPO, abs).split(path.sep).join('/');
+    return !tracked.has(rel);
+  };
+  const push = (abs, label) => {
+    if (boQua(abs)) return;
+    const t = readKhai(abs); if (t) out.push({ label, txt: t });
+  };
   for (const f of SURFACE_FILES) push(path.join(REPO, f), f);
   for (const d of SURFACE_DIRS) {
     const abs = path.join(REPO, d);
