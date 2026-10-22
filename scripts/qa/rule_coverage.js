@@ -135,8 +135,34 @@ function napKhai() {
   return { muc: m, loai: j._loai || {}, do_ngay: j._do_ngay };
 }
 
+/**
+ * Tập file gate ĐÃ ĐƯỢC GIT TRACK. `null` = không hỏi được git (xem docSpecs: ngoài repo thì đĩa
+ * chính là tập đã phát hành, không có WIP lẫn vào).
+ *
+ * VÌ SAO CẦN: `gateIndex.build()` quét ĐĨA. Máy của người đang làm luôn có gate chưa commit, nên bản
+ * tài liệu sinh ở đó đếm thừa, rồi CI tính lại ở cây sạch và ra số khác ⇒ `rule:coverage:check` đỏ,
+ * mà thông điệp lại bảo "chạy rule:coverage rồi commit" — chạy xong vẫn đỏ, vòng lặp vô ích.
+ *
+ * Đã trả giá đúng chuyện này 22/10/2026: bản sinh ở máy ghi `140 gate · 143 spec` trong khi HEAD chỉ
+ * có 138 · 142, vì repo đang có ~200 file WIP chưa commit. `docSpecs()` đã vá lớp lỗi này cho SPEC từ
+ * v2.9.1; vế GATE thì sót lại tới hôm nay.
+ */
+function gateDuocTrack() {
+  try {
+    const ra = require('child_process')
+      .execFileSync('git', ['ls-files', 'scripts/qa'], { cwd: REPO, encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] });
+    return new Set(ra.split('\n').map((x) => x.trim().replace(/\\/g, '/')).filter(Boolean));
+  } catch (e) { return null; }
+}
+
 function dungBang() {
-  const rows = gateIndex.build().rows;
+  const tracked = gateDuocTrack();
+  const rows = gateIndex.build().rows.filter((r) => {
+    if (!tracked) return true; // không có git ⇒ giữ nguyên (THEO_DIA đã lo phần cấm ghi)
+    const rel = String(r.file || '').replace(/\\/g, '/').replace(/^\.\//, '');
+    // Chỉ lọc những gate nằm trong scripts/qa (phạm vi đã hỏi git); gate ở nơi khác giữ nguyên.
+    return !rel.startsWith('scripts/qa/') || tracked.has(rel);
+  });
   const specs = docSpecs();
   const muc = catMuc(docAn(path.join(REPO, 'RULE_GLOBAL.md')));
 
