@@ -222,7 +222,7 @@ function hasDocker() {
 
 fs.mkdirSync(RUN_DIR, { recursive: true });
 const summaryPath = path.join(RUN_DIR, 'k6-summary.json');
-const tsPath = path.join(RUN_DIR, 'k6-timeseries.json');
+const tsPath = path.join(RUN_DIR, 'k6-timeseries.ndjson');
 const logPath = path.join(RUN_DIR, 'k6-stdout.log');
 const metaPath = path.join(RUN_DIR, 'run-meta.json');
 

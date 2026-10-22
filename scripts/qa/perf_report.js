@@ -7,7 +7,7 @@
  *
  * Vào: một thư mục lượt chạy chứa (tên file cố định, do `load_check.js` ghi ra)
  *   k6-summary.json      ← `--summary-export`  (số TỔNG KẾT: percentile, threshold, checks)
- *   k6-timeseries.json   ← `--out json=`       (NDJSON theo thời gian, có tags → biểu đồ + bảng endpoint)
+ *   k6-timeseries.ndjson   ← `--out json=`       (NDJSON theo thời gian, có tags → biểu đồ + bảng endpoint)
  *   run-meta.json        ← metadata lượt chạy  (target, profile, runner, k6 version, cloud, exit code)
  *   k6-stdout.log        ← log đã khử secret
  * Ra: performance-report.html · performance-report.json
@@ -47,7 +47,7 @@ function arg(ten, mac) {
 
 const TEN_TEP = {
   summary: 'k6-summary.json',
-  timeseries: 'k6-timeseries.json',
+  timeseries: 'k6-timeseries.ndjson',
   meta: 'run-meta.json',
   log: 'k6-stdout.log',
   dashboard: 'k6-dashboard.html',
