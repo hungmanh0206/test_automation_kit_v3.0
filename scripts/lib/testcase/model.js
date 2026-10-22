@@ -121,6 +121,11 @@ const COL = {
    * Ép một trục ra trục kia thì kết quả sai là tất yếu — nên nay là cột NGƯỜI KHAI.
    */
   caseType: (n) => ['loai case', 'case type', 'loai kiem thu', 'loai test', 'type'].includes(n),
+  /*
+   * `SCRIPT` — cột TUỲ CHỌN chứa câu SQL đối chiếu của case, theo bố cục bộ testcase EMIS của QA. Khớp
+   * CHÍNH XÁC tên cột: SQL trong ô này cũng phải qua luật chặn câu GHI và PII như SQL ở "Các bước".
+   */
+  script: (n) => n === 'script',
 };
 // matcher cột Setup Strategy contract (normalized)
 const SETUP_COL = {
@@ -366,6 +371,7 @@ function buildTestCase(headers, cells, story = '') {
     precondition: get(COL.precondition), data: get(COL.data),
     steps: splitNumbered(stepsRaw), stepsRaw,
     expected: splitNumbered(expectedRaw), expectedRaw,
+    script: get(COL.script),
     priority: get(COL.priority), risk: get(COL.risk),
     dimensions: dimensionsOf(tagSrc), oracleRefs, tags: tagCell,
     techniques: techniquesOf(tagCell, title),
