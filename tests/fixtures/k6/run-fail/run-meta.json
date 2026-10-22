@@ -1,0 +1,25 @@
+{
+  "tenBaiTest": "Fixture · lượt trượt ngưỡng",
+  "runId": "fixture-fail",
+  "script": "tests/fixtures/k6/khong-ton-tai.js",
+  "target": "http://127.0.0.1:18099",
+  "moiTruong": "local",
+  "runner": "k6",
+  "k6Version": "v2.2.0",
+  "batDau": "2026-10-19T07:05:45.545Z",
+  "ketThuc": "2026-10-19T07:05:55.438Z",
+  "thoiLuongMs": 9893,
+  "profile": "script tự khai (stages/scenarios, đỉnh 5 VU)",
+  "profileSource": "script",
+  "vus": null,
+  "duration": null,
+  "peakVusDeclared": 5,
+  "executor": "ramping-vus (suy từ `stages`)",
+  "k6ExitStatus": 99,
+  "loiKhoiDong": null,
+  "cloud": {
+    "trangThai": "DISABLED",
+    "url": null,
+    "ghiChu": "không bật --cloud cho lượt này"
+  }
+}
