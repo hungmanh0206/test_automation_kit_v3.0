@@ -862,7 +862,7 @@ body.lropen{overflow:hidden}
 
     <h3 class="subhead"><span class="num">5</span>Lệnh hay dùng</h3>
     <p class="sectip">Danh mục gate của kit là <b>tự sinh từ source</b>, không viết tay — bản hiện tại đếm được
-      <b>138 máy: 97 CHẶN · 23 SINH · 18 BÁO CÁO</b>. Sinh lại bằng <code>npm run gates:index</code>.
+      <b>140 máy: 98 CHẶN · 24 SINH · 18 BÁO CÁO</b>. Sinh lại bằng <code>npm run gates:index</code>.
       Phiên bản kit: <b>2.9.3</b>.</p>
     <div id="cmdList"></div>
 
@@ -994,7 +994,7 @@ body.lropen{overflow:hidden}
       </ul>
 
       <h3>Vì sao cần</h3>
-      <p>Kit có 26 skill, 138 máy kiểm (97 trong đó CHẶN thật) và một bộ từ vựng riêng (oracle độc lập, tautology, failureLayer,
+      <p>Kit có 26 skill, 140 máy kiểm (98 trong đó CHẶN thật) và một bộ từ vựng riêng (oracle độc lập, tautology, failureLayer,
         readiness, TRI, chiều coverage…). Người mới vào phải đọc rải rác nhiều file mới ghép được bức tranh.
         Trang này gom lại một chỗ, giữ nguyên nguồn, và cố tình <b>không</b> diễn giải thêm ngoài những gì repo đã ghi.</p>
 
@@ -1283,6 +1283,38 @@ const TERMS_GATE = [
   ex:'Một tệp 2000 từ có 60 cụm in đậm là 30 trên 1000 từ. Mốc là 18. Bỏ phần in đậm giữa câu, giữ lại nhãn đầu ô bảng, là về mốc.',
   trap:'Chỉ đếm in đậm GIỮA CÂU. Bản đầu đếm cả nhãn đầu ô bảng và nhãn đầu gạch đầu dòng, rồi kết luận ngược: 34 bài vừa được viết tay lại cho tự nhiên bị chấm là bẩn hơn corpus chung.',
   src:'scripts/qa/writing_lint.js', rel:['g-output_gate','r-nocheat'] },
+
+{ id:'g-perf_report', t:'perf_report', cat:'gate',
+  def:'Dựng báo cáo HTML có biểu đồ từ artifact k6 của MỘT lượt chạy.',
+  detail:'Chỉ ĐỌC ĐĨA: không chạy k6, không gọi UAT, không tốn quota cloud — nên test được bằng fixture. Đọc summary, time-series (NDJSON từ `--out json`), metadata và log đã khử secret trong `reports/performance/<RUN_ID>/`.',
+  why:'Số hiệu năng chỉ có nghĩa khi so theo thời gian, mà bản cũ ghi đè cùng một file summary mỗi lượt nên lượt sau xoá sổ lượt trước. Tách artifact theo lượt rồi mới dựng được báo cáo so sánh.',
+  cmd:'npm run perf:report -- --run-dir <.../reports/performance/<RUN_ID>>',
+  ex:'Lượt chạy không kèm `--out json` thì báo cáo nói thẳng "không có time-series, chỉ có số tổng kết" thay vì vẽ biểu đồ từ số trung bình.',
+  src:'scripts/qa/perf_report.js', rel:['g-load','g-perf_index','g-k6_dashboard_import'] },
+
+{ id:'g-perf_index', t:'perf_index', cat:'gate',
+  def:'Mục lục báo cáo hiệu năng THEO TESTCASE.',
+  detail:'Liệt kê mọi case `Performance` của bộ canonical, bấm vào case nào thì mở báo cáo riêng của case đó — nối số đo về đúng mã case thay vì để báo cáo rời rạc theo lượt chạy.',
+  why:'Một con số hiệu năng không gắn được vào case nào thì không phán được case nào, và "không phán được" thì không được thành PASS.',
+  cmd:'node scripts/qa/perf_index.js --perf-dir <.../reports/performance> --testcases <.../x.md>',
+  ex:'Bộ canonical có 29 case Performance, 3 case đã có lượt đo → mục lục hiện rõ 26 case còn trống.',
+  src:'scripts/qa/perf_index.js', rel:['g-perf_report','g-load'] },
+
+{ id:'g-k6_dashboard_import', t:'k6_dashboard_import', cat:'gate',
+  def:'Phục hồi số liệu từ file export của k6 web-dashboard về định dạng artifact chuẩn.',
+  detail:'Đọc báo cáo HTML do k6 web-dashboard xuất ra rồi dựng lại thư mục artifact, để lượt chạy CŨ — chạy trước khi có đường ống này — vẫn đọc được bằng `perf_report.js`.',
+  why:'Số đo cũ không mất giá trị chỉ vì công cụ ra sau. Không có đường phục hồi thì mọi lượt trước ngày dựng đường ống đều thành dữ liệu chết.',
+  cmd:'node scripts/qa/k6_dashboard_import.js --dashboard <file.html> --run-dir <thư mục ra>',
+  ex:'Một lượt chạy tháng trước chỉ còn file HTML → import về artifact rồi so với lượt mới bằng cùng một báo cáo.',
+  src:'scripts/qa/k6_dashboard_import.js', rel:['g-perf_report'] },
+
+{ id:'g-tcid_duplicate_check', t:'tcid_duplicate_check', cat:'gate',
+  def:'Một case chỉ được ĐĂNG KÝ VỚI RECORDER ở MỘT file spec.',
+  detail:'Quét các spec của task, tìm `tcId` được khai ở nhiều hơn một file.',
+  why:'Hai spec cùng khai một mã thì lượt sau ghi đè lượt trước, và kết quả trong Excel ĐI LÙI mà không ai thấy — verdict mới bị thay bằng verdict của spec chạy sau, không có cảnh báo nào.',
+  cmd:'npm run lint:tcid',
+  ex:'Hai spec cùng khai `CSDL_HSTRUONG_TC_138` → chặn, kèm tên cả hai file để chọn giữ cái nào.',
+  src:'scripts/qa/tcid_duplicate_check.js', rel:['g-output_gate','g-result_ledger'] },
 
 { id:'g-self_review', t:'self_review', cat:'gate',
   def:'Lượt rà lại thứ hai. Gom mọi gate liên quan của một task vào một báo cáo duy nhất.',
@@ -1763,7 +1795,7 @@ const TERMS_GATE3 = [
   src:'scripts/qa/scope_anchor.js', rel:['g-dimension_coverage','c-canonical','g-preflight_gate'] },
 { id:'g-gate_index', t:'gates:index', cat:'gate',
   def:'Sinh DANH MỤC GATE của kit từ chính source. Trả lời được "kit có bao nhiêu gate, mỗi cái CHẶN gì, gọi ở đâu".',
-  detail:'Quét source rồi suy mức từ code: exit 1 là CHẶN · ghi artifact là SINH · chỉ in là BÁO CÁO. Bảng hiện tại: 138 máy — 97 CHẶN, 23 SINH, 18 BÁO CÁO. Bản --check chặn khi bảng lệch source.',
+  detail:'Quét source rồi suy mức từ code: exit 1 là CHẶN · ghi artifact là SINH · chỉ in là BÁO CÁO. Bảng hiện tại: 140 máy — 98 CHẶN, 24 SINH, 18 BÁO CÁO. Bản --check chặn khi bảng lệch source.',
   why:'Kit có hơn 30 npm script dạng gate và gần 60 file trong scripts/qa/, nhưng không chỗ nào trả lời được câu trên. Hệ quả không phải bất tiện: luận đề của kit là "luật cần MÁY", mà máy không LIỆT KÊ ĐƯỢC thì không kiểm toán được. Không ai biết một gate đã âm thầm tụt thành cảnh báo, hay đã mất nơi gọi.',
   how:['npm run gates:index để sinh lại bảng.','npm run gates:index:check để chặn khi bảng lệch source.'],
   cmd:'npm run gates:index   ·   npm run gates:index:check',
@@ -3161,7 +3193,7 @@ const TERMS_FLOW2 = [
 
 { id:'f-gate-catalog', t:'Danh mục gate (tự sinh)', cat:'flow',
   def:'Bảng liệt kê mọi máy của kit kèm mức chặn, sinh tự động từ source.',
-  detail:'Con số hiện tại: 138 máy — 97 CHẶN · 23 SINH (ghi artifact) · 18 BÁO CÁO (chỉ in). Mức được suy từ code chứ không khai tay: exit 1 là CHẶN, ghi artifact là SINH, chỉ in là BÁO CÁO. Bảng còn ghi mỗi máy được gọi từ đâu, và ghi ra .agent/config/GATES.md.',
+  detail:'Con số hiện tại: 140 máy — 98 CHẶN · 24 SINH (ghi artifact) · 18 BÁO CÁO (chỉ in). Mức được suy từ code chứ không khai tay: exit 1 là CHẶN, ghi artifact là SINH, chỉ in là BÁO CÁO. Bảng còn ghi mỗi máy được gọi từ đâu, và ghi ra .agent/config/GATES.md.',
   why:'Luận đề của kit là "luật cần MÁY". Nhưng máy mà không liệt kê được thì không kiểm toán được. Không ai biết một gate đã âm thầm tụt xuống thành cảnh báo, hay đã mất hết nơi gọi và thành mồ côi.',
   how:['Sinh lại: npm run gates:index.','Chặn khi bảng lệch source: npm run gates:index:check.'],
   trap:'SINH và BÁO CÁO không phải gate bị nới. Chúng không kiểm vi phạm, chỉ tạo dữ liệu cho máy khác chặn.',
@@ -3449,7 +3481,7 @@ const CMD_GROUPS = [
     ['npm run merge:execution-status -- --task <KEY>','Ghép kết quả execute vào bộ canonical']
   ]},
   { g:'Kit: tự kiểm toán & phát hành', items:[
-    ['npm run gates:index  ·  npm run gates:index:check','Danh mục gate tự sinh — 138 máy, 97 CHẶN; :check chặn khi bảng lệch source'],
+    ['npm run gates:index  ·  npm run gates:index:check','Danh mục gate tự sinh — 140 máy, 98 CHẶN; :check chặn khi bảng lệch source'],
     ['npm run rule -- <mục>  ·  npm run rule:toc','Tra RULE_GLOBAL theo mục (287 token) thay vì đọc cả file (12,8k)'],
     ['npm run version:check','Chặn phát hành thiếu số phiên bản; kiểm khớp tag'],
     ['npm run package:kit','Đóng gói dist/ CHỈ lớp GENERIC — không để lọt secret hay oracle của dự án khác'],
