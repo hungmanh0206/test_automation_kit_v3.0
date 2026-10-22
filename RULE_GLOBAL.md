@@ -38,7 +38,7 @@
 | 3 | [Inputs](#inputs) | 90-102 | 332 | npm run rule -- 3 |
 | 4 | [Outputs](#outputs) | 103-172 | 1220 | npm run rule -- 4 |
 | 5 | &nbsp;&nbsp;[Giọng văn output](#giọng-văn-output) | 115-172 | 906 | npm run rule -- 5 |
-| 6 | [Rules](#rules) | 173-820 | 15381 | npm run rule -- 6 |
+| 6 | [Rules](#rules) | 173-822 | 15534 | npm run rule -- 6 |
 | 7 | &nbsp;&nbsp;[Language](#language) | 175-181 | 80 | npm run rule -- 7 |
 | 8 | &nbsp;&nbsp;[Security](#security) | 182-195 | 498 | npm run rule -- 8 |
 | 9 | &nbsp;&nbsp;[Project And Output](#project-and-output) | 196-207 | 284 | npm run rule -- 9 |
@@ -53,22 +53,22 @@
 | 18 | &nbsp;&nbsp;[7 trục mở rộng quanh case + luật đóng vòng (Phase 2 — có máy đứng sau)](#7-trục-mở-rộng-quanh-case-luật-đóng-vòng-phase-2-có-máy-đứng-sau) | 347-581 | 4339 | npm run rule -- 18 |
 | 19 | &nbsp;&nbsp;[Execute Results](#execute-results) | 582-601 | 224 | npm run rule -- 19 |
 | 20 | &nbsp;&nbsp;[Phân tầng lỗi FE hay BE — bắt buộc kiểm API trước khi kết luận](#phân-tầng-lỗi-fe-hay-be-bắt-buộc-kiểm-api-trước-khi-kết-luận) | 602-616 | 307 | npm run rule -- 20 |
-| 21 | &nbsp;&nbsp;[Evidence — Quy chuẩn bắt buộc](#evidence-quy-chuẩn-bắt-buộc) | 617-628 | 629 | npm run rule -- 21 |
-| 22 | &nbsp;&nbsp;[Comment kết quả (Test Execution) — Quy chuẩn trình bày](#comment-kết-quả-test-execution-quy-chuẩn-trình-bày) | 629-640 | 396 | npm run rule -- 22 |
-| 23 | &nbsp;&nbsp;[Bug Claim Gate — kiểm chứng phải đi TRƯỚC lời nói](#bug-claim-gate-kiểm-chứng-phải-đi-trước-lời-nói) | 641-721 | 1391 | npm run rule -- 23 |
-| 24 | &nbsp;&nbsp;[Backlog Bug Gate](#backlog-bug-gate) | 722-731 | 154 | npm run rule -- 24 |
-| 25 | &nbsp;&nbsp;[Executable QA capabilities (autonomy & safety)](#executable-qa-capabilities-autonomy-safety) | 732-744 | 397 | npm run rule -- 25 |
-| 26 | &nbsp;&nbsp;[Automation quality](#automation-quality) | 745-783 | 728 | npm run rule -- 26 |
-| 27 | &nbsp;&nbsp;[Reporting](#reporting) | 784-794 | 170 | npm run rule -- 27 |
-| 28 | &nbsp;&nbsp;[Setup Strategy](#setup-strategy) | 795-808 | 207 | npm run rule -- 28 |
-| 29 | &nbsp;&nbsp;[Push execution](#push-execution) | 809-820 | 167 | npm run rule -- 29 |
-| 30 | [Workflow](#workflow) | 821-834 | 43 | npm run rule -- 30 |
-| 31 | [Chi phí một lượt chạy — đếm SỐ LƯỢT, không đếm độ dài](#chi-phí-một-lượt-chạy-đếm-số-lượt-không-đếm-độ-dài) | 835-865 | 477 | npm run rule -- 31 |
-| 32 | [Cleanup Rules](#cleanup-rules) | 866-893 | 388 | npm run rule -- 32 |
-| 33 | [Examples](#examples) | 894-901 | 80 | npm run rule -- 33 |
-| 34 | [References](#references) | 902-910 | 84 | npm run rule -- 34 |
+| 21 | &nbsp;&nbsp;[Evidence — Quy chuẩn bắt buộc](#evidence-quy-chuẩn-bắt-buộc) | 617-630 | 761 | npm run rule -- 21 |
+| 22 | &nbsp;&nbsp;[Comment kết quả (Test Execution) — Quy chuẩn trình bày](#comment-kết-quả-test-execution-quy-chuẩn-trình-bày) | 631-642 | 396 | npm run rule -- 22 |
+| 23 | &nbsp;&nbsp;[Bug Claim Gate — kiểm chứng phải đi TRƯỚC lời nói](#bug-claim-gate-kiểm-chứng-phải-đi-trước-lời-nói) | 643-723 | 1391 | npm run rule -- 23 |
+| 24 | &nbsp;&nbsp;[Backlog Bug Gate](#backlog-bug-gate) | 724-733 | 154 | npm run rule -- 24 |
+| 25 | &nbsp;&nbsp;[Executable QA capabilities (autonomy & safety)](#executable-qa-capabilities-autonomy-safety) | 734-746 | 418 | npm run rule -- 25 |
+| 26 | &nbsp;&nbsp;[Automation quality](#automation-quality) | 747-785 | 728 | npm run rule -- 26 |
+| 27 | &nbsp;&nbsp;[Reporting](#reporting) | 786-796 | 170 | npm run rule -- 27 |
+| 28 | &nbsp;&nbsp;[Setup Strategy](#setup-strategy) | 797-810 | 207 | npm run rule -- 28 |
+| 29 | &nbsp;&nbsp;[Push execution](#push-execution) | 811-822 | 167 | npm run rule -- 29 |
+| 30 | [Workflow](#workflow) | 823-836 | 43 | npm run rule -- 30 |
+| 31 | [Chi phí một lượt chạy — đếm SỐ LƯỢT, không đếm độ dài](#chi-phí-một-lượt-chạy-đếm-số-lượt-không-đếm-độ-dài) | 837-867 | 477 | npm run rule -- 31 |
+| 32 | [Cleanup Rules](#cleanup-rules) | 868-895 | 388 | npm run rule -- 32 |
+| 33 | [Examples](#examples) | 896-903 | 80 | npm run rule -- 33 |
+| 34 | [References](#references) | 904-912 | 84 | npm run rule -- 34 |
 
-> Cả file ~19691 token. Tra MỘT mục thay vì đọc cả file: npm run rule -- <số|từ khoá>
+> Cả file ~19844 token. Tra MỘT mục thay vì đọc cả file: npm run rule -- <số|từ khoá>
 <!-- MỤC-LỤC:KẾT-THÚC -->
 
 ## Purpose
@@ -616,7 +616,9 @@ Gán sai tầng khiến ticket đi nhầm người và bị dev bounce lại, m�
 
 ### Evidence — Quy chuẩn bắt buộc
 
-Áp dụng cho MỌI case đã execute (PASS và FAIL) và MỌI step. Vi phạm bất kỳ điểm nào bên dưới = evidence KHÔNG hợp lệ, KHÔNG được đưa vào report hay push Sheet/Backlog.
+**PHẠM VI (đổi 22/10/2026).** MỌI case đã execute (PASS và FAIL) phải có evidence. Độ sâu khác nhau: case thường = **1 ảnh/video ở bước QUYẾT ĐỊNH**; case thành bug (`product_bug`/`api_bug`) = ảnh/video **TỪNG step**, đủ chuỗi để dev dựng lại. Step luôn phải có `status`. Máy thi hành: `output_gate.js`, nhận diện tầng bug bằng `laTangBug()` (`lib/output_rules.js`). Số đo + lý do: `docs/rationale/evidence-muc-b.md`.
+
+Vi phạm bất kỳ điểm nào bên dưới = evidence KHÔNG hợp lệ, KHÔNG được đưa vào report hay push Sheet/Backlog.
 
 1. **Chỉ ảnh hoặc video — cấm file dữ liệu thô.** Evidence hợp lệ chỉ là ảnh (`.png/.jpg/.jpeg/.webp`) hoặc video (`.mp4/.webm`). TUYỆT ĐỐI KHÔNG dùng `.json`, `.md`, `.txt`, `.log`, `.html`, `.csv`, `trace.zip` hay file dữ liệu thô nào làm evidence của case hoặc step — kể cả `order_state.json`, `api_response.json`, execution summary. Cần chứng minh dữ liệu API/DB/state thì **chụp ảnh màn UI** hiển thị dữ liệu đó (hoặc màn có giá trị tương ứng), không đính file dữ liệu.
 2. **Highlight đúng element đang kiểm.** Mỗi ảnh phải khoanh (tham số `highlight` của `evidence_recorder`) đúng phần tử của step đó: nút / field / dòng bảng / nhãn / thông báo / giá trị. Cấm ảnh full-page chung chung không chỉ rõ điểm kiểm.
@@ -624,7 +626,7 @@ Gán sai tầng khiến ticket đi nhầm người và bị dev bounce lại, m�
 4. **Video cho case phức tạp.** Case nhiều bước hoặc tương tác động PHẢI quay video, giống evidence khi log bug, đính kèm cùng ảnh step để tái hiện được hành vi. Cụ thể: thanh toán qua cổng ngoài, trạng thái cập nhật bất đồng bộ, luồng qua nhiều màn, iframe hoặc popup, drag & drop, upload. Case đơn giản một màn chỉ kiểm hiển thị thì ảnh highlight là đủ.
 5. **Verify đúng màn trước khi chấp nhận.** Sau khi chụp, PHẢI mở ảnh và kiểm nội dung để chắc chắn evidence đúng màn và đúng kết quả của case. KHÔNG phải trang lỗi (404, 500, blank, timeout, "can't find that page"). KHÔNG phải màn sai bước, không phải trạng thái loading dở, không phải cổng hay màn của bước khác. Sai màn thì sửa selector và điều hướng rồi chụp lại. Không push evidence sai.
 6. **Mỗi case dùng evidence của chính nó.** Không mượn hay tham chiếu ảnh của case khác, không dùng placeholder. Nếu không re-drive được (order đã tiêu, link chết…) thì dùng đúng ảnh gốc thật của chính case đó và ghi rõ lý do không re-capture — không thay bằng ảnh không đúng nội dung.
-7. **Lưu đúng nơi + gắn đủ.** Ảnh/video dưới `test-results/artifacts/<TC_ID>/`; đường dẫn ghi vào `Evidence` của case và của TỪNG step (mỗi step: status PASS/FAIL riêng + ảnh riêng).
+7. **Lưu đúng nơi + gắn đủ.** Ảnh/video dưới `test-results/artifacts/<TC_ID>/`; đường dẫn ghi vào `Evidence` của case. **MỌI step vẫn phải có `status` PASS/FAIL riêng** — chỗ này KHÔNG đổi, vì step không status thì không biết case hỏng ở đâu. Riêng **ảnh** từng step: bắt buộc với case tầng bug, tuỳ chọn với case thường (xem bảng PHẠM VI ở đầu mục).
 
 ### Comment kết quả (Test Execution) — Quy chuẩn trình bày
 
@@ -737,7 +739,7 @@ Các năng lực chạy thật trong `scripts/qa/` + `exploratory/` phải khai 
 - **Non-destructive & non-prod**: `security_check` chỉ GET/read-only + `--confirm-nonprod`; `load_check` non-prod + cap + `--confirm-nonprod`; fuzzing/exploit/brute-force/ZAP là Manual-only opt-in có phê duyệt người. TUYỆT ĐỐI không chạy trên production.
 - **Mask PII/secret** trong mọi report (security/knowledge/dashboard); không ghi credential/PII khách hàng.
 - **Learning data chỉ ghi fact đã qua gate** (bug đã qua Backlog gate); band risk máy chấm luôn cho phép QA override.
-- **Output Quality Gate là THỰC THI, không phải prose.** `scripts/qa/output_gate.js` cùng `scripts/qa/lib/output_rules.js` biến rule chất lượng thành check máy. `push_test_execution.js` tự chạy nó trước khi push: comment phải gọn và không debug, mọi step có status kèm evidence ảnh hoặc video, case phức tạp phải có video.
+- **Output Quality Gate là THỰC THI, không phải prose.** `scripts/qa/output_gate.js` cùng `scripts/qa/lib/output_rules.js` biến rule chất lượng thành check máy. `push_test_execution.js` tự chạy nó trước khi push: comment phải gọn và không debug, **mọi step có status**, case đã execute phải có ảnh/video (case tầng bug thì ảnh TỪNG step — xem §"Evidence — Quy chuẩn bắt buộc"), case phức tạp phải có video.
 
   Vi phạm thì CHẶN, và agent tự sửa trong session chứ không chờ nhắc. `--qa-approved` bỏ qua có chủ đích và được log lại. Bug cùng Test Execution **bắt buộc qua script kit**, không tạo tay bằng MCP hay API.
 - **Không thêm dependency nặng**: axe-core (npm) đủ cho a11y; k6 là binary ngoài (Docker/PATH, không vào deps), thiếu → skip sạch.
