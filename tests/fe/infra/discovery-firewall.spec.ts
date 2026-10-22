@@ -36,6 +36,7 @@ test.describe('@infra tường lửa — 0 request ghi lọt, và FIXTURE KHÔNG
     const truocSo = srv.store.truong.length;
 
     await page.goto(`${srv.url}/truong`);
+    // locator-lint-disable-next-line fixture CỤC BỘ của chính bài tự kiểm này (fixtures/discovery-app), không phải QEMIS: mục đích là BẤM nhầm nút nguy hiểm để chứng minh tường lửa ghi chặn được; lưới fixture có nhiều dòng và bấm dòng nào cũng được
     await page.locator('button.nguyhiem', { hasText: 'Xoá' }).first().click();
     await page.waitForTimeout(300);
 
@@ -78,6 +79,7 @@ test.describe('@infra tường lửa — 0 request ghi lọt, và FIXTURE KHÔNG
     const truoc = JSON.stringify(srv.store.truong);
 
     await page.goto(`${srv.url}/truong`);
+    // locator-lint-disable-next-line fixture CỤC BỘ của chính bài tự kiểm này (fixtures/discovery-app), không phải QEMIS: mục đích là BẤM nhầm nút nguy hiểm để chứng minh tường lửa ghi chặn được; lưới fixture có nhiều dòng và bấm dòng nào cũng được
     await page.locator('button.nguyhiem', { hasText: 'Xoá' }).first().click();
     await page.goto(`${srv.url}/them-truong`);
     await page.getByRole('button', { name: 'Ghi lại qua API' }).click();
@@ -151,6 +153,7 @@ test.describe('@infra tường lửa — 0 request ghi lọt, và FIXTURE KHÔNG
     const bb = await fw.install(page);
     await page.goto(`${srv.url}/truong`);
     bb.datNutDangBam('Xoá');
+    // locator-lint-disable-next-line fixture CỤC BỘ của chính bài tự kiểm này (fixtures/discovery-app), không phải QEMIS: mục đích là BẤM nhầm nút nguy hiểm để chứng minh tường lửa ghi chặn được; lưới fixture có nhiều dòng và bấm dòng nào cũng được
     await page.locator('button.nguyhiem', { hasText: 'Xoá' }).first().click();
     await page.waitForTimeout(300);
 

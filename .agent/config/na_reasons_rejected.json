@@ -22,8 +22,8 @@
         "perf",
         "resilience"
       ],
-      "pattern": "khong (co|neu) (nguong|sla)[^.]{0,80}(khong co oracle|khong du de dung oracle|khong phan duoc|khong cham duoc)|khong co nguong thi khong co oracle|khong du de dung oracle cho case (concurrency|dong thoi|tai)",
-      "vi_sao_bac": "Thiếu ngưỡng chỉ khiến case thành OBSERVATION, hoặc dùng ngưỡng GIẢ ĐỊNH ghi rõ là giả định và bắt ghi số ĐO ĐƯỢC vào evidence để BA chốt sau — nó không khiến cả chiều thành n/a.",
+      "pattern": "khong (co|neu) (nguong|sla)[^.]{0,80}(khong co oracle|khong du de dung oracle|khong phan duoc|khong cham duoc)|khong co nguong thi khong co oracle|khong du de dung oracle cho case (concurrency|dong thoi|tai)|khong [^.]{0,40}(co|neu|khai|nhac|ghi|cung cap|neo) (nguong|sla|nfr)[\\s\\S]{0,200}(khong phan duoc|khong co oracle|khong sinh|khong tao case|khong cham duoc)",
+      "vi_sao_bac": "Thiếu ngưỡng chỉ khiến case thành OBSERVATION, hoặc dùng ngưỡng GIẢ ĐỊNH ghi rõ là giả định và bắt ghi số ĐO ĐƯỢC vào evidence để BA chốt sau — nó không khiến cả chiều thành n/a. Bat them cach dat chu khac: \"khong NGUON NAO KHAI nguong\" (dong tu khai/nhac/ghi/cung cap/neo thay cho co/neu), va ve ket luan nam SANG CAU SAU — CSDL-9001 lot luoi dung hai cho do, tu 25/09 den 17/10/2026.",
       "lam-gi-thay-the": "Khai `required`, viết case với ngưỡng GIẢ ĐỊNH có đơn vị và câu \"ghi số giây thực vào evidence\"."
     },
     {

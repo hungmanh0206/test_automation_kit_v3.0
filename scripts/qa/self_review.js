@@ -228,6 +228,28 @@ if (TASK && taskDir && fs.existsSync(taskDir)) {
   results.push(engine.toResult('locator discipline (chống bug sai)', { problems, warnings, note: m ? 'có P0 MỚI' : 'không phát sinh P0 mới', severity: engine.SEVERITY.P0 }));
 }
 
+// 5b) MỘT tcId MỘT FILE SPEC — chống "lượt chạy sau ghi đè verdict lượt trước, lặng lẽ".
+//
+// `testcase-status.json` giữ đúng một entry cho mỗi tcId. Hai spec cùng khai một tcId ⇒ test nào chạy
+// SAU thắng, và ảnh `step-NN-*.png` trùng tên cũng bị đè. Suite vẫn xanh, số test còn tăng, log không
+// một chữ. Đo 16/10/2026 ở CSDL-9001: một khối stub cũ chấm BLOCKED_SETUP đã hạ BẢY ô Excel từ Pass
+// xuống Pending, và một spec chụp-ảnh chấm PASSED cho bốn case vốn là BUG đã xác nhận.
+{
+  const { spawnSync } = require('child_process');
+  const r = spawnSync(process.execPath, [path.join(__dirname, 'tcid_duplicate_check.js'), '--task', TASK], { encoding: 'utf8' });
+  const out = `${r.stdout || ''}${r.stderr || ''}`;
+  const problems = []; const warnings = [];
+  const m = out.match(/CHẶN: (\d+) tcId được ĐĂNG KÝ/);
+  if (m) {
+    problems.push(`${m[1]} tcId được đăng ký với recorder ở NHIỀU HƠN MỘT file spec — lượt chạy sau ghi đè verdict lượt trước, lặng lẽ, và đè cả ảnh evidence trùng tên.`);
+    (out.match(/^\s+✗ .+$/gm) || []).slice(0, 6).forEach((l) => problems.push(`  ${l.trim()}`));
+    problems.push(`→ Gỡ bản đăng ký cũ, giữ đúng một chỗ. Chạy: \`node scripts/qa/tcid_duplicate_check.js --task ${TASK}\`.`);
+  }
+  const w = out.match(/⚠ (\d+) tcId trùng ở tên/);
+  if (!m && w) warnings.push(`${w[1]} tcId trùng ở tên test hoặc tên file ảnh — không mất verdict, nhưng ảnh cùng tên đè nhau.`);
+  results.push(engine.toResult('một tcId một file spec', { problems, warnings, note: m ? 'có tcId khai ở hai file' : 'không trùng đăng ký', severity: engine.SEVERITY.P0 }));
+}
+
 // 6) Knowledge stores GHI TAY (domain/system/decisions) — chống đúng cái bẫy "có store, có validator,
 // nhưng không gate nào gọi ⇒ rỗng mãi". Khác check #4: #4 lo dữ liệu MÁY tự thu (snapshot/KPI/bug),
 // còn 3 store này chỉ có người/agent ghi được nên phải bị nhắc ở đây, không thì y hệt knowledge/ ngày xưa.
