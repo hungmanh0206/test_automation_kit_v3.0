@@ -1522,6 +1522,33 @@ async function main() {
 
     console.log(`Processing ${testCase.tcId}: ${displayTitle}${prioritySuffix}`);
 
+    /*
+     * MÔ TẢ LÀ HÀM, không còn là chuỗi dựng sẵn — vì nó cần TÊN ẢNH, mà tên ảnh chỉ biết được SAU khi upload.
+     * Hoist lên đây (trước nhánh DRY_RUN) vì preview dry-run cũng gọi `moTa`; để ở dưới thì dry-run chạm
+     * TDZ ("Cannot access 'moTa' before initialization").
+     */
+    const moTa = (tenAnh) => buildBugDescription({
+      preconditions: override.preconditions || tcInfo.preconditions || '(không có thông tin tiền điều kiện)',
+      steps: override.steps?.length ? override.steps : (tcInfo.steps?.length ? tcInfo.steps : testCase.steps),
+      actualResult,
+      expectedResult: override.expectedResult || tcInfo.expectedResult || '(xem file test case gốc)',
+      foundBy: foundBySource(),
+      /*
+       * `--bug-payload` ĐƯỢC PHÉP khai lại `tcId` — và trước đây dòng này bỏ qua nó.
+       *
+       * `testCase.tcId` là mã SUY RA từ tiêu đề test (`extractTcId`). Với test không mang mã dạng
+       * `..._TC_<số>` trong tiêu đề, nó rơi xuống nhánh dự phòng "chuẩn hoá 60 ký tự đầu của tiêu đề",
+       * cho ra những chuỗi như `XSS_L_U_TR_H_T_N_NH_C_KHOANH_V_NG`. Marker đó đi thẳng vào bug, và
+       * nó là thứ `searchExistingBug` dùng để chống trùng, `learn_bugs` dùng để map bug về Module —
+       * nên bug không map được về case thật, dù payload đã khai đúng `CSDL_NHANSU_TC_159`.
+       *
+       * Mọi trường khác ở đây đều ưu tiên `override.*`; riêng dòng này thì không, nên lệch im lặng.
+       */
+      tcId: override.tcId || testCase.tcId,
+      layer,
+      anh: tenAnh,
+    });
+
     if (DRY_RUN) {
       /*
        * In TITLE + DESCRIPTION thật ra console. Trước đây dry-run chỉ in một dòng "Would create" nên
@@ -1552,21 +1579,7 @@ async function main() {
       continue;
     }
 
-    /*
-     * MÔ TẢ LÀ HÀM, không còn là chuỗi dựng sẵn — vì nó cần TÊN ẢNH, mà tên ảnh chỉ biết được SAU khi upload.
-     * Đó cũng là lý do hai nhánh dưới đây đảo thứ tự: upload trước, ghi chữ sau.
-     */
-    const moTa = (tenAnh) => buildBugDescription({
-      preconditions: override.preconditions || tcInfo.preconditions || '(không có thông tin tiền điều kiện)',
-      steps: override.steps?.length ? override.steps : (tcInfo.steps?.length ? tcInfo.steps : testCase.steps),
-      actualResult,
-      expectedResult: override.expectedResult || tcInfo.expectedResult || '(xem file test case gốc)',
-      foundBy: foundBySource(),
-      tcId: testCase.tcId,
-      layer,
-      anh: tenAnh,
-    });
-
+    /* `moTa` đã hoist lên trước nhánh DRY_RUN (xem trên). Upload trước, ghi chữ sau. */
     if (UPDATE_ISSUE_KEY) {
       try {
         /*
