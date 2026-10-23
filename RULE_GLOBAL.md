@@ -53,7 +53,7 @@
 | 18 | &nbsp;&nbsp;[7 trục mở rộng quanh case + luật đóng vòng (Phase 2 — có máy đứng sau)](#7-trục-mở-rộng-quanh-case-luật-đóng-vòng-phase-2-có-máy-đứng-sau) | 347-581 | 4339 | npm run rule -- 18 |
 | 19 | &nbsp;&nbsp;[Execute Results](#execute-results) | 582-601 | 224 | npm run rule -- 19 |
 | 20 | &nbsp;&nbsp;[Phân tầng lỗi FE hay BE — bắt buộc kiểm API trước khi kết luận](#phân-tầng-lỗi-fe-hay-be-bắt-buộc-kiểm-api-trước-khi-kết-luận) | 602-616 | 307 | npm run rule -- 20 |
-| 21 | &nbsp;&nbsp;[Evidence — Quy chuẩn bắt buộc](#evidence-quy-chuẩn-bắt-buộc) | 617-630 | 761 | npm run rule -- 21 |
+| 21 | &nbsp;&nbsp;[Evidence — Quy chuẩn bắt buộc](#evidence-quy-chuẩn-bắt-buộc) | 617-630 | 762 | npm run rule -- 21 |
 | 22 | &nbsp;&nbsp;[Comment kết quả (Test Execution) — Quy chuẩn trình bày](#comment-kết-quả-test-execution-quy-chuẩn-trình-bày) | 631-642 | 396 | npm run rule -- 22 |
 | 23 | &nbsp;&nbsp;[Bug Claim Gate — kiểm chứng phải đi TRƯỚC lời nói](#bug-claim-gate-kiểm-chứng-phải-đi-trước-lời-nói) | 643-723 | 1391 | npm run rule -- 23 |
 | 24 | &nbsp;&nbsp;[Backlog Bug Gate](#backlog-bug-gate) | 724-733 | 154 | npm run rule -- 24 |
@@ -616,7 +616,7 @@ Gán sai tầng khiến ticket đi nhầm người và bị dev bounce lại, m�
 
 ### Evidence — Quy chuẩn bắt buộc
 
-**PHẠM VI (đổi 22/10/2026).** MỌI case đã execute (PASS và FAIL) phải có evidence. Độ sâu khác nhau: case thường = **1 ảnh/video ở bước QUYẾT ĐỊNH**; case thành bug (`product_bug`/`api_bug`) = ảnh/video **TỪNG step**, đủ chuỗi để dev dựng lại. Step luôn phải có `status`. Máy thi hành: `output_gate.js`, nhận diện tầng bug bằng `laTangBug()` (`lib/output_rules.js`). Số đo + lý do: `docs/rationale/evidence-muc-b.md`.
+**PHẠM VI (đổi 22/10/2026).** MỌI case đã execute (PASS và FAIL) phải có evidence. Độ sâu thì khác nhau. Case thường: **1 ảnh/video ở bước QUYẾT ĐỊNH**. Case thành bug (`product_bug`/`api_bug`): ảnh/video **TỪNG step**, đủ chuỗi để dev dựng lại. Step luôn phải có `status`. Máy thi hành: `output_gate.js`. Nhận diện tầng bug: `laTangBug()` trong `lib/output_rules.js`. Số đo và lý do: `docs/rationale/evidence-muc-b.md`.
 
 Vi phạm bất kỳ điểm nào bên dưới = evidence KHÔNG hợp lệ, KHÔNG được đưa vào report hay push Sheet/Backlog.
 

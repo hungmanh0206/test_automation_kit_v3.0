@@ -7,6 +7,70 @@
 > `.agent/**`, `tests/support/**` đều là **shared change** (xem `RULE_GLOBAL.md` §Shared Change Gate) —
 > ảnh hưởng mọi story đang chạy. Mỗi mục ghi **vấn đề → cách chữa**, không chỉ liệt kê tính năng.
 
+## v2.9.4 — 2026-10-23 — Tài liệu sinh ra phải đếm thứ CI NHÌN THẤY
+
+**Vấn đề.** Ba cửa sinh tài liệu — `docSpecs()`, `rule_coverage`, `gate_index` — quét ĐĨA. Máy người
+đang làm luôn có file chưa commit, nên bản sinh ở đó khác bản CI tính ở cây sạch. Cửa đỏ, thông điệp
+bảo "chạy lại rồi commit", chạy xong vẫn đỏ — càng làm theo càng sai. Đo được trong một lượt: bản sinh
+ở máy ghi `140 gate · 143 spec` trong khi HEAD chỉ có 138, vì repo đang có ~200 file WIP. Đây là lần
+thứ BA của cùng một lớp lỗi; vế `spec` đã vá ở v2.9.1, vế `gate` và vế `corpus` sót tới nay.
+
+**Chữa.** Cả ba lọc theo `git ls-files`, giữ đường thoát khi không có `.git` — gói phát hành cố ý không
+có git, và ở đó đĩa CHÍNH LÀ tập đã phát hành nên không có WIP nào lẫn vào. `predeploy` (dựng worktree
+sạch tại HEAD) là chỗ nghiệm thu; chạy nó TRƯỚC khi commit thì nó xanh giả, vì nó đo HEAD.
+
+**Evidence chuyển sang mức B.** Case thường cần 1 ảnh/video ở BƯỚC QUYẾT ĐỊNH thay vì ảnh mỗi step.
+Case thành bug (`product_bug`/`api_bug`) giữ nguyên chuỗi từng step — dev nhận bug phải dựng lại được
+đường dẫn tới lỗi, một ảnh màn cuối không nói được lỗi phát sinh từ bước nào. `status` của từng step
+không đổi, vẫn bắt buộc.
+
+Tiền đề "evidence mỗi step tốn token" đã bị đo bác một phần: lúc CHẠY tốn **0 token** (spec tự chụp qua
+`evidence_recorder`, Playwright làm), lúc VIẾT SPEC chỉ chiếm **1–2%** số dòng. Vẫn đổi, vì phần bỏ đi
+chủ yếu là ảnh LẶP trong cùng một case. Số đo + lý do: `docs/rationale/evidence-muc-b.md`.
+
+**Hook bảo mật: hai lỗi NGƯỢC CHIỀU.** `guard_db_access` khớp từ-đọc và đường-dẫn-bí-mật một cách RỜI
+RẠC, ở bất kỳ đâu trong chuỗi lệnh. Hệ quả: một commit mô tả cách dùng profile mà kết thúc bằng
+`| tail -2` thì bị CHẶN OAN (cái `tail` đọc output của `git push`, không đọc file nào), còn
+`grep PASSWORD <file bí mật>` thì LỌT — dù đó mới đúng là đọc bí mật.
+
+Nay cắt lệnh theo `| ; && ||` rồi chỉ xét đoạn có TỪ ĐẦU là lệnh đọc, và chỉ soi ĐỐI SỐ của chính đoạn
+đó; thêm `grep/sed/awk/Get-Content` vào nhóm lệnh đọc. 12 ca đối chứng hai chiều khoá lại trong
+`guard-db-access.spec.ts`.
+
+**Slash command biết đang làm task nào.** Gõ `/phase2` không kèm mã thì `$ARGUMENTS` rỗng, lệnh chạy với
+`--task` trống và hỏng ở một gate phía sau với thông điệp chẳng liên quan — hoặc tệ hơn, agent tự điền
+mã của lượt trước, đúng thứ CLAUDE.md §5 cấm (`.auth/` và UAT dùng chung, nhầm mã là ghi kết quả sang
+task khác).
+
+Thêm `npm run task:which`: có tham số thì KIỂM, đúng 1 profile thì chọn, NHIỀU profile thì in danh sách
+rồi thoát 2 để NGƯỜI chọn. Cố ý không lấy "profile mới sửa gần nhất" — `mtime` chỉ nói file nào vừa bị
+chạm, không nói người dùng đang muốn làm task nào.
+
+Kèm theo: `gate:policy` nay nhìn thấy `.claude/commands`. Nó vốn bỏ sót bề mặt đó trong khi
+`gate_index` đã liệt từ trước — hai máy cùng hỏi "ai gọi cái này" mà nhìn hai tập khác nhau, nên công
+cụ chỉ được slash command gọi bị báo mồ côi.
+
+Và `/start` cùng `/discover` từng dạy một câu lệnh mà chính hook của kit chặn, tức người mới đụng tường
+ở bước thứ hai của lệnh onboarding. Đã đổi sang dạng `TASK_KEY=… PROJECT_OUTPUT_DIR=…` (đo: hook cho
+qua, preflight chạy thật exit 0). 47 file tài liệu cho NGƯỜI đọc thì giữ nguyên — hook chỉ chặn lệnh
+agent chạy.
+
+**Bộ báo cáo hiệu năng k6.** Artifact theo LƯỢT CHẠY: bản cũ ghi đè cùng một file summary mỗi lượt nên
+lượt sau xoá sổ lượt trước, mà số hiệu năng chỉ có nghĩa khi so theo thời gian. Bản cũ cũng chưa từng
+xin `--out json` nên không hề có dữ liệu theo thời gian — mọi biểu đồ diễn biến đều không dựng được.
+Thêm báo cáo HTML có biểu đồ, mục lục theo testcase, và đường phục hồi cho lượt chạy cũ chỉ còn file
+HTML của k6 web-dashboard.
+
+**Công cụ Backlog.** 7 script đọc/sửa issue. Vá `bug_reporter` bỏ qua `tcId` khai tay: mã suy ra từ
+tiêu đề rơi xuống nhánh dự phòng cho ra chuỗi kiểu `XSS_L_U_TR_H_T_N_NH_C_KHOANH_V_NG`, mà chính marker
+đó là thứ chống trùng bug và map bug về Module.
+
+**Bảo mật phụ thuộc.** `follow-redirects` 1.16.0 → 1.16.1 — hai lỗ HIGH rò header credential khi
+redirect cross-origin (GHSA-q3jh-wrc6-jgq8 · GHSA-8r9p-f939-6h3c), đúng chỗ kit nhạy cảm vì nó gửi
+cookie/token qua HTTP client. Ghim bằng `overrides` để `npm install` không trôi ngược; đã đối chứng
+bằng cách ghim tạm 1.15.9 để chắc `overrides` điều khiển thật.
+
+
 ## v2.9.3 — 2026-10-16 — "Không chạy nổi" không được giả làm "code sai"
 
 **Vấn đề.** Một lượt `release:verify` của v2.9.2 ra 14/15 với hai ca đỏ ở `typecheck-scripts`; lượt sau
