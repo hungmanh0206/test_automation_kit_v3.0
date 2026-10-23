@@ -309,6 +309,24 @@ const FAILURE_LAYER = new RegExp([
 ].join('|'), 'i');
 const hasFailureLayer = (text) => FAILURE_LAYER.test(String(text || ''));
 
+/*
+ * TẦNG BUG — HẸP HƠN HẲN `FAILURE_LAYER`, và cố ý.
+ *
+ * `FAILURE_LAYER` nhận MỌI tầng (setup · script · infra · flaky · doc_outdated…) vì việc của nó là
+ * "đã phân tầng chưa". Còn ở đây câu hỏi khác: case này có SẮP THÀNH BUG gửi dev không. Chỉ hai tầng
+ * `product_bug` và `api_bug` được phép log Backlog, nên chỉ hai tầng đó mới đòi chuỗi evidence đầy đủ.
+ *
+ * Dùng cho luật evidence mức B (22/10/2026): case thường chỉ cần evidence ở mức CASE; case thành bug
+ * thì phải có evidence TỪNG BƯỚC, vì dev cần dựng lại được chuỗi dẫn tới lỗi.
+ *
+ * KHÔNG nhận `\bbug\b` trơ: chữ "bug" xuất hiện trong vô số câu văn ("không phải bug", "nghi bug"),
+ * và bắt nó sẽ kéo cả case đã loại trừ bug vào diện đòi chuỗi.
+ */
+const BUG_LAYER = new RegExp([
+  'product[_ ]?bug', 'api[_ ]?bug', 'lỗi sản phẩm', 'api contract',
+].join('|'), 'i');
+const laTangBug = (text) => BUG_LAYER.test(String(text || ''));
+
 // Oracle tautology = đối chiếu chính output của app với chính nó (app==app) thay vì giá trị spec
 // độc lập. Heuristic bảo thủ (chỉ CẢNH BÁO) — bắt các cụm tự-tham-chiếu rõ ràng.
 const TAUTOLOGY_HINT = new RegExp([
@@ -670,9 +688,9 @@ function lintSqlCell(text, where) {
 function lintDbPersistHasQuery(row) {
   const dims = Array.isArray(row.dimensions) ? row.dimensions : [];
   if (!dims.includes('dbpersist')) return [];
-  const blob = `${row.steps || ''}\n${row.expected || ''}`;
+  const blob = `${row.steps || ''}\n${row.expected || ''}\n${row.script || ''}`;
   if (/\bselect\b[\s\S]*\bfrom\b/i.test(blob)) return [];
-  return ['mang tag `[DbPersist]` nhưng không có câu `SELECT` nào để QA chạy tay — thêm truy vấn đọc bản ghi vào "Các bước thực hiện"'];
+  return ['mang tag `[DbPersist]` nhưng không có câu `SELECT` nào để QA chạy tay — thêm truy vấn đọc bản ghi vào "Các bước thực hiện" hoặc cột `SCRIPT`'];
 }
 
 module.exports = {
@@ -685,6 +703,6 @@ module.exports = {
   hasDebugTokens, looksRunOn, splitIdeas, looksComplex,
   cleanComment, lintComment, lintEvidence, lintBugHeadings,
   hasRangeGrouping, noteLinesInExpected, leadingNumbers, vagueExpectedLines,
-  hasFailureLayer, looksTautology,
+  hasFailureLayer, laTangBug, looksTautology,
   BUG_SECTIONS, RAW_MONEY, PII_PATTERNS,
 };

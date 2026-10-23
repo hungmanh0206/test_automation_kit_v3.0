@@ -81,6 +81,18 @@ const FUNC_HEADERS = [
 ];
 const FUNC_COL_WIDTHS = [10, 16, 42, 28, 30, 46, 40, 16, 11, 13, 16, 12, 22, 8.71, 8.71, 8.71, 16, 22];
 /*
+ * BỐ CỤC "CÓ SCRIPT" — nhân bản header của bộ testcase EMIS QA dùng ("Testcase EMIS 2025.xlsx", dòng 5):
+ * cột SCRIPT đứng ngay sau Expected Result, chứa câu SQL đối chiếu của case cần truy vấn.
+ * Chỉ bật khi bảng Markdown CÓ cột "SCRIPT". Dropdown và công thức đếm dò cột theo TÊN, nên chèn cột không
+ * làm lệch Test Type/Priority/Result như khi đóng cứng chữ cái.
+ */
+const FUNC_SCRIPT_HEADERS = [
+  "ID_TC", "Module", "Test Case Name", "Preconditions", "Test Data", "Test Steps", "Expected Result", "SCRIPT",
+  "Test Type", "Priority", "Test Level", "Actor / Role", "Result", "Note", "Test Objective", "Technique", "REQ ID",
+  "Loại case", "Tag",
+];
+const FUNC_SCRIPT_COL_WIDTHS = [10, 16, 42, 28, 30, 46, 40, 50, 16, 11, 13, 16, 12, 22, 8.71, 8.71, 8.71, 16, 22];
+/*
  * BỐ CỤC "5 CẤP" — nhân bản từ bộ testcase chuẩn của hệ thống
  * ("D:/Tài liệu nghiệp vụ/Testcase_CSDL_2026-2027.xlsx", sheet "Đội ngũ v1", đo bằng exceljs 30/09/2026).
  *
@@ -113,7 +125,15 @@ const DROPDOWN = {
   testLevel: "Unit,Integration,System,UAT",
   result: "Pass,Fail,Pending,Un_test",
   // Bộ chuẩn dùng bộ giá trị khác cho Result theo cấp, và có thêm dropdown "Nhóm KT".
-  result5: "Pass,Fail,Blocked,N/A",
+  //
+  // `Pending` THÊM 17/10/2026. Trước đó danh sách là `Pass,Fail,Blocked,N/A` — tức KIT GHI RA MỘT GIÁ
+  // TRỊ MÀ CHÍNH NÓ CẤM: `.agent/config/verdict_taxonomy.json` quy đổi BA trạng thái (SKIP,
+  // BLOCKED_SETUP, SKIP_SETUP) thành `Pending`, và `merge-theo-cap.js` ghi thẳng chuỗi đó vào đúng các
+  // cột này. Ở CSDL-9001 có 94 ô như vậy. Hệ quả: Excel đánh dấu chúng là dữ liệu ngoài danh sách, và
+  // người sửa tay không chọn được `Pending` từ dropdown. Công thức sheet tiến độ thì nhận cả
+  // `Pending` lẫn `Blocked` nên CON SỐ vẫn đúng — lỗi nằm ở tính hợp lệ của ô, không ở phép đếm.
+  // Mở rộng danh sách chứ không đổi 94 ô: taxonomy là nguồn sự thật, đổi ô là đi ngược nguồn.
+  result5: "Pass,Fail,Blocked,Pending,N/A",
   nhomKT: "Business Rule,Negative,Positive,Security,UI,Validation",
   testType5: "Functional,Non-functional",
   testLevel5: "Integration,System",
@@ -398,9 +418,10 @@ function setStyledCell(worksheet, addr, value, opts = {}) {
  * năng/Ngày tạo) + mini-dashboard (Lần 1 nhập tay, Mới nhất tự tính) + header 16 cột (dòng 5) + data từ
  * dòng 7 + dropdown/conditional-formatting đúng danh sách đo được từ file mẫu.
  */
-function addFunctionSheet(workbook, sheetName, groupLabel, rows, createdDate, nam5cap = false) {
-  const HEADERS = nam5cap ? FUNC5_HEADERS : FUNC_HEADERS;
-  const WIDTHS = nam5cap ? FUNC5_COL_WIDTHS : FUNC_COL_WIDTHS;
+function addFunctionSheet(workbook, sheetName, groupLabel, rows, createdDate, nam5cap = false, coScript = false) {
+  const HEADERS = nam5cap ? FUNC5_HEADERS : (coScript ? FUNC_SCRIPT_HEADERS : FUNC_HEADERS);
+  const WIDTHS = nam5cap ? FUNC5_COL_WIDTHS : (coScript ? FUNC_SCRIPT_COL_WIDTHS : FUNC_COL_WIDTHS);
+  const cotCua = (ten) => columnIndexToName(HEADERS.indexOf(ten));
   // xSplit 1: khoá cột ID_TC khi cuộn ngang — cột Expected Result nằm tận cột G, cuộn sang đó mà mất ID_TC
   // thì không biết đang đọc case nào. ySplit 6: giữ banner + hàng tiêu đề như cũ.
   const worksheet = workbook.addWorksheet(sheetName, { views: [{ state: "frozen", xSplit: 1, ySplit: 6 }] });
@@ -482,9 +503,10 @@ function addFunctionSheet(workbook, sheetName, groupLabel, rows, createdDate, na
   setStyledCell(worksheet, "A4", "Mới nhất", { fill: COLOR.label });
   setStyledCell(worksheet, "B4", { formula: `COUNTA($A$${FUNC_DATA_START_ROW}:$A$${FUNC_DATA_END_ROW})` }, { fill: "FFFFFFFF", bold: false });
   worksheet.mergeCells("B4:C4");
-  setStyledCell(worksheet, "D4", { formula: `COUNTIF($L$${FUNC_DATA_START_ROW}:$L$${FUNC_DATA_END_ROW},"Pass")` }, { fill: "FFFFFFFF", bold: false });
-  setStyledCell(worksheet, "E4", { formula: `COUNTIF($L$${FUNC_DATA_START_ROW}:$L$${FUNC_DATA_END_ROW},"Fail")` }, { fill: "FFFFFFFF", bold: false });
-  setStyledCell(worksheet, "F4", { formula: `COUNTIF($L$${FUNC_DATA_START_ROW}:$L$${FUNC_DATA_END_ROW},"Pending")` }, { fill: "FFFFFFFF", bold: false });
+  const R = cotCua("Result");
+  setStyledCell(worksheet, "D4", { formula: `COUNTIF($${R}$${FUNC_DATA_START_ROW}:$${R}$${FUNC_DATA_END_ROW},"Pass")` }, { fill: "FFFFFFFF", bold: false });
+  setStyledCell(worksheet, "E4", { formula: `COUNTIF($${R}$${FUNC_DATA_START_ROW}:$${R}$${FUNC_DATA_END_ROW},"Fail")` }, { fill: "FFFFFFFF", bold: false });
+  setStyledCell(worksheet, "F4", { formula: `COUNTIF($${R}$${FUNC_DATA_START_ROW}:$${R}$${FUNC_DATA_END_ROW},"Pending")` }, { fill: "FFFFFFFF", bold: false });
   setStyledCell(worksheet, "G4", { formula: "MAX(0,$B$4-$D$4-$E$4-$F$4)" }, { fill: "FFFFFFFF", bold: false });
 
   }
@@ -553,13 +575,13 @@ function addFunctionSheet(workbook, sheetName, groupLabel, rows, createdDate, na
       });
     }
   } else {
-    applyListValidation("H", DROPDOWN.testType);
-    applyListValidation("I", DROPDOWN.priority);
-    applyListValidation("J", DROPDOWN.testLevel);
-    applyListValidation("L", DROPDOWN.result);
+    applyListValidation(cotCua("Test Type"), DROPDOWN.testType);
+    applyListValidation(cotCua("Priority"), DROPDOWN.priority);
+    applyListValidation(cotCua("Test Level"), DROPDOWN.testLevel);
+    applyListValidation(cotCua("Result"), DROPDOWN.result);
 
     worksheet.addConditionalFormatting({
-      ref: `L${FUNC_DATA_START_ROW}:L${FUNC_DATA_END_ROW}`,
+      ref: `${cotCua("Result")}${FUNC_DATA_START_ROW}:${cotCua("Result")}${FUNC_DATA_END_ROW}`,
       rules: [
         { type: "cellIs", operator: "equal", priority: 1, formulae: ['"Pass"'], style: solidConditionalStyle(COLOR.green) },
         { type: "cellIs", operator: "equal", priority: 2, formulae: ['"Fail"'], style: solidConditionalStyle(COLOR.red) },
@@ -586,8 +608,12 @@ function dashResultFormula(r, loai) {
   const khoi = `INDIRECT("'"&$D${r}&"'!R${FUNC_DATA_START_ROW}C"&${cotDau}&":R${FUNC_DATA_END_ROW}C"&(${cotDau}+${soCot}-1),FALSE)`;
   // Gộp theo hàng: MMULT(khối, vector 1) cho ra số ô mang giá trị đó trên từng case.
   const dem = (gt) => `MMULT(--(${khoi}="${gt}"),ROW(INDIRECT("1:"&${soCot}))^0)`;
+  // Ba chỉ số phải cùng MỘT cơ sở "có bất kỳ cột cấp học nào", và loại trừ nhau theo thứ tự
+  // Fail > Pending > Pass. Trước đây Pass đòi ĐỦ cả 5 cột là Pass/N-A trong khi Fail/Pending chỉ
+  // cần 1 cột, nên task chỉ execute một cấp (ví dụ THCS) bị đếm Pass = 0 ở mọi dòng, và
+  // Un_test = Tổng - 0 - Fail - Pending phình lên thành "chưa test" sai sự thật.
   const than = {
-    Pass: `SUMPRODUCT((${dem("Pass")}>0)*(${dem("Pass")}+${dem("N/A")}=${soCot}))`,
+    Pass: `SUMPRODUCT((${dem("Pass")}>0)*(${dem("Fail")}=0)*(${dem("Pending")}+${dem("Blocked")}=0))`,
     Fail: `SUMPRODUCT(--(${dem("Fail")}>0))`,
     Pending: `SUMPRODUCT((${dem("Fail")}=0)*(${dem("Pending")}+${dem("Blocked")}>0))`,
   }[loai];
@@ -629,7 +655,16 @@ function addDashboardWorksheet(workbook, groupEntries) {
   ["Tổng TC", "Pass", "Fail", "Pending", "Un_test", "% Pass"].forEach((label, i) => {
     setStyledCell(worksheet, `${["H", "I", "J", "K", "L", "M"][i]}3`, label, { fill: COLOR.totalsGreen });
   });
-  setStyledCell(worksheet, "N3", "Số liệu Tổng TC / Pass / Fail / Pending tự đếm từ từng sheet test case.", { fill: COLOR.label, bold: false, valign: "top" });
+  setStyledCell(
+    worksheet,
+    "N3",
+    "Số liệu Tổng TC / Pass / Fail / Pending tự đếm từ từng sheet test case.\n"
+      + "Quy tắc đếm 1 case (xét mọi cột Result <CẤP>, cột trống = chưa chạy cấp đó):\n"
+      + "Fail nếu có bất kỳ cột Fail · Pending nếu không Fail và có Pending/Blocked · "
+      + "Pass nếu có ít nhất 1 Pass, không Fail, không Pending · Un_test = các case còn lại (chưa có kết quả nào).\n"
+      + "Ba chỉ số LOẠI TRỪ nhau. Đừng đổi Pass thành \"đủ cả 5 cấp\": task chỉ chạy một cấp sẽ ra Pass = 0.",
+    { fill: COLOR.label, bold: false, valign: "top" },
+  );
   worksheet.mergeCells("N3:O4");
 
   setStyledCell(worksheet, "A4", "Đã hoàn thành:", { fill: COLOR.totalsGreen });
@@ -839,6 +874,12 @@ async function buildXlsx(tables, contractTables, outputPath) {
   // cột đó fallback `inferFunctionalGroup` (heuristic cũ, giữ nguyên để không đỏ oan bộ đang publish).
   const groupedRows = new Map();
   let dungBoChuan = false;
+  let canhBaoScript5Cap = false;
+  // Quét trước MỌI bảng: chỉ cần một bảng khai SCRIPT là cả workbook dùng bố cục có SCRIPT, và dòng của bảng
+  // không khai được chèn ô trống — quyết theo từng bảng thì hai bảng khác bố cục sẽ lệch cột trong cùng sheet.
+  const laCotScript = (h) => /^SCRIPT$/i.test(cleanCell(h || '').trim());
+  const laCotCap = (h) => /^Áp dụng cho cấp$/i.test(cleanCell(h || '').trim());
+  const coScript = tables.some((t) => t.headers.some(laCotScript)) && !tables.some((t) => t.headers.some(laCotCap));
   for (const table of tables) {
     const headers = table.headers.map(cleanCell);
     for (const row of table.rows) {
@@ -853,6 +894,11 @@ async function buildXlsx(tables, contractTables, outputPath) {
        */
       const iCap = headers.findIndex((h) => /^Áp dụng cho cấp$/i.test(String(h || '').trim()));
       const capValue = iCap >= 0 ? (cleanedCells[iCap] || 'Tất cả') : '';
+      const iScript = headers.findIndex((h) => /^SCRIPT$/i.test(String(h || '').trim()));
+      if (iScript >= 0 && iCap >= 0 && !canhBaoScript5Cap) {
+        console.warn('⚠ Bảng có cả "Áp dụng cho cấp" lẫn "SCRIPT": bố cục 5 cấp chưa có cột SCRIPT — cột SCRIPT bị bỏ khi xuất.');
+        canhBaoScript5Cap = true;
+      }
       const outRow = iCap >= 0
         ? [
           tc.tcId, tc.module, capValue, displayTitle(tc.title), tc.precondition, tc.data, tc.stepsRaw,
@@ -862,6 +908,7 @@ async function buildXlsx(tables, contractTables, outputPath) {
         ]
         : [
           tc.tcId, tc.module, displayTitle(tc.title), tc.precondition, tc.data, tc.stepsRaw, tc.expectedRaw,
+          ...(coScript ? [iScript >= 0 ? (cleanedCells[iScript] || "") : ""] : []),
           testType, normalizePriority(tc.priority), "", "", "", "", "", "",
           tc.traceability.reqId || tc.traceability.story || "",
           tc.caseType || "", tc.tags || "",
@@ -892,7 +939,7 @@ async function buildXlsx(tables, contractTables, outputPath) {
   const createdDate = new Date().toISOString().slice(0, 10);
   let total = 0;
   for (const { group, sheetName, rows } of groupEntries) {
-    addFunctionSheet(workbook, sheetName, group, rows, createdDate, dungBoChuan);
+    addFunctionSheet(workbook, sheetName, group, rows, createdDate, dungBoChuan, coScript);
     total += rows.length;
   }
 

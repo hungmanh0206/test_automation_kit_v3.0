@@ -26,7 +26,7 @@ Load test tạo **tải thật** → có thể **làm nghẽn/sập chính UAT**
 ## Inputs / chạy
 
 ```
-TASK_ENV=profiles/<TASK>/task.env node scripts/qa/load_check.js --script tests/load/example.load.js --confirm-nonprod
+TASK_KEY=<TASK> PROJECT_OUTPUT_DIR=<PROJECT_OUTPUT_DIR> node scripts/qa/load_check.js --script tests/load/example.load.js --confirm-nonprod
   [--base <url>] [--vus 5] [--duration 30s] [--docker] [--enforce] [--out <dir>]
 ```
 - k6 script: template `tests/load/example.load.js` — điền endpoint + **`thresholds` từ NFR/SLA** (k6 native → verdict). Giữ VU/duration modest.
@@ -78,12 +78,68 @@ npm run load -- --script tests/load/<x>.load.js --base <url> --baseline-id <id> 
 - Ngưỡng hồi quy suy từ baseline thì khai vào block `thresholds` của k6 script kèm comment trỏ `id` — **ghi rõ là ngưỡng hồi quy, KHÔNG phải SLA** (không có NFR thì không được bịa số).
 - 1 mẫu chưa đủ: đo vài lượt khác thời điểm để biết biên độ dao động rồi mới chốt mốc.
 
+## Báo cáo HTML có biểu đồ — `scripts/qa/perf_report.js`
+
+Mỗi lượt `npm run load` giờ ghi artifact vào **thư mục riêng theo Run ID** rồi tự dựng báo cáo HTML.
+Trước đây mọi lượt ghi đè cùng một `k6-summary.json`, nên lượt sau xoá sổ lượt trước — mà số hiệu năng
+thì **chỉ có nghĩa khi so theo thời gian**.
+
+```bash
+npm run load -- --script <k6.js> --base <url> --confirm-nonprod --run-id <id> [--cloud] [--no-report]
+npm run perf:report -- --run-dir <TASK_OUTPUT_DIR>/reports/performance/<id>   # dựng lại từ artifact cũ
+```
+
+| Artifact trong `reports/performance/<RUN_ID>/` | Nguồn | Mất nó thì mất gì |
+|---|---|---|
+| `k6-summary.json` | `--summary-export` | percentile, threshold, checks |
+| `k6-timeseries.json` | `--out json=` | **toàn bộ biểu đồ theo thời gian + bảng endpoint** |
+| `run-meta.json` | wrapper | Phần A (target, profile, executor, k6 version, cloud) |
+| `k6-stdout.log` | tee stdout/stderr, **đã khử secret** | dấu vết lượt chạy khi k6 chết |
+| `performance-report.html` · `.json` | `perf_report.js` | báo cáo cho người / cho máy |
+
+`--summary-trend-stats` được truyền sẵn để xin **p(99)** — k6 mặc định không xuất, không xin thì báo cáo
+phải để N/A (và **cấm** lấy p95 thay).
+
+**Bốn trạng thái, không được gộp** (`performance-report.json → trangThai`):
+
+| Trạng thái | Nghĩa |
+|---|---|
+| `ERROR` | k6 không sinh summary — **không có số liệu nào**. Không bao giờ trôi thành PASS. |
+| `FAIL` | có số liệu, threshold (hoặc HTTP check) trượt |
+| `PASS` | mọi threshold đạt **và** có ít nhất một threshold để mà đạt |
+| `KHONG_KET_LUAN` | chạy xong, 0 threshold — **"chạy xong" không phải "hiệu năng đạt"** |
+
+Thiếu `--out json` thì bốn biểu đồ thời gian để **N/A kèm lý do**; tuyệt đối không nội suy time-series
+từ số trung bình. Executor không sinh `dropped_iterations` thì **không vẽ đường 0** — vẽ là nói với người
+đọc "đã đo và không rớt" trong khi chưa đo gì.
+
+## Grafana Cloud k6 — `--cloud`
+
+Tuỳ chọn, **không bắt buộc cloud sống thì local mới chạy**. Token đọc từ `K6_CLOUD_TOKEN` trong kho cấu
+hình (`.env`/`task.env`) — không hardcode, không in ra log/báo cáo (`khuSecret()` chạy trên mọi chuỗi
+trước khi chạm đĩa).
+
+| Trạng thái | Khi nào |
+|---|---|
+| `DISABLED` | không truyền `--cloud` — **không phải lỗi** |
+| `NOT_AVAILABLE` | có `--cloud` nhưng thiếu token |
+| `FAILED` | upload hỏng, hoặc k6 không in URL, hoặc URL không xác minh được |
+| `SUCCESS` | k6 in URL **và** gọi thật xác minh đạt |
+
+URL **chỉ** lấy từ dòng k6 CLI tự in. Không ghép từ stack id + số đoán được: URL bịa trông y hệt URL
+thật và người đọc không có cách nào biết. URL chưa xác minh **không** được gắn vào báo cáo dưới dạng link.
+Upload cloud thành công **không** phải điều kiện để kết luận hiệu năng đạt.
+
 ## Outputs
 
 | Output | Vị trí |
 |---|---|
-| Load report | `<TASK_OUTPUT_DIR>/reports/load-report.md` + `load-report.json` (+ `k6-summary.json`) |
+| Báo cáo HTML + artifact thô | `<TASK_OUTPUT_DIR>/reports/performance/<RUN_ID>/` |
+| Load report (giữ nguyên chỗ cũ) | `<TASK_OUTPUT_DIR>/reports/load-report.md` + `load-report.json` |
 | Baseline (opt-in) | `knowledge/metrics/perf-baselines.jsonl` — 1 dòng/lần đo, local-only |
+
+Test chống hồi quy: `tests/fe/infra/perf-report.spec.ts` (chạy trên fixture `tests/fixtures/k6/`,
+không gọi k6, không chạm UAT, không tiêu quota cloud).
 
 ## Decision Rules
 

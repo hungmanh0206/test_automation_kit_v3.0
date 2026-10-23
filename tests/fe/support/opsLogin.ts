@@ -277,9 +277,38 @@ async function chonComboBox(page: Page, id: string, text: string, nhan: string,
 
   if (!anKhop) {
     const thuc = await page.locator(`#${id}_Input`).inputValue().catch(() => '(không đọc được)');
+    /*
+     * IN RA DANH SÁCH THẬT, không chỉ đếm.
+     *
+     * Chỉ có con số thì bế tắc: "6 mục mà không khớp" không cho biết nhãn khai trong profile đã lệch ở
+     * chỗ nào — thiếu mã, đổi tên phường sau sáp nhập, hay trường không còn thuộc tài khoản. Đo 16/10:
+     * đúng tình huống này chặn toàn bộ lượt chạy và tốn 5 lượt captcha trước khi tìm ra nguyên nhân.
+     * Cắt 40 mục cho log khỏi phình; danh sách dài hơn thì phần đuôi hiếm khi là thứ đang tìm.
+     */
+    const dsThuc = await page.locator(`#${id}_DropDown li`).allTextContents()
+      .then((xs) => xs.map((x) => x.replace(/\s+/g, ' ').trim()).filter(Boolean))
+      .catch(() => [] as string[]);
+    const gan = dsThuc.filter((x) => {
+      const c = (s: string) => s.normalize('NFC').toLowerCase();
+      return c(x).includes(c(text).slice(0, 12)) || c(text).includes(c(x).slice(0, 12));
+    });
+    /*
+     * TÌM THEO MÃ, không chỉ theo chữ. Nhãn trường mang dạng "<tên> (<mã>) - <phòng GD>", và cả hai phần
+     * chữ đều trôi được: tên bị đổi khi ai đó sửa hồ sơ trường, hậu tố phòng GD biến mất khi trường trực
+     * thuộc Sở (`MA_PHONG_GD` null). Khi đó so theo chữ trượt sạch, còn mã thì vẫn đứng yên — nên in riêng
+     * những mục chứa mã rút từ giá trị đang khai. Danh sách có thể tới vài nghìn mục, `slice(0, 40)` bên
+     * dưới không bao giờ chạm tới mục cần tìm.
+     */
+    const maKhai = (text.match(/\((\d{6,})\)/) || [])[1] || '';
+    const theoMa = maKhai ? dsThuc.filter((x) => x.includes(maKhai)) : [];
     throw new Error(
       `[qemis] không chọn được "${text}" trong combobox ${nhan} sau 3 lượt thử — ô vẫn đang là "${thuc}" `
       + `(${soMucCuoi} mục trong danh sách).\n`
+      + `  Danh sách THẬT (${dsThuc.length}): ${JSON.stringify(dsThuc.slice(0, 40))}\n`
+      + (maKhai
+        ? `  Mục chứa mã "${maKhai}" (${theoMa.length}): ${JSON.stringify(theoMa)}\n`
+        : '')
+      + (gan.length ? `  Gần giống giá trị đang khai: ${JSON.stringify(gan)}\n` : '')
       + (soMucCuoi === 0
         ? '  Danh sách RỖNG — thường là cấp trên chưa chọn xong, hoặc đơn vị cấp trên không có mục nào '
           + '(vd Sở "Trường trực thuộc bộ" không có trường THPT nào).'
@@ -492,8 +521,14 @@ export async function loginOpsForm(page: Page): Promise<void> {
      * lý do app trả về từng lượt — tốt hơn là âm thầm vào nhầm trường.
      */
     // eslint-disable-next-line no-console
-    console.warn(`[qemis] ⚠️ KHÔNG chọn được "${QEMIS_TRUONG}" ở form đăng nhập `
-      + `(${String((e as Error).message).slice(0, 120)}…).\n`
+    /*
+     * In TRỌN thông điệp, không cắt 120 ký tự.
+     * `chonComboBox` đã kèm sẵn danh sách thật của combobox để biết nhãn khai trong profile lệch ở đâu —
+     * mà phần đó nằm sau mốc 120 nên bị cắt mất, để lại đúng câu "không chọn được" chẳng giúp gì. Đo
+     * 16/10: thiếu danh sách này nên mất nhiều lượt chạy mới lần ra nguyên nhân.
+     */
+    console.warn(`[qemis] ⚠️ KHÔNG chọn được "${QEMIS_TRUONG}" ở form đăng nhập.\n`
+      + `${(e as Error).message}\n`
       + '[qemis] ĐỂ TRỐNG ô Trường và thử đăng nhập — KHÔNG lấy bừa đơn vị khác, vì vào nhầm trường thì '
       + 'mọi assertion sau đó vẫn xanh trên dữ liệu của trường khác.\n'
       + '[qemis] Đơn vị làm việc phải chọn sau khi đăng nhập: nút hệ thống (9 chấm) → Master root → '

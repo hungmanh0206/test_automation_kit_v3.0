@@ -20,7 +20,7 @@ so ngưỡng khai trong catalog → PASS/WARN/FAIL. Tái dùng khuôn `accessibi
 ## Inputs / chạy
 
 ```
-TASK_ENV=profiles/<TASK>/task.env node scripts/qa/perf_check.js --catalog <.../perf_catalog.json> [--runs 3]
+TASK_KEY=<TASK> PROJECT_OUTPUT_DIR=<PROJECT_OUTPUT_DIR> node scripts/qa/perf_check.js --catalog <.../perf_catalog.json> [--runs 3]
 node scripts/qa/perf_check.js --url <http|file> --no-login   # smoke 1 trang
 node scripts/qa/perf_check.js --url <...> --no-login --deep [--cpu-throttle 4] [--net-throttle slow3g] [--heap-snapshot]
 ```

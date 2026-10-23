@@ -57,8 +57,63 @@ const RE_GAN_KHONG_BOC = /=\s*(?!\s*["“”'[])[^\s"'“”[][^,;]*/;
 const RE_DUONG_DAN_MAN = /[\w/.-]+\.aspx\b|<ops_base_url>/i;
 const RE_DIEU_HUONG_URL = /^\s*(mở|vào|truy cập|navigate|đi đến|chuyển đến)[^,;]{0,40}https?:\/\//i;
 
+/**
+ * P2-HẸP — MỘT MỆNH ĐỀ NỐI HAI THAO TÁC BẰNG CHỮ "VÀ".
+ *
+ * ─────────────────────────────────────────────────────────────────────────────────────────────────────
+ * VÌ SAO THÊM LẠI, trong khi khối ở đầu file nói P2 đã bị bỏ.
+ *
+ * Lý do bỏ P2 là "tiêu chí 1 đã phạt rồi, chồng lấn 8%". Đọc kỹ con số đó thì nó nói điều ngược lại:
+ * chồng lấn 8% nghĩa là **92% vi phạm P2 KHÔNG ai phạt**. Một luật phủ 92% vùng chưa ai gác thì lý do
+ * "trùng" không đứng được.
+ *
+ * VÀ ĐÂY LÀ CHỖ ĐÁNG GÁC NHẤT, đo 16/10/2026 trên 4 task thật:
+ *   · 436/3814 câu bước (11%) chứa ≥2 động từ thao tác;
+ *   · phần lớn tách được ở DẤU PHẨY — bộ tách đã xử lý, nên không cần luật nào;
+ *   · phần CÒN LẠI là ca nối bằng "và", và `tach_menh_de` CỐ Ý không tách ở đó (`"Xoá trắng ô Họ và
+ *     tên"` sẽ vỡ làm hai). Đo: 280/781 mệnh đề chưa khớp của CSDL-9001 chứa "và" — 36%.
+ *
+ * Nên chỗ này không sửa được bằng bộ tách, chỉ sửa được bằng cách VIẾT LẠI CÂU. Đó đúng là việc của
+ * một luật §K, và là chỗ chênh lệch 79% (fixture viết chuẩn) với 16–36% (bộ thật) nằm.
+ *
+ * LUẬT HẸP CÓ CHỦ Ý: chỉ bắt khi chữ ngay SAU "và" là một ĐỘNG TỪ THAO TÁC đã khai. `"Họ và tên"`,
+ * `"Stt 10 và Stt 11"`, `"DTTS và miền núi"` đều có danh từ phía sau ⇒ KHÔNG bắt. Đo trên CSDL-9001:
+ * 38 ca bắt, 242 ca bỏ qua đúng.
+ * ─────────────────────────────────────────────────────────────────────────────────────────────────────
+ */
+let _dongTuCache = null;
+function dongTuThaoTac(nguPhap) {
+  if (_dongTuCache) return _dongTuCache;
+  const ng = nguPhap || sm.napNguPhap();
+  const ds = new Set();
+  for (const g of ((ng.dong_nghia && ng.dong_nghia.nhom) || [])) {
+    ds.add(String(g.chuan).toLowerCase());
+    (g.cung_nghia || []).forEach((x) => ds.add(String(x).toLowerCase()));
+  }
+  /*
+   * Động từ thao tác KHÔNG có nhóm đồng nghĩa vẫn là động từ thật — đó chính là lý lẽ đã loại luật P3
+   * ("đọc", "đếm", "cuộn" không nằm nhóm nào mà hoàn toàn đúng). Khai thẳng ở đây, không suy từ nhóm.
+   */
+  for (const x of ['đọc', 'đếm', 'ghi', 'kiểm', 'xoá', 'xóa', 'chọn', 'lưu', 'cuộn', 'dán', 'tích', 'so']) ds.add(x);
+  _dongTuCache = ds;
+  return ds;
+}
+
+function noiHaiThaoTacBangVa(menhDe, nguPhap) {
+  const m = /\sv[àa]\s+(\S+)/i.exec(String(menhDe));
+  if (!m) return false;
+  return dongTuThaoTac(nguPhap).has(String(m[1]).toLowerCase());
+}
+
 /** Luật được chấm, kèm cách chữa — `steps:suggest` in thẳng dòng `chua`. */
 const LUAT = [
+  {
+    ma: 'P2',
+    mo_ta: 'một mệnh đề chỉ một thao tác — không nối hai thao tác bằng "và"',
+    test: (menhDe, ng) => !sm.laCauSql(menhDe) && noiHaiThaoTacBangVa(menhDe, ng),
+    chua: 'tách thành hai bước: `Xoá trắng ô "Stt 17"` rồi `Dán chuỗi "251 ký tự"`. Bộ tách KHÔNG tách ở "và" (vì `"Họ và tên"`), nên câu ghép kiểu này không bao giờ khớp được bước nào.',
+    tang: 'menh_de',
+  },
   {
     ma: 'P1',
     mo_ta: 'giá trị gán phải bọc trong nháy kép',
@@ -93,7 +148,7 @@ function chamCase(tc, nguPhap) {
     for (const md of sm.tachMenhDe(cau, ng.ngat)) {
       soMenhDe += 1;
       for (const l of LUAT) {
-        if (l.test(md)) viPham.push({ ma: l.ma, menh_de: md.slice(0, 110), chua: l.chua });
+        if (l.test(md, ng)) viPham.push({ ma: l.ma, menh_de: md.slice(0, 110), chua: l.chua });
       }
     }
   }

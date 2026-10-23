@@ -165,9 +165,28 @@ function gateTestExecution(doc, { fix = false } = {}) {
     // 3) Step status: mọi step phải có status (không để trống → "TO DO" rối).
     const stepsNoStatus = steps.filter((s) => !String(s.status || '').trim()).length;
     if (steps.length && stepsNoStatus) problems.push(`${id}: ${stepsNoStatus}/${steps.length} step THIẾU status (mỗi step phải PASS/FAIL)`);
-    // step (nếu có khai) nên có evidence riêng.
-    const stepsNoEv = steps.filter((s) => !evList(s.evidence).concat(evList(s.evidences)).some(rules.isVisualEvidence)).length;
-    if (steps.length && stepsNoEv) problems.push(`${id}: ${stepsNoEv}/${steps.length} step THIẾU evidence ảnh/video riêng`);
+    /*
+     * EVIDENCE THEO STEP — ĐỔI 22/10/2026 (mức B). Trước: MỌI step của MỌI case phải có ảnh riêng.
+     * Nay: chỉ case SẮP THÀNH BUG mới phải có chuỗi từng bước.
+     *
+     * Vì sao đổi: evidence step là ảnh LẶP trong cùng một case, và phép đo cho thấy nó chiếm 1–2% số
+     * dòng spec (9001: 448/20.263 · 9003: 383/21.337 · 9004: 441/22.611). Cái nó mua được — khả năng
+     * truy lại — thì một ảnh ở bước quyết định đã đủ cho case thường.
+     *
+     * Vì sao case bug thì KHÔNG nới: dev nhận bug phải dựng lại được CHUỖI dẫn tới lỗi. Một ảnh màn
+     * hình cuối không nói được lỗi phát sinh từ bước nào. Đây đúng là chỗ evidence đắt giá nhất, nên
+     * nó là chỗ duy nhất giữ nguyên mức cũ.
+     *
+     * Tầng bug = `product_bug` / `api_bug` — hai tầng DUY NHẤT được log Backlog (xem laTangBug).
+     */
+    const laCaseBug = FAIL_RE.test(String(t.status || '').trim())
+      && rules.laTangBug([t.failureLayer, t.comment, t.rootCause, t.classification, t.failureType].filter(Boolean).join(' '));
+    if (laCaseBug) {
+      const stepsNoEv = steps.filter((s) => !evList(s.evidence).concat(evList(s.evidences)).some(rules.isVisualEvidence)).length;
+      if (steps.length && stepsNoEv) {
+        problems.push(`${id}: case THÀNH BUG (tầng product/api) nhưng ${stepsNoEv}/${steps.length} step THIẾU evidence ảnh/video riêng — dev cần dựng lại CHUỖI dẫn tới lỗi, một ảnh cuối không đủ`);
+      }
+    }
 
     // 4) Video cho case phức tạp.
     if (rules.looksComplex([t.comment, id, t.name].filter(Boolean).join(' ')) && allEv.length && !allEv.some(rules.isVideoEvidence)) {
@@ -317,7 +336,7 @@ function mainBug() {
 // stepsRaw/expectedRaw = cleanCell (<br>→\n); gateTestcaseRow xử lý cả <br> lẫn \n nên tương thích.
 function parseTestcaseTable(md) {
   const doc = testcaseModel.parseMarkdown(md);
-  return { rows: doc.tests.map((t) => ({ tcId: t.tcId, steps: t.stepsRaw, expected: t.expectedRaw, dimensions: t.dimensions })), found: doc.tests.length > 0 };
+  return { rows: doc.tests.map((t) => ({ tcId: t.tcId, steps: t.stepsRaw, expected: t.expectedRaw, script: t.script || '', dimensions: t.dimensions })), found: doc.tests.length > 0 };
 }
 
 // Trả về { problems (CHẶN), warnings (cảnh báo) }. `;`-packing là warning trừ khi strictSemicolon.
@@ -361,6 +380,8 @@ function gateTestcaseRow(row, { strictSemicolon = false } = {}) {
    */
   for (const m of rules.lintSqlCell(row.steps, '"Các bước"')) problems.push(`${id}: ${m}`);
   for (const m of rules.lintSqlCell(row.expected, '"Kết quả mong đợi"')) problems.push(`${id}: ${m}`);
+  // Cột SCRIPT (tuỳ chọn) chỉ chứa SQL: mọi từ khoá GHI ở đây đều là lệnh-để-chạy, nên soi nó như một bước.
+  for (const m of rules.lintSqlCell(row.script ? `1. ${row.script}` : '', '"SCRIPT"')) problems.push(`${id}: ${m}`);
   for (const m of rules.lintDbPersistHasQuery(row)) warnings.push(`${id}: ${m}`);
   const semi = String(row.expected).split(/<br\s*\/?>|\r?\n/).filter((l) => l.includes(';')).length;
   if (semi) (strictSemicolon ? problems : warnings).push(`${id}: "Kết quả mong đợi" nhồi ý bằng ";" (${semi} dòng) — nên tách mỗi ý 1 dòng "- "`);

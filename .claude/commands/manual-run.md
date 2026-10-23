@@ -4,6 +4,8 @@ description: Chạy tay case Manual-only để chúng có verdict thật, thay v
 
 Task: **$ARGUMENTS**
 
+Thiếu mã task → `npm run task:which -- $ARGUMENTS`; thoát 2 = KHÔNG PHÁN ĐƯỢC, nó in danh sách profile để chọn. **Đừng suy từ hội thoại cũ** (CLAUDE.md §5).
+
 Nhánh này chạm UAT bằng tay, nên **xác nhận với user trước mỗi lượt chạm**.
 
 Đọc theo đúng thứ tự:

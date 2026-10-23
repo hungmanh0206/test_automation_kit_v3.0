@@ -152,8 +152,36 @@ function docCauHoi(noiDung) {
     });
   }
 
-  /* ── Khuôn 2: tiêu đề `### Qn — … · Mức` hoặc `… *(Mức …)*` ────────────────────────────────────── */
+  /*
+   * ── Khuôn 2: tiêu đề `### Qn — … · Mức`, HOẶC mức THỪA KẾ TỪ MỤC CHA ───────────────────────────
+   *
+   * Bản đầu chỉ đọc mức ở DÒNG CÂU HỎI, và đo 16/10/2026 cho thấy hệ quả: **41/83 câu (49%) trên 5
+   * task thật không có mức nào máy đọc được** — nên chúng KHÔNG được áp nghĩa vụ nào. Một gate gác
+   * im lặng nửa số câu thì phần "đã gác" của nó là lời khai, không phải phép đo.
+   *
+   * Nguyên nhân không phải tài liệu thiếu nhãn: `CSDL-9004` đặt mức ở TIÊU ĐỀ MỤC (`## CRITICAL`,
+   * `## HIGH — …`), `CSDL-9003` nhóm theo `## Blocking` / `## Non-blocking`. Nhãn có đủ, máy đọc thiếu.
+   *
+   * Thừa kế CÓ ĐIỀU KIỆN, cố ý hẹp: chỉ khi tiêu đề mục nói rõ một mức, hoặc nói rõ "non-blocking".
+   * Tiêu đề kiểu `## Blocking — đã trả lời` KHÔNG suy ra Critical: "chặn" và "mức" là hai chuyện, và
+   * suy bừa ở đây sẽ tạo nghĩa vụ cho câu mà người viết không hề gán mức.
+   */
+  const mucCuaMuc = (tieuDeMuc) => {
+    const s = String(tieuDeMuc).toLowerCase();
+    if (/non-?blocking|không chặn/.test(s)) return 'Medium';
+    if (/\bcritical\b/.test(s)) return 'Critical';
+    if (/\bhigh\b/.test(s)) return 'High';
+    if (/\bmedium\b/.test(s)) return 'Medium';
+    if (/\blow\b/.test(s)) return 'Low';
+    return null;
+  };
+
+  let mucThuaKe = null;
   for (let i = 0; i < dong.length; i += 1) {
+    /* Tiêu đề mục (không phải câu hỏi) ⇒ cập nhật mức thừa kế cho các câu phía dưới. */
+    const h = dong[i].match(/^#{1,3}\s+(?!Q[0-9])(.*)$/);
+    if (h) mucThuaKe = mucCuaMuc(h[1]);
+
     const m = dong[i].match(/^#{2,4}\s*(Q[0-9][0-9a-z]*)\b(.*)$/);
     if (!m) continue;
     const tieuDe = m[2];
@@ -162,7 +190,12 @@ function docCauHoi(noiDung) {
     for (let j = i + 1; j < dong.length && !/^#{2,4}\s/.test(dong[j]); j += 1) than.push(dong[j]);
     ra.push({
       ma: m[1],
-      muc: chuanMuc(tieuDe),
+      /* Mức ở DÒNG CÂU HỎI thắng; không có thì thừa kế từ mục cha. */
+      muc: (() => {
+        const tren_dong = chuanMuc(tieuDe);
+        const nhanRo = ['Critical', 'High', 'Medium', 'Low'].includes(tren_dong);
+        return nhanRo ? tren_dong : (mucThuaKe || tren_dong);
+      })(),
       da_gach: /~~/.test(tieuDe) || /đã giải|đã trả lời|resolved/i.test(tieuDe),
       than: than.join('\n').trim(),
       /* Khuôn tiêu đề không có ô riêng cho trả lời — cả THÂN là chỗ câu trả lời nằm. */
@@ -299,6 +332,27 @@ function phan({ taskDir, cfg, chat = false }) {
 
   const viPham = kiemNghiaVu({ trangThai: tt, cauHoi, noiDungClarif, noiDungTask });
   dong.push(`đọc ${cauHoi.length} câu hỏi · nghĩa vụ: ${(tt.nghia_vu || []).join(', ') || '(không)'}`);
+
+  /*
+   * CÂU KHÔNG CÓ MỨC ⇒ CẢNH BÁO. Đây là chỗ máy PHÁN ĐƯỢC, khác hẳn chỗ nó không phán được.
+   *
+   * Máy KHÔNG thẩm định được một câu gán `Critical` có đúng là Critical không — đó là việc của người.
+   * Nhưng "không gán mức nào" thì máy thấy rõ, và nó là đường lách IM LẶNG: mọi nghĩa vụ ở trên đều
+   * lọc theo `Critical/High`, nên câu không nhãn đi qua mà không chạm phép kiểm nào.
+   *
+   * Đo 16/10/2026 trên 5 task thật: **25/83 câu (30%) không có mức** máy đọc được, sau khi đã thừa kế
+   * mức từ tiêu đề mục. Chúng nằm dưới những mục như "Câu hỏi PHÁT SINH từ dò quan hệ bảng DB" — tức
+   * tài liệu thật sự không gán, không phải máy đọc thiếu.
+   *
+   * CẢNH BÁO chứ không chặn: gán mức là việc của người, và chặn ở đây sẽ ép gán mức lấy lệ cho đủ số.
+   */
+  const khongMuc = cauHoi.filter((c) => !['Critical', 'High', 'Medium', 'Low'].includes(c.muc));
+  if (khongMuc.length) {
+    const ty = Math.round((khongMuc.length / cauHoi.length) * 100);
+    dong.push(`CẢNH BÁO (không chặn): ${khongMuc.length}/${cauHoi.length} câu (${ty}%) KHÔNG gán mức —`
+      + ` mọi nghĩa vụ đều lọc theo Critical/High, nên câu không nhãn không chạm phép kiểm nào.`);
+    dong.push(`  · ${khongMuc.slice(0, 6).map((c) => c.ma).join(', ')}${khongMuc.length > 6 ? ` … (+${khongMuc.length - 6})` : ''}`);
+  }
   if (viPham.length) {
     dong.push(`${chat ? 'CHẶN' : 'CẢNH BÁO'}: ${viPham.length} nghĩa vụ chưa thoả:`);
     for (const v of viPham) dong.push(`  - ${v}`);

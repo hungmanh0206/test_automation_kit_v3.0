@@ -4,6 +4,8 @@ description: Execute testcase của một task (Phase 2) — dựng automation, 
 
 Task: **$ARGUMENTS**
 
+Thiếu mã task → `npm run task:which -- $ARGUMENTS`; thoát 2 = KHÔNG PHÁN ĐƯỢC, nó in danh sách profile để chọn. **Đừng suy từ hội thoại cũ** (CLAUDE.md §5).
+
 > **Nạp file nào, và nạp khi nào: [`.agent/config/load_map.json`](../../.agent/config/load_map.json).**
 > Đừng nạp cả chuỗi. Đo bằng `npm run prompt:budget`: chuỗi của `/phase1` là 56 file, 143k token nếu
 > đọc hết, mà chỉ 5,7k trong đó là bắt buộc. File có điều kiện thì chờ đúng điều kiện mới mở.

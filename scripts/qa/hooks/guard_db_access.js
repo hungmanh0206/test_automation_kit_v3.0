@@ -106,8 +106,37 @@ const CHUOI_KET_NOI = [
 const FILE_BI_MAT = /(^|\/)(profiles\/[^/]+\/task\.env|\.env)(\.|$)|(^|\/)task\.env$/i;
 const LA_MAU = /\.example($|\.)/i;
 
-/** Lệnh shell đọc nội dung file. */
-const LENH_DOC = /\b(cat|head|tail|less|more|type|bat|nl|od|xxd|strings)\b/i;
+/*
+ * Lệnh shell ĐỌC NỘI DUNG file. Thêm `grep/rg/sed/awk/Select-String/Get-Content`: chúng đọc và IN
+ * nội dung y hệt `cat`, mà trước đây lọt — đo 23/10/2026: `grep PASSWORD <file bí mật>` đi qua cửa.
+ */
+const LENH_DOC = /^(cat|head|tail|less|more|type|bat|nl|od|xxd|strings|grep|egrep|fgrep|rg|sed|awk|gawk|select-string|get-content|gc)$/i;
+
+/*
+ * TÁCH LỆNH GHÉP rồi mới xét. Bản cũ hỏi "chuỗi có chứa từ-đọc KHÔNG?" và "có chứa đường-dẫn-bí-mật
+ * KHÔNG?" một cách RỜI RẠC, nên hai thứ chẳng liên quan gì nhau vẫn thành một lời buộc tội.
+ *
+ * Đo 23/10/2026, hai lỗi NGƯỢC CHIỀU nhau cùng tồn tại:
+ *   · `git commit -F - <<EOF ...<nhắc tên file>... EOF && git push | tail -2` → CHẶN OAN. Cái `tail`
+ *     đọc output của `git push`, không đọc file nào; đường dẫn chỉ nằm trong THÂN thông điệp commit.
+ *     Chính lỗi này chặn một commit mô tả cách dùng profile.
+ *   · `grep PASSWORD <file bí mật>` → LỌT, dù đó mới đúng là đọc bí mật.
+ *
+ * Nay: cắt theo `| ; && ||` và xuống dòng, rồi với MỖI đoạn chỉ xét khi TỪ ĐẦU TIÊN của đoạn là lệnh
+ * đọc — và chỉ soi ĐỐI SỐ của chính đoạn đó. Hẹp hơn mà bắt đúng hơn.
+ */
+function doanLenh(s) {
+  return String(s).split(/\|\||&&|[|;\n]/).map((x) => x.trim()).filter(Boolean);
+}
+
+/** Token đầu tiên của đoạn, bỏ tiền tố gán biến (`FOO=bar cat x` → `cat`). */
+function lenhDauDoan(doan) {
+  for (const tok of doan.split(/\s+/)) {
+    if (/^[A-Za-z_][A-Za-z0-9_]*=/.test(tok)) continue; // gán biến môi trường, chưa phải lệnh
+    return tok.replace(/^.*[\\/]/, '').replace(/\.exe$/i, '');
+  }
+  return '';
+}
 
 /** In env ra màn hình — một cách lấy mật khẩu không cần chạm file nào. */
 const IN_ENV = [
@@ -150,9 +179,10 @@ function kiemBash(cmd) {
   if (IN_ENV.some((re) => re.test(s))) {
     chan('in biến môi trường chứa bí mật', 'Không cần đọc mật khẩu để tra DB: `npm run db:query` tự nạp cấu hình.');
   }
-  if (LENH_DOC.test(s)) {
-    /* Chỉ chặn khi lệnh đọc nhắm vào file bí mật THẬT, không chặn mọi `cat`. */
-    for (const tok of s.split(/\s+/)) {
+  /* Chỉ chặn khi CHÍNH một lệnh đọc nhắm vào file bí mật THẬT — không chặn mọi `cat` trong chuỗi. */
+  for (const doan of doanLenh(s)) {
+    if (!LENH_DOC.test(lenhDauDoan(doan))) continue;
+    for (const tok of doan.split(/\s+/).slice(1)) {
       const p = tok.replace(/^["']|["']$/g, '').replace(/\\/g, '/');
       if (FILE_BI_MAT.test(p) && !LA_MAU.test(p)) {
         chan('đọc file chứa bí mật', 'Bản mẫu `profiles/task.env.example` đọc được. File thật thì không — và không cần đọc nó để chạy việc gì trong kit.');

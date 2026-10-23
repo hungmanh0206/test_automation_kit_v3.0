@@ -4,6 +4,8 @@ description: Sửa/dọn một phần bộ testcase khi requirement đổi — c
 
 Task: **$ARGUMENTS**
 
+Thiếu mã task → `npm run task:which -- $ARGUMENTS`; thoát 2 = KHÔNG PHÁN ĐƯỢC, nó in danh sách profile để chọn. **Đừng suy từ hội thoại cũ** (CLAUDE.md §5).
+
 Đọc theo đúng thứ tự (bản review TRƯỚC, apply SAU):
 
 1. `partial-rerun/reference.md`

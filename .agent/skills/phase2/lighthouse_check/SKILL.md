@@ -22,7 +22,7 @@ Bổ sung điểm **Lighthouse** (4 nhóm: Performance / Accessibility / SEO / B
 ## Inputs / chạy
 
 ```
-TASK_ENV=profiles/<TASK>/task.env node scripts/qa/lighthouse_check.js --catalog <.../lighthouse_catalog.json> --confirm-nonprod
+TASK_KEY=<TASK> PROJECT_OUTPUT_DIR=<PROJECT_OUTPUT_DIR> node scripts/qa/lighthouse_check.js --catalog <.../lighthouse_catalog.json> --confirm-nonprod
 node scripts/qa/lighthouse_check.js --url https://uat-... --no-login --confirm-nonprod   # smoke 1 trang public
 [--port 9222] [--form-factor desktop|mobile] [--out <dir>] [--enforce]
 ```

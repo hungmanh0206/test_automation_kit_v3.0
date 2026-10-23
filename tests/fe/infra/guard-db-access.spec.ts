@@ -196,3 +196,39 @@ test.describe('@infra guard-db hook — đã ĐĂNG KÝ, không chỉ tồn tạ
     }
   });
 });
+
+test.describe('@infra guard-db hook — ĐỐI SỐ của lệnh đọc, không phải chuỗi ở đâu đó', () => {
+  /*
+   * Đo 23/10/2026: hook hỏi "chuỗi có từ-đọc không?" và "có đường-dẫn-bí-mật không?" RỜI RẠC, nên hai
+   * thứ chẳng liên quan vẫn thành một lời buộc tội. Hai lỗi NGƯỢC CHIỀU cùng tồn tại:
+   *   · `git commit -F - <<EOF …nhắc tên file… EOF && git push | tail -2` → CHẶN OAN (cái `tail` đọc
+   *     output của `git push`, đường dẫn chỉ nằm trong thân thông điệp commit);
+   *   · `grep PASSWORD <file bí mật>` → LỌT, dù đó mới đúng là đọc bí mật.
+   * Nay cắt theo `| ; && ||` rồi chỉ xét đoạn có TỪ ĐẦU là lệnh đọc, soi ĐỐI SỐ của chính đoạn đó.
+   */
+  const P = 'profiles/CSDL-9001/task.env';
+
+  for (const [ten, cmd] of [
+    ['cat thẳng', `cat ${P}`],
+    ['grep vào file bí mật', `grep PASSWORD ${P}`],
+    ['sed đọc file bí mật', `sed -n '1,5p' ${P}`],
+    ['Get-Content (PowerShell)', `Get-Content ${P}`],
+    ['cat ở đoạn sau &&', `npm run lint && cat ${P}`],
+    ['cat sau tiền tố gán biến', `FOO=1 cat ${P}`],
+  ] as [string, string][]) {
+    test(`CHẶN: ${ten}`, () => {
+      expect(bash(cmd).chan, `phải chặn: ${cmd}`).toBe(true);
+    });
+  }
+
+  for (const [ten, cmd] of [
+    ['commit NHẮC tên + pipe tail', `git commit -m "doc ve ${P}" && git push | tail -2`],
+    ['echo tên file rồi head output khác', `echo ${P} | head -1`],
+    ['gán TASK_ENV= (không in ra)', `TASK_ENV=${P} npm run preflight -- --task X`],
+    ['cat BẢN MẪU', 'cat profiles/task.env.example'],
+  ] as [string, string][]) {
+    test(`CHO QUA: ${ten}`, () => {
+      expect(bash(cmd).chan, `không được chặn: ${cmd}`).toBe(false);
+    });
+  }
+});

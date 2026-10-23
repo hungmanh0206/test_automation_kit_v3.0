@@ -281,7 +281,18 @@ if (fs.existsSync(SKILLS_DIR)) {
   // `partial-rerun` cũng là ĐIỂM VÀO (agent đọc prompt trong đó để chạy nhánh phụ) — thiếu nó thì lệnh chỉ
   // được nhắc ở nhánh phụ sẽ bị báo mồ côi oan. Lộ ra khi chuyển Xray → AIO: `backlog:testcase-cleanup:dry-run`
   // chỉ còn nằm ở mục LEGACY của `partial-rerun/run_testcase_cleanup.md`.
-  const SEARCH_ROOTS = ['prompt_templates', '.agent', 'scripts', '.github', 'exploratory', 'partial-rerun'];
+  /*
+   * `.claude/commands` LÀ ĐIỂM VÀO THẬT, và danh sách này từng bỏ sót nó.
+   *
+   * Người gõ `/phase2` thì agent chạy đúng thứ viết trong file lệnh đó — không khác gì prompt hay
+   * workflow. Thiếu nó ở đây thì một npm script CHỈ được slash command gọi sẽ bị báo "không nơi nào
+   * nhắc tới ⇒ sẽ không ai chạy", trong khi thực tế nó chạy mỗi lượt có người gõ lệnh.
+   *
+   * Đã trả giá 23/10/2026 với `task:which` (được 10 slash command gọi, gate vẫn báo mồ côi). Và đây
+   * là chỗ BẤT NHẤT giữa hai gate: `gate_index.js` đã liệt `.claude/commands` trong SURFACE_DIRS của
+   * nó từ trước — hai máy cùng hỏi "ai gọi cái này" mà nhìn hai tập bề mặt khác nhau.
+   */
+  const SEARCH_ROOTS = ['prompt_templates', '.agent', 'scripts', '.github', 'exploratory', 'partial-rerun', '.claude/commands'];
   const SEARCH_FILES = ['README.md', 'USER_GUIDE.md', 'QUICKSTART.md', 'RULE_GLOBAL.md', 'CLAUDE.md', '.gitlab-ci.yml', 'knowledge/SCHEMA.md', '.env.example'];
   const corpus = [];
   const collect = (p) => {

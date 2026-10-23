@@ -4,6 +4,8 @@ description: Kiểm input/config bắt buộc TRƯỚC khi bắt đầu một ph
 
 Task: **$ARGUMENTS**
 
+Thiếu mã task → `npm run task:which -- $ARGUMENTS`; thoát 2 = KHÔNG PHÁN ĐƯỢC, nó in danh sách profile để chọn. **Đừng suy từ hội thoại cũ** (CLAUDE.md §5).
+
 Chạy cửa vào:
 
 ```bash

@@ -40,9 +40,9 @@ Likelihood có **prior = Impact**, blend theo lượng data: `L = confidence·ob
 
 | Việc | Lệnh |
 |---|---|
-| Chấm risk | `TASK_ENV=profiles/<TASK>/task.env npm run risk` |
-| Gate (cảnh báo) | `TASK_ENV=profiles/<TASK>/task.env npm run risk:gate` |
-| Gate (chặn CI) | `TASK_ENV=profiles/<TASK>/task.env npm run risk:gate:enforce` |
+| Chấm risk | `TASK_KEY=<TASK> PROJECT_OUTPUT_DIR=<PROJECT_OUTPUT_DIR> npm run risk` |
+| Gate (cảnh báo) | `TASK_KEY=<TASK> PROJECT_OUTPUT_DIR=<PROJECT_OUTPUT_DIR> npm run risk:gate` |
+| Gate (chặn CI) | `TASK_KEY=<TASK> PROJECT_OUTPUT_DIR=<PROJECT_OUTPUT_DIR> npm run risk:gate:enforce` |
 
 ## Decision Rules
 

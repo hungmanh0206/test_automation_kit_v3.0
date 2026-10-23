@@ -71,6 +71,66 @@ const val = (n, d) => {
 };
 const MIN_TASK = val('min-task', 2);
 const TOP = val('top', 25);
+const CHAY_ON_DINH = process.argv.includes('--chay-on-dinh');
+
+/*
+ * CHẶN CỜ LẠ — và đây là bài học của chính file này.
+ *
+ * Trước 16/10/2026, `--chay-on-dinh` chỉ tồn tại trong một dòng CHÚ THÍCH ở đầu file; code không hề
+ * đọc nó. Node bỏ qua tham số lạ im lặng, nên `mine.js --chay-on-dinh` chạy xong, in ra một bảng đẹp,
+ * và lọc đúng **0 thứ** — nhìn y hệt một lượt đã lọc theo độ ổn định.
+ *
+ * Một cờ không làm gì còn tệ hơn một cờ không tồn tại: cờ không tồn tại thì người dùng biết ngay.
+ */
+{
+  const CHO_PHEP = new Set(['--json', '--min-task', '--top', '--chay-on-dinh']);
+  const la = process.argv.slice(2).filter((a) => a.startsWith('--') && !CHO_PHEP.has(a));
+  if (la.length) {
+    console.error(`[mine] ✗ cờ KHÔNG ĐƯỢC HỖ TRỢ: ${la.join(', ')}`);
+    console.error(`  Cờ có thật: ${[...CHO_PHEP].join(' · ')}`);
+    console.error('  Chặn ở đây vì một cờ bị bỏ qua im lặng sẽ cho ra bảng trông như đã lọc mà chưa lọc gì.');
+    process.exit(2);
+  }
+}
+
+/**
+ * Chỉ số ỔN ĐỊNH theo `tcId`, gom từ mọi `testcase-status*.json` dưới `outputs/ … /test-results/`.
+ *
+ * Vì sao phải quét đệ quy chứ không đọc ở gốc task: file trạng thái thật nằm trong `test-results/`,
+ * thường còn chia theo shard (`shard-GDTX/testcase-status-1009-091154.json`). Đọc ở gốc task thì không
+ * thấy gì — và "không thấy gì" rất dễ bị đọc thành "chưa chạy bao giờ".
+ */
+function chiSoOnDinh() {
+  const theoTc = new Map();
+  const di = (d) => {
+    let e;
+    try { e = fs.readdirSync(d, { withFileTypes: true }); } catch (x) { return; }
+    for (const it of e) {
+      const p = path.join(d, it.name);
+      if (it.isDirectory()) { if (!/node_modules/.test(it.name)) di(p); continue; }
+      if (!/testcase-status.*\.json$/.test(it.name)) continue;
+      let j;
+      try { j = JSON.parse(fs.readFileSync(p, 'utf8')); } catch (x) { continue; }
+      for (const t of (j.tests || [])) {
+        if (!t || !t.tcId) continue;
+        if (!theoTc.has(t.tcId)) theoTc.set(t.tcId, { pass: 0, fail: 0, khac: 0 });
+        const o = theoTc.get(t.tcId);
+        if (t.status === 'PASSED') o.pass += 1;
+        else if (t.status === 'FAILED') o.fail += 1;
+        else o.khac += 1;
+      }
+    }
+  };
+  di(path.join(REPO, 'outputs'));
+  return theoTc;
+}
+
+/** `tcId` mà một file nhắc tới. 32% file automation có nhắc — phần còn lại sẽ là `chưa đo`. */
+function tcCuaFile(duong) {
+  let t;
+  try { t = fs.readFileSync(duong, 'utf8'); } catch (e) { return []; }
+  return [...new Set(t.match(/[A-Z][A-Z0-9]*_[A-Z0-9]+_TC_\d+/g) || [])];
+}
 
 /** Hàm thao tác của Playwright. Chỉ những hàm ĐỔI TRẠNG THÁI hoặc ĐỊNH VỊ — không lấy assertion. */
 const THAO_TAC = new Set([
@@ -214,18 +274,63 @@ function dungDo() {
     }
   }
 
-  const xep = (m) => [...m.entries()]
-    .map(([k, v]) => ({ mau: k, lan: v.lan, so_task: v.task.size, task: [...v.task].sort() }))
+  /*
+   * Cột ỔN ĐỊNH. Nối: ứng viên → FILE chứa nó → `tcId` file đó nhắc → trạng thái của TC đó.
+   *
+   * ĐÂY LÀ PHÉP NỐI GIÁN TIẾP, và phải nói ra: nó trả lời "những TC mà file chứa đoạn này có chạy ổn
+   * định không", KHÔNG trả lời "đoạn này có ổn định không". Một file có 5 TC thì cả 5 cùng gán cho mọi
+   * đoạn trong file. Chỉ 32% file automation nhắc `tcId`, nên phần còn lại là `null` = CHƯA ĐO — và
+   * `null` tuyệt đối không được đọc thành "ổn định".
+   */
+  const tcOnDinh = chiSoOnDinh();
+  const tcCache = new Map();
+  const onDinhCuaFiles = (dsFile) => {
+    let pass = 0; let fail = 0; let soTc = 0;
+    for (const rel of dsFile) {
+      const abs = path.join(REPO, rel);
+      if (!tcCache.has(rel)) tcCache.set(rel, tcCuaFile(abs));
+      for (const tc of tcCache.get(rel)) {
+        const o = tcOnDinh.get(tc);
+        if (!o) continue;
+        soTc += 1; pass += o.pass; fail += o.fail;
+      }
+    }
+    return soTc ? { so_tc: soTc, pass, fail } : null;
+  };
+
+  const xep = (m, coFile) => [...m.entries()]
+    .map(([k, v]) => ({
+      mau: k,
+      lan: v.lan,
+      so_task: v.task.size,
+      task: [...v.task].sort(),
+      on_dinh: coFile && v.file ? onDinhCuaFiles(v.file) : null,
+    }))
     .sort((a, b) => (b.so_task - a.so_task) || (b.lan - a.lan));
 
-  const hinh = xep(theoHinh);
-  const chuoi = xep(theoChuoi);
+  const hinh = xep(theoHinh, true);
+  const chuoi = xep(theoChuoi, false);
+
+  /*
+   * `--chay-on-dinh` LỌC THẬT: giữ ứng viên có ≥1 lượt **PASS** và **0 lượt FAIL**.
+   *
+   * Đòi `pass > 0` chứ không chỉ `fail === 0`: bản đầu của tôi chỉ kiểm `fail === 0`, và hai ứng viên
+   * `0P/0F` lọt qua — TC có tồn tại nhưng chưa PASS lần nào (SKIP, hoặc chỉ mới khai). "Không có lượt
+   * đỏ" KHÁC "đã chạy xanh", và tiêu chí là cái thứ hai.
+   *
+   * Ứng viên `null` (chưa đo) bị LOẠI khi bật cờ — chưa đo thì chưa thoả. Không bật cờ thì giữ hết,
+   * cột `on_dinh` vẫn in để người đọc tự thấy.
+   */
+  const locOnDinh = (ds) => (CHAY_ON_DINH
+    ? ds.filter((x) => x.on_dinh && x.on_dinh.pass > 0 && x.on_dinh.fail === 0)
+    : ds);
 
   return {
     so_file: files.length,
     so_thao_tac: soThaoTac,
     so_hinh_dang: hinh.length,
-    ung_vien_L1: hinh.filter((x) => x.so_task >= MIN_TASK),
+    loc_on_dinh: CHAY_ON_DINH,
+    ung_vien_L1: locOnDinh(hinh.filter((x) => x.so_task >= MIN_TASK)),
     ung_vien_L2: chuoi.filter((x) => x.so_task >= MIN_TASK),
     hinh,
     chuoi,
@@ -247,10 +352,20 @@ function main() {
   console.log(`[mine] ứng viên lặp ở ≥${MIN_TASK} task: ${d.ung_vien_L1.length} hình dạng (L1) · ${d.ung_vien_L2.length} chuỗi-3 (L2)`);
   console.log(`[mine] ${phuL1}/${d.so_thao_tac} lời gọi (${tiLe}%) thuộc một hình dạng đã lặp ở ≥${MIN_TASK} task`);
   console.log('');
+  if (d.loc_on_dinh) {
+    console.log('[mine] ĐÃ LỌC theo độ ổn định: giữ ứng viên có ≥1 lượt PASS và 0 lượt FAIL.');
+    console.log('       "chưa đo" bị LOẠI, và "0 pass / 0 fail" cũng bị LOẠI — không có lượt đỏ KHÁC đã chạy xanh.');
+    console.log('       Phép nối là GIÁN TIẾP: ứng viên → file chứa nó → `tcId` file đó nhắc → trạng thái TC.');
+    console.log('       Nó nói về các TC của file, KHÔNG nói riêng về đoạn code đó.');
+    console.log('');
+  }
   console.log(`TOP ${Math.min(TOP, d.ung_vien_L1.length)} hình dạng (ứng viên L1 — locator đã dùng nhiều lần):`);
-  console.log('  lần  task  hình dạng');
+  console.log('  lần  task  ổn định          hình dạng');
   for (const x of d.ung_vien_L1.slice(0, TOP)) {
-    console.log(`  ${String(x.lan).padStart(4)}  ${String(x.so_task).padStart(4)}  ${x.mau.slice(0, 92)}`);
+    const od = x.on_dinh
+      ? `${x.on_dinh.pass}P/${x.on_dinh.fail}F (${x.on_dinh.so_tc}tc)`.padEnd(15)
+      : 'chưa đo        ';
+    console.log(`  ${String(x.lan).padStart(4)}  ${String(x.so_task).padStart(4)}  ${od}  ${x.mau.slice(0, 72)}`);
   }
   console.log('');
   console.log(`TOP ${Math.min(10, d.ung_vien_L2.length)} chuỗi-3 (ứng viên L2 — bước nghiệp vụ):`);

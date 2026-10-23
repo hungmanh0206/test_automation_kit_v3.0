@@ -1,6 +1,6 @@
 {
   "name": "test-automation-kit",
-  "version": "2.9.3",
+  "version": "2.9.4",
   "private": true,
   "engines": {
     "node": ">=20"
@@ -22,6 +22,7 @@
     "perf": "node scripts/qa/perf_check.js",
     "security": "node scripts/qa/security_check.js",
     "load": "node scripts/qa/load_check.js",
+    "perf:report": "node scripts/qa/perf_report.js",
     "lighthouse": "node scripts/qa/lighthouse_check.js",
     "risk": "node scripts/qa/risk_score.js",
     "risk:gate": "node scripts/qa/risk_gate.js",
@@ -94,6 +95,7 @@
     "backlog:bug-report": "node scripts/integrations/backlog/bug_reporter.js",
     "backlog:bug-report:dry-run": "node scripts/integrations/backlog/bug_reporter.js --dry-run",
     "lint:locator": "node scripts/qa/locator_lint.js",
+    "lint:tcid": "node scripts/qa/tcid_duplicate_check.js",
     "lint:locator:enforce": "node scripts/qa/locator_lint.js --enforce",
     "matrix:coverage": "node scripts/qa/matrix_coverage.js",
     "matrix:coverage:enforce": "node scripts/qa/matrix_coverage.js --enforce",
@@ -205,7 +207,8 @@
     "oracle:calc": "node scripts/qa/oracle_calc_check.js",
     "concurrency:check": "node scripts/qa/concurrency_check.js",
     "security:check": "node scripts/qa/security_check.js",
-    "skills:refcheck": "node scripts/qa/skills_refcheck.js"
+    "skills:refcheck": "node scripts/qa/skills_refcheck.js",
+    "task:which": "node scripts/utils/task_hien_tai.js"
   },
   "dependencies": {
     "axe-core": "^4.12.1",
@@ -223,5 +226,8 @@
     "playwright-lighthouse": "^4.0.0",
     "typescript": "^7.0.2",
     "xlsx": "file:vendor/xlsx-0.20.3.tgz"
+  },
+  "overrides": {
+    "follow-redirects": "^1.16.1"
   }
 }

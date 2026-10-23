@@ -4,6 +4,8 @@ description: Bước 0 của Phase 1 — bò app bằng script tất định r�
 
 Task: **$ARGUMENTS**
 
+Thiếu mã task → `npm run task:which -- $ARGUMENTS`; thoát 2 = KHÔNG PHÁN ĐƯỢC, nó in danh sách profile để chọn. **Đừng suy từ hội thoại cũ** (CLAUDE.md §5).
+
 Script làm hết việc bò, đọc DOM, bắt network, gộp nguồn. **Bạn chỉ đọc bản tóm tắt** mà lệnh in ra
 (`task` ≤ 2k token · `delta` ≤ 1k · `system` ≤ 4k). Chi tiết nằm trong JSON — mở đúng mục cần, đừng đọc cả file.
 
@@ -14,7 +16,7 @@ Script làm hết việc bò, đọc DOM, bắt network, gộp nguồn. **Bạn 
 | `system` | nhận dự án mới | toàn app, theo giới hạn lượt bò |
 
 ```bash
-TASK_ENV=profiles/<TASK>/task.env npm run discover -- --mode task \
+TASK_KEY=<TASK> PROJECT_OUTPUT_DIR=<PROJECT_OUTPUT_DIR> npm run discover -- --mode task \
   --base-url <url UAT> --confirm-nonprod \
   --tai-lieu <đường dẫn .md đặc tả, cách nhau bằng dấu phẩy>
 ```

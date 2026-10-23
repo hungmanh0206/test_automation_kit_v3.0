@@ -4,6 +4,8 @@ description: Cửa cuối — chuyển Done hoặc phát hành. Chạy cửa ra 
 
 Task: **$ARGUMENTS**
 
+Thiếu mã task → `npm run task:which -- $ARGUMENTS`; thoát 2 = KHÔNG PHÁN ĐƯỢC, nó in danh sách profile để chọn. **Đừng suy từ hội thoại cũ** (CLAUDE.md §5).
+
 ```bash
 npm run exit:gate -- --cua done --task $ARGUMENTS
 npm run release:summary -- --task $ARGUMENTS
