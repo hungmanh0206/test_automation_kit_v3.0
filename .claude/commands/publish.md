@@ -4,19 +4,9 @@ description: Đồng bộ testcase / kết quả execution với Google Sheet �
 
 Task: **$ARGUMENTS**
 
-**Chưa có mã task thì XÁC ĐỊNH TRƯỚC, đừng đoán.** `$ARGUMENTS` rỗng nghĩa là người dùng gõ lệnh
-không kèm mã — KHÔNG được lấy mã của lượt trước trong cùng cuộc hội thoại (CLAUDE.md §5: `.auth/`
-và UAT dùng chung, chạy nhầm mã là ghi kết quả sang thư mục task khác).
-
-```bash
-npm run task:which -- $ARGUMENTS
-```
-
-Thoát 0 thì mã task in ra ở stdout, dùng nó. Thoát 2 là **KHÔNG PHÁN ĐƯỢC** — nó in sẵn danh sách
-profile đang có; đưa danh sách đó cho người dùng chọn rồi chạy lại. Không profile nào thì `/start`.
-
-> Chỉ truyền đúng `<TASK_KEY>`, không thêm chữ nào — `$ARGUMENTS` đi thẳng vào các script bên dưới.
-> Cần khai thêm tham số (QA confirmation, người xác nhận…) thì dùng prompt mẫu ở USER_GUIDE Mục 9.2.
+> `$ARGUMENTS` vào thẳng script. Thiếu/sai mã → `npm run task:which -- $ARGUMENTS` (thoát 2 = KHÔNG
+> PHÁN ĐƯỢC, in danh sách để chọn); **đừng suy từ hội thoại cũ** — §5.
+> Tham số thêm: prompt mẫu USER_GUIDE 9.2.
 
 > **Đầu lượt chỉ đọc hai thứ: `handoff/phase1.md` của task, và artifact canonical.** Hội thoại của
 > lượt trước KHÔNG phải nguồn — nó không qua gate nào, và sau một lần nén thì chính nó cũng mất chi

@@ -4,16 +4,7 @@ description: Sửa/dọn một phần bộ testcase khi requirement đổi — c
 
 Task: **$ARGUMENTS**
 
-**Chưa có mã task thì XÁC ĐỊNH TRƯỚC, đừng đoán.** `$ARGUMENTS` rỗng nghĩa là người dùng gõ lệnh
-không kèm mã — KHÔNG được lấy mã của lượt trước trong cùng cuộc hội thoại (CLAUDE.md §5: `.auth/`
-và UAT dùng chung, chạy nhầm mã là ghi kết quả sang thư mục task khác).
-
-```bash
-npm run task:which -- $ARGUMENTS
-```
-
-Thoát 0 thì mã task in ra ở stdout, dùng nó. Thoát 2 là **KHÔNG PHÁN ĐƯỢC** — nó in sẵn danh sách
-profile đang có; đưa danh sách đó cho người dùng chọn rồi chạy lại. Không profile nào thì `/start`.
+Thiếu mã task → `npm run task:which -- $ARGUMENTS`; thoát 2 = KHÔNG PHÁN ĐƯỢC, nó in danh sách profile để chọn. **Đừng suy từ hội thoại cũ** (CLAUDE.md §5).
 
 Đọc theo đúng thứ tự (bản review TRƯỚC, apply SAU):
 
