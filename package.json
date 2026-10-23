@@ -225,5 +225,8 @@
     "playwright-lighthouse": "^4.0.0",
     "typescript": "^7.0.2",
     "xlsx": "file:vendor/xlsx-0.20.3.tgz"
+  },
+  "overrides": {
+    "follow-redirects": "^1.16.1"
   }
 }
