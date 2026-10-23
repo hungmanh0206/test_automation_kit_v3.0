@@ -90,6 +90,16 @@ function prose(text) {
      */
     .replace(/^[ \t]*>?[ \t>]*\|.*$/gm, ' ')
     .replace(/^#+ .*$/gm, ' ')
+    /*
+     * ĐÍCH CỦA LINK MARKDOWN không phải văn xuôi. `](docs/kit-map.md)` là một ĐƯỜNG DẪN, nhưng luật
+     * `slash` đọc nó thành lối viết "và/hoặc" rồi chặn: nó khớp `docs/kit` vì dấu `-` ngay sau "kit"
+     * làm lookahead chống-đường-dẫn mất tác dụng.
+     *
+     * Đo 23/10/2026: README.md và QUICKSTART.md bị CHẶN chỉ vì câu "Chi tiết: [`docs/kit-map.md`](…)".
+     * Inline code đã được lọc ở trên, nên chỗ lọt lại đúng là phần trong ngoặc đơn — phần người đọc
+     * không bao giờ nhìn thấy khi trang được render.
+     */
+    .replace(/\]\([^)\s]*\)/g, '] ')
     .replace(/\bhttps?:\S+/g, ' ')
     .replace(/\S*\/\S*\/\S*/g, ' ')
     /*

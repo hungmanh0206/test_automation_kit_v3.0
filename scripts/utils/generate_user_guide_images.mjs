@@ -30,10 +30,10 @@ const boards = [
     steps: [
       { icon: 'IN', c: C.info, title: '1.1 Requirement intake', body: 'Backlog, tài liệu nguồn, Figma, Swagger' },
       { icon: 'AI', c: C.info, title: '1.2 AI generate testcase', body: 'Sinh testcase và test data draft' },
-      { icon: 'XL', c: C.success, title: '1.3 Excel (SoT gen/publish)', body: 'QA review trên Excel; Phase 2 execute từ Sheet' },
+      { icon: 'XL', c: C.success, title: '1.3 Markdown canonical', body: 'Nguồn sự thật; Excel và Sheet là bản xuất' },
       { icon: 'OK', gate: true, title: 'GATE: QA CONFIRMATION', body: 'Approve trước khi publish lên Google Sheet' },
       { icon: 'PB', c: C.amber, title: '1.4 Auto Publish Sheet', body: 'Upload qua Drive MCP; sheet-tab theo nhóm chức năng' },
-      { icon: 'EX', c: C.info, title: '1.5 Execute từ Sheet', body: 'Phase 2 luôn tải bản mới nhất về local' },
+      { icon: 'EX', c: C.info, title: '1.5 Execute', body: 'Phase 2 đọc test-cases/*.md ở local' },
       { icon: 'TE', c: C.success, title: '1.6 Đồng bộ Result lên Sheet', body: 'Pass/Fail + evidence lưu local' },
       { icon: 'BG', c: C.danger, title: '1.7 Triage & Backlog bug', body: 'Rerun xác nhận + evidence' },
       { icon: 'RR', c: C.success, title: '1.8 Dev fix & Re-run', body: 'Attach evidence, update report' },
@@ -114,7 +114,7 @@ const boards = [
       // Evidence CHỈ là ảnh/video. Bản cũ ghi "Ảnh/video/log/trace" — dạy NGƯỢC lại non-negotiable
       // (CLAUDE.md rule 4 + RULE_GLOBAL §Evidence cấm .log/trace.zip làm evidence, `output_gate` chặn thật),
       // mà lại nằm đúng trong ảnh checklist người ta mở ra TRƯỚC khi log bug.
-      { icon: 'EV', c: C.amber, title: 'B.4 Evidence rõ', body: 'CHỈ ảnh/video (log/trace là diagnostic)' },
+      { icon: 'EV', c: C.amber, title: 'B.4 Evidence đủ chuỗi', body: 'Case bug: ảnh TỪNG step. Chỉ ảnh/video' },
       { icon: 'OK', gate: true, title: 'GATE: BUG READY', body: 'Chỉ log nếu là product bug thật' },
       { icon: 'BG', c: C.danger, title: 'B.5 Log Backlog bug', body: 'Description đủ 4 phần' },
     ],
