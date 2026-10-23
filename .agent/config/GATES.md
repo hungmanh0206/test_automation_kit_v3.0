@@ -7,7 +7,7 @@
 > **T1** chỉ chặn ở cửa ra, lúc đang làm thì cảnh báo và ghi `reports/gate-debt.json` · **T2** không
 > bao giờ chặn. T0 khai tay trong `.agent/config/gate_tiers.json`; không khai thì mặc định T1.
 
-Tổng **140** máy — **98 CHẶN** · 24 SINH (ghi artifact) · 18 BÁO CÁO (chỉ in).
+Tổng **141** máy — **98 CHẶN** · 24 SINH (ghi artifact) · 19 BÁO CÁO (chỉ in).
 
 SINH/BÁO CÁO **không phải gate bị nới** — chúng không kiểm vi phạm. Ví dụ `bugs:checklist` in brief bug
 lịch sử, còn việc CHẶN nằm ở `dim:coverage` (chiều `bug_history` §20).
@@ -154,6 +154,7 @@ lịch sử, còn việc CHẶN nằm ở `dim:coverage` (chiều `bug_history` 
 | T2 | BÁO CÁO | `select:tests` | Intelligent Test Selection từ git diff. | `scripts/qa/select_tests.js` | README.md · USER_GUIDE.md · tests/fe/infra |
 | T2 | BÁO CÁO | `results:summary` | đọc `results.json` của Playwright, in BẢN TÓM TẮT có TRẦN DÒNG. | `scripts/qa/summarize_results.js` | README.md · .agent/workflows · .agent/rules · .agent/skills · prompt_templates · tests/fe/infra |
 | T2 | BÁO CÁO | `report` | const { spawnSync } = require('child_process'); | `scripts/show_report.js` | .gitlab-ci.yml · RULE_GLOBAL.md · CLAUDE.md · README.md · USER_GUIDE.md · QUICKSTART.md · scripts/qa/README.md · .github/workflows · .agent/workflows · .agent/rules · .agent/skills · prompt_templates · exploratory · partial-rerun · manual-run · .claude/commands · tests/fe/infra |
+| T2 | BÁO CÁO | `task:which` | XÁC ĐỊNH TASK_KEY cho một lượt chạy slash command. | `scripts/utils/task_hien_tai.js` | .claude/commands |
 
 ## File trong `scripts/qa/` KHÔNG có npm script nào gọi
 
