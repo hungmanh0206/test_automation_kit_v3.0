@@ -26,7 +26,7 @@ Load test tạo **tải thật** → có thể **làm nghẽn/sập chính UAT**
 ## Inputs / chạy
 
 ```
-TASK_ENV=profiles/<TASK>/task.env node scripts/qa/load_check.js --script tests/load/example.load.js --confirm-nonprod
+TASK_KEY=<TASK> PROJECT_OUTPUT_DIR=<PROJECT_OUTPUT_DIR> node scripts/qa/load_check.js --script tests/load/example.load.js --confirm-nonprod
   [--base <url>] [--vus 5] [--duration 30s] [--docker] [--enforce] [--out <dir>]
 ```
 - k6 script: template `tests/load/example.load.js` — điền endpoint + **`thresholds` từ NFR/SLA** (k6 native → verdict). Giữ VU/duration modest.

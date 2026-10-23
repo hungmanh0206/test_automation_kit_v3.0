@@ -19,7 +19,7 @@ MỘT lần hỏi**, rồi làm tiếp. Đừng hỏi lắt nhắt.
 
 ```bash
 npm run profile:create -- <TASK_KEY> --project-output <PROJECT_OUTPUT_DIR>
-TASK_ENV=profiles/<TASK_KEY>/task.env npm run preflight -- --mode generic --task <TASK_KEY>
+TASK_KEY=<TASK_KEY> PROJECT_OUTPUT_DIR=<PROJECT_OUTPUT_DIR> npm run preflight -- --mode generic --task <TASK_KEY>
 ```
 
 Giữa hai lệnh: điền giá trị động vào `profiles/<TASK_KEY>/task.env` vừa tạo. **Không** sửa `.env` chung,

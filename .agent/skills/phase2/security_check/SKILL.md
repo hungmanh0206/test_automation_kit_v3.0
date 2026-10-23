@@ -28,7 +28,7 @@ exposure. Chỉ **phát hiện**, không khai thác.
 ## Inputs / chạy
 
 ```
-TASK_ENV=profiles/<TASK>/task.env node scripts/qa/security_check.js --catalog <.../security_catalog.json> --confirm-nonprod
+TASK_KEY=<TASK> PROJECT_OUTPUT_DIR=<PROJECT_OUTPUT_DIR> node scripts/qa/security_check.js --catalog <.../security_catalog.json> --confirm-nonprod
 ```
 Catalog: block `security` — `requiredHeaders`, `protectedEndpoints`, `highPrivEndpoints`, `idorEndpoints`,
 `auth` (login lấy token), `accounts.low/high` (env tài khoản test), `sensitiveKeys`. Schema ở `scripts/qa/README.md`.
