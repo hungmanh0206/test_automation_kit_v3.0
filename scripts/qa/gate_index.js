@@ -50,6 +50,12 @@ const SURFACE_DIRS = [
 const SURFACE_FILES = [
   '.gitlab-ci.yml', '.claude/settings.json',
   'RULE_GLOBAL.md', 'CLAUDE.md', 'README.md', 'USER_GUIDE.md', 'QUICKSTART.md', 'scripts/qa/README.md',
+  /*
+   * `docs/kit-map.md` nhận phần "bản đồ thư mục + lệnh" tách khỏi README ngày 23/10/2026. Thiếu nó ở
+   * đây thì 71 trên 141 dòng GATES.md mất cột "gọi từ đâu" — không phải vì gate hết được nhắc, mà vì
+   * chỗ nhắc đã dọn sang file mà máy không nhìn. Cùng lớp điểm mù với `.claude/commands`.
+   */
+  'docs/kit-map.md',
 ];
 const SURFACE_EXCLUDE = /(^|\/)GATES\.md$/;
 
