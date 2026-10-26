@@ -64,7 +64,25 @@ flowchart TD
 | **Partial Rerun** | Nhánh phụ xử lý tài liệu đổi. Xoá nhánh này thì luồng chính vẫn chạy |
 | **Setup Layer** | `tests/support/setup/`: factory, hook, fixture, mock, cleanup, contract. Không dựng state bằng DB |
 
-Chi tiết từng thư mục: [`docs/kit-map.md`](docs/kit-map.md).
+## Cấu trúc thư mục
+
+```text
+test-automation-kit/
+├── .claude/commands/   slash command: /start /phase1 /phase2 /rerun …
+├── .agent/             workflow · skill · rule · config cho agent
+├── prompt_templates/   prompt chạy từng phase
+├── partial-rerun/      nhánh phụ khi tài liệu đổi
+├── manual-run/         nhánh phụ chạy tay case [manual]
+├── scripts/            máy gác, converter, integration
+├── tests/              spec dùng chung + setup layer
+├── profiles/           env động theo từng task
+├── outputs/            artifact theo project và task
+├── docs/               tài liệu, bản đồ kit, phần "vì sao"
+├── README.md  QUICKSTART.md  USER_GUIDE.md
+└── RULE_GLOBAL.md      luật canonical
+```
+
+Bản đầy đủ, kèm chú thích từng file: [`docs/kit-map.md`](docs/kit-map.md).
 Quy ước Playwright: [`.agent/rules/playwright_fe.md`](.agent/rules/playwright_fe.md).
 
 ## Máy gác

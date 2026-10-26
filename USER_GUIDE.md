@@ -294,6 +294,9 @@ Vẫn FAIL thì giữ bug mở và ghi lý do.
 
 ## 4. Output nằm ở đâu
 
+Cấu trúc thư mục **của kit** nằm ở [`README.md`](README.md), bản đầy đủ ở
+[`docs/kit-map.md`](docs/kit-map.md). Mục này nói về thư mục **output của một task**.
+
 ![Cấu trúc output theo TASK_KEY](docs/user-guide-images/output-structure.png)
 
 Mọi artifact của một task nằm dưới `<PROJECT_OUTPUT_DIR>/tasks/<TASK_KEY>/`:
