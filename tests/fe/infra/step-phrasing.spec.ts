@@ -7,10 +7,14 @@
  *
  * Spec này canh hai thứ, và thứ hai mới là thứ giữ cho tiêu chí 9 sống được:
  *
- *   1. Hai luật đang chấm (P1 · P4) bắt đúng và KHÔNG báo oan.
- *   2. BA LUẬT ĐÃ BỊ LOẠI (P2 · P3 · P5) không được thêm lại mà không đo. Mỗi luật có một test ghim
- *      lại CON SỐ đã khiến nó bị loại — P3 từng bắt 58% số mệnh đề vì tôi nhầm danh sách dạng chuẩn
- *      của nhóm đồng nghĩa thành danh sách động từ được phép.
+ *   1. Ba luật đang chấm (P2 · P1 · P4) bắt đúng và KHÔNG báo oan.
+ *   2. HAI LUẬT CÒN BỊ LOẠI (P3 · P5) không được thêm lại mà không đo. Mỗi luật có một test ghim lại
+ *      CON SỐ đã khiến nó bị loại — P3 từng bắt 58% số mệnh đề vì tôi nhầm danh sách dạng chuẩn của
+ *      nhóm đồng nghĩa thành danh sách động từ được phép.
+ *
+ *      P2 từng nằm trong nhóm bị loại và ĐÃ ĐƯỢC THÊM LẠI (`eac7dcb`) ở dạng hẹp, vì con số "chồng lấn
+ *      8% với tiêu chí 1" đọc đúng ra là "92% vi phạm P2 không ai phạt". Test của nó giờ canh ĐỘ HẸP
+ *      thay vì cấm sự tồn tại.
  */
 import { test, expect } from '@playwright/test';
 import fs from 'fs';
@@ -60,7 +64,7 @@ test.describe('§K — hai luật đang chấm', () => {
   });
 });
 
-test.describe('§K — ba luật ĐÃ BỊ LOẠI, và con số khiến chúng bị loại', () => {
+test.describe('§K — luật bị LOẠI, và con số khiến chúng bị loại', () => {
   test('P3 KHÔNG được chấm: danh sách `chuan` là dạng chuẩn của NHÓM ĐỒNG NGHĨA, không phải động từ được phép', () => {
     /*
      * Lỗi của tôi, đo được: lấy `chuan` làm allow-list thì 3.425/5.886 mệnh đề (58%) bị bắt, mà ví dụ
@@ -78,11 +82,28 @@ test.describe('§K — ba luật ĐÃ BỊ LOẠI, và con số khiến chúng b
     }
   });
 
-  test('P2 KHÔNG được chấm lại: tiêu chí 1 đã phạt bước gộp nhiều hành động', () => {
-    /* Phạt hai lần cùng một lỗi làm điểm mất nghĩa, và người viết không biết sửa theo cái nào. */
+  test('P2 được chấm LẠI, nhưng chỉ ở dạng HẸP — và không chồng lên tiêu chí 1', () => {
+    /*
+     * ĐỔI QUYẾT ĐỊNH, có số đỡ lưng (`eac7dcb`). Lý do loại P2 lúc đầu là "tiêu chí 1 đã phạt rồi,
+     * chồng lấn 8%". Đọc kỹ thì con số đó nói điều ngược lại: chồng lấn 8% nghĩa là 92% vi phạm P2
+     * KHÔNG ai phạt. Tiêu chí 1 chỉ nổ từ BA hành động trở lên; ca nối HAI thao tác bằng "và" rơi
+     * đúng vào vùng trống đó, và bộ tách cố ý không tách ở "và" (nếu tách thì `"Họ và tên"` vỡ đôi).
+     *
+     * Nên test này không còn cấm P2. Nó canh thứ khiến P2 sống được: ĐỘ HẸP. Mất độ hẹp thì P2 quay
+     * lại thành luật phạt oan, đúng như P3 từng bị loại.
+     */
     const src = fs.readFileSync(path.join(REPO, 'scripts', 'qa', 'tc_review.js'), 'utf8');
     expect(src, 'tiêu chí 1 vẫn là nơi bắt bước gộp hành động').toMatch(/gộp từ 3 hành động/);
-    expect(pc.LUAT.map((l: { ma: string }) => l.ma), 'P2 không được nằm trong bộ luật tiêu chí 9').not.toContain('P2');
+    expect(pc.LUAT.map((l: { ma: string }) => l.ma), 'P2 phải còn trong bộ luật tiêu chí 9').toContain('P2');
+
+    /* PHẢI BẮT: chữ ngay sau "và" là động từ thao tác đã khai. */
+    for (const s of ['Xoá trắng ô "Stt 17" và dán chuỗi "251 ký tự"', 'Mở form Sửa và chọn "Khối 6"']) {
+      expect(pc.viPhamCuaMenhDe(s).map((v: { ma: string }) => v.ma), `phải bắt: ${s}`).toContain('P2');
+    }
+    /* KHÔNG ĐƯỢC BẮT: sau "và" là danh từ — đây là 242/280 ca trên bộ thật CSDL-9001. */
+    for (const s of ['Xoá trắng ô "Họ và tên"', 'Kiểm "Stt 10" và "Stt 11"', 'Đọc nhãn "DTTS và miền núi"']) {
+      expect(pc.viPhamCuaMenhDe(s).map((v: { ma: string }) => v.ma), `báo oan: ${s}`).not.toContain('P2');
+    }
   });
 
   test('P5 KHÔNG được chấm lại: tiêu chí 2 và `steps:lint` đã canh oracle', () => {
@@ -90,8 +111,9 @@ test.describe('§K — ba luật ĐÃ BỊ LOẠI, và con số khiến chúng b
     expect(fs.existsSync(path.join(REPO, 'scripts', 'qa', 'reuse', 'steps_lint.js'))).toBe(true);
   });
 
-  test('bộ luật đang chấm đúng bằng HAI, và mỗi luật có dòng CHỮA', () => {
-    expect(pc.LUAT.map((l: { ma: string }) => l.ma)).toEqual(['P1', 'P4']);
+  test('bộ luật đang chấm đúng bằng BA, và mỗi luật có dòng CHỮA', () => {
+    /* Thêm luật thứ tư mà không đo thì test này đỏ — đó là điểm của nó, không phải con số 3. */
+    expect(pc.LUAT.map((l: { ma: string }) => l.ma)).toEqual(['P2', 'P1', 'P4']);
     for (const l of pc.LUAT) expect(String(l.chua).length, l.ma).toBeGreaterThan(20);
   });
 });

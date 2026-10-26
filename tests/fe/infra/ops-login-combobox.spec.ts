@@ -25,8 +25,22 @@ test.describe('@infra opsLogin — chống chọn nhầm đơn vị và nhầm c
       .toContain("keyboard.press('Escape')");
     expect(than, 'phải nghiệm thu bằng giá trị ô _Input, không bằng thời gian chờ')
       .toContain('_Input');
-    expect(than, 'hết lượt thử mà chưa khớp thì PHẢI ném — im lặng đi tiếp là chạy trên đơn vị sai')
-      .toMatch(/if \(!anKhop\)[\s\S]{0,400}throw new Error/);
+    /*
+     * NEO THEO CẤU TRÚC, KHÔNG THEO KHOẢNG CÁCH KÝ TỰ.
+     *
+     * Bản trước viết `/if \(!anKhop\)[\s\S]{0,400}throw new Error/`. Nó đỏ từ `a926c96` — commit thêm
+     * phần in DANH SÁCH THẬT của combobox khi chọn trượt. `throw` vẫn còn nguyên, chỉ là nó lùi ra
+     * 1.640 ký tự sau khối gác của chính nó, quá cửa sổ 400.
+     *
+     * Tức máy gác đỏ vì mã nguồn ĐƯỢC CẢI THIỆN. Một gate như vậy dạy người ta tắt nó đi, nên phải
+     * đổi cách neo: lấy khối `if (!anKhop)` CUỐI CÙNG — khối xử lý "hết đường rồi" — và đòi nó ném.
+     * Thêm chẩn đoán bao nhiêu cũng không làm nó đỏ; gỡ `throw` ra thì nó đỏ ngay.
+     */
+    const cacKhoiGac = [...than.matchAll(/if \(!anKhop\)/g)].map((m) => m.index as number);
+    expect(cacKhoiGac.length, 'không còn khối gác `if (!anKhop)` nào').toBeGreaterThan(0);
+    const khoiCuoi = than.slice(cacKhoiGac[cacKhoiGac.length - 1]);
+    expect(khoiCuoi, 'hết lượt thử mà chưa khớp thì PHẢI ném — im lặng đi tiếp là chạy trên đơn vị sai')
+      .toContain('throw new Error');
   });
 
   test('khoá phiên phải gồm CẤP HỌC, không chỉ user và trường', () => {

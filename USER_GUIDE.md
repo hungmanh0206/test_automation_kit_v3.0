@@ -466,8 +466,23 @@ Nếu có bug thì chưa log Backlog, chỉ report local.
 Prompt chính: `run_phase1_template.md`, `run_phase2_template.md` ·
 `run_phase_re-run_template.md` (đều trong `prompt_templates/`).
 
-Việc nào giao subagent model rẻ, việc nào không:
-[`docs/rationale/subagent-model.md`](docs/rationale/subagent-model.md)
+### Việc nào giao subagent
+
+Việc máy móc, hợp đồng vào-ra rõ thì giao subagent chạy model rẻ, để context chính không phải gánh
+từng bước dò. Định nghĩa nằm ở [`.claude/agents/`](.claude/agents/):
+
+| Agent | Giao việc gì | Model |
+|---|---|---|
+| `excel-convert` | Chuyển testcase Markdown sang Excel, ghi verdict ngược vào cột `Result` | haiku |
+| `test-runner` | Chạy spec của task rồi trả tóm tắt case nào đỏ | haiku |
+| `case-debugger` | Gỡ MỘT case đã đỏ: đọc log và ảnh, soi DOM, sửa locator, chạy lại đúng case đó | mặc định |
+
+Cả ba đều không được chấm verdict. Chấm verdict là việc của context chính.
+
+**Giới hạn chưa xác minh:** định nghĩa agent chỉ nạp lúc khởi động, nên sửa file trong
+`.claude/agents/` giữa chừng thì phải mở **phiên mới** mới có hiệu lực — phiên đang chạy vẫn dùng bản cũ.
+
+Vì sao chọn từng mức model: [`docs/rationale/subagent-model.md`](docs/rationale/subagent-model.md)
 
 ---
 

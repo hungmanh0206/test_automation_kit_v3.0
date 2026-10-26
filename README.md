@@ -29,7 +29,7 @@ bị lược đi là `/discover`, `/preflight`, `/gates` và `/publish`. Chúng 
 | Tra luật | [`RULE_GLOBAL.md`](RULE_GLOBAL.md) — bản rút gọn luôn trong ngữ cảnh agent: [`CLAUDE.md`](CLAUDE.md) |
 | Hiểu **vì sao** một luật tồn tại | [`docs/rationale/`](docs/rationale/) |
 | Nâng bản kit | [`docs/UPGRADE.md`](docs/UPGRADE.md) và [`CHANGELOG.md`](CHANGELOG.md) |
-| Học sâu, không cần để dùng kit | `docs/course/` và `docs/library/` |
+| Học sâu — tài liệu đào tạo, không cần đọc để dùng kit | `docs/course/` và `docs/library/` |
 
 ## Giới hạn — đọc trước khi chọn kit này
 
@@ -120,7 +120,7 @@ test-automation-kit/
 │   ├── kit-map.md           bản đồ kit đầy đủ, chú thích từng file
 │   ├── rationale/           VÌ SAO từng luật tồn tại, kèm số đo
 │   ├── user-guide-images/   sơ đồ của USER_GUIDE (sinh bằng script)
-│   ├── course/ · library/   tài liệu đào tạo, không cần để dùng kit
+│   ├── course/ · library/   tài liệu đào tạo, không cần đọc để dùng kit
 │   └── UPGRADE.md           nâng bản kit
 ├── vendor/                  gói nhúng sẵn, để `npm ci` không cần mạng ngoài
 ├── .github/ · .gitlab-ci.yml   CI: static-check mỗi push; job chạm UAT là manual
