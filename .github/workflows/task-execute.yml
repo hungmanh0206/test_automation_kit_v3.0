@@ -34,8 +34,8 @@ jobs:
       OPS_USERNAME: ${{ secrets.OPS_USERNAME }}
       OPS_PASSWORD: ${{ secrets.OPS_PASSWORD }}
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
         with:
           node-version: 20
           cache: npm
@@ -78,7 +78,7 @@ jobs:
 
       - name: Upload blob report
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: task-blob-${{ matrix.shard }}
           path: blob-report/
@@ -86,7 +86,7 @@ jobs:
 
       - name: Upload task artifacts (test-results + reports)
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: task-artifacts-${{ matrix.shard }}
           path: |
@@ -100,20 +100,20 @@ jobs:
     if: always()
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
         with:
           node-version: 20
           cache: npm
       - run: npm ci
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v8
         with:
           path: all-blobs
           pattern: task-blob-*
           merge-multiple: true
       - name: Merge thành 1 HTML report
         run: npx playwright merge-reports --reporter=html all-blobs || echo "no blob to merge"
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: task-html-report
           path: playwright-report/
