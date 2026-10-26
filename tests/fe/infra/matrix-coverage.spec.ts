@@ -114,10 +114,18 @@ test.describe('@infra matrix:coverage — "không có gì để gác" KHÔNG th�
     fs.rmSync(r.d, { recursive: true, force: true });
   });
 
-  test('repo THẬT: 0 file `*_matrix.md` — số đo trong chú thích phải còn đúng', () => {
+  test('repo THẬT: 0 file `*_matrix.md` trong `test-cases/` — số đo trong chú thích phải còn đúng', () => {
     /*
      * Neo số đo vào máy. Ngày có file ma trận đầu tiên, test này đỏ và người sửa sẽ phải cập nhật cả chú
      * thích "gate chưa gác dữ liệu thật nào" — câu đó lúc ấy không còn đúng nữa.
+     *
+     * PHẠM VI QUÉT PHẢI TRÙNG VỚI GATE, sửa 26/10/2026. Bản trước quét TOÀN BỘ `outputs/`, rộng hơn hẳn
+     * `matrix_coverage.js` — máy đó chỉ đọc `*_matrix.md` trong `test-cases/` của task. Hậu quả đo được:
+     * nó bắt `outputs/CSDL/tasks/CSDL-4008/reports/_precondition_matrix.md`, một ma trận TIỀN ĐIỀU KIỆN
+     * nằm ở `reports/` — việc khác hẳn, gate không hề đọc tới. Báo động đó rỗng, và chính chú thích của
+     * `matrix_coverage.js` đã phân biệt sẵn ("11 file tên matrix đều là traceability/fixture, việc khác").
+     *
+     * Một cái bẫy quét rộng hơn thứ nó canh thì sớm muộn cũng kêu oan, và cái kêu oan thì bị tắt.
      */
     const ra: string[] = [];
     const di = (d: string, sau = 0) => {
@@ -126,8 +134,9 @@ test.describe('@infra matrix:coverage — "không có gì để gác" KHÔNG th�
       try { es = fs.readdirSync(d, { withFileTypes: true }); } catch { return; }
       for (const e of es) {
         const p = path.join(d, e.name);
-        if (e.isDirectory()) di(p, sau + 1);
-        else if (/_matrix\.md$/i.test(e.name)) ra.push(p);
+        if (e.isDirectory()) { di(p, sau + 1); continue; }
+        /* Chỉ tính file nằm TRONG `test-cases/` — đúng chỗ `matrix_coverage.js` đi tìm. */
+        if (/_matrix\.md$/i.test(e.name) && /[\\/]test-cases[\\/]/i.test(p)) ra.push(p);
       }
     };
     di(path.join(REPO, 'outputs'));

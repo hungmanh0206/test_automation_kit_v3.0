@@ -26,6 +26,48 @@ const REPO = path.resolve(__dirname, '..', '..', '..');
 const DOC = path.join(REPO, '.agent/rules/playwright_fe.md');
 const AR = path.join(REPO, 'scripts/qa/automation_review.js');
 
+test.describe('@infra spec CHƯA TRACK không được lọt vào lane mặc định', () => {
+  /*
+   * LỚP LỖI NÀY ĐÃ XẢY RA HAI LẦN, lần thứ hai bắt được ngày 26/10/2026.
+   *
+   * Lần một (`6773d1e`, ghi trong `.gitignore`): 46 spec của một task bị track nhầm ⇒ nightly
+   * `npx playwright test` lúc 01:00 drive OPS UAT (`student_delete*`, `calendar_destructive`) hằng đêm
+   * mà không ai xác nhận.
+   *
+   * Lần hai: `qemis-phuongxa.chandoan.spec.ts` — spec khám phá CHƯA TRACK, có `page.goto(OPS_LOGIN_URL)`.
+   * Lưới chắn của kit là `testIgnore: '**\/*.probe.spec.*'`, tức nó lọc theo TÊN FILE. File này đặt tên
+   * `.chandoan.spec.ts` nên đi thẳng qua lưới, và lane mặc định gom nó như một spec hạ tầng bình thường.
+   * Trên máy đang chạy task (có creds trong env) nó sẽ chạm UAT trong một lượt `npm run test:fe` thường.
+   *
+   * Lưới theo TÊN chỉ giữ được nếu có máy canh cái TÊN. Đây là máy đó.
+   */
+  /** Thư mục mà mọi lane đều bỏ qua — xem `desktopIgnore` trong `playwright.config.js`. */
+  const THU_MUC_BO_QUA = /[\\/](support|load|mobile-web)[\\/]/i;
+
+  test('mọi spec chưa track dưới `tests/` phải đặt tên `*.probe.spec.*` hoặc nằm trong thư mục lane bỏ qua', () => {
+    const r = spawnSync('git', ['ls-files', '--others', '--exclude-standard', 'tests'], { cwd: REPO, encoding: 'utf8', env: gateEnv() });
+    test.skip(r.status !== 0, 'không phải repo git (gói phát hành) — không biết file nào chưa track');
+
+    const lot = String(r.stdout).split(/\r?\n/).map((x) => x.trim()).filter(Boolean)
+      .filter((f) => /\.spec\.(ts|js|mjs)$/.test(f))
+      .filter((f) => !THU_MUC_BO_QUA.test(f))
+      .filter((f) => !/\.probe\.spec\.(ts|js|mjs)$/.test(f));
+
+    expect(lot, `spec chưa track mà lane mặc định VẪN GOM — đổi tên thành \`*.probe.spec.ts\`, `
+      + `hoặc commit nó nếu nó thuộc suite dùng chung:\n  - ${lot.join('\n  - ')}`).toEqual([]);
+  });
+
+  test('ĐỐI CHỨNG: chính máy này phải bắt được một file đặt tên sai', () => {
+    /* Không có phép âm bản thì "0 file lọt" không phân biệt được với "bộ lọc hỏng". */
+    const gia = ['tests/fe/infra/vi-du.chandoan.spec.ts', 'tests/fe/vi-du.probe.spec.ts', 'tests/support/setup/db/x.spec.ts'];
+    const loc = (ds: string[]) => ds
+      .filter((f) => /\.spec\.(ts|js|mjs)$/.test(f))
+      .filter((f) => !THU_MUC_BO_QUA.test(f))
+      .filter((f) => !/\.probe\.spec\.(ts|js|mjs)$/.test(f));
+    expect(loc(gia), 'chỉ file đặt tên sai mới được coi là lọt').toEqual(['tests/fe/infra/vi-du.chandoan.spec.ts']);
+  });
+});
+
 test.describe('@infra quy ước Playwright — tài liệu không được hứa máy gác không có', () => {
   test('mọi `npm run X` nhắc trong tài liệu đều là script CÓ THẬT', () => {
     const doc = fs.readFileSync(DOC, 'utf8');
@@ -137,18 +179,39 @@ test.describe('@infra auto:review — rule `spec-page-locator`', () => {
     expect(`${r.stdout}${r.stderr}`).not.toContain('spec-page-locator');
   });
 
-  test('số đo trong rule khớp số gate TỰ đếm trên repo', () => {
+  test('số đo trong rule là ẢNH CHỤP có niên đại, và detector còn sống', () => {
     /*
-     * Neo con số vào máy. `why` của rule ghi 1381 — nếu repo đổi mà con số trong chữ không đổi thì tài
-     * liệu thành sai, đúng lớp lỗi G4.1. Cho sai số ±10% để một vài spec mới không làm đỏ oan.
+     * BẢN TRƯỚC TỰ MÂU THUẪN, sửa 26/10/2026.
+     *
+     * Nó so con số trong `why` với số gate đếm được, sai lệch cho phép ±10%. Nhưng chính `why` của rule
+     * viết: "Con số này đi theo `outputs/**` nên nó TRÔI khi task chạy". Tức máy canh đang đòi một con
+     * số bất biến từ một mẫu số mà tài liệu đã khai là biến thiên.
+     *
+     * Đo 26/10/2026: rule khai 1.522 lượt trên 402 spec theo task (15/10); máy này giờ có 594 spec và
+     * gate đếm 2.243. Không có gì hỏng cả — chỉ là người dùng đã chạy thêm task. Gate đỏ vì công việc
+     * diễn ra bình thường, và nó đỏ KHÁC NHAU trên mỗi máy, tức kết quả phụ thuộc môi trường chạy.
+     *
+     * Thứ còn đáng canh, và canh được:
+     *   1. số liệu phải có NIÊN ĐẠI và MẪU SỐ — một con số trần không ai kiểm lại được;
+     *   2. `why` phải nói thẳng nó trôi, để lần sau không ai dựng lại phép so bằng;
+     *   3. detector phải CÒN SỐNG — rule đếm 0 ở nơi có spec theo task nghĩa là nó đã chết âm thầm.
      */
-    const r = spawnSync(process.execPath, [AR, '--include-tasks'], { cwd: REPO, encoding: 'utf8', env: gateEnv() });
-    const m = /P1\s+(\d+)\s+spec-page-locator/.exec(`${r.stdout}${r.stderr}`);
-    if (!m) { test.skip(true, 'máy này không có spec theo task (lớp PROJECT)'); return; }
     // eslint-disable-next-line @typescript-eslint/no-var-requires
     const { RULES } = require('../../../scripts/qa/automation_review.js');
-    const khai = Number((/(\d+) lượt ở/.exec(RULES.find((x: { id: string }) => x.id === 'spec-page-locator').why) || [])[1]);
-    const thuc = Number(m[1]);
-    expect(Math.abs(thuc - khai) / khai, `rule khai ${khai} lượt, gate đếm ${thuc} ⇒ cập nhật con số trong \`why\``).toBeLessThan(0.1);
+    const why = String(RULES.find((x: { id: string }) => x.id === 'spec-page-locator').why);
+
+    expect(why, 'số đo phải kèm NGÀY đo — số trần thì không ai kiểm lại được').toMatch(/\d{1,2}\/\d{1,2}\/\d{4}/);
+    expect(why, 'số đo phải kèm MẪU SỐ (bao nhiêu lượt trên bao nhiêu spec)').toMatch(/\d+ lượt ở tổng \d+ spec/);
+    expect(why, 'phải khai rõ con số này TRÔI, nếu không lần sau lại có người neo cứng nó')
+      .toMatch(/trôi|thay đổi theo/i);
+
+    const r = spawnSync(process.execPath, [AR, '--include-tasks'], { cwd: REPO, encoding: 'utf8', env: gateEnv() });
+    const out = `${r.stdout}${r.stderr}`;
+    const coTask = /theo tầng:.*task (\d+)/.exec(out);
+    test.skip(!coTask || Number(coTask[1]) === 0, 'máy này không có spec theo task (lớp PROJECT) — không có gì để detector bắt');
+
+    const m = /P1\s+(\d+)\s+spec-page-locator/.exec(out);
+    expect(m, 'có spec theo task mà rule đếm 0 ⇒ detector đã chết âm thầm').not.toBeNull();
+    expect(Number(m![1]), 'detector phải đếm được ít nhất một lượt').toBeGreaterThan(0);
   });
 });
