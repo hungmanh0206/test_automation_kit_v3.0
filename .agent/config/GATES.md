@@ -23,7 +23,7 @@ lịch sử, còn việc CHẶN nằm ở `dim:coverage` (chiều `bug_history` 
 | T0 | CHẶN | `bug:claim`, `bug:claim:new`, `bug:claim:report`, `bug:claim:chot` | một phát hiện bug phải QUA MÁY trước khi được nói thành lời. | `scripts/qa/bug_claim.js` | RULE_GLOBAL.md · .agent/workflows · prompt_templates · manual-run · tests/fe/infra |
 | T1 | CHẶN | `case:paths` | ĐƯỜNG IMPORT TƯƠNG ĐỐI PHẢI KHỚP TÊN FILE THẬT, ĐÚNG HOA-THƯỜNG. | `scripts/qa/case_paths.js` | .github/workflows · tests/fe/infra |
 | T1 | CHẶN | `check` | MỘT LỆNH KIỂM (v2.7.0 §A3). | `scripts/qa/check.js` | .gitlab-ci.yml · RULE_GLOBAL.md · README.md · USER_GUIDE.md · QUICKSTART.md · scripts/qa/README.md · docs/kit-map.md · .github/workflows · .agent/workflows · .agent/rules · .agent/skills · prompt_templates · exploratory · partial-rerun · manual-run · .claude/commands · tests/fe/infra |
-| T0 | CHẶN | `ci:scope` | MÁY ĐỨNG SAU LUẬT "CI generic KHÔNG tự chạm UAT". | `scripts/qa/ci_scope_check.js` | .gitlab-ci.yml · docs/kit-map.md · .github/workflows · .agent/rules · tests/fe/infra |
+| T0 | CHẶN | `ci:scope` | MÁY ĐỨNG SAU LUẬT "CI generic KHÔNG tự chạm UAT". | `scripts/qa/ci_scope_check.js` | .gitlab-ci.yml · QUICKSTART.md · docs/kit-map.md · .github/workflows · .agent/rules · tests/fe/infra |
 | T1 | CHẶN | `course:maturity`, `course:maturity:check` | sinh khối "Bộ kit của bạn đang ở đâu" cho từng bài giảng. | `scripts/qa/course_maturity.js` | .gitlab-ci.yml · .github/workflows |
 | T1 | CHẶN | `course:numbers` | CHẶN "ví dụ trong bài giảng không khớp sản phẩm thực hành". | `scripts/qa/course_numbers.js` | .gitlab-ci.yml · .github/workflows |
 | T0 | CHẶN | `db:paths:check` | QUÉT ĐƯỜNG VÒNG TỚI DB TRONG CODE (v2.8.0 §0b.5). | `scripts/qa/db_paths_check.js` | tests/fe/infra |
