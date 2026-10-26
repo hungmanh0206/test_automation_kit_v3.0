@@ -213,7 +213,7 @@
   "dependencies": {
     "axe-core": "^4.12.1",
     "axios": "^1.18.1",
-    "exceljs": "^3.4.0",
+    "exceljs": "^4.4.0",
     "googleapis": "^150.0.1",
     "tedious": "^20.3.8"
   },
