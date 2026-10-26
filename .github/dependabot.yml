@@ -1,0 +1,73 @@
+# Dependabot — biết advisory SỚM, thay vì phát hiện lúc CI đỏ.
+#
+# VÌ SAO CÓ FILE NÀY. Trong một tuần, `audit:ci` chặn CI hai lần vì advisory mới công bố cho gói đã
+# nằm yên trong repo: `follow-redirects` (2 lỗ HIGH rò header credential) và chuỗi
+# `tedious → @azure/identity → @azure/msal-node` (GHSA-xcx6-jx8p-x3h5). Cả hai lần đều phát hiện
+# theo cùng một đường: ai đó push một thứ không liên quan, CI đỏ, rồi mới đi tìm nguyên nhân.
+#
+# Dependabot đảo chiều đó: nó mở PR ngay khi advisory ra, kèm sẵn bản vá, và CI `static-check` chạy
+# trên chính PR đó nên biết ngay bản vá có gãy gì không.
+#
+# ⚠ FILE NÀY CHƯA ĐỦ. Nó chỉ bật phần NÂNG BẢN ĐỊNH KỲ. Phần cảnh báo bảo mật phải bật trong
+# Settings của repo (Settings → Advanced Security): "Dependabot alerts" và "Dependabot security
+# updates". Thiếu hai công tắc đó thì advisory giữa hai lượt quét định kỳ vẫn không ai biết.
+
+version: 2
+
+updates:
+  # ─── npm ──────────────────────────────────────────────────────────────────────────────────────
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+      time: "09:00"
+      timezone: Asia/Ho_Chi_Minh
+    target-branch: main
+    open-pull-requests-limit: 5
+    labels: [dependencies]
+    commit-message:
+      prefix: fix(deps)
+      prefix-development: chore(deps-dev)
+    # GOM PR để khỏi thành tiếng ồn. Mỗi bản vá lẻ một PR thì sau vài tuần không ai đọc nữa, và
+    # lúc đó PR bảo mật thật nằm lẫn trong đống đó.
+    groups:
+      prod-minor-patch:
+        applies-to: version-updates
+        dependency-type: production
+        update-types: [minor, patch]
+      dev-minor-patch:
+        applies-to: version-updates
+        dependency-type: development
+        update-types: [minor, patch]
+      # Bản vá bảo mật GOM RIÊNG, không trộn với nâng bản thường — để nhìn là biết PR nào gấp.
+      security:
+        applies-to: security-updates
+        patterns: ["*"]
+    ignore:
+      # `xlsx` nhúng sẵn ở `vendor/` dạng `file:` để `npm ci` không cần mạng ngoài (xem deps_check.js).
+      # Dependabot không nâng được dạng đó, và nếu nó thử thì sẽ phá phép kiểm integrity của lockfile.
+      - dependency-name: xlsx
+      # MAJOR của Playwright kéo theo browser runtime và có thể đổi hành vi locator. Nâng major phải
+      # là quyết định có người, chạy kèm bộ tự kiểm, không phải một PR tự động merge.
+      - dependency-name: "@playwright/test"
+        update-types: [version-update:semver-major]
+      - dependency-name: playwright
+        update-types: [version-update:semver-major]
+
+  # ─── GitHub Actions ───────────────────────────────────────────────────────────────────────────
+  # 6 workflow đang ghim action theo tag. Tag bị dời là một đường tấn công chuỗi cung ứng thật,
+  # nên để Dependabot theo dõi luôn.
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+    target-branch: main
+    open-pull-requests-limit: 3
+    labels: [dependencies, ci]
+    commit-message:
+      prefix: chore(ci)
+    groups:
+      actions:
+        patterns: ["*"]
