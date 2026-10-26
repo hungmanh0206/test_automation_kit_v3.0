@@ -46,7 +46,7 @@ hoặc đã lệch — tìm ra vì sao trước khi chạy task thật, đừng 
 
 | Số đo | GitHub | GitLab |
 |---|---|---|
-| file được track | 797 | 797 |
+| file được track | 798 | 798 |
 | `npm run ci:scope` đếm | 152 | 152 |
 
 Hai cột đang bằng nhau vì `.agent/config/gitlab_strip.json` chưa khai mục nào, tức hai cây còn giống
