@@ -215,7 +215,7 @@
     "axios": "^1.18.1",
     "exceljs": "^3.4.0",
     "googleapis": "^150.0.1",
-    "tedious": "^20.0.0"
+    "tedious": "^20.3.8"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
