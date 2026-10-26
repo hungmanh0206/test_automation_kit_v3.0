@@ -26,11 +26,11 @@ jobs:
   release:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0   # version:check cần lịch sử để so tag trước ↔ shared change
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version-file: '.nvmrc'
           cache: npm
@@ -79,7 +79,7 @@ jobs:
       # assertion nằm trong file log cạnh sổ, và không có nó thì "4 đỏ" là một câu đố.
       - name: Log full:suite (khi đỏ)
         if: failure()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: full-suite-log
           path: knowledge/metrics/full-suite.last.log
@@ -95,7 +95,7 @@ jobs:
         run: npm run release:verify
 
       - name: Artifact (luôn upload — có gói để soi cả khi các bước sau bỏ qua)
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: kit-package
           path: dist/*.tar.gz
@@ -121,7 +121,7 @@ jobs:
 
       - name: Tạo GitHub Release
         if: startsWith(github.ref, 'refs/tags/v')
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         with:
           files: dist/*.tar.gz
           body_path: RELEASE_NOTES.md
