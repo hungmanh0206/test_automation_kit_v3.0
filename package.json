@@ -214,7 +214,7 @@
     "axe-core": "^4.12.1",
     "axios": "^1.18.1",
     "exceljs": "^4.4.0",
-    "googleapis": "^150.0.1",
+    "googleapis": "^188.0.0",
     "tedious": "^20.3.8"
   },
   "devDependencies": {
