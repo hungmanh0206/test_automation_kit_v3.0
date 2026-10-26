@@ -10,7 +10,7 @@
 ```text
 test-automation-kit/
 ├── .claude/
-│   └── commands/     # slash command = ĐIỂM VÀO chuẩn hoá (9 lệnh — xem Main Components)
+│   └── commands/     # slash command = ĐIỂM VÀO chuẩn hoá (13 lệnh — ý nghĩa từng lệnh ở README)
 │                     #   CHỈ commands/ được commit; settings*.json là cấu hình máy cá nhân
 ├── .agent/
 │   ├── config/       # verdict_taxonomy · risk_model · branch_parity · ci_scope · case_types
@@ -39,7 +39,7 @@ test-automation-kit/
 │   ├── run_phase2_template.md
 │   ├── run_phase_re-run_template.md
 │   ├── phase1/   # 01 setup → 02 gen testcase → 02b output format → 03 gen test data → 04 publish Sheet
-│   │   └── dimensions/   # 20 chương CHIỀU coverage (§3–§23) — mở đúng chiều task cần, không nạp cả 20
+│   │   └── dimensions/   # 22 chương CHIỀU coverage — mở đúng chiều task cần, không nạp cả bộ
 │   │                     #   §22 inbound callback · §23 DB persistence (bản ghi sau CRUD)
 │   └── phase2/   # 04 execute FE → 05 execute API → 06 triage → 07 flaky → 08 log bug Backlog
 ├── partial-rerun/
@@ -52,7 +52,7 @@ test-automation-kit/
 │   ├── integrations/   # backlog/ (bug + fetch tài liệu nguồn/Figma) · google_doc/ · google_sheet/ (legacy)
 │   └── qa/   # công cụ QA chạy thật: dashboard, accessibility, perf, security, load, risk_score/gate, ui_conformance
 ├── tests/
-│   ├── fe/infra/        # 48 spec KIỂM CHÍNH KIT (gate tự kiểm) — chạy offline, vào CI
+│   ├── fe/infra/        # 147 spec KIỂM CHÍNH KIT (gate tự kiểm) — chạy offline, vào CI
 │   ├── support/setup/   # setup layer dùng chung (factory/hook/fixture/mock/cleanup/contract)
 │   ├── support/setup/db/  # DB Verification Layer (§23) — đọc bản ghi để KHOANH TẦNG lỗi UI vs BE
 │   │                      #   read-only tuyệt đối; so sánh theo NGHĨA (money/instant/text)
@@ -84,10 +84,10 @@ test-automation-kit/
 | [QUICKSTART.md](../QUICKSTART.md) | Onboarding nhanh cho project mới. |
 | [RULE_GLOBAL.md](../RULE_GLOBAL.md) | Quy tắc chung về ngôn ngữ, bảo mật, output và cleanup. |
 | `.agent/workflows/` | Workflow chính dạng flat: mỗi flow gồm 1 file entry (`phase1_generate_tc.md`, `phase2_execute.md`, `rerun.md`) và các step file `*_NN_*.md` cùng thư mục. Step đánh số reset theo từng flow (phase1_01..04, phase2_01..04, rerun_01..03). |
-| `.claude/commands/` | **Slash command — điểm vào chuẩn hoá** cho 10 luồng: `/preflight` `/phase1` `/phase2` `/rerun` `/partial-rerun` `/explore` `/ui-debug` `/manual-run` `/gates` `/publish`. Mỗi command là **con trỏ mỏng**: chỉ nói đọc workflow nào · chạy npm script nào · dừng ở gate nào — **không** chép policy (kit đã có `gate:policy` giữ `RULE_GLOBAL.md` là canonical). Máy giữ chúng khỏi mục rữa: `tests/fe/infra/slash-commands.spec.ts` kiểm mọi npm script/đường dẫn được nhắc phải tồn tại, và mọi nhánh trong `branch_parity.json` phải có command cùng tên. |
+| `.claude/commands/` | **Slash command — điểm vào chuẩn hoá** cho 13 luồng (ý nghĩa từng lệnh: README). Mỗi command là **con trỏ mỏng**: chỉ nói đọc workflow nào · chạy npm script nào · dừng ở gate nào — **không** chép policy (kit đã có `gate:policy` giữ `RULE_GLOBAL.md` là canonical). Máy giữ chúng khỏi mục rữa: `tests/fe/infra/slash-commands.spec.ts` kiểm mọi npm script/đường dẫn được nhắc phải tồn tại, và mọi nhánh trong `branch_parity.json` phải có command cùng tên. |
 | `.agent/skills/` | Skill instructions cho agent theo vai trò chuyên biệt (**26 skill**). Danh mục: `.agent/skills/INDEX.md` (sinh lại: `npm run skills:index`). |
 | `.agent/rules/` | Rule bắt buộc cho core behavior, locator, Playwright FE/API. |
-| `prompt_templates/` | Prompt dùng để chạy Phase 1, Phase 2 và rerun. Lưu ý đánh số: prompt con là sub-prompt theo hoạt động, số chạy liên tục theo trình tự pipeline (`phase1/01..04` chuẩn bị→sinh testcase→test data→publish Sheet; `phase2/04..08` execute FE→execute API→triage review→flaky→log bug Backlog) — KHÁC với workflow `.agent/workflows/` đánh số reset theo từng phase (phase2_01..04). Số prompt không ánh xạ 1:1 với số workflow; chạy từng prompt khi cần đúng hoạt động đó. **`phase1/dimensions/`** giữ 20 chương **chiều coverage** (§3–§23; tách khỏi `02_gen_testcases.md` ngày 14/08/2026) — mở đúng chiều task khai `required`, không nạp cả 20; **`phase1/02b_output_format.md`** giữ Summary Report + Export Excel, chỉ nạp ở cuối lượt. |
+| `prompt_templates/` | Prompt dùng để chạy Phase 1, Phase 2 và rerun. Lưu ý đánh số: prompt con là sub-prompt theo hoạt động, số chạy liên tục theo trình tự pipeline (`phase1/01..04` chuẩn bị→sinh testcase→test data→publish Sheet; `phase2/04..08` execute FE→execute API→triage review→flaky→log bug Backlog) — KHÁC với workflow `.agent/workflows/` đánh số reset theo từng phase (phase2_01..04). Số prompt không ánh xạ 1:1 với số workflow; chạy từng prompt khi cần đúng hoạt động đó. **`phase1/dimensions/`** giữ 22 chương **chiều coverage** (tách khỏi `02_gen_testcases.md` ngày 14/08/2026) — mở đúng chiều task khai `required`, không nạp cả bộ; **`phase1/02b_output_format.md`** giữ Summary Report + Export Excel, chỉ nạp ở cuối lượt. |
 | `partial-rerun/` | Nhánh phụ độc lập; không là dependency của Main Flow và có thể xóa mà Main Flow vẫn chạy. |
 | `partial-rerun/run_requirement_prepare_review.md` | Phase 1 của nhánh phụ: tạo diff/impact/testcase draft và dừng chờ Human Review. |
 | `partial-rerun/run_requirement_apply_approved.md` | Phase 2 của nhánh phụ: merge testcase đã approve và partial execute. |

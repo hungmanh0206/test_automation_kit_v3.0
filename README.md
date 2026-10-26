@@ -8,12 +8,16 @@
 **[`docs/CHEATSHEET.md`](docs/CHEATSHEET.md)** là thứ duy nhất cần đọc trước khi chạy: năm lệnh, ba cửa
 ra, cách đọc output của `npm run check`, và cách xin vượt qua cho hợp lệ.
 
+**Đường ngắn nhất, năm lệnh phải thuộc:**
+
 ```
-/start  →  /phase1  →  /phase2  →  /rerun  →  /release   (npm run check gọi lúc nào cũng được)
+/start  →  /phase1  →  /phase2  →  /rerun  →  /release
 ```
 
-Các lệnh còn lại không cần nhớ. Chúng được gợi ý đúng lúc ở dòng **Lệnh tiếp theo** trong output của
-`npm run check`, hoặc xem thẳng bằng `npm run next -- --task <TASK_KEY>`.
+Đây là **rút gọn** của luồng đầy đủ chín bước (xem mục [13 slash command](#13-slash-command)): bốn lệnh
+bị lược đi là `/discover`, `/preflight`, `/gates` và `/publish`. Chúng không cần thuộc vì
+`npm run check` gợi ý đúng lúc ở dòng **Lệnh tiếp theo**, hoặc xem thẳng bằng
+`npm run next -- --task <TASK_KEY>`.
 
 ## Đi đâu tiếp
 

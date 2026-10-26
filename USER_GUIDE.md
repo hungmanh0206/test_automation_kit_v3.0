@@ -55,9 +55,12 @@ Luật đầy đủ: [`RULE_GLOBAL.md`](RULE_GLOBAL.md). Bản rút gọn luôn 
 
 ### 2.1 Cài đặt
 
+Dựng lần đầu thì theo [`QUICKSTART.md`](QUICKSTART.md) — ở đó có đủ mười bước, gồm cả mấy file config
+mà thiếu là `preflight` chặn. Mục này chỉ nhắc phần chạy hằng ngày:
+
 ```bash
 git pull
-npm install
+npm ci                        # theo lockfile, KHÔNG dùng npm install
 npx playwright install
 npm run integration:check     # kiểm kết nối, không bắt buộc
 ```
@@ -65,7 +68,7 @@ npm run integration:check     # kiểm kết nối, không bắt buộc
 | Cần | Ai cần | Để làm gì |
 |---|---|---|
 | VS Code + AI chat extension | tất cả | Nơi làm việc với agent |
-| Node.js ≥ 18 | QA, Automation | Chạy script và Playwright |
+| Node.js ≥ 20 | QA, Automation | Chạy script và Playwright |
 | Playwright runtime | QA, Automation | Execute và tạo evidence |
 | Quyền Backlog / tài liệu / Figma | QA, QA Lead | Đọc requirement |
 | Credential app test | QA, Automation | Login, gọi API, dựng data |
@@ -76,6 +79,9 @@ QA Lead chỉ review report thì không cần cài Playwright.
 ### 2.2 Profile cho từng task
 
 Mỗi task một profile riêng. Đây là cơ chế giữ các task không đè lên nhau.
+
+Cách thường dùng là `/start <TASK_KEY>`: nó hỏi 5 điều rồi tạo profile cho bạn. Muốn tạo thẳng không
+qua hỏi đáp thì:
 
 ```bash
 npm run profile:create -- <TASK_KEY> --project-output outputs/<PROJECT>
@@ -405,27 +411,25 @@ TASK_KEY=<TASK_A> PROJECT_OUTPUT_DIR=outputs/<PROJECT> npm run test:task -- --ta
 
 ### 8.1 Slash command
 
-Điểm vào gọn nhất. Gõ trong Claude Code:
+**Ý nghĩa đầy đủ của 13 lệnh nằm ở [`README.md`](README.md)** — ở đó mỗi lệnh có một đoạn nói nó làm
+gì, ra gì, gọi khi nào và dừng ở đâu. Mục này chỉ nối lệnh với bước trong quy trình ở trên.
 
-| Command | Làm gì | Dừng ở đâu |
-|---|---|---|
-| `/start <TASK_KEY>` | Hỏi 5 điều, tạo profile, chạy preflight | Thiếu câu trả lời thì không đoán |
-| `/preflight <TASK_KEY>` | Kiểm input và config trước khi bắt đầu | exit ≠ 0 thì sửa nguyên nhân |
-| `/discover` | Bò app lấy bản đồ màn và API | — |
-| `/phase1 <TASK_KEY>` | Sinh testcase | **Ambiguity Gate** — còn mơ hồ thì hỏi rồi chờ |
-| `/phase2 <TASK_KEY>` | Execute | Xác nhận trước lượt chạm môi trường đầu tiên |
-| `/rerun <TASK_KEY>` | Chạy lại case của bug đã fix | Xác nhận trước khi chạm môi trường |
-| `/partial-rerun <TASK_KEY>` | Requirement đổi | Bản review trước, apply sau khi bạn duyệt |
-| `/gates <TASK_KEY>` | Bó gate trước khi finalize | Còn dòng CHẶN thì sửa nội dung, **không nới ngưỡng** |
-| `/publish <TASK_KEY>` | Đẩy lên Google Sheet | Review bản local trước khi ghi đè |
-| `/release <TASK_KEY>` | Cửa ra, khuyến nghị go/no-go | Sổ nợ chưa sạch thì không qua |
-| `/manual-run <TASK_KEY>` | Chạy tay case khai `[manual]` | Case chưa khai `[manual]` thì dừng |
-| `/explore <phạm vi>` | Phiên exploratory có charter | Chưa khai charter thì không chạy |
-| `/ui-debug <màn>` | Tìm locator bền trên DOM thật | Never-auto — mở browser vào môi trường test |
+| Bước trong mục 3 | Lệnh |
+|---|---|
+| 3.1 Khám phá và chốt scope | `/start` (task mới), `/discover`, `/preflight` |
+| 3.2 Sinh testcase | `/phase1` |
+| 3.3 Review và chốt | `/gates`, rồi `/publish` sau khi QA duyệt |
+| 3.4 Execute | `/phase2` |
+| 3.7 Sau khi Dev fix | `/rerun` |
+| Kết thúc task | `/release` |
+| 5. Requirement đổi | `/partial-rerun` |
+| Case khai `[manual]` | `/manual-run` |
+| Dò ngoài bộ case | `/explore` |
+| Màn mới hoặc locator hỏng | `/ui-debug` |
 
 > **Phần sau tên command phải đúng bằng `<TASK_KEY>`.** Nó đổ thẳng vào `--task`, nên
-> `/phase2 CSDL-1234 chạy local` sẽ làm preflight nhận cả câu đó làm task key rồi chặn. Cần truyền thêm
-> tham số thì dùng prompt mẫu (mục 8.3).
+> `/phase2 CSDL-1234 chạy local` sẽ làm preflight nhận cả câu đó làm task key rồi chặn. Cần truyền
+> thêm tham số thì dùng prompt mẫu (mục 8.3).
 
 **Quên mã task?** Lệnh tự xử lý:
 
@@ -434,6 +438,7 @@ npm run task:which -- <TASK_KEY>
 ```
 
 Nhiều profile mà không kèm mã thì nó **in danh sách để bạn chọn**, không tự đoán.
+
 
 ### 8.2 Lệnh npm hay dùng
 
@@ -472,7 +477,7 @@ Việc nào giao subagent model rẻ, việc nào không:
 |---|---|---|
 | Agent không thấy file | Mở sai folder trong VS Code | Mở đúng root của kit |
 | Phase 1 thiếu requirement | Link/quyền chưa đủ | Kiểm link trong profile của task |
-| Excel không xuất được | Thiếu dependency hoặc bảng sai cột | `npm install`, kiểm cột `ID_TC` |
+| Excel không xuất được | Thiếu dependency hoặc bảng sai cột | `npm ci`, kiểm cột `ID_TC` |
 | Phase 2 skip nhiều | Auth/data/env chưa sẵn sàng | Sửa setup rồi chạy lại |
 | Evidence trắng | Chụp lúc trang chưa render | Chụp lại sau khi trang ổn định |
 | Fail không rõ nguyên nhân | Chưa phân loại root cause | Rerun đúng case rồi đọc artifact |
