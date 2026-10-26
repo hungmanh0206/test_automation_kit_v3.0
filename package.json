@@ -230,6 +230,7 @@
   "overrides": {
     "follow-redirects": "^1.16.1",
     "@azure/msal-node": "^7.1.1",
-    "@azure/identity": "^4.14.0"
+    "@azure/identity": "^4.14.0",
+    "uuid": "^11.1.1"
   }
 }
