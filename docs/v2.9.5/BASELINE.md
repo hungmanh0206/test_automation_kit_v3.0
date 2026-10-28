@@ -122,3 +122,55 @@ và B hẹp hơn prompt mô tả, và nằm ở đúng một điểm:
 B vẫn giữ nguyên kỷ luật của mình — app không bao giờ là oracle. Nhưng khi ghi vào `A_PARITY.md` thì
 phải ghi lý do từ chối là *"quan sát không được thành expected"*, KHÔNG phải *"A cho app làm oracle"*.
 Mô tả sai đối thủ rồi tự thắng là thứ đợt này không được làm.
+
+---
+
+## 0.2 — Sổ nợ `skills:lint` hạ nhầm khoá
+
+Prompt khai đúng, và phép đo xác nhận thêm phần hậu quả.
+
+| | giá trị |
+|---|---|
+| `skills_lint.js:54` đọc | `CFG.no` |
+| `no.thieuKhiDung` trước khi vá | **12** |
+| Khoá `thieuKhiDung` ở cấp NGOÀI | **11** (không ai đọc) |
+| Nợ THỰC đo được | **11**/26 skill |
+
+Lần "hạ nợ" ngày 15/10 ghi vào khoá cấp ngoài, nên sổ nợ thật vẫn là 12 **suốt 13 ngày**. Và gate vẫn
+in đúng câu `nợ đã GIẢM … thực 11 < khai 12 ⇒ hạ số` mỗi lượt chạy — không ai đọc, vì người sửa tin là
+đã sửa rồi.
+
+Đã hạ đúng chỗ (`no.thieuKhiDung` = 11), xoá khoá ngoài, và thêm máy **CHẶN** khi có khoá nợ nằm ngoài
+`no`. Chặn chứ không cảnh báo: một con số đặt ở chỗ không ai đọc tệ hơn không có số, vì nó tạo cảm giác
+đã gác. Thêm `--cfg` để dựng được đối chứng âm; đo: config hỏng exit 1, config đúng exit 0.
+
+## 0.3 — Skill mồ côi
+
+Prompt khai `ui_mocking`. Đo trên 26 skill ra **hai** ca, không phải một:
+
+| Skill | workflow/prompt/command | script | Prompt khai? |
+|---|---|---|---|
+| `ui_mocking` | **0** | **0** | ✓ |
+| `release_summary` | **0** | 1 | ✗ **sót** |
+
+Luật mà prompt đề xuất ("0 workflow/prompt/command/script nào nhắc ⇒ CẢNH BÁO") bắt đúng `ui_mocking`;
+`release_summary` có một script nhắc nên nó lọt qua luật đó. Ghi lại để không ai tưởng là đã phủ hết.
+
+### 🚨 Máy gác tôi vừa dựng tự vô hiệu hoá — bắt được ngay trong lượt dựng
+
+Khối chú thích của luật mới nêu `ui_mocking` làm ví dụ. Vì `scripts/` nằm trong vùng quét, gate **đọc
+chính mã nguồn của mình**, thấy tên skill, rồi kết luận "không mồ côi" — cho MỌI skill nó từng nhắc tên.
+
+Phát hiện bằng đối chứng, không bằng đọc code: bỏ bản vá nối `ui_mocking` đi thì gate VẪN báo 0 mồ côi.
+Đó là định nghĩa của một phép kiểm RỖNG. Đã loại chính file gate khỏi vùng quét; đối chứng lại thì nó
+gọi đúng tên `phase2/ui_mocking`.
+
+Bài học, cùng họ với "`every()` trên mảng rỗng trả TRUE": **một máy gác nêu ví dụ bằng chính thứ nó đang
+đếm thì tự vô hiệu hoá.** Và nó không lộ ra khi đọc code — chỉ lộ khi thử tháo bản vá ra.
+
+### `ui_debug_agent` dẫn file không đi theo gói
+
+`knowledge/locators/qemis-login__radcombobox-5-o-va-cap-hoc.json` tồn tại trên máy nhưng `knowledge/**`
+chỉ commit `.gitkeep`, nên trong gói kho này RỖNG. Chọn **ghi rõ nó là lớp PROJECT** thay vì đưa một bản
+đã khử PII vào `knowledge/examples/`: `kit-layers.md` tách lớp PROJECT khỏi kit generic, và một ví dụ của
+app cụ thể nằm trong gói dùng chung sẽ dạy sai cho dự án khác.

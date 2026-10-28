@@ -32,7 +32,7 @@ Skill này không đề xuất DB để DỰNG state hoặc đọc toàn bộ so
 | Factory | Tạo data thật qua API/business API | Ưu tiên đầu tiên; tự đăng ký cleanup theo `RUN_ID` |
 | Hook (test hook) | Set state khó tạo bằng flow thường, hoặc trigger job/fault ngay | Cần capability test-only; thiếu hook → `Needs hook` |
 | Fixture | Data có sẵn/read-only, chỉ verify tồn tại | Không tạo mới |
-| Mock/Test double | Cô lập dependency NGOÀI scope (3rd-party/integration), fault injection | KHÔNG mock logic/behavior đang test; phải ghi trong report |
+| Mock/Test double | Cô lập dependency NGOÀI scope (3rd-party/integration), fault injection | KHÔNG mock logic/behavior đang test; phải ghi trong report. Cách dựng (route, nhánh 5xx/timeout/abort, chống mock rò sang case khác): skill `ui_mocking` |
 | Cleanup registry | Gom data tạo ra theo `RUN_ID` để rollback | LIFO, idempotent |
 | Hộp thư test (sandbox) | Kiểm email/thông báo GỬI ĐI: nội dung, người nhận, link kích hoạt | ⛔ **KHÔNG BAO GIỜ đọc hộp thư thật** — xem dưới. Chưa có hộp thư test ⇒ `needs_sandbox` |
 

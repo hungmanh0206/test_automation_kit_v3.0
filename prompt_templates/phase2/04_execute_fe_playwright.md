@@ -115,7 +115,7 @@ Nếu precondition chỉ có thể DỰNG bằng DB hoặc backend internal stat
 - Không được xóa assertion quan trọng hoặc giảm phạm vi verify để làm case PASS.
 - Không được đổi expected result nếu chưa có bằng chứng requirement/API/design xác nhận expected cũ sai.
 - Không được mock/stub logic chính mà testcase cần kiểm thử thật.
-- Mock chỉ dùng cho fault injection hoặc dependency ngoài scope và phải ghi rõ trong actual result/report.
+- Mock chỉ dùng cho fault injection hoặc dependency ngoài scope, ghi rõ trong report. Dựng nhánh lỗi: skill `ui_mocking`.
 - PASS chỉ hợp lệ khi testcase thực sự validate behavior/expected result.
 - SKIP chỉ hợp lệ khi không thể chạy sau khi đã thử sửa setup/data/dependency hợp lý.
 - SKIP vì setup chỉ hợp lệ khi `Automation Readiness = Manual-only` trong Setup Strategy contract. Với `Ready`, phải setup theo `Setup Source`, không được skip vì setup. Với `Needs hook` mà hook chưa tồn tại, ghi blocker + đề xuất hook, không false-pass và không skip âm thầm.
