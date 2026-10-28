@@ -30,13 +30,30 @@ test.describe('@infra năm lệnh — có mặt, và CHEATSHEET nói đúng năm
     for (const l of NAM_LENH) {
       expect(fs.existsSync(path.join(REPO, '.claude/commands', `${l}.md`)), `thiếu /${l}`).toBe(true);
     }
-    expect(fs.existsSync(path.join(REPO, '.claude/commands/gates.md')), '/check đi qua /gates').toBe(true);
+    expect(fs.existsSync(path.join(REPO, '.claude/commands/gates.md')), 'thiếu /gates').toBe(true);
+    /*
+     * KHÔNG đòi `.claude/commands/check.md`, và chú thích cũ ở đây ("/check đi qua /gates") là SAI —
+     * sửa 28/10/2026. Đo: `check.md` CHƯA BAO GIỜ tồn tại (`git log --all --diff-filter=A` trả rỗng),
+     * nên không ai gõ được `/check`. Và `/gates` là việc KHÁC: nó chạy bó cửa trước finalize/publish,
+     * còn thứ tài liệu gọi là "/check" — tự nhận phase rồi in một bảng gọn — là `npm run check`.
+     */
+    expect(fs.existsSync(path.join(REPO, '.claude/commands/check.md')), 'không được có /check: nó chưa bao giờ tồn tại, và tài liệu phải trỏ `npm run check`').toBe(false);
   });
 
-  test('`docs/CHEATSHEET.md` nêu ĐÚNG năm lệnh đó, và nêu `/check`', () => {
+  test('`docs/CHEATSHEET.md` nêu ĐÚNG năm lệnh đó, và nêu `npm run check`', () => {
     const cs = fs.readFileSync(path.join(REPO, 'docs/CHEATSHEET.md'), 'utf8');
     for (const l of NAM_LENH) expect(cs, `CHEATSHEET thiếu /${l}`).toContain(`/${l}`);
-    expect(cs).toContain('/check');
+    /*
+     * BẢN TRƯỚC ĐÒI ĐÚNG CHUỖI `/check`, sửa 28/10/2026 — và nó là assertion duy nhất còn giữ cái tên
+     * đó sống. README đã đổi sang `npm run check` ở lượt trước, nên hai bề mặt nói hai thứ khác nhau,
+     * và CHEATSHEET bị gate giữ lại ở tên cũ. Cùng hình dạng với `manual-run-usability.spec.ts`: một
+     * máy gác neo vào CHỮ của tài liệu thì khi tài liệu được sửa cho đúng, nó quay sang chặn bản đúng.
+     *
+     * Đo trước khi đổi: `.claude/commands/check.md` chưa bao giờ tồn tại, và không bề mặt sống nào còn
+     * nhắc `/check`. Nên đòi `npm run check` mới là đòi thứ người dùng gõ được.
+     */
+    expect(cs, 'CHEATSHEET phải trỏ lệnh gõ ĐƯỢC').toContain('npm run check');
+    expect(cs, 'không được dạy `/check` — nó không phải slash command').not.toMatch(/`\/check`/);
     /* Và nó phải nói rõ sáu lệnh kia KHÔNG cần nhớ, nếu không người đọc vẫn tưởng phải nhớ 12 lệnh. */
     expect(cs).toMatch(/KHÔNG cần nhớ/);
     for (const l of GOI_Y_DUNG_LUC) expect(cs, `CHEATSHEET không nhắc /${l}`).toContain(`/${l}`);
@@ -157,14 +174,36 @@ test.describe('@infra next — gợi ý suy từ TRẠNG THÁI ARTIFACT', () => 
     expect(ds).not.toContain('/release');
   });
 
-  test('THIẾU sổ nợ KHÁC sổ nợ SẠCH — gợi ý `/check` để biết đã gate nào chạy chưa', () => {
+  test('THIẾU sổ nợ KHÁC sổ nợ SẠCH — gợi ý `npm run check` để biết đã gate nào chạy chưa', () => {
     /* `so_no === null` nghĩa là chưa gate nào ghi gì, mà điều đó có thể nghĩa là chưa gate nào CHẠY. */
     const t = dungTask({ case: true, mauSo: true });
     const s = { ...nc.trangThai('T-NEXT', t.taskDir), co_profile: true };
     expect(s.so_no).toBeNull();
-    const g = nc.goiY(s).find((x: { lenh: string }) => x.lenh === '/check');
-    expect(g, 'phải gợi ý /check').toBeTruthy();
+    const g = nc.goiY(s).find((x: { lenh: string }) => x.lenh === 'npm run check');
+    expect(g, 'phải gợi ý `npm run check`').toBeTruthy();
     expect(g.vi_sao).toContain('chưa gate nào CHẠY');
+  });
+
+  test('MỌI lệnh `/x` mà bộ gợi ý phát ra đều phải có file CÓ THẬT', () => {
+    /*
+     * MÁY CHẶN LỚP LỖI VỪA BẮT ĐƯỢC, thêm 28/10/2026.
+     *
+     * `next_command.js` từng phát ra `/check` như một lệnh để người dùng gõ, trong khi
+     * `.claude/commands/check.md` chưa bao giờ tồn tại. Nó không hỏng ở phía kit — không gate nào đỏ,
+     * không log nào kêu — nó hỏng ở phía NGƯỜI DÙNG: họ gõ vào và không có gì xảy ra. Đó là chỗ không
+     * ai nhìn, nên nó sống được rất lâu, và nó đã sống đủ lâu để lan vào `docs/CHEATSHEET.md` (5 chỗ),
+     * README (3 chỗ, sửa ở lượt trước) và cả một assertion trong chính spec này.
+     *
+     * Máy này rẻ và tất định: gom mọi `lenh` bắt đầu bằng `/`, đòi có file tương ứng. Nó bắt được cả
+     * trường hợp ai đó đổi tên một command mà quên sửa bộ gợi ý.
+     */
+    const moiLenh: string[] = [];
+    const nguon = fs.readFileSync(NEXT, 'utf8');
+    for (const m of nguon.matchAll(/lenh:\s*'(\/[a-z0-9:_-]+)'/g)) moiLenh.push(m[1]);
+    expect(moiLenh.length, 'không bóc được lệnh nào ⇒ phép kiểm rỗng, không phải đạt').toBeGreaterThan(5);
+    const thieu = [...new Set(moiLenh)]
+      .filter((l) => !fs.existsSync(path.join(REPO, '.claude/commands', `${l.slice(1)}.md`)));
+    expect(thieu, `bộ gợi ý phát ra lệnh KHÔNG có file: ${thieu.join(' · ')} — người dùng gõ vào thì không có gì xảy ra`).toEqual([]);
   });
 
   test('gợi ý theo DÒNG CHẢY, không theo mức quan trọng', () => {

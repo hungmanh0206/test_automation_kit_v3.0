@@ -9,7 +9,7 @@
 /start  →  /phase1  →  /phase2  →  /rerun  →  /release
 ```
 
-cộng **`/check`** — gọi lúc nào cũng được.
+cộng **`npm run check`** — gọi lúc nào cũng được.
 
 | Lệnh | Nó làm gì | Xong thì có gì |
 |---|---|---|
@@ -18,11 +18,11 @@ cộng **`/check`** — gọi lúc nào cũng được.
 | `/phase2` | execute, ghi verdict và evidence | `test-results/testcase-status.json` |
 | `/rerun` | chạy lại đúng case đỏ, cập nhật evidence và verdict | status đã cập nhật |
 | `/release` | cửa cuối: chạy cửa ra `done` rồi khuyến nghị go/no-go | dấu vết qua cửa |
-| `/check` | **một lệnh kiểm**: tự nhận phase, chạy gate của phase, in một bảng gọn | biết còn phải sửa gì |
+| `npm run check` | **một lệnh kiểm**: tự nhận phase, chạy gate của phase, in một bảng gọn | biết còn phải sửa gì |
 
 
 **Sáu lệnh còn lại bạn KHÔNG cần nhớ.** `/publish` · `/discover` · `/explore` · `/manual-run` ·
-`/ui-debug` · `/partial-rerun` được gợi ý đúng lúc ở dòng **Lệnh tiếp theo** trong output của `/check`.
+`/ui-debug` · `/partial-rerun` được gợi ý đúng lúc ở dòng **Lệnh tiếp theo** trong output của `npm run check`.
 Xem thẳng bằng `npm run next -- --task <KEY>`.
 
 ## Ba cửa ra
@@ -38,7 +38,7 @@ Mọi đường đi **ra ngoài kit** phải qua đúng một cửa. Cửa là c
 Cửa `bug` **cố ý** không đòi sổ nợ sạch. Log bug là việc phải làm khi tìm ra lỗi thật, và nợ về chất
 lượng bộ case không liên quan tới việc một bug có thật hay không.
 
-## Đọc output của `/check`
+## Đọc output của `npm run check`
 
 ```
 ✗ 3 lỗi phải sửa · ⚠ 5 cảnh báo · ✓ 41 kiểm đạt · ○ 1 không phán được
@@ -94,7 +94,7 @@ kèm một phép kiểm-âm, đừng tắt nó.
 | `golden:check` LỆCH MỐC | parser canonical vừa đổi, và nó đổi đầu ra của **cả 30 gate** | đọc trường nào lệch. Chỉ `npm run golden:snapshot` khi bạn **chủ ý** đổi parser |
 | `golden:check` báo NGHI GATE SAI | hai phép đếm độc lập cho hai số | đi tìm bên nào sai trước. "Chưa biết tin bên nào" không phải đạt |
 | gate xanh mà bạn thấy lạ | có thể nó **kiểm 0 thứ** | đọc mẫu số trong output, ví dụ "đã so 7/10 trường" |
-| `/check` báo CHƯA BIẾT PHASE | không có `test-cases/` lẫn file status | sinh case hoặc execute trước |
+| `npm run check` báo CHƯA BIẾT PHASE | không có `test-cases/` lẫn file status | sinh case hoặc execute trước |
 
 ## Sáu điều không thương lượng
 

@@ -37,7 +37,19 @@ gọi thật trên fixture offline và trả đúng hợp đồng. Đối chiế
 
 **Định nghĩa agent chỉ nạp lúc phiên BẮT ĐẦU.** File thêm giữa phiên không xuất hiện trong danh sách.
 Chuyện đó đã suýt bị chẩn đoán nhầm thành "frontmatter hỏng". Thiếu trong danh sách thì kiểm **thời
-điểm** trước, đừng sửa file. Mở phiên mới rồi gõ `/agents`.
+điểm** trước, đừng sửa file.
+
+**Cách xác minh, cập nhật 28/10/2026.** Trước đây mục này dặn "mở phiên mới rồi gõ `/agents`". Lệnh đó
+**đã bị bỏ** khỏi Claude Code — gõ nó bây giờ chỉ ra một dòng nói hãy sửa file trực tiếp. Nên cách xác
+minh hiện tại là: mở **phiên mới** rồi hỏi Claude xem nó đang thấy những agent nào (danh sách agent nằm
+trong ngữ cảnh phiên của nó). Không có lệnh nào liệt kê giúp bạn nữa.
+
+Và chuyện này còn mở: đo 28/10/2026 trong một phiên dài, `.claude/agents/` có **3** định nghĩa mà danh
+sách agent của phiên chỉ có **2** — `case-debugger` không xuất hiện, dù nó được thêm vào repo từ 10/10,
+tức TRƯỚC khi phiên bắt đầu. Nên lần này "kiểm thời điểm" KHÔNG giải thích được. Khác biệt cấu trúc duy
+nhất giữa hai cái nạp được và cái không là trường `model:` — nhưng đó là **tương quan, chưa phải nhân
+quả**, và việc `case-debugger` cố ý không ghim model là một quyết định có lý lẽ (xem mục trên), nên
+không được "sửa" bằng cách điền một model rẻ vào.
 
 **Chưa đọc lại được model thật đã chạy.** Frontmatter khai `haiku` và harness nhận agent, nhưng kết
 quả trả về không mang tên model. Nên câu "việc máy móc đã đi model rẻ" hiện dựa vào **khai báo**,
