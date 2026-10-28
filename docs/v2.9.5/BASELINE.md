@@ -174,3 +174,42 @@ Bài học, cùng họ với "`every()` trên mảng rỗng trả TRUE": **một
 chỉ commit `.gitkeep`, nên trong gói kho này RỖNG. Chọn **ghi rõ nó là lớp PROJECT** thay vì đưa một bản
 đã khử PII vào `knowledge/examples/`: `kit-layers.md` tách lớp PROJECT khỏi kit generic, và một ví dụ của
 app cụ thể nằm trong gói dùng chung sẽ dạy sai cho dự án khác.
+
+---
+
+## 1.1 — Harness có nạp `.claude/skills/` không?
+
+**KHÔNG ĐO ĐƯỢC TRONG PHIÊN NÀY**, và lý do chính là giới hạn mà kit vừa tự ghi vào `USER_GUIDE` ở §0.1:
+định nghĩa trong `.claude/` chỉ nạp lúc khởi động phiên. Tạo `.claude/skills/<tên>/SKILL.md` bây giờ thì
+phiên đang chạy không thấy nó, nên không có cách nào phân biệt "harness không hỗ trợ" với "harness chưa
+nạp lại". Theo điều kiện DỪNG của prompt: dừng 1.1, giữ hook, báo user.
+
+Trạng thái đo được:
+
+| | giá trị |
+|---|---|
+| `.claude/` của B | `agents/` · `commands/` · `settings.json` — **chưa có `skills/`** |
+| Skill của B | 26, ở `.agent/skills/` (harness không nạp) |
+| Cơ chế của A | plugin thật: `.claude-plugin/plugin.json` theo schema `claude-code-plugin-manifest` |
+
+### 🚨 Nhưng có một phép đo G1 quan sát được NGAY, và nó là tin xấu
+
+`.claude/agents/` có **3** định nghĩa, mà danh sách agent harness nạp cho phiên này chỉ có **2**:
+
+| Agent | Trên đĩa | Harness nạp | `model:` trong frontmatter |
+|---|---|---|---|
+| `excel-convert` | ✓ | **✓** | `haiku` |
+| `test-runner` | ✓ | **✓** | `haiku` |
+| `case-debugger` | ✓ | **✗ KHÔNG** | **không khai** |
+
+Khác biệt cấu trúc duy nhất giữa hai cái được nạp và cái không: trường `model:`. Đó là **tương quan, chưa
+phải nhân quả** — và không kiểm được nhân quả trong phiên này, vì đúng cái giới hạn ở trên. Chưa đo thì
+tôi không sửa: chọn `model` cho một agent gỡ lỗi là quyết định có chi phí, không phải điền cho đủ trường.
+
+Điều này nặng hơn một lỗi lẻ, vì nó cho thấy **cùng một lớp hỏng ở cả hai bề mặt của B**: skill khai ở
+`.agent/skills/` thì harness không nạp, còn agent khai ở `.claude/agents/` thì nạp 2/3 — và không máy nào
+biết. `agent-routing.spec.ts` canh được rằng `USER_GUIDE` NHẮC đủ ba agent, nhưng không có gì canh rằng
+agent đó THỰC SỰ được nạp. Bảng định tuyến tôi viết ở §0.1 vì thế đang khai một agent có thể không gọi được.
+
+Cần user quyết: thêm `model:` cho `case-debugger` rồi mở phiên mới để nghiệm thu, hay để nguyên và sửa
+bảng trong `USER_GUIDE` thành "chưa xác minh nạp được".
