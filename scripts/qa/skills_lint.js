@@ -42,8 +42,13 @@ const ENFORCE = flag('enforce');
 const REPO = rc.REPO_ROOT;
 const DIR = path.resolve(arg('dir', path.join(REPO, '.agent/skills')));
 
+/*
+ * `--cfg <đường dẫn>` để spec chạy gate trên một config DỰNG RIÊNG. Không có nó thì không kiểm được
+ * đối chứng âm của máy chặn "khoá nợ đặt ngoài `no`" — mà một máy chặn chưa từng đỏ thì không ai biết
+ * nó có đỏ được hay không. Cùng idiom với `--repo` của `deps_check.js`.
+ */
 const CFG = cfgLoad.napConfigGate({
-  duong: path.join(REPO, '.agent/config/skills_lint.json'),
+  duong: path.resolve(arg('cfg', path.join(REPO, '.agent/config/skills_lint.json'))),
   nhan: 'skills_lint.json',
   phepKiem: 'chất lượng mô tả skill (độ dài · mô tả trùng · con trỏ chết · nợ "dùng khi"/"KHÔNG dùng khi"/máy kiểm)',
   khiThieu: null,
@@ -52,6 +57,26 @@ const CFG = cfgLoad.napConfigGate({
 const MIN = Number(CFG.descMinChars || 80);
 const DUP = Number(CFG.dupDescThreshold || 0.3);
 const NO = CFG.no || {};
+
+/*
+ * KHOÁ NỢ ĐẶT NGOÀI `no` ⇒ CHẶN NGAY, trước mọi phép chấm khác. Thêm 28/10/2026.
+ *
+ * Lớp lỗi này đã xảy ra thật và sống 13 ngày: lần "hạ nợ" ngày 15/10 ghi `thieuKhiDung: 11` ở CẤP
+ * NGOÀI, còn script chỉ đọc `CFG.no`. Nên sổ nợ thật vẫn là 12, gate vẫn in đúng câu "thực 11 < khai 12
+ * ⇒ hạ số" mỗi lượt, và không ai đọc — vì người sửa tin rằng mình đã sửa rồi.
+ *
+ * Một con số đặt ở chỗ không ai đọc TỆ HƠN không có số: nó không gác gì, mà lại tạo cảm giác đã gác.
+ * Nên đây là CHẶN chứ không phải cảnh báo.
+ */
+const KHOA_NO = ['thieuKhiDung', 'thieuKhiKhongDung', 'thieuMayKiem'];
+const noDatSai = KHOA_NO.filter((k) => Object.prototype.hasOwnProperty.call(CFG, k));
+if (noDatSai.length) {
+  console.error(`[skills-lint] CHẶN: khoá nợ đặt NGOÀI \`no\`: ${noDatSai.join(' · ')}`);
+  console.error('  Script chỉ đọc `CFG.no`, nên số ở cấp ngoài KHÔNG có tác dụng — và nó làm người sửa');
+  console.error('  tin là đã hạ nợ. Chuyển các khoá trên vào `no`, rồi xoá bản ở cấp ngoài.');
+  console.error('  (Đã xảy ra thật ngày 15/10/2026, sống 13 ngày — xem `_thieuKhiDung_ha_lan_2`.)');
+  process.exit(1);
+}
 
 /** Mọi `SKILL.md` dưới `DIR`. */
 function timSkill() {

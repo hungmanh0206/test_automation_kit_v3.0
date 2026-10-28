@@ -248,3 +248,60 @@ test.describe('@infra skills:lint — repo thật và giới hạn đã nói', (
     expect(pk, '.agent/config/* là DENY mặc định — thiếu khai thì bản đóng gói báo CHƯA ĐƯỢC GÁC').toContain('.agent/config/skills_lint.json');
   });
 });
+
+test.describe('@infra skills:lint — sổ nợ phải đặt ĐÚNG CHỖ mới có tác dụng', () => {
+  /*
+   * LỚP LỖI NÀY ĐÃ SỐNG 13 NGÀY, phát hiện 28/10/2026.
+   *
+   * Lần "hạ nợ" ngày 15/10 ghi `thieuKhiDung: 11` ở CẤP NGOÀI của `skills_lint.json`, trong khi
+   * `skills_lint.js` chỉ đọc `CFG.no`. Nên sổ nợ thật vẫn là 12, và gate vẫn in đúng câu
+   * "thực 11 < khai 12 ⇒ hạ số" mỗi lượt chạy mà không ai đọc — vì người sửa tin là đã sửa rồi.
+   *
+   * Một con số đặt ở chỗ không ai đọc TỆ HƠN không có số: nó không gác gì, mà lại tạo cảm giác đã gác.
+   * Nên máy này CHẶN, không cảnh báo.
+   */
+  const KHOA_NO = ['thieuKhiDung', 'thieuKhiKhongDung', 'thieuMayKiem'];
+
+  function chayVoiCfg(cfg: Record<string, unknown>) {
+    const d = fs.mkdtempSync(path.join(os.tmpdir(), 'sklint-'));
+    const p = path.join(d, 'skills_lint.json');
+    fs.writeFileSync(p, JSON.stringify(cfg, null, 2), 'utf8');
+    const r = spawnSync(process.execPath, [SL, '--cfg', p], { cwd: REPO, encoding: 'utf8', env: gateEnv() });
+    return { code: r.status, out: `${r.stdout || ''}${r.stderr || ''}`, d };
+  }
+
+  const CFG_THAT = () => JSON.parse(fs.readFileSync(path.join(REPO, '.agent/config/skills_lint.json'), 'utf8'));
+
+  test('config THẬT không còn khoá nợ nào ở cấp ngoài', () => {
+    const cfg = CFG_THAT();
+    for (const k of KHOA_NO) {
+      expect(Object.prototype.hasOwnProperty.call(cfg, k), `khoá nợ "${k}" nằm ngoài \`no\` ⇒ không ai đọc`).toBe(false);
+      expect(cfg.no, `\`no\` phải khai "${k}"`).toHaveProperty(k);
+    }
+  });
+
+  test('ĐỐI CHỨNG DƯƠNG: đặt một khoá nợ ra ngoài `no` ⇒ CHẶN, và nói rõ vì sao', () => {
+    const r = chayVoiCfg({ ...CFG_THAT(), thieuMayKiem: 9 });
+    expect(r.code, r.out).toBe(1);
+    expect(r.out).toContain('khoá nợ đặt NGOÀI');
+    expect(r.out, 'phải nói số ở cấp ngoài KHÔNG có tác dụng').toMatch(/KHÔNG có tác dụng/);
+    fs.rmSync(r.d, { recursive: true, force: true });
+  });
+
+  test('ĐỐI CHỨNG ÂM: config đúng chỗ ⇒ KHÔNG chặn vì lý do này', () => {
+    /* Không có vế này thì máy chặn trên chỉ cần cấm sạch mọi config là "đạt". */
+    const r = chayVoiCfg(CFG_THAT());
+    expect(r.code, r.out).toBe(0);
+    expect(r.out).not.toContain('khoá nợ đặt NGOÀI');
+    fs.rmSync(r.d, { recursive: true, force: true });
+  });
+
+  test('sổ nợ KHỚP số thực — không còn câu đòi hạ số', () => {
+    /*
+     * Gate tự in "thực N < khai M ⇒ hạ số" khi sổ cao hơn nợ thật. Câu đó tồn tại 13 ngày mà không ai
+     * đọc. Nay neo nó vào máy: còn câu đó nghĩa là sổ nợ lại đang nằm cao hơn thực tế.
+     */
+    const r = spawnSync(process.execPath, [SL], { cwd: REPO, encoding: 'utf8', env: gateEnv() });
+    expect(`${r.stdout}${r.stderr}`, 'sổ nợ cao hơn nợ thật ⇒ hạ số trong skills_lint.json').not.toContain('nợ đã GIẢM');
+  });
+});
