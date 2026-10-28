@@ -587,7 +587,7 @@ Sau mỗi testcase đã execute, cập nhật testcase và report với:
 |---|---|
 | `Status` | `PASS`, `FAIL` hoặc `SKIP`. |
 | `Actual Result` | Kết quả quan sát được, không ghi chung chung. |
-| `Evidence` | **Bắt buộc cho MỌI case đã execute (PASS và FAIL)** + **MỌI step** (mỗi step có status PASS/FAIL riêng và ảnh riêng). Case `TODO`/chưa chạy không cần. Capture bằng `scripts/utils/evidence_recorder.js`; ảnh/video dưới `test-results/artifacts/<TC_ID>/`. Phải tuân thủ đầy đủ mục **Evidence — Quy chuẩn bắt buộc** bên dưới. |
+| `Evidence` | **Bắt buộc cho MỌI case đã execute (PASS và FAIL)**: case thường **1 ảnh/video ở bước QUYẾT ĐỊNH**; case tầng bug (`product_bug`/`api_bug`) ảnh **TỪNG step**. **MỌI step vẫn phải có status PASS/FAIL riêng** — chỗ này không đổi. Case `TODO`/chưa chạy không cần. Capture bằng `scripts/utils/evidence_recorder.js`; ảnh/video dưới `test-results/artifacts/<TC_ID>/`. Phải tuân thủ đầy đủ mục **Evidence — Quy chuẩn bắt buộc** bên dưới. |
 
 Với testcase `FAIL`, `Actual Result` phải có:
 

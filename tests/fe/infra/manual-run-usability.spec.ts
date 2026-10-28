@@ -210,8 +210,20 @@ test.describe('@infra manual:check — số đo nền của hạng mục', () =>
     expect(doc, 'fail rồi chạy tiếp, dừng khi chuỗi hạ tầng').toMatch(/chạy tiếp/);
     expect(doc, 'sổ dữ liệu đã tạo').toMatch(/Sổ dữ liệu đã tạo/);
     expect(doc, 'thao tác phá huỷ trên môi trường dùng chung').toMatch(/phá huỷ/);
-    /* Và giữ nguyên luật của B — không được nới khi làm cho dễ dùng. */
-    expect(doc, 'ảnh mọi step').toMatch(/Mỗi step một ảnh/);
+    /*
+     * Và giữ nguyên luật của B — không được nới khi làm cho dễ dùng.
+     *
+     * BẢN TRƯỚC NEO VÀO CHUỖI CHỮ CỦA LUẬT CŨ, sửa 28/10/2026. Nó đòi đúng chuỗi `Mỗi step một ảnh`,
+     * viết ra để CHỐNG nới luật — nhưng luật đã đổi sang mức B ngày 22/10 (case thường 1 ảnh ở bước
+     * quyết định, case tầng bug ảnh từng step), và gate không đổi theo. Hệ quả: nó hoá thành máy gác
+     * LUẬT CŨ, và ai sửa tài liệu cho đúng luật hiện hành thì bị nó chặn.
+     *
+     * Bài học của lớp lỗi này: máy gác neo vào chữ của một luật thì mỗi lần luật đổi, nó quay sang
+     * chống chính luật mới. Nên bản này neo vào BA vế của luật, không neo vào một câu.
+     */
+    expect(doc, 'case thường: ảnh ở bước quyết định').toMatch(/bước\s+quyết định/i);
+    expect(doc, 'case tầng bug: ảnh TỪNG step').toMatch(/(product_bug|api_bug|tầng bug)[\s\S]{0,160}từng step/i);
+    expect(doc, 'mọi step vẫn phải có status — vế này KHÔNG được nới').toMatch(/step[\s\S]{0,40}status/i);
     expect(doc, 'rerun 2-3 lần').toMatch(/rerun 2 đến 3 lần|rerun 2–3/);
   });
 });

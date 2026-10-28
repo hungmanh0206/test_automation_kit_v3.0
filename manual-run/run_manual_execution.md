@@ -32,8 +32,10 @@ Case chưa khai `[manual]` thì **dừng**. Sửa lời khai ở Phase 1 kèm l�
    khác và của task khác biến mất. Với những case đó: **bỏ qua rồi khai lý do**, hoặc nếu phải chạy thì ghi
    mọi thứ đã tạo/xoá vào sổ dữ liệu ở bước 6b.
    Máy chỉ **liệt kê**, không tự hạ verdict — có case mà thao tác xoá chính là thứ phải kiểm.
-3. **Chạy từng case**, theo đúng các bước trong ô `Các bước thực hiện`. Mỗi step một ảnh, highlight element
-   đang kiểm, mask PII khách. Case nhiều thao tác thì **quay video**.
+3. **Chạy từng case**, theo đúng các bước trong ô `Các bước thực hiện`. Case thường: **1 ảnh ở bước
+   quyết định**. Case thành bug (`product_bug`/`api_bug`): **ảnh từng step**, đủ chuỗi để dev dựng lại.
+   Mọi step vẫn phải ghi `status` riêng. Highlight element đang kiểm, mask PII khách. Case nhiều thao
+   tác thì **quay video**.
 3b. **Case đỏ thì chạy tiếp, đừng dừng cả lượt.** Dừng ở case đỏ đầu tiên làm mất cả buổi. Nhưng chạy tiếp
    mù cũng sai: **3 case LIÊN TIẾP đỏ cùng một tầng hạ tầng** (`setup_failure`, `env_issue`,
    `script_error`) là dấu hiệu môi trường sập, không phải 3 lỗi khác nhau — dừng, sửa môi trường, rồi chạy
@@ -99,7 +101,7 @@ Placeholder không tính là đã điền. `TBD`, `n/a`, dấu gạch, hay `____
 
 ## Rules
 
-- **Evidence cho mọi case đã execute, cả PASS**, và mọi step. Ảnh hoặc video, không phải log hay JSON.
+- **Evidence cho mọi case đã execute, cả PASS** — 1 ảnh/video ở **bước quyết định**; case tầng bug (`product_bug`/`api_bug`) thì **từng step**. Mọi step vẫn phải có `status`. Ảnh hoặc video, không phải log hay JSON.
   Luật bên ngoài chỉ chụp khi FAIL là luật **bị bỏ**, xem `reference.md`.
 - Verdict chỉ lấy trong `.agent/config/verdict_taxonomy.json`. Không tự đặt.
 - Không mutate dữ liệu UAT ngoài phạm vi case. Không dựng state bằng DB.

@@ -31,7 +31,7 @@ Ba chỗ hay bị nhập sai từ tài liệu chạy tay bên ngoài:
 
 | Luật bên ngoài | Luật kit | Máy thi hành |
 |---|---|---|
-| Chỉ chụp ảnh khi FAIL | Ảnh hoặc video cho **mọi** case đã execute, cả PASS. Mọi step. `CLAUDE.md` mục 4 | `output_gate --mode test-execution` |
+| Chỉ chụp ảnh khi FAIL | Ảnh hoặc video cho **mọi** case đã execute, cả PASS — ở **bước quyết định**. Case tầng bug thì **từng step**. `CLAUDE.md` mục 4 | `output_gate --mode test-execution` |
 | Verdict tự đặt | Chỉ dùng verdict trong `.agent/config/verdict_taxonomy.json` | `output_gate` |
 | FAIL là FAIL | FAIL phải rerun 2 đến 3 lần loại flaky, phải phân tầng `failureLayer`, rồi mới qua Bug Claim Gate | `output_gate` · `bug:claim` |
 

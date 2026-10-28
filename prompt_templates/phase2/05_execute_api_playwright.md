@@ -164,7 +164,7 @@ Status `200` + schema đúng KHÔNG đủ để PASS. Bug logic/dữ liệu BE l
 - Khi kết quả bất thường/nghi ngờ, đối chiếu lại request đã gửi (query/path/body/header) để loại trừ lỗi test trước khi kết luận product/API bug.
 
 # Evidence & Comment (BẮT BUỘC — theo RULE_GLOBAL)
-- Evidence bắt buộc cho MỌI case đã execute (PASS và FAIL) + MỌI step. Hợp lệ CHỈ ảnh/video (`.png/.jpg/.jpeg/.webp/.mp4/.webm`) — CẤM `.json/.md/.txt/.log/.html/.csv/trace.zip`. Với API: chụp ảnh visual evidence page hiển thị response/data đã render; log request/response chỉ là diagnostic local, KHÔNG phải evidence. Mask PII khách + redact token/secret. Luồng phức tạp/cross-app → kèm video.
+- Evidence bắt buộc cho MỌI case đã execute (PASS và FAIL): **1 ảnh ở bước quyết định**; case tầng bug thì **từng step**. Mọi step vẫn phải có `status`. Hợp lệ CHỈ ảnh/video (`.png/.jpg/.jpeg/.webp/.mp4/.webm`) — CẤM `.json/.md/.txt/.log/.html/.csv/trace.zip`. Với API: chụp ảnh visual evidence page hiển thị response/data đã render; log request/response chỉ là diagnostic local, KHÔNG phải evidence. Mask PII khách + redact token/secret. Luồng phức tạp/cross-app → kèm video.
 - `comment` (Test Run) gọn 1–2 câu kết quả; KHÔNG dán debug (key=value, dump response, regex); KHÔNG prefix trạng thái (`[PASS]/[Positive]/[Negative]`); caveat xuống dòng `Lưu ý:`; KHÔNG placeholder `Xem xxx.json`. Chi tiết: RULE_GLOBAL §Evidence + §Comment.
 
 # Quy tắc kỹ thuật API

@@ -122,6 +122,12 @@ const KEEP_FILES = [
   '.agent/config/kit-layers.md', '.agent/config/verdict_taxonomy.json',
   /* v2.9.2: hai config GENERIC mà script đọc — thiếu trong gói thì gate tắt IM LẶNG ở máy người nhận. */
   '.agent/config/ambiguity_states.json', '.agent/config/browser_matrix.json',
+  /*
+   * v2.9.5: `rule_consistency.json` là DANH MỤC MỆNH ĐỀ của `rule:consistency`. Thiếu nó trong gói thì
+   * gate trả exit 2 ("không phán được") ở máy người nhận — tức họ phát hành một kit có thể đang dạy hai
+   * luật trái nhau mà không có gì soi. Đây đúng lớp lỗi mà `config-presence.spec.ts` được dựng để chặn.
+   */
+  '.agent/config/rule_consistency.json',
   '.agent/config/case_types.json', '.agent/config/branch_parity.json', '.agent/config/ci_scope.json',
   '.agent/config/ci_parity.json',
   '.agent/config/locators.schema.json',

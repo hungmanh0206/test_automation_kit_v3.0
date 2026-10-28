@@ -185,8 +185,12 @@ function sinhThanCase(tc, danhMuc, nguPhap, specDir) {
          * MỖI BƯỚC MỘT ẢNH, và tên step mang MÃ BƯỚC.
          *
          * Hai lý do, cả hai đều bắt buộc:
-         *   - CLAUDE.md §4: mọi step của case đã execute phải có ảnh. Bản đầu của bộ biên dịch sinh ra
-         *     một chuỗi lời gọi trần, không ảnh nào — tức sinh ra sẵn một case sẽ bị `output_gate` chặn.
+         *   - Evidence: mức B (CLAUDE.md §4, đổi 22/10/2026) chỉ ĐÒI 1 ảnh ở bước quyết định cho case
+         *     thường, và ảnh từng step cho case tầng bug. Bộ biên dịch vẫn chụp MỌI bước, vì lúc sinh
+         *     spec chưa biết case sẽ thành tầng bug hay không — chụp đủ thì luôn hợp luật, chụp thiếu
+         *     thì case nào hoá bug là thiếu chuỗi và `output_gate` chặn. Đây là lựa chọn ĐỦ-CHO-CẢ-HAI,
+         *     không phải vì luật đòi hỏi mức đó với case thường. Bản đầu sinh ra một chuỗi lời gọi
+         *     trần, không ảnh nào — tức sinh ra sẵn một case không chứng minh được gì.
          *   - §E cần đo `ti_le_on_dinh` của từng bước. Tên step là chỗ DUY NHẤT nối được một lượt chạy
          *     thật với một mã bước trong danh mục. Khuôn `<id> · <câu>` là hợp đồng với `steps:stats`.
          *

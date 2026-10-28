@@ -201,6 +201,7 @@
     "golden:snapshot": "node scripts/qa/golden_check.js --write --toi-da-doi-parser",
     "rule:coverage": "node scripts/qa/rule_coverage.js --write",
     "rule:coverage:check": "node scripts/qa/rule_coverage.js --check",
+    "rule:consistency": "node scripts/qa/rule_consistency.js",
     "full:suite": "node scripts/qa/full_suite_ledger.js",
     "full:suite:check": "node scripts/qa/full_suite_ledger.js --kiem",
     "authz:expand": "node scripts/qa/authz_expand.js",
