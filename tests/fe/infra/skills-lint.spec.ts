@@ -38,13 +38,35 @@ ${body}`;
 
 const DESC_OK = 'Làm một việc cụ thể và kiểm được bằng máy cho Phase 2. Dùng khi cần việc đó. KHÔNG dùng khi chưa có bộ testcase canonical.';
 
-function chay(skills: Record<string, string>, argv: string[] = ['--enforce']) {
+/**
+ * MỖI TEST TỰ KIỂM SOÁT SỔ NỢ CỦA NÓ, sửa 28/10/2026 (v2.9.5 §1.2).
+ *
+ * Bản trước để gate đọc `skills_lint.json` của REPO. Hậu quả: khi nợ hạ về 0/0/0, năm test về những
+ * tiêu chí HOÀN TOÀN KHÁC (mô tả trùng, wikilink, đường dẫn chết) cùng đỏ — vì fixture của chúng không
+ * nhắc máy kiểm nào, nên sổ nợ 0 làm gate chặn vì một lý do không liên quan đến thứ test đang đo.
+ *
+ * Đó là một test phụ thuộc trạng thái repo, và nó PHẠT đúng việc tiến bộ — cùng lớp lỗi mà chú thích
+ * của test "nợ VƯỢT số khai" đã cảnh báo: *con số nào được thiết kế để thay đổi thì test phải đọc nó,
+ * đừng chép nó*. Bản này đi xa hơn một bước: test nào không đo sổ nợ thì **nới sổ nợ ra khỏi đường đi**,
+ * để nó chỉ còn đo đúng thứ nó định đo.
+ */
+const NO_ROI_RAC = { thieuKhiDung: 99, thieuKhiKhongDung: 99, thieuMayKiem: 99 };
+
+function chay(
+  skills: Record<string, string>,
+  argv: string[] = ['--enforce'],
+  no: Record<string, number> = NO_ROI_RAC,
+) {
   const d = fs.mkdtempSync(path.join(os.tmpdir(), 'sklint-'));
   for (const [ten, body] of Object.entries(skills)) {
     fs.mkdirSync(path.join(d, 'nhom', ten), { recursive: true });
     fs.writeFileSync(path.join(d, 'nhom', ten, 'SKILL.md'), body, 'utf8');
   }
-  const r = spawnSync(process.execPath, [SL, '--dir', d, ...argv], { cwd: REPO, encoding: 'utf8', env: gateEnv() });
+  /* Giữ `descMinChars`/`dupDescThreshold` của config THẬT — chỉ sổ nợ là do test đặt. */
+  const cfgThat = JSON.parse(fs.readFileSync(path.join(REPO, '.agent/config/skills_lint.json'), 'utf8'));
+  const cfg = path.join(d, 'cfg.json');
+  fs.writeFileSync(cfg, JSON.stringify({ ...cfgThat, no }), 'utf8');
+  const r = spawnSync(process.execPath, [SL, '--dir', d, '--cfg', cfg, ...argv], { cwd: REPO, encoding: 'utf8', env: gateEnv() });
   return { code: r.status, out: `${r.stdout || ''}${r.stderr || ''}`, d };
 }
 
@@ -131,27 +153,51 @@ test.describe('@infra skills:lint — tiêu chí CHẶN', () => {
 test.describe('@infra skills:lint — nợ khoá theo số lượng', () => {
   const THIEU = FM('Một mô tả đủ dài để qua ngưỡng tám mươi ký tự nhưng cố ý không nói rõ dùng vào lúc nào cả.');
 
-  test('thiếu "dùng khi" / "KHÔNG dùng khi" / máy kiểm ⇒ CẢNH BÁO, không chặn', () => {
-    const r = chay({ a: THIEU });
-    expect(r.code, 'nợ cũ lớn nên ba tiêu chí này chỉ cảnh báo').toBe(0);
+  test('thiếu "dùng khi" / "KHÔNG dùng khi" / máy kiểm, mà CÒN NỢ ⇒ CẢNH BÁO, không chặn', () => {
+    /*
+     * Tầng cảnh báo vẫn còn, và nó phải còn: nếu một ngày nợ lại phình (thêm skill mới chưa viết đủ),
+     * cách thoát đúng là khai nợ rồi trả dần, không phải tắt gate. Test đặt sổ nợ 1/1/1 tường minh thay
+     * vì đọc sổ của repo — repo nay là 0/0/0, và một test đo tầng cảnh báo không được phụ thuộc vào đó.
+     */
+    const r = chay({ a: THIEU }, ['--enforce'], { thieuKhiDung: 1, thieuKhiKhongDung: 1, thieuMayKiem: 1 });
+    expect(r.code, 'trong hạn nợ thì chỉ cảnh báo').toBe(0);
     expect(r.out).toMatch(/thiếu mục "dùng khi"/);
     expect(r.out).toMatch(/thiếu mục "KHÔNG dùng khi"/);
     expect(r.out).toMatch(/không nhắc máy kiểm nào/);
     fs.rmSync(r.d, { recursive: true, force: true });
   });
 
+  test('HỢP ĐỒNG MỚI: sổ nợ 0/0/0 ⇒ thiếu MỘT mục là CHẶN', () => {
+    /*
+     * Đây là thứ `skills:lint:enforce` trong CI đang dựa vào (bật 28/10/2026). Nợ đã sạch nên không còn
+     * "hạn mức" nào: một skill mới thiếu "dùng khi" là đỏ ngay, không trôi vào sổ.
+     */
+    const r = chay({ a: THIEU }, ['--enforce'], { thieuKhiDung: 0, thieuKhiKhongDung: 0, thieuMayKiem: 0 });
+    expect(r.code, r.out).toBe(1);
+    expect(r.out).toMatch(/nợ khai 0 ⇒ 1 cái MỚI|MỚI/);
+    fs.rmSync(r.d, { recursive: true, force: true });
+  });
+
   test('nợ VƯỢT số khai ⇒ CHẶN (nợ không được phình âm thầm)', () => {
     /*
-     * Số nợ đọc TỪ CONFIG, không hardcode. Bản đầu viết "nợ 15/15/13" vào test, và nó đỏ ngay khi G2.1
-     * trả được nợ xuống 12/11/9 — tức một test PHẠT đúng việc tiến bộ. Con số nào được thiết kế để thay
-     * đổi thì test phải đọc nó, đừng chép nó.
+     * HAI LẦN SỬA, hai lớp lỗi khác nhau — ghi cả hai vì chúng dễ lặp.
+     *
+     * Lần 1: bản đầu chép "nợ 15/15/13" vào test, nên nó đỏ ngay khi G2.1 trả nợ xuống 12/11/9 — một
+     * test PHẠT đúng việc tiến bộ. Chữa bằng cách ĐỌC số từ config thay vì chép.
+     *
+     * Lần 2 (28/10/2026): đọc từ config repo lại thành phụ thuộc trạng thái repo. Khi nợ về 0/0/0, test
+     * dựng 1 skill rồi chờ CHẶN, nhưng helper cấp một config nới sổ nợ ra (để các test khác không bị nợ
+     * chen vào) — nên không chặn, và test đỏ vì lý do chẳng liên quan đến thứ nó đo.
+     *
+     * Chữa dứt: test TỰ CẤP sổ nợ của chính nó. Nó đo HÀNH VI "thực > khai ⇒ chặn", và hành vi đó không
+     * phụ thuộc con số nào của repo. Con số của repo đã có test riêng canh (`sổ nợ KHỚP số thực`).
      */
-    const khai = JSON.parse(fs.readFileSync(path.join(REPO, '.agent/config/skills_lint.json'), 'utf8')).no.thieuKhiDung;
+    const KHAI = 2;
     const nhieu: Record<string, string> = {};
-    for (let i = 0; i < khai + 1; i += 1) nhieu[`s${i}`] = FM(`Mô tả thứ ${i} đủ dài để qua ngưỡng tám mươi ký tự nhưng cố ý không nói rõ dùng lúc nào cả.`);
-    const r = chay(nhieu);
+    for (let i = 0; i < KHAI + 1; i += 1) nhieu[`s${i}`] = FM(`Mô tả thứ ${i} đủ dài để qua ngưỡng tám mươi ký tự nhưng cố ý không nói rõ dùng lúc nào cả.`);
+    const r = chay(nhieu, ['--enforce'], { thieuKhiDung: KHAI, thieuKhiKhongDung: 99, thieuMayKiem: 99 });
     expect(r.code, r.out).toBe(1);
-    expect(r.out).toMatch(new RegExp(`nợ khai ${khai} ⇒ 1 cái MỚI`));
+    expect(r.out).toMatch(new RegExp(`nợ khai ${KHAI} ⇒ 1 cái MỚI`));
     fs.rmSync(r.d, { recursive: true, force: true });
   });
 

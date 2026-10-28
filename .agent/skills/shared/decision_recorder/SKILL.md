@@ -80,3 +80,13 @@ node scripts/qa/decisions.js --index     # đưa vào knowledge/index.json
 - `knowledge/SCHEMA.md` §`decisions/` — schema đầy đủ.
 - [[learning_recorder]] · [[domain_recorder]] · [[system_mapper]] — 3 nửa còn lại của bộ nhớ.
 - `.agent/workflows/phase2_04_report_and_backlog_gate.md` bước 4 — điểm tra cứu bắt buộc trước khi log bug.
+
+## Dùng khi
+
+| | |
+|---|---|
+| **Dùng khi** | Vừa chốt một quyết định QA có lý do (false positive · by design · override risk · PASS kèm note · cách test một ca khó) · **Trước khi log bug** — tra xem quyết định này đã từng chốt chưa, để không kết luận lại từ đầu |
+
+**Câu kích hoạt mẫu:** "ghi lại quyết định này" · "cái này đã chốt là by design chưa" · "trước đây đã kết luận gì về ca này" · "lưu lý do PASS kèm note"
+
+⚙️ **Máy kiểm:** `npm run decisions:check` (soi schema + con trỏ) · `npm run decisions:index` sinh lại chỉ mục.

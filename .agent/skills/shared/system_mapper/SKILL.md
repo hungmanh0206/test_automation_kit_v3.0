@@ -87,3 +87,14 @@ Giống `domain/`: rule đổi → **bump `version`** + `supersedes: <id>@v<n-1>
 - [[learning_recorder]] — ghi cái đã sai (bug/root cause).
 - `prompt_templates/phase1/02_gen_testcases.md` §12 — nơi tra bản đồ khi sinh case guard/permission/negative.
 - `.agent/workflows/phase2_04_report_and_backlog_gate.md` — trước khi log bug "hệ thống cho phép X" phải trích `SM-*`/`PM-*`.
+
+## Dùng khi · KHÔNG dùng khi
+
+| | |
+|---|---|
+| **Dùng khi** | Cần trả lời "hành vi này là bug hay đúng thiết kế" bằng một state machine đã xác nhận · Cần ma trận phân quyền để biết vai nào làm được gì · Cần biết "sửa chỗ này thì vỡ chỗ nào" qua danh mục surface dùng chung |
+| **KHÔNG dùng khi** | Bản đồ còn là **suy diễn từ app** — ma trận phân quyền ở đây phải khai rõ ba mức *đã kiểm chứng / suy diễn / chưa rõ*, và mức "suy diễn" KHÔNG được dùng làm oracle · Chỉ cần biết diff vừa rồi chạm đâu ⇒ `git_impact_analyzer` · Cần ghi một rule nghiệp vụ ⇒ `domain_recorder`; skill này ghi CẤU TRÚC hệ thống, không ghi luật |
+
+**Câu kích hoạt mẫu:** "vai này có quyền gì" · "đây là bug hay đúng thiết kế" · "sửa chỗ này vỡ chỗ nào" · "vẽ state machine của luồng này"
+
+⚙️ **Máy kiểm:** `npm run system:check` (soi schema + in dòng tổng theo ba mức xác tín) · `npm run system:index` sinh lại chỉ mục.

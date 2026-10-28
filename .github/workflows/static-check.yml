@@ -82,6 +82,17 @@ jobs:
       - name: INDEX.md khớp nguồn SKILL.md (artifact sinh trôi khỏi nguồn = không ai thấy)
         run: npm run skills:index:check
 
+      # Chất lượng MÔ TẢ skill — bật `--enforce` ngày 28/10/2026 (v2.9.5 §1.2), sau khi nợ về 0/0/0.
+      #
+      # Trước đó ba tiêu chí ("dùng khi" · "KHÔNG dùng khi" · nhắc máy kiểm) ở mức cảnh báo kèm sổ nợ,
+      # vì chặn ngay lúc 17/16/13 skill còn thiếu sẽ làm đỏ gần hết rồi gate bị tắt. Nợ đã sạch nên
+      # chặn được, và chặn ở đây mới giữ được: skill KHÔNG auto-load, nên `description` là thứ DUY NHẤT
+      # agent đọc để quyết định có mở hay không. Mô tả không nói được "dùng khi nào" thì skill thành
+      # file chết, và đó là kiểu hỏng im lặng nhất của kit — không gate nào đỏ, chỉ là công sức không
+      # bao giờ sinh lợi.
+      - name: Mô tả skill đủ thông tin để CHỌN (skills:lint:enforce)
+        run: npm run skills:lint:enforce
+
       # Link trong skill phải trỏ file CÓ THẬT. Cửa này phân biệt link thật với đường dẫn minh hoạ —
       # xem khối chú thích đầu `skills_refcheck.js`: đếm ngây thơ sinh ra dương tính giả, rồi người ta
       # gỡ ví dụ trong tài liệu đi cho hết đỏ.

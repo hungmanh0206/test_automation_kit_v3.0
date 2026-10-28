@@ -75,3 +75,14 @@ là ghi rule vào `knowledge/domain/` trước, không phải sửa case.
 - Chạy `tc:review` rồi sửa case cho qua ngưỡng mà không đọc chỗ nó chỉ ra. Điểm lên, chất lượng không đổi.
 - Coi tiêu chí gắn cờ `AI` là đã đạt vì máy không kêu.
 - Hạ ngưỡng trong config để lượt này xanh. Ngưỡng đổi phải kèm số đo, và ghi lý do.
+
+## Dùng khi · KHÔNG dùng khi
+
+| | |
+|---|---|
+| **Dùng khi** | Trước khi publish một bộ TC lên Sheet/Backlog · Nhận bàn giao một bộ TC **không phải mình viết** và cần biết nó dùng được chưa · Sau khi sinh lại TC hàng loạt, để biết lượt sinh có trôi chất lượng |
+| **KHÔNG dùng khi** | Bộ TC còn đang viết dở — chấm bản nháp cho điểm thấp rồi sửa theo điểm là tối ưu cho rubric, không phải cho chất lượng · Cần kiểm **cấu trúc/định dạng** (đủ cột, ô lõi rỗng) ⇒ `tc_validator` + `npm run design:gate`; skill này chấm NỘI DUNG · Muốn một điểm số để báo cáo — 2 trong 9 tiêu chí do NGƯỜI chấm, nên điểm máy một mình chưa phải điểm bộ TC |
+
+**Câu kích hoạt mẫu:** "review bộ TC này" · "bộ này dùng được chưa" · "chấm điểm test case" · "soát lại testcase trước khi publish"
+
+⚙️ **Máy kiểm:** `npm run tc:review` (chấm 7/9 tiêu chí) · `npm run tc:review:enforce` CHẶN khi dưới ngưỡng.

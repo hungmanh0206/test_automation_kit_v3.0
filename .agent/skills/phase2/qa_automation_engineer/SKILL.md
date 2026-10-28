@@ -92,3 +92,19 @@ Phase 2 chỉ execute phần có thể chạy an toàn qua UI/API public-busines
 - Kết luận PASS/FAIL từ bề mặt UI khi chưa đối chiếu API response / chưa khoanh được tầng lỗi (false pass/false fail).
 - Ghi đè shared spec/helper của story khác khi chưa có xác nhận.
 - Promote automation vào `tests/fe/` hoặc `tests/api/` chỉ vì Phase 2 pass một lần.
+
+## Máy kiểm của lượt automation
+
+Skill này là bộ **điều phối**, nên phần "đã làm đúng chưa" không nằm trong nó mà nằm ở sáu cửa dưới.
+Gọi chúng theo thứ tự, và đọc exit code chứ không đọc dòng tóm tắt:
+
+| Máy | Gác gì | Mức |
+|---|---|---|
+| `npm run preflight -- --mode phase2 --task <KEY>` | thiếu input, config hỏng, chưa có testcase canonical | CHẶN trước khi chạy |
+| `npm run auto:review:enforce` | hard-sleep, vacuous-url/count, console-log, cred-literal, no-assert | CHẶN ở file đã track |
+| `npm run lint:locator` | locator dễ vỡ không có marker kèm lý do | cảnh báo · `:enforce` CHẶN |
+| `npm run gate:output` | comment dính khối, thiếu evidence, step thiếu `status` | CHẶN trước khi push |
+| `npm run run:analysis` | dải BLOCKED > 20%, nợ SKIP phá huỷ, xu hướng chỉ khi cùng nguồn TC | tín hiệu, không verdict |
+| `npm run self-review:enforce -- --task <KEY>` | checklist gộp trước finalize/publish | CHẶN |
+
+**Câu kích hoạt mẫu:** "chạy automation cho task này" · "điều phối lượt execute" · "cần chạy những cửa nào trước khi publish" · "quy trình automation gồm bước gì"

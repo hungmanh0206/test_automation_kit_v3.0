@@ -86,3 +86,14 @@ Chỉ ghi entry khi tất cả đúng:
 - Neo workflow: `.agent/workflows/phase2_04_report_and_backlog_gate.md` (ghi entry sau gate),
   `.agent/workflows/rerun_03_update_backlog_and_report.md` (đồng bộ trạng thái khi Done).
 - Consumer: `git_impact_analyzer` (risk theo module), Dashboard (Giai đoạn 2).
+
+## Dùng khi · KHÔNG dùng khi
+
+| | |
+|---|---|
+| **Dùng khi** | Một fact đã **qua gate**: bug đã confirm, root cause đã tìm ra, snapshot pass/fail của một lượt chạy thật · Cuối một task, để lần sau không dò lại từ đầu |
+| **KHÔNG dùng khi** | Fact còn là phỏng đoán hoặc chưa rerun đủ 2–3 lượt — ghi sớm thì lần sau có người dựa vào một kết luận chưa chắc · Muốn nó tự kết luận risk hay PASS/FAIL: skill là **Suggest-only**, nó chỉ lưu dữ liệu · Dữ liệu mang PII khách — `knowledge/` không phải chỗ cất dữ liệu cá nhân |
+
+**Câu kích hoạt mẫu:** "lưu bài học của task này" · "ghi root cause vào knowledge" · "task xong rồi, cất lại những gì học được" · "fact này để dùng cho task sau"
+
+⚙️ **Máy kiểm:** `npm run learn` (ghi fact của task) · `npm run learn:report` đọc lại · `npm run learn:bugs` dò bug đã confirm để nạp vào kho.

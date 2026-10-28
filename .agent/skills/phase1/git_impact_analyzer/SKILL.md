@@ -93,3 +93,17 @@ Format bảng:
   `.agent/workflows/phase1_02_generate_testcases.md`.
 - [[requirements_analyzer]] — nhận diện impact từ requirement/artifact; skill này bổ sung góc nhìn từ diff.
 - `learning_recorder` — nguồn `knowledge/bugs/` cho risk hint theo module.
+
+## Dùng khi · KHÔNG dùng khi
+
+| | |
+|---|---|
+| **Dùng khi** | Task có code thay đổi và cần biết diff chạm **bề mặt dùng chung nào** trước khi chọn vùng regression · trước Bước 1 mục 17, để vùng chọn dựa trên diff THẬT chứ không dựa trên trí nhớ về module |
+| **KHÔNG dùng khi** | Chưa có branch/PR mang `TASK_KEY` — không có diff thì nó không có đầu vào, đừng đoán · Task chỉ đổi tài liệu hoặc testcase · Cần **xếp hạng** độ rủi ro để chia độ sâu ⇒ `risk_scorer`; skill này chỉ nói "diff chạm những chỗ này", nó KHÔNG chấm điểm và KHÔNG chọn case |
+
+**Câu kích hoạt mẫu:** "branch này sửa những gì" · "diff của PR chạm vào đâu" · "thay đổi này ảnh hưởng module nào" · "cần regression chỗ nào sau commit này"
+
+> **KHÔNG có máy kiểm vì** đầu ra là một danh sách bề mặt để người đọc rồi quyết định, không có mốc nào
+> để máy so. Chấm "chọn vùng regression đúng chưa" cần biết bug về sau nằm ở đâu — thứ chỉ có ở tương lai.
+> Phần đo được đã có máy khác gác: `npm run ci:scope` canh phạm vi chạy, `npm run trace:matrix` canh
+> REQ→TC→AUTO→EXEC→BUG.

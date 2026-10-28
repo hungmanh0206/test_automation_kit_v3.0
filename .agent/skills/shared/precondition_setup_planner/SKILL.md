@@ -169,3 +169,16 @@ Chỉ `needs_hook`/`needs_account`/`needs_sandbox` là "capability gap" đi vào
 ## Related
 
 - [[test_data_generator]] — sinh giá trị data cụ thể; planner này lo cách dựng state/precondition.
+
+## Máy kiểm
+
+| Máy | Gác gì |
+|---|---|
+| `npm run preflight -- --mode phase2 --task <KEY>` | tiền điều kiện khai mà input/config chưa đủ ⇒ CHẶN trước khi chạy, thay vì để case đỏ rồi mới biết |
+| `npm run gate:output` | case `BLOCKED_SETUP` không nêu capability còn thiếu |
+
+> Phần **chọn method** (factory/hook/fixture/mock) KHÔNG có máy kiểm vì nó phụ thuộc capability của app,
+> không có mốc tĩnh để so. Nhưng có một luật máy gác được và nó tuyệt đối: **KHÔNG dựng state bằng DB**
+> (CLAUDE.md §2) — `scripts/qa/hooks/guard_db_access.js` chặn ở tầng hook.
+
+**Câu kích hoạt mẫu:** "dựng tiền điều kiện cho case này" · "nên dùng factory hay hook" · "case này cần setup gì" · "làm sao có dữ liệu trước khi test"

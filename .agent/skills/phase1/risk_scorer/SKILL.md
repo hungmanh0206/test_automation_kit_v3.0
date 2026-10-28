@@ -71,3 +71,14 @@ Likelihood có **prior = Impact**, blend theo lượng data: `L = confidence·ob
 - [[git_impact_analyzer]] — `git-impact.md` bơm module bị đụng vào register.
 - [[tc_validator]] — Risk depth gate (risk_gate là bản executable).
 - `.agent/workflows/phase1_00_scope_planning.md`, `phase2_01_prepare_execution.md`.
+
+## Dùng khi · KHÔNG dùng khi
+
+| | |
+|---|---|
+| **Dùng khi** | Phải chia độ sâu cho NHIỀU module mà không đủ thời gian phủ đều · Cần một lý do ghi được cho câu "vì sao module này ít case hơn module kia" · Đầu Phase 1, trước khi chốt số case mỗi mục |
+| **KHÔNG dùng khi** | Chỉ có MỘT module hoặc một màn — không có gì để xếp hạng, và một bảng risk một dòng là thủ tục rỗng · `knowledge/` còn rỗng và bạn chưa đọc mục chống cold-start: điểm lúc đó là điểm của giả định, không phải của dữ liệu · Dùng band THẤP để biện minh **bỏ trục** — band đặt ĐỘ SÂU, không cho phép bỏ một trục kiểm nào |
+
+**Câu kích hoạt mẫu:** "module nào nên test sâu hơn" · "chấm risk cho các màn này" · "chia độ sâu test theo rủi ro" · "vì sao module này ít case"
+
+⚙️ **Máy kiểm:** `npm run risk` (sinh risk-register) · `npm run risk:gate` cảnh báo khi độ sâu không khớp band, `npm run risk:gate:enforce` thì CHẶN.

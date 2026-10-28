@@ -168,3 +168,11 @@ không gọi k6, không chạm UAT, không tiêu quota cloud).
 - [[perf_check]] — Loại A single-user (trong kit, Playwright). load_check là Loại B (tool ngoài).
 - mục 16 `prompt_templates/phase1/02_gen_testcases.md` (load = opt-in tool ngoài).
 - JMeter là lựa chọn thay thế nếu team đã chuẩn hoá; k6 hợp kit JS/CLI/CI hơn. Katalon KHÔNG phải load tool.
+
+## KHÔNG dùng khi
+
+| | |
+|---|---|
+| **KHÔNG dùng khi** | Chạm môi trường PROD, hay bất cứ môi trường dùng chung mà chưa có xác nhận của người — đây là Loại B nhiều VU, nó sinh tải thật · Cần đo một người dùng đơn (web vitals, SLA API) ⇒ `perf_check`, đó là Loại A · Chưa cài binary k6 — k6 là binary NGOÀI, không phải npm dep, nên "chạy không ra số" ở đây thường là chưa cài chứ không phải app chậm · Đọc `0% lỗi` trên một lượt **0 request** thành đạt: đó là KHÔNG BIẾT, và ngưỡng `http_reqs: count>0` tồn tại đúng để bắt ca này |
+
+**Câu kích hoạt mẫu:** "chạy load test" · "stress test endpoint này" · "app chịu được bao nhiêu người cùng lúc" · "đo soak 30 phút"

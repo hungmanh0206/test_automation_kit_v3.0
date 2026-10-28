@@ -74,3 +74,14 @@ trong cùng pass với coverage là báo cáo chi phí của **công cụ đo**,
 - [[security_check]] — cặp non-functional executable.
 - mục 16 `prompt_templates/phase1/02_gen_testcases.md`; large-dataset bắc cầu mục 7.
 - [[learning_recorder]] — có thể ghi perf finding lặp lại theo module (chỉ khi đã confirm).
+
+## Dùng khi · KHÔNG dùng khi
+
+| | |
+|---|---|
+| **Dùng khi** | Bộ TC có case đòi web vitals, SLA của API, hoặc thời gian render lưới dữ liệu lớn · Cần biết một màn chậm đi so với ngưỡng trong catalog |
+| **KHÔNG dùng khi** | Cần đo **nhiều VU** cùng lúc ⇒ `load_check` (Loại B); skill này là Loại A, một người dùng · Cần điểm Lighthouse theo TRANG ⇒ `lighthouse_check` · Lấy một lượt đo làm kết luận: skill chạy median N lần đúng vì một lượt đơn lẻ là nhiễu · Biến **hết hạn chờ** thành số đo — một lần `timeout` không phải "giây đo được", và lớp lỗi đó đã sinh ra 3 verdict hiệu năng bịa |
+
+**Câu kích hoạt mẫu:** "đo performance màn này" · "API có đạt SLA chưa" · "lưới 1000 dòng render bao lâu" · "trang chậm hơn trước không"
+
+⚙️ **Máy kiểm:** `npm run perf` (so ngưỡng catalog, verdict advisory) · `npm run perf:report` dựng báo cáo HTML có biểu đồ.
