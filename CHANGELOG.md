@@ -20,7 +20,7 @@ rước đúng tật đó về.
 thẳng. Bảng nghiệm thu ở [`docs/v2.9.5/A_PARITY.md`](docs/v2.9.5/A_PARITY.md), và chính nó có cửa gác:
 `parity:check` chặn dòng treo, chặn tên máy bịa, và chặn cả khối "CHƯA CÓ MÁY" rỗng.
 
-**Thêm 8 máy** (148 tổng · 106 CHẶN) và **3 skill** (28 tổng):
+**Thêm 8 máy** (149 tổng · 107 CHẶN) và **3 skill** (28 tổng):
 
 | Máy mới | Gác gì |
 |---|---|

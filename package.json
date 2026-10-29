@@ -82,6 +82,8 @@
     "parity:check": "node scripts/qa/parity_check.js",
     "data:chain": "node scripts/qa/data_chain_check.js",
     "data:chain:check": "node scripts/qa/data_chain_check.js --enforce",
+    "exec:tally": "node scripts/qa/exec_summary_tally.js",
+    "exec:tally:check": "node scripts/qa/exec_summary_tally.js --check",
     "scope:anchor:enforce": "node scripts/qa/scope_anchor.js --enforce --record",
     "scope:anchor:init": "node scripts/qa/scope_anchor.js --init",
     "ui:contract": "node --max-old-space-size=4096 scripts/qa/figma_to_ui_contract.js",
