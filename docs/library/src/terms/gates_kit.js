@@ -150,7 +150,7 @@ const TERMS_GATE3 = [
   src:'scripts/qa/scope_anchor.js', rel:['g-dimension_coverage','c-canonical','g-preflight_gate'] },
 { id:'g-gate_index', t:'gates:index', cat:'gate',
   def:'Sinh DANH MỤC GATE của kit từ chính source. Trả lời được "kit có bao nhiêu gate, mỗi cái CHẶN gì, gọi ở đâu".',
-  detail:'Quét source rồi suy mức từ code: exit 1 là CHẶN · ghi artifact là SINH · chỉ in là BÁO CÁO. Bảng hiện tại: 141 máy — 98 CHẶN, 24 SINH, 19 BÁO CÁO. Bản --check chặn khi bảng lệch source.',
+  detail:'Quét source rồi suy mức từ code: exit 1 là CHẶN · ghi artifact là SINH · chỉ in là BÁO CÁO. Bảng hiện tại: 145 máy — 102 CHẶN, 24 SINH, 19 BÁO CÁO. Bản --check chặn khi bảng lệch source.',
   why:'Kit có hơn 30 npm script dạng gate và gần 60 file trong scripts/qa/, nhưng không chỗ nào trả lời được câu trên. Hệ quả không phải bất tiện: luận đề của kit là "luật cần MÁY", mà máy không LIỆT KÊ ĐƯỢC thì không kiểm toán được. Không ai biết một gate đã âm thầm tụt thành cảnh báo, hay đã mất nơi gọi.',
   how:['npm run gates:index để sinh lại bảng.','npm run gates:index:check để chặn khi bảng lệch source.'],
   cmd:'npm run gates:index   ·   npm run gates:index:check',
@@ -383,5 +383,43 @@ const TERMS_GATE3 = [
   cmd:'npm run db:query -- "<SELECT …>"',
   trap:'DB KHÔNG phải evidence, và không dựng precondition bằng DB.',
   src:'scripts/qa/db_query.js', rel:['r-uat','g-db_paths_check'] },
+
+/* ── Lứa v2.9.5: bốn máy sinh ra từ việc đo kit mình so với một bộ plugin QA khác ── */
+
+{ id:'g-phase1_tables', t:'phase1:tables', cat:'gate',
+  def:'Sinh ba bảng đối soát cuối bộ testcase, và CHẶN khi một rule chỉ được chứng minh bằng đường thuận.',
+  detail:'Ba bảng ghi vào reports/phase1-summary.md: ① rule × số TC × dương/âm/biên · ② case chiều hiển thị đã có chống lưng chưa · ③ phân bố kỹ thuật. Bảng ③ KHÔNG đếm lại mà gọi thẳng dimension_coverage.js.',
+  why:'Ba bảng này trước đây do agent tự kẻ, và bảng tự kẻ hỏng theo hai đường đều im lặng: kẻ sai số, hoặc kẻ đúng rồi bộ case đổi mà bảng ở lại. Sinh từ chính bộ case thì không còn đường nào trong hai đường đó.',
+  how:['Chạy vài giây, chỉ đọc test-cases/ của task.','Thêm --enforce để chặn; --check để bắt khối bị sửa tay.'],
+  cmd:'npm run phase1:tables -- --enforce   ·   npm run phase1:tables:check',
+  ex:'Một rule có ba case nhưng cả ba đều [Positive] ⇒ CHẶN: chỗ bug sống là đường phải bị chặn, mà đường đó chưa ai đi.',
+  trap:'Máy đọc TAG và CHỮ, không hiểu nghĩa: case khai [Negative] mà thật ra đi đường thuận thì vẫn được đếm là âm. Và 0 testcase ⇒ exit 2 (KHÔNG PHÁN ĐƯỢC), không phải exit 0.',
+  src:'scripts/qa/phase1_tables.js', rel:['g-dimension_coverage','g-design_gate','c-chieu-coverage','f-phase1','c-gate-real-content'] },
+
+{ id:'g-recon_check', t:'recon:check', cat:'gate',
+  def:'Bản kê màn hình dựng từ recon phải nói rõ MỖI dòng lấy từ đâu — đặc tả, hay chỉ là ảnh chụp build.',
+  detail:'Đọc catalog recon của task và đòi ba thứ: nguồn trỏ về requirements/, hoặc khai thẳng dòng đó lấy từ build; và một câu tự nêu giới hạn — bản kê chụp từ build KHÔNG chứng minh build đúng đặc tả.',
+  why:'Recon rất dễ biến thành tautology có hình dạng tài liệu: chụp lại màn hình đang chạy, đặt tên là "đặc tả màn", rồi lấy chính nó làm oracle. Lúc đó mọi case đều PASS, và cái PASS đó không nói gì cả.',
+  cmd:'npm run recon:check',
+  trap:'Cố ý KHÔNG chạy trong CI: nó đọc outputs/ của task, mà CI không có outputs/ nên lượt nào cũng exit 2. Một cửa luôn exit 2 trong CI là cửa dạy người ta bỏ qua exit 2.',
+  src:'scripts/qa/recon_check.js', rel:['sk-requirements_analyzer','c-tautology','c-oracle','f-phase1'] },
+
+{ id:'g-rule_consistency', t:'rule:consistency', cat:'gate',
+  def:'Luật đổi lời thì tài liệu cũ ở lại và nói ngược luật mới — cửa này quét mọi file được track để tìm chỗ đó.',
+  detail:'Đọc mệnh đề canonical khai trong .agent/config/rule_consistency.json rồi soi toàn bộ file track. Miễn trừ theo vùng cho phần lịch sử; miễn trừ theo DÒNG thì bắt buộc kèm ly_do từ 20 ký tự trở lên.',
+  why:'Lớp hỏng này đã cắn ba lần trong cùng một kit: luật evidence, lệnh /check, và câu chữ step ở Phase 2. Mỗi lần đều là cùng một chuyện — có người sửa luật, không ai đi tìm những chỗ đang chép lại lời cũ.',
+  how:['Chỉ đọc file trong repo, chạy được offline.','Miễn trừ CHẾT (trỏ vào chỗ không còn mâu thuẫn) được báo ra, để danh sách miễn trừ không tự phình lên.'],
+  cmd:'npm run rule:consistency',
+  trap:'0 mệnh đề khai trong config ⇒ exit 2, KHÔNG phải exit 0: "không có gì để gác" không đồng nghĩa với "đạt". Và grep -i không hạ chữ hoa tiếng Việt có dấu — đó là lý do phải soi bằng JS chứ không bằng một dòng grep.',
+  src:'scripts/qa/rule_consistency.js', rel:['c-canonical','c-forcing-function','c-gate-real-content','g-rule_parity'] },
+
+{ id:'g-skills_route', t:'skills:route:check', cat:'gate',
+  def:'Đo xem phần mô tả của 26 skill có đủ tách bạch để chọn đúng skill từ một câu yêu cầu không.',
+  detail:'Chấm điểm theo IDF trên description cộng các câu kích hoạt mẫu, chạy trên 63 ca tiếng Việt viết DIỄN Ý lại chứ không chép nguyên câu mẫu. Có sàn tự tin: điểm cao nhất mà chưa vượt sàn thì coi là không chọn được.',
+  why:'skills:lint bắt được hai mô tả TRÙNG nhau, nhưng không bắt được hai mô tả KHÁC NHAU mà vẫn không tách nổi việc. Đó mới là kiểu nhập nhằng hay gặp.',
+  cmd:'npm run skills:route:check',
+  ex:'Sáu cặp skill dễ lẫn được khai thẳng trong fixture, để con số không đẹp lên nhờ bỏ qua đúng những ca khó.',
+  trap:'ĐỌC ĐÚNG CON SỐ: đây là phép đo ĐẠI DIỆN trên từ ngữ. "98%" nghĩa là phần chữ hiện có đủ phân biệt 98% số ca trong fixture — KHÔNG phải "agent chọn đúng 98%".',
+  src:'scripts/qa/skills_route.js', rel:['g-skills_lint','g-skills_index','g-skills_refcheck','f-kit-layers'] },
 
 ];

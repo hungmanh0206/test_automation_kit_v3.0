@@ -72,6 +72,8 @@
     "bug:claim:chot": "node scripts/qa/bug_claim.js --chot",
     "discover": "node scripts/qa/discover.js",
     "dim:coverage": "node scripts/qa/dimension_coverage.js",
+    "phase1:tables": "node scripts/qa/phase1_tables.js",
+    "phase1:tables:check": "node scripts/qa/phase1_tables.js --check",
     "spec:extract": "node scripts/qa/spec_extract.js",
     "spec:gap": "node scripts/qa/spec_gap_report.js",
     "scope:anchor": "node scripts/qa/scope_anchor.js",

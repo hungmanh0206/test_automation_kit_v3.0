@@ -60,6 +60,14 @@ trong một lượt. Nó gọi đúng script gốc rồi gom kết quả, không
    Sáu tiêu chí máy chấm đủ, hai tiêu chí máy chỉ chấm một phần và gắn cờ `AI` — **không được coi cờ đó là đạt**.
    Các gate trên đo bộ case có ĐỦ không; gate này đo từng case có DÙNG ĐƯỢC không. Thiếu nó thì một bộ phủ đủ chiều
    vẫn có thể gồm toàn case mơ hồ, và không gì nói ra điều đó. Báo cáo ở `reports/tc-review.md`.
+
+6f. **Ba bảng đối soát cuối bộ:** `TASK_ENV=... npm run phase1:tables -- --enforce` — sinh vào
+   `reports/phase1-summary.md`. Ba bảng: ① rule × số TC × dương/âm/biên · ② case `[Display]` có chống
+   lưng chưa · ③ phân bố kỹ thuật (gọi lại `dim:coverage`, không đếm lần hai).
+   CHẶN khi một rule **chỉ có case dương** (chỗ bug sống là đường phải bị chặn), khi case **không khai
+   dương/âm/biên** (không rõ rule được chứng minh bằng đường nào), hoặc khi case `[Display]` khẳng định
+   nhãn/thứ tự/mặc định mà không trỏ `ui_catalog` lẫn lần đọc DOM.
+   Bảng là **bản sinh**: sửa tay thì `npm run phase1:tables:check` bắt được.
 6d. **Chiều ngược (spec → case):** `TASK_ENV=... npm run spec:gap` — thứ tài liệu NÊU mà bộ case chưa phủ.
    Cả 3 lệnh chỉ đọc artefact local, không gọi mạng, nên chạy được cả khi offline.
 6b. Sinh **Traceability Matrix** tường minh `<TASK_OUTPUT_DIR>/reports/traceability-matrix.md` — bảng `| REQ-ID | Requirement/AC | Risk | TC ID (trace) | Status |` (1 dòng/requirement in-scope; `Status` ∈ `Covered`/`Partial`/`Gap`). Hỗ trợ Gap Analysis: requirement `Gap`/`Partial` mức Critical/High phải khớp `### High/Critical Gaps` trong summary. Đây là artifact riêng, chi tiết hơn Coverage Matrix tóm tắt trong summary.
