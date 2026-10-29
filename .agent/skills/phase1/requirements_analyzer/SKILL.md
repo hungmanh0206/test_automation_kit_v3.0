@@ -18,33 +18,59 @@ Chuyển Backlog/tài liệu nguồn/Figma/Swagger/local artifact thành require
 | Risk | Phân loại rule/gap theo `Critical`, `High`, `Medium`, `Low`. |
 | Setup input | Từ Swagger/API spec, xác định endpoint/payload có thể dùng để setup precondition (input cho Setup Strategy contract của testcase). |
 | Question | Ghi open question khi tài liệu mâu thuẫn hoặc thiếu expected result. |
-| Impact/Affected area | Nhận diện "bề mặt dùng chung" story đụng tới (data/entity/field, endpoint, component/rule, status/enum, calc/report, permission, job/event) và feature khác phụ thuộc — input cho Change Impact / Regression Ripple (mục 17); cái không suy được → flag "QA confirm". |
+| Impact/Affected area | Nhận diện bề mặt dùng chung story đụng tới (data/field · endpoint · component/rule · status/enum · calc · permission · job) — input cho mục 17; cái không suy được thì flag "QA confirm". |
 
-## Inputs
+## Inputs · Outputs
 
-| Input | Nguồn |
-|---|---|
-| Requirement | Backlog, tài liệu nguồn, file local |
-| UI design | Figma hoặc screenshot/spec local |
-| API spec | Swagger/OpenAPI |
-| Project context | `.agent/config/project_context.md` |
+**Vào:** requirement (Backlog · tài liệu nguồn · file local) · UI design (Figma hoặc ảnh/spec local) ·
+API spec (Swagger/OpenAPI) · `.agent/config/project_context.md`.
 
-## Outputs
-
-| Output | Vị trí |
-|---|---|
-| Requirement summary | `<TASK_OUTPUT_DIR>/requirements/` hoặc `reports/phase1-summary.md` |
-| Coverage input | Requirement/API/UI behavior -> TC/gap mapping |
-| Setup source candidates | Endpoint/payload/fixture từ Swagger phục vụ Setup Strategy contract |
-| Open questions | `task.md` hoặc Phase 1 summary |
+**Ra:** requirement summary ở `<TASK_OUTPUT_DIR>/requirements/` hoặc `reports/phase1-summary.md` ·
+coverage input (requirement/API/UI → TC hoặc gap) · ứng viên nguồn setup từ Swagger cho Setup Strategy
+contract · open question ở `task.md` hoặc Phase 1 summary.
 
 ## Khi dùng / KHÔNG dùng
 
 | Dùng | KHÔNG dùng |
 |---|---|
-| Đầu Phase 1, cần chuyển tài liệu thành scope + rule + câu hỏi | Khám phá hệ thống bằng cách bò UI (v2.6.0, chưa có) |
+| Đầu Phase 1, cần chuyển tài liệu thành scope + rule + câu hỏi | Bò toàn hệ thống từ đầu ⇒ `npm run discover` trước, rồi skill này đọc kết quả |
 | Tài liệu mâu thuẫn và cần biết nguồn nào thắng | Chốt một rule — rule chỉ vào `knowledge/domain` khi có `confirmed_by` |
 | Cần biết vùng nào tài liệu không phủ | Thay cho `scope:anchor` — mẫu số lấy từ đó, không tự liệt kê |
+
+## Recon — bước nào chạy lệnh nào, ra file nào
+
+Kit có máy cho gần hết chín bước recon. **Đừng dò tay thứ đã có máy** — và đừng dựng lại máy đã có.
+Chín bước, luật ghi nhận và bảng tầng network: [`references/recon.md`](references/recon.md).
+
+Tất cả ra `knowledge/system/discovery/<build_id>/`, cùng một lượt `npm run discover`:
+
+| Bước recon | File kết quả |
+|---|---|
+| Khung màn · form · action · workflow | `system_map.json` (`screens`, `crawl_completeness`) |
+| Tầng network — **nghe thụ động** | `api_inventory.json` |
+| Phân quyền theo role (khai nhiều account) | `roles.json` · `role_route_matrix` trong `system_map.json` |
+| Bản đồ phủ tài liệu | `doc_coverage.json` |
+| Bề mặt tiêm | `injection_surface.json` |
+| So với lượt khám phá trước | `delta.json` |
+| Câu hỏi sinh ra | `questions.md` ⇒ gộp vào `requirements/phase1-clarifications.md` |
+
+`discover` **never-auto**: TỪ CHỐI chạy khi thiếu `--confirm-nonprod`, kể cả khi tên host trông là
+non-prod — dấu hiệu trong tên host không thay được một lượt xác nhận của người.
+
+🚫 **Recon chỉ quan sát THỤ ĐỘNG.** Không `curl`/`fetch`/`page.evaluate` gọi endpoint để dò hành vi: một
+request mình tự tạo không chứng minh được gì về hành vi của UI. Luật này **chưa có máy gác** — lý do và
+số đo ở [`references/recon.md`](references/recon.md) §2.
+
+## Tài liệu bán phần — chia vùng trước khi mở browser
+
+Sai lầm hay gặp là xử cả module theo MỘT cách: tin tài liệu rồi recon qua loa, hoặc bỏ tài liệu rồi recon
+lại từ đầu. Cả hai đều tốn công và đều sai. Chia vùng trước — 🟩 đầy đủ ⇒ **đối chiếu** · 🟨 một phần ⇒
+**bổ khuyết** · ⬜ trắng ⇒ **recon đủ** chín bước · ⚠️ nghi lỗi thời ⇒ recon đủ, tài liệu thành **danh
+sách câu hỏi**. Chiến lược từng mức, luật cứng, và cột `Nguồn` bốn cấp:
+[`references/recon.md`](references/recon.md) §4.
+
+Khác A ở đúng một ô: A ghi vùng ⚠️ là "UI thắng". Ở đây quan sát là `OBSERVATION` + câu hỏi Ambiguity
+Gate — xem mục dưới.
 
 ## Thứ tự ưu tiên khi hai nguồn nói ngược nhau
 
@@ -77,16 +103,14 @@ luật xanh ngay — nó chặn đường lùi, không dọn nợ.
 
 ## "Không đề cập" KHÁC "không áp dụng"
 
-Hai câu nghe giống nhau và hệ quả ngược nhau:
+Hai câu nghe giống nhau, hệ quả ngược nhau:
 
-- **"Tài liệu không đề cập"** = chưa có căn cứ. KHÔNG kết luận được gì, kể cả kết luận "không cần test".
+- **"Tài liệu không đề cập"** = chưa có căn cứ. KHÔNG kết luận gì, kể cả "không cần test".
 - **"Không áp dụng"** = đã có căn cứ rằng chuyện đó không tồn tại trong phạm vi này.
 
-Rule khai đặc tả im lặng vẫn hợp lệ — **nếu nêu được một neo độc lập**: thuộc tính toàn vẹn phổ quát, văn
-bản pháp quy, BA/dev xác nhận, hoặc bộ testcase chuẩn của hệ thống. Dừng ở "đặc tả không đề cập" thì rule
-chỉ còn là suy đoán.
-⚙️ `domain:check` cảnh báo đúng ca đó. Bốn rule trong repo khai đặc tả im lặng và cả bốn đều nêu neo —
-chúng là mẫu đúng, và danh sách dấu hiệu của gate được lấy từ chính chúng.
+Rule khai đặc tả im lặng vẫn hợp lệ — **nếu nêu được một neo độc lập**: toàn vẹn phổ quát, văn bản pháp
+quy, BA/dev xác nhận, hoặc bộ testcase chuẩn. Dừng ở "đặc tả không đề cập" thì rule chỉ là suy đoán.
+⚙️ `domain:check` cảnh báo đúng ca đó.
 
 ## Ba mức bằng chứng cho phân quyền
 
@@ -100,8 +124,7 @@ ra một yêu cầu, và nếu app cho phép thì bug log ra là **bug bịa**. 
 
 ## Bản đồ phủ tài liệu
 
-Mỗi vùng của tài liệu phải rơi vào một trong bốn ô, và **ô nào cũng phải có người đọc** — không ô nào được
-im lặng:
+Mỗi vùng rơi vào một trong bốn ô, và **ô nào cũng phải có người đọc**:
 
 | | Có trong tài liệu | Không có trong tài liệu |
 |---|---|---|
@@ -113,10 +136,9 @@ Mẫu số của vùng sót lấy từ `npm run scope:anchor`, không tự liệ
 
 ## Decision Rules
 
-- Ưu tiên artifact local/snapshot trước khi fetch raw source lớn.
-- Chỉ đọc section/source liên quan đến scope.
-- Requirement chỉ được coi là clear khi có expected behavior đủ để sinh testcase executable.
-- Nếu link/path source thay đổi sau baseline, đó là partial-rerun concern, không tự thay main source.
+- Ưu tiên artifact local/snapshot trước khi fetch nguồn lớn; chỉ đọc phần liên quan scope.
+- Requirement chỉ là clear khi có expected behavior đủ để sinh testcase chạy được.
+- Link/path nguồn đổi sau baseline là việc của partial-rerun, không tự thay nguồn chính.
 
 ## Constraints
 
@@ -128,7 +150,7 @@ Mẫu số của vùng sót lấy từ `npm run scope:anchor`, không tự liệ
 
 - Paste toàn bộ raw tài liệu nguồn/Figma/Swagger vào chat.
 - Bỏ qua permission/error/rollback/API side-effect trong coverage input.
-- Bỏ qua vùng ảnh hưởng ngoài scope khi story đụng data/endpoint/component/rule/status/permission dùng chung (change impact — mục 17).
+- Bỏ qua vùng ảnh hưởng ngoài scope (change impact — mục 17).
 - Coi số lượng testcase cao là coverage tốt nếu thiếu core/high-risk rule.
 
 **Câu kích hoạt mẫu:** "đọc đặc tả này rồi tóm scope" · "rút business rule từ tài liệu" · "cần recon màn nào trước khi viết case" · "tài liệu phủ được bao nhiêu phần chức năng"
