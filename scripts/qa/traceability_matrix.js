@@ -137,6 +137,67 @@ async function main() {
   for (const r of rows) L.push(`| ${r.req} | ${r.module} | ${r.tcId} | ${r.published === null ? '?' : (r.published ? 'yes' : '—')} | ${r.auto} | ${r.exec} | ${r.bug} | ${r.flags} |`);
   fs.writeFileSync(path.join(T, 'reports', 'traceability-matrix.md'), L.join('\n'), 'utf8');
 
+  /*
+   * VIEW `--pm` (v2.9.5 §7) — bản GỘP THEO MODULE.
+   *
+   * Vì sao cần một view riêng: ma trận per-TC của một task thật dài 275 dòng (đo trên CSDL-9004). Không
+   * ai ở vai quản lý đọc 275 dòng, nên trong thực tế người ta đọc dòng `>` tóm tắt — mà dòng đó chỉ có
+   * TỔNG, không nói module nào đang hổng. Hệ quả: "80% đã execute" nghe như đều, trong khi 20% còn lại
+   * có thể dồn hết vào một module.
+   *
+   * KHÔNG LÀM TRÒN CHỖ CHƯA BIẾT. `publish` có ba trạng thái (`yes`/`—`/`?`), và `?` nghĩa là chưa tải
+   * mirror Sheet về. Gộp `?` thành 0 làm bảng đọc như "chưa publish gì cả" — một kết luận khác hẳn
+   * "chưa đo được". Nên cột publish in cả hai số, và `?` có cột riêng.
+   */
+  if (process.argv.includes('--pm')) {
+    const theoModule = new Map();
+    for (const r of rows) {
+      /*
+       * Parser canonical đã điền `(none)` cho ô Module rỗng, nên một fallback `|| '…'` ở đây là MÃ CHẾT
+       * — nó không bao giờ chạy, và phép kiểm nào tin vào nó sẽ đỏ vì lý do sai. Bản gộp là view cho
+       * người đọc nên đổi nhãn sang tiếng Việt, và nhận CẢ HAI nguồn.
+       */
+      const k = (!r.module || r.module === '(none)') ? '(không khai module)' : r.module;
+      const m = theoModule.get(k) || { tc: 0, pub: 0, chuaRo: 0, exec: 0, fail: 0, bug: 0 };
+      m.tc += 1;
+      if (r.published === null) m.chuaRo += 1; else if (r.published) m.pub += 1;
+      if (r.exec !== '—') m.exec += 1;
+      if (/FAIL/.test(r.exec)) m.fail += 1;
+      if (r.bug !== '—') m.bug += 1;
+      theoModule.set(k, m);
+    }
+    const pc = (a, b) => (b === 0 ? '—' : `${Math.round((a / b) * 100)}%`);
+    const P = [`# Traceability — bản GỘP cho người đọc báo cáo · ${taskKey}`, '',
+      `> ${new Date().toISOString().slice(0, 19).replace('T', ' ')} · gộp từ ${rows.length} dòng của`
+      + ' `traceability-matrix.md`. Cùng một nguồn, không đếm lần hai.',
+      '>',
+      '> Cột `publish ?` là số TC **chưa đo được** chứ không phải chưa publish — nó bằng 0 chỉ khi đã tải',
+      '> mirror Sheet về. Đọc hai cột đó cùng nhau, đừng cộng `?` vào `—`.', '',
+      '| Module | TC | publish ✓ | publish ? | execute | % execute | FAIL | có bug |',
+      '|---|---|---|---|---|---|---|---|'];
+    /* Sắp theo SỐ TC CHƯA EXECUTE giảm dần: chỗ hổng to nhất nằm ở dòng đầu, không phải ở cuối bảng. */
+    const sap = [...theoModule.entries()].sort((a, b) => (b[1].tc - b[1].exec) - (a[1].tc - a[1].exec));
+    for (const [k, m] of sap) {
+      P.push(`| ${k} | ${m.tc} | ${m.pub} | ${m.chuaRo} | ${m.exec} | ${pc(m.exec, m.tc)} | ${m.fail} | ${m.bug} |`);
+    }
+    const t = { tc: rows.length, pub: publishedCount, chuaRo: rows.filter((r) => r.published === null).length, exec: executed, fail: failed, bug: withBug };
+    P.push(`| **TỔNG** | **${t.tc}** | **${t.pub}** | **${t.chuaRo}** | **${t.exec}** | **${pc(t.exec, t.tc)}** | **${t.fail}** | **${t.bug}** |`);
+
+    const hong = sap.filter(([, m]) => m.exec < m.tc);
+    P.push('', '## Chỗ hổng, nói thẳng', '');
+    if (hong.length === 0) {
+      P.push('- Mọi module đã execute đủ số TC đã viết.');
+    } else {
+      for (const [k, m] of hong.slice(0, 10)) P.push(`- **${k}**: còn ${m.tc - m.exec}/${m.tc} TC chưa execute.`);
+      if (hong.length > 10) P.push(`- … và ${hong.length - 10} module nữa (xem bảng trên).`);
+    }
+    P.push('', '> **Mẫu số của bảng này là số TC ĐÃ VIẾT, không phải số thứ cần kiểm.** Bộ case thiếu một',
+      '> vùng thì vùng đó không có dòng nào ở đây, và `100% execute` vẫn không nói gì về nó. Mẫu số thật',
+      '> neo ở `requirements/scope_inventory.md` (`npm run scope:anchor`), và chiều ngược ở `npm run spec:gap`.', '');
+    fs.writeFileSync(path.join(T, 'reports', 'traceability-pm.md'), P.join('\n'), 'utf8');
+    console.log(`[trace] → ${path.join(T, 'reports', 'traceability-pm.md')} (bản gộp ${theoModule.size} module)`);
+  }
+
   console.log(`[trace] ${taskKey}: ${rows.length} TC · publish ${knowPublish ? publishedCount : '?'} · execute ${executed} · FAIL ${failed} · bug ${withBug}`);
   console.log(`[trace] → ${path.join(T, 'reports', 'traceability-matrix.md')} (+ .csv)`);
   if (rows.length === 0) console.log('[trace] (0 TC — kiểm test-cases/*.md có bảng 9 cột không).');

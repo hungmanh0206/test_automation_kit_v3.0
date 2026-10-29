@@ -76,7 +76,8 @@ Case chưa khai `[manual]` thì **dừng**. Sửa lời khai ở Phase 1 kèm l�
 
 ## Khuôn `session.md`
 
-Bốn trường này là thứ máy đọc. Thiếu trường nào thì lượt chạy không truy được về ai, trên build nào.
+**Năm** trường này là thứ máy đọc. Thiếu trường nào thì lượt chạy không truy được về ai, trên build nào,
+trên đơn vị nào.
 
 ```markdown
 # Lượt chạy tay — <TASK_KEY>
@@ -85,6 +86,7 @@ Bốn trường này là thứ máy đọc. Thiếu trường nào thì lượt 
 - Ngày: 09/10/2026
 - Môi trường: UAT, https://uat.example.gov.vn
 - Build / Version: 2026.10.08-rc2
+- Đơn vị / cấp học: TEST 1 (mã 01000754), cấp THCS
 
 ## Case trong lượt này
 
@@ -92,12 +94,30 @@ Bốn trường này là thứ máy đọc. Thiếu trường nào thì lượt 
 |---|---|---|
 | CSDL_HS_TC_088 | Captcha không có đường tắt trong UAT | PASS |
 
+## Không phán được
+
+Mỗi case verdict `BLOCKED`/`SKIP` một dòng, kèm LÝ DO. Mục này bắt buộc khi lượt chạy có ca như vậy.
+
+| TC ID | Verdict | Vì sao không phán được |
+|---|---|---|
+| CSDL_HS_TC_091 | BLOCKED_SETUP | Không có trường nào trong UAT đang ở trạng thái "đã gửi" để mở khoá |
+
 ## Ghi chú
 
 Chỗ nào lệch so với dự kiến thì ghi ở đây, kèm TC ID.
 ```
 
 Placeholder không tính là đã điền. `TBD`, `n/a`, dấu gạch, hay `______` đều bị bắt.
+
+**Vì sao `Đơn vị / cấp học` là một trường riêng, không gộp vào `Môi trường`:** `Môi trường` ghi host, mà
+thứ làm hỏng một phép đo nhiều nhất trên app này không phải sai host — là **chạy trên đơn vị hoặc cấp học
+khác với cái case cần**. Một tài khoản chỉ thuộc một cấp, hai task khác cấp chạy song song đổi cấp của
+nhau, và URL màn khác nhau theo cấp. Không ghi lại thì về sau không ai phân biệt được *app sai* với
+*đo sai chỗ*. Khai `Đơn vị`, `Cấp học` hay `Trường` đều được — tuỳ màn, thứ quyết định là cái nào.
+
+**Vì sao mục `## Không phán được` là bắt buộc:** `BLOCKED`/`SKIP` trong JSON là verdict hợp lệ, nhưng tự
+nó không nói vì sao. Người đọc về sau chỉ thấy một mã, và mã đó trông y như nhau dù lý do là "chưa tìm
+thấy dữ liệu" hay "app chặn không cho vào". Đây cũng là chỗ dễ biến thành `PASS` nhất nếu không ai ghi lại.
 
 ## Rules
 

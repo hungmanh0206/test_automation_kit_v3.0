@@ -33,6 +33,10 @@
     [
       "automation_reviewer",
       "qa_automation_engineer"
+    ],
+    [
+      "run_report_reader",
+      "release_summary"
     ]
   ],
   "ca": [
@@ -175,6 +179,18 @@
     {
       "cau": "fetch ngữ cảnh task từ Backlog",
       "skill": "backlog_integration"
+    },
+    {
+      "cau": "lượt chạy vừa rồi nói lên điều gì",
+      "skill": "run_report_reader"
+    },
+    {
+      "cau": "nhận lại kết quả execute của người khác thì xem gì trước",
+      "skill": "run_report_reader"
+    },
+    {
+      "cau": "tỉ lệ pass này có đáng tin không",
+      "skill": "run_report_reader"
     },
     {
       "cau": "gộp nhiều lượt chạy của sprint thành khuyến nghị",

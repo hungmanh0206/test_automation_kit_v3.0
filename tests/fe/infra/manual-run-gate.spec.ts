@@ -45,6 +45,11 @@ const SESSION_OK = [
   '- Ngày: 09/10/2026',
   '- Môi trường: UAT, https://uat.example.gov.vn',
   '- Build / Version: 2026.10.08-rc2',
+  /*
+   * Trường thứ năm, thêm ở v2.9.5 §7. `Môi trường` chỉ ghi host; thứ làm hỏng một phép đo nhiều nhất
+   * trên app này là chạy trên ĐƠN VỊ hoặc CẤP HỌC khác với cái case cần.
+   */
+  '- Đơn vị / cấp học: TEST 1 (mã 01000754), cấp THCS',
   '',
   /*
    * Khối "Sổ dữ liệu đã tạo" thuộc KHUÔN session.md từ v2.5.0 G1.7. Sổ RỖNG (có header, không có dòng) là
@@ -259,5 +264,83 @@ test.describe('@infra manual-run — ranh giới `[manual]` và ủy quyền out
     expect(mr.laManual({ precondition: '[api] Đã đăng nhập' })).toBe(false);
     expect(mr.laManual({ precondition: 'Chạy tay thôi' }), 'chữ "tay" trong mô tả KHÔNG phải tag').toBe(false);
     expect(mr.laManual({ precondition: '' })).toBe(false);
+  });
+});
+
+/*
+ * v2.9.5 §7 — HAI PHÉP KIỂM THÊM VÀO SỔ PHIÊN.
+ *
+ * Cả hai đều có một bài học riêng, và bài học quan trọng hơn thuộc về phép kiểm thứ nhất: thêm trường
+ * `Đơn vị / cấp học` mà **14/14 phép kiểm cũ vẫn xanh** — tức không có gì thật sự được đòi thêm. Lý do:
+ * mẫu khớp ở giữa dòng, và chữ `trường` nằm ngay trong **Môi trường**, nên dòng ghi host tự thoả trường
+ * mới. Một trường bắt buộc mà luôn được thoả bởi một dòng khác là một trường không tồn tại.
+ */
+test.describe('@infra manual-run — sổ phiên: đơn vị và "không phán được" (§7)', () => {
+  test('ĐỐI CHỨNG DƯƠNG: thiếu `Đơn vị / cấp học` ⇒ CHẶN', () => {
+    const thieu = SESSION_OK.split('\n').filter((l) => !l.startsWith('- Đơn vị')).join('\n');
+    expect(loc(chay({ session: thieu }).problems, /\*\*Đơn vị \/ cấp học\*\* còn trống/).length).toBe(1);
+  });
+
+  test('ĐỐI CHỨNG ÂM — dòng `Môi trường` KHÔNG được tự thoả trường đơn vị', () => {
+    /*
+     * Đây là phép kiểm của chính lỗi đã gặp. Bỏ dòng `Đơn vị` nhưng GIỮ dòng `Môi trường` thì cửa vẫn
+     * phải kêu — nếu không, chữ `trường` trong `Môi trường` lại che mất một trường bắt buộc.
+     */
+    const chiCoMoiTruong = SESSION_OK.split('\n')
+      .filter((l) => !l.startsWith('- Đơn vị'))
+      .join('\n');
+    expect(chiCoMoiTruong, 'fixture phải còn dòng Môi trường để phép kiểm có nghĩa').toContain('Môi trường:');
+    expect(loc(chay({ session: chiCoMoiTruong }).problems, /\*\*Đơn vị \/ cấp học\*\*/).length,
+      '`Môi trường` ghi host, không ghi đơn vị — không được coi là đã khai').toBe(1);
+  });
+
+  test('ĐỐI CHỨNG ÂM: khai `Cấp học` thôi cũng đủ — ba cách khai đều nhận', () => {
+    for (const dong of ['- Đơn vị: TEST 1 (01000754)', '- Cấp học: THCS', '- Trường áp dụng: TEST 1']) {
+      const s = SESSION_OK.split('\n').map((l) => (l.startsWith('- Đơn vị') ? dong : l)).join('\n');
+      expect(loc(chay({ session: s }).problems, /\*\*Đơn vị \/ cấp học\*\*/).length,
+        `khai bằng "${dong}" phải được nhận`).toBe(0);
+    }
+  });
+
+  test('ĐỐI CHỨNG DƯƠNG: có case BLOCKED mà sổ phiên KHÔNG có mục "Không phán được" ⇒ CHẶN', () => {
+    const r = chay({
+      cases: [['T_TC_001', 'manual'], ['T_TC_002', 'manual']],
+      status: [tcOk('T_TC_001'), { tcId: 'T_TC_002', status: 'BLOCKED_SETUP', comment: 'không dựng được' }],
+    });
+    expect(loc(r.problems, /KHÔNG có mục `## Không phán được`/).length, JSON.stringify(r.problems)).toBe(1);
+  });
+
+  test('ĐỐI CHỨNG DƯƠNG: có mục nhưng THIẾU case ⇒ CHẶN, và nói đúng case nào', () => {
+    const s = `${SESSION_OK}\n## Không phán được\n\n| TC ID | Verdict | Vì sao |\n|---|---|---|\n| T_TC_009 | BLOCKED_SETUP | lý do khác |\n`;
+    const r = chay({
+      session: s,
+      cases: [['T_TC_001', 'manual'], ['T_TC_002', 'manual']],
+      status: [tcOk('T_TC_001'), { tcId: 'T_TC_002', status: 'BLOCKED_SETUP', comment: 'x' }],
+    });
+    const p = loc(r.problems, /thiếu 1\/1 case/);
+    expect(p.length, JSON.stringify(r.problems)).toBe(1);
+    expect(p.join(' ')).toContain('T_TC_002');
+  });
+
+  test('ĐỐI CHỨNG ÂM: mục có đủ case ⇒ KHÔNG chặn', () => {
+    const s = `${SESSION_OK}\n## Không phán được\n\n| TC ID | Verdict | Vì sao |\n|---|---|---|\n| T_TC_002 | BLOCKED_SETUP | không có trường nào ở trạng thái đã gửi |\n`;
+    const r = chay({
+      session: s,
+      cases: [['T_TC_001', 'manual'], ['T_TC_002', 'manual']],
+      status: [tcOk('T_TC_001'), { tcId: 'T_TC_002', status: 'BLOCKED_SETUP', comment: 'x' }],
+    });
+    expect(loc(r.problems, /Không phán được/).length, JSON.stringify(r.problems)).toBe(0);
+  });
+
+  test('ĐỐI CHỨNG ÂM: lượt KHÔNG có case BLOCKED/SKIP thì KHÔNG đòi mục đó', () => {
+    /* Đòi một mục rỗng ở mọi lượt chạy là dạy người ta dán một tiêu đề trống cho đủ. */
+    expect(loc(chay({}).problems, /Không phán được/).length).toBe(0);
+  });
+
+  test('khuôn trong mẫu nhánh phải KHỚP thứ cửa đòi — hai nơi lệch là hai nơi sẽ trôi', () => {
+    const mau = fs.readFileSync(path.join(REPO, 'manual-run/run_manual_execution.md'), 'utf8');
+    expect(mau, 'mẫu phải có dòng Đơn vị / cấp học').toMatch(/- Đơn vị \/ cấp học:/);
+    expect(mau, 'mẫu phải có mục Không phán được').toMatch(/^##+\s*Không phán được/m);
+    expect(mau, 'mẫu phải nói rõ là NĂM trường, không còn bốn').toMatch(/\*\*Năm\*\* trường|Năm trường/);
   });
 });
