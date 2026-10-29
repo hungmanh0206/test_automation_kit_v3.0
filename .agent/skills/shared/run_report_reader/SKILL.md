@@ -22,7 +22,7 @@ Một lượt chạy để lại hàng trăm tệp. Đọc sai thứ tự thì t
 | 2 | `npm run run:analysis` | lượt này có ĐỦ MẪU SỐ để phán chưa (dải `BLOCKED`, nợ `SKIP`) | từng case |
 | 3 | `reports/execution-summary.md` | bức tranh lượt chạy do người viết | thứ người viết không nhìn thấy |
 | 4 | **ẢNH** ở `test-results/artifacts/` hoặc `evidence/<TC_ID>/` | app THẬT sự hiện gì ở bước quyết định | giá trị đã LƯU |
-| 5 | `npm run trace:matrix:pm` | module nào đang hổng, chỗ hổng to nhất ở đâu | thứ bộ case chưa viết |
+| 5 | `npm run trace:matrix` | module nào đang hổng, chỗ hổng to nhất ở đâu | thứ bộ case chưa viết |
 | 6 | `npm run data:chain` | verdict nào đứng trên một tiền đề chưa dựng | phụ thuộc chưa được khai |
 
 **CẤM đọc `results.json` thô.** Nó dài, và `results:summary` đã bóc mã màu ANSI cùng phần lặp. Đọc thô
@@ -56,7 +56,7 @@ là đổ rác điều khiển terminal vào context rồi vẫn phải đọc l
 | `npm run results:summary` | tóm tắt có trần, nhưng KHÔNG mất case đỏ | báo cáo |
 | `npm run run:analysis:enforce` | dải `BLOCKED` vượt dải trên ⇒ chưa đủ mẫu số để phán | CHẶN |
 | `npm run ledger:check` | đối soát Excel ↔ file status, bắt verdict mất âm thầm | CHẶN |
-| `npm run trace:matrix:pm` | bản gộp theo module — chỗ hổng to nhất lên dòng đầu | SINH |
+| `npm run trace:matrix` | bản gộp theo module — chỗ hổng to nhất lên dòng đầu | SINH |
 | `npm run data:chain:check` | verdict đứng trên tiền đề chưa dựng | CHẶN |
 
 > **KHÔNG có máy kiểm cho chuyện này**: "bản `execution-summary.md` có kể đúng lượt chạy không". Nó do

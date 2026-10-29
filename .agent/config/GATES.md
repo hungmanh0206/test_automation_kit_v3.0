@@ -70,7 +70,7 @@ lịch sử, còn việc CHẶN nằm ở `dim:coverage` (chiều `bug_history` 
 | T1 | CHẶN | `skills:route:check` | hai skill mô tả giống nhau thì agent KHÔNG có căn cứ để chọn. | `scripts/qa/skills_route.js` | .github/workflows · tests/fe/infra |
 | T1 | CHẶN | `lint:tcid` | MỘT case chỉ được ĐĂNG KÝ VỚI RECORDER ở MỘT file spec. | `scripts/qa/tcid_duplicate_check.js` | **KHÔNG BỀ MẶT NÀO** |
 | T1 | CHẶN | `sync:canonical` | MỘT BỘ GHI, TOẢ BA NƠI (v2.8.0 §0c). | `scripts/qa/testcases/sync_canonical.js` | RULE_GLOBAL.md · .agent/skills · prompt_templates · tests/fe/infra |
-| T1 | CHẶN | `trace:matrix`, `trace:matrix:pm` | sinh ma trận REQ → TC → AUTO → EXEC → BUG dạng artifact. | `scripts/qa/traceability_matrix.js` | docs/kit-map.md · .agent/workflows · .agent/skills · prompt_templates · tests/fe/infra |
+| T1 | CHẶN | `trace:matrix` | sinh ma trận REQ → TC → AUTO → EXEC → BUG dạng artifact. | `scripts/qa/traceability_matrix.js` | docs/kit-map.md · .agent/workflows · .agent/skills · prompt_templates · tests/fe/infra |
 | T1 | CHẶN | `ui:conformance` | "visual oracle" tự động. | `scripts/qa/ui_conformance_check.js` | prompt_templates |
 | T1 | CHẶN | `release:verify` | CHỨNG MINH bản phát hành chạy được từ con số 0. Đây là thước đo chính của cả luồng CD, | `scripts/qa/verify_release.js` | README.md · docs/kit-map.md · .github/workflows · .agent/skills · tests/fe/infra |
 | T1 | CHẶN | `version:check` | CHẶN phát hành thiếu sót. | `scripts/qa/version_check.js` | README.md · docs/kit-map.md · .github/workflows · tests/fe/infra |

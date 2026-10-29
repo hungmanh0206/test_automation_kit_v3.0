@@ -30,7 +30,7 @@ thẳng. Bảng nghiệm thu ở [`docs/v2.9.5/A_PARITY.md`](docs/v2.9.5/A_PARIT
 | `phase1:tables` | ba bảng đối soát cuối bộ, MÁY SINH; CHẶN khi một rule chỉ có case dương |
 | `router:check` | 32 điểm vào phải có dòng trong bảng định tuyến, kèm cột **KHÔNG dùng khi** |
 | `data:chain:check` | case khai tiền đề là output của case khác ⇒ bộ case thành CHUỖI, chuỗi phải đứng được |
-| `trace:matrix --pm` | bản gộp theo module — chỗ hổng to nhất lên dòng đầu |
+| `trace:matrix` (bản gộp) | gộp theo module — chỗ hổng to nhất lên dòng đầu; sinh LUÔN, không cần cờ |
 | `parity:check` | gác chính bảng nghiệm thu của đợt này |
 
 **Điều đáng ghi nhất của đợt này không phải 8 máy, mà là 6 lần phép đo của chính tôi sai trước khi

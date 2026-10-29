@@ -52,12 +52,36 @@ function chay(pod: string, argv: string[] = []) {
 const docPm = (taskDir: string) => fs.readFileSync(path.join(taskDir, 'reports', 'traceability-pm.md'), 'utf8');
 
 test.describe('@infra trace:matrix --pm', () => {
-  test('KHÔNG có `--pm` thì KHÔNG sinh bản gộp — view là opt-in', () => {
+  test('sinh LUÔN, không cần cờ — và cờ `--pm` cũ vẫn không làm vỡ lệnh', () => {
+    /*
+     * PHÉP KIỂM NÀY TỪNG ĐẶT NGƯỢC. Bản đầu đòi "không có `--pm` thì KHÔNG sinh", với lý lẽ "không ai
+     * xin thì không sinh thêm artifact". Lý lẽ đó sai ở đây, và chỗ sai lộ ra khi đo xem ai gọi
+     * `trace:matrix:pm`: **không luồng nào** — chỉ một skill nhắc tên nó. Tức nó là một bản sinh chỉ
+     * tồn tại khi có người nhớ gõ thêm một cờ, đúng lớp "máy không ai gọi" mà kit vẫn chống.
+     *
+     * Và nó không phải artifact MỚI: nó gộp lại chính dữ liệu vừa ghi ra `traceability-matrix.md`, cùng
+     * một lượt đọc, không thêm phép đo nào. Nên chi phí của "sinh luôn" gần bằng không, còn chi phí của
+     * "opt-in" là nó không bao giờ được sinh.
+     */
     const t = dungTask([['T_TC_001', 'Thêm mới']]);
     expect(chay(t.pod).code).toBe(0);
     expect(fs.existsSync(path.join(t.taskDir, 'reports', 'traceability-pm.md')),
-      'không ai xin thì không sinh thêm artifact').toBe(false);
+      'bản gộp phải có mặt dù KHÔNG truyền cờ nào').toBe(true);
+
+    /* Cờ cũ vẫn nhận để lệnh ai đã gõ không vỡ, nhưng nó không còn tác dụng gì. */
+    const t2 = dungTask([['T_TC_001', 'Thêm mới']]);
+    expect(chay(t2.pod, ['--pm']).code).toBe(0);
+    expect(fs.existsSync(path.join(t2.taskDir, 'reports', 'traceability-pm.md'))).toBe(true);
     fs.rmSync(t.pod, { recursive: true, force: true });
+    fs.rmSync(t2.pod, { recursive: true, force: true });
+  });
+
+  test('npm script `trace:matrix:pm` đã BỎ — một bí danh dư là cruft', () => {
+    /* Sinh luôn thì một script riêng chỉ để bật cờ là thứ sẽ trôi khỏi tài liệu rồi thành tên chết. */
+    // eslint-disable-next-line global-require
+    const pkg = require(path.join(REPO, 'package.json'));
+    expect(pkg.scripts['trace:matrix:pm'], 'bí danh này không còn lý do tồn tại').toBeUndefined();
+    expect(pkg.scripts['trace:matrix'], '`trace:matrix` vẫn phải có').toBeTruthy();
   });
 
   test('gộp đúng theo module, và TỔNG khớp số dòng per-TC', () => {
