@@ -994,7 +994,7 @@ body.lropen{overflow:hidden}
       </ul>
 
       <h3>Vì sao cần</h3>
-      <p>Kit có 26 skill, 146 máy kiểm (104 trong đó CHẶN thật) và một bộ từ vựng riêng (oracle độc lập, tautology, failureLayer,
+      <p>Kit có 27 skill, 146 máy kiểm (104 trong đó CHẶN thật) và một bộ từ vựng riêng (oracle độc lập, tautology, failureLayer,
         readiness, TRI, chiều coverage…). Người mới vào phải đọc rải rác nhiều file mới ghép được bức tranh.
         Trang này gom lại một chỗ, giữ nguyên nguồn, và cố tình <b>không</b> diễn giải thêm ngoài những gì repo đã ghi.</p>
 
@@ -1917,7 +1917,7 @@ const TERMS_GATE3 = [
 { id:'g-skills_lint', t:'skills:lint', cat:'gate',
   def:'Mô tả của một skill có đủ thông tin để CHỌN nó hay chưa.',
   detail:'Kiểm mô tả có nói "dùng khi nào" và "không dùng khi nào", và mọi đường dẫn trong skill phải tồn tại. Phần kiểm đường dẫn chỉ soi thư mục gốc của repo, KHÔNG soi `knowledge/**` (gitignore) hay đường dẫn tương đối theo task.',
-  why:'26 skill không auto-load: agent phải tự chọn. Một mô tả không nói "khi nào" thì nó không giúp chọn, và skill đó coi như không tồn tại.',
+  why:'27 skill không auto-load: agent phải tự chọn. Một mô tả không nói "khi nào" thì nó không giúp chọn, và skill đó coi như không tồn tại.',
   how:['Mô tả nêu điều kiện kích hoạt, không nêu tính năng.','Đường dẫn trong skill phải là đường dẫn thật.'],
   cmd:'npm run skills:lint   ·   npm run skills:lint -- --enforce',
   ex:'Bản đầu soi cả `knowledge/**` nên xanh ở máy local mà chặn 5 chỗ trên cây sạch.',
@@ -2059,7 +2059,7 @@ const TERMS_GATE3 = [
   src:'scripts/qa/rule_consistency.js', rel:['c-canonical','c-forcing-function','c-gate-real-content','g-rule_parity'] },
 
 { id:'g-skills_route', t:'skills:route:check', cat:'gate',
-  def:'Đo xem phần mô tả của 26 skill có đủ tách bạch để chọn đúng skill từ một câu yêu cầu không.',
+  def:'Đo xem phần mô tả của 27 skill có đủ tách bạch để chọn đúng skill từ một câu yêu cầu không.',
   detail:'Chấm điểm theo IDF trên description cộng các câu kích hoạt mẫu, chạy trên 63 ca tiếng Việt viết DIỄN Ý lại chứ không chép nguyên câu mẫu. Có sàn tự tin: điểm cao nhất mà chưa vượt sàn thì coi là không chọn được.',
   why:'skills:lint bắt được hai mô tả TRÙNG nhau, nhưng không bắt được hai mô tả KHÁC NHAU mà vẫn không tách nổi việc. Đó mới là kiểu nhập nhằng hay gặp.',
   cmd:'npm run skills:route:check',
@@ -2259,7 +2259,7 @@ const TERMS_GATE5 = [
 
 ];
 
-/* NHÓM 3 — 26 skill (nguồn: .agent/skills/INDEX.md + từng SKILL.md) */
+/* NHÓM 3 — 27 skill (nguồn: .agent/skills/INDEX.md + từng SKILL.md) */
 const TERMS_SKILL = [
 
 /* ── Phase 1 ── */
@@ -2454,6 +2454,14 @@ const TERMS_SKILL = [
   ex:'Gate chặn ở chỗ SINH case chứ không chỉ ở chỗ chạy, vì output_gate không nhìn thấy cột Loại case.',
   trap:'Mock rồi kết luận "đã lưu vào DB" là tautology. Có máy bắt đúng câu đó.',
   src:'.agent/skills/phase2/ui_mocking/SKILL.md', rel:['c-tautology','c-oracle','f-phase2'] },
+
+{ id:'sk-automation_reviewer', t:'automation_reviewer', cat:'skill', phase:'Phase 2',
+  def:'Chấm độ tin của một bộ spec đã viết: nó xanh vì sản phẩm đúng, hay xanh vì nó không kiểm gì.',
+  detail:'Gọi bó cửa auto:review (9 luật) rồi soi tay năm chỗ máy mù — test phụ thuộc nhau, cleanup dọn sai thứ, oracle so app với chính app, dữ liệu trùng giữa hai lượt, data của task lọt vào suite chung. Chỗ quan trọng nhất là oracle tautology, vì máy không đọc được đặc tả nên nó mù hoàn toàn ở đó.',
+  why:'Gate đọc được chữ, không đọc được ý. Một bộ spec qua sạch chín luật vẫn có thể toàn case so app với chính app — và đó là kiểu xanh giả ổn định nhất, nên không ai nghi.',
+  ex:'Kit có BA dạng oracle: expect() của Playwright, assert: trong c.step, và status: TÍNH ĐƯỢC. Riêng status: PASSED viết cứng thì không phải oracle.',
+  trap:'Đo 29/10/2026: một detector chỉ biết expect() cho 4/5 dương tính giả, cả bốn vì nó không biết EvidenceRecorder của chính kit. Người review mắc đúng lỗi đó sẽ đòi sửa những spec đang kiểm đúng.',
+  src:'.agent/skills/phase2/automation_reviewer/SKILL.md', rel:['g-auto_review','c-tautology','c-oracle','f-phase2'] },
 
 { id:'sk-release_summary', t:'release_summary', cat:'skill', phase:'Shared',
   def:'Dựng bản tóm tắt go/no-go cho một đợt phát hành, có nguồn cho từng tiêu chí.',
@@ -3213,7 +3221,7 @@ const TERMS_FLOW = [
   src:'.agent/config/kit-layers.md', rel:['r-scope','g-policy_source_check'] },
 
 { id:'f-skills-index', t:'.agent/skills/INDEX.md', cat:'flow',
-  def:'Bảng tra 26 skill, sinh tự động, không sửa tay.',
+  def:'Bảng tra 27 skill, sinh tự động, không sửa tay.',
   detail:'Skill của kit nằm ở .agent/skills/** chứ không phải .claude/skills/, nên harness không tự phát hiện. Bảng này là cách agent biết có skill nào và nằm ở đâu; SessionStart hook tự bơm danh sách tên vào ngữ cảnh.',
   why:'Skill không được biết tới thì coi như không tồn tại. Sinh tự động để bảng không bao giờ lệch với thực tế thư mục.',
   cmd:'npm run skills:index',
@@ -3424,7 +3432,7 @@ const TREE = [
   [0,'.agent/','cấu hình, workflow, skill, rule của agent','dir'],
   [1,'config/','project_context · risk_model · verdict_taxonomy · kit-layers · impact-map','dir'],
   [1,'workflows/','entry + step của phase1 (01–04), phase2 (01–04), rerun (01–03)','dir'],
-  [1,'skills/','26 skill theo phase1 / phase2 / shared','dir'],
+  [1,'skills/','27 skill theo phase1 / phase2 / shared','dir'],
   [1,'rules/','core_rules · qa_instincts · locator_strategy · playwright_fe/api','dir'],
   [0,'prompt_templates/','prompt chạy từng phase','dir'],
   [1,'phase1/dimensions/','15 chương chiều coverage — mở đúng chiều task cần, không nạp cả 15','dir'],

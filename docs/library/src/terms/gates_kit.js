@@ -272,7 +272,7 @@ const TERMS_GATE3 = [
 { id:'g-skills_lint', t:'skills:lint', cat:'gate',
   def:'Mô tả của một skill có đủ thông tin để CHỌN nó hay chưa.',
   detail:'Kiểm mô tả có nói "dùng khi nào" và "không dùng khi nào", và mọi đường dẫn trong skill phải tồn tại. Phần kiểm đường dẫn chỉ soi thư mục gốc của repo, KHÔNG soi `knowledge/**` (gitignore) hay đường dẫn tương đối theo task.',
-  why:'26 skill không auto-load: agent phải tự chọn. Một mô tả không nói "khi nào" thì nó không giúp chọn, và skill đó coi như không tồn tại.',
+  why:'27 skill không auto-load: agent phải tự chọn. Một mô tả không nói "khi nào" thì nó không giúp chọn, và skill đó coi như không tồn tại.',
   how:['Mô tả nêu điều kiện kích hoạt, không nêu tính năng.','Đường dẫn trong skill phải là đường dẫn thật.'],
   cmd:'npm run skills:lint   ·   npm run skills:lint -- --enforce',
   ex:'Bản đầu soi cả `knowledge/**` nên xanh ở máy local mà chặn 5 chỗ trên cây sạch.',
@@ -414,7 +414,7 @@ const TERMS_GATE3 = [
   src:'scripts/qa/rule_consistency.js', rel:['c-canonical','c-forcing-function','c-gate-real-content','g-rule_parity'] },
 
 { id:'g-skills_route', t:'skills:route:check', cat:'gate',
-  def:'Đo xem phần mô tả của 26 skill có đủ tách bạch để chọn đúng skill từ một câu yêu cầu không.',
+  def:'Đo xem phần mô tả của 27 skill có đủ tách bạch để chọn đúng skill từ một câu yêu cầu không.',
   detail:'Chấm điểm theo IDF trên description cộng các câu kích hoạt mẫu, chạy trên 63 ca tiếng Việt viết DIỄN Ý lại chứ không chép nguyên câu mẫu. Có sàn tự tin: điểm cao nhất mà chưa vượt sàn thì coi là không chọn được.',
   why:'skills:lint bắt được hai mô tả TRÙNG nhau, nhưng không bắt được hai mô tả KHÁC NHAU mà vẫn không tách nổi việc. Đó mới là kiểu nhập nhằng hay gặp.',
   cmd:'npm run skills:route:check',

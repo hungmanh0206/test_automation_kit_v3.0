@@ -1,4 +1,4 @@
-/* NHÓM 3 — 26 skill (nguồn: .agent/skills/INDEX.md + từng SKILL.md) */
+/* NHÓM 3 — 27 skill (nguồn: .agent/skills/INDEX.md + từng SKILL.md) */
 const TERMS_SKILL = [
 
 /* ── Phase 1 ── */
@@ -193,6 +193,14 @@ const TERMS_SKILL = [
   ex:'Gate chặn ở chỗ SINH case chứ không chỉ ở chỗ chạy, vì output_gate không nhìn thấy cột Loại case.',
   trap:'Mock rồi kết luận "đã lưu vào DB" là tautology. Có máy bắt đúng câu đó.',
   src:'.agent/skills/phase2/ui_mocking/SKILL.md', rel:['c-tautology','c-oracle','f-phase2'] },
+
+{ id:'sk-automation_reviewer', t:'automation_reviewer', cat:'skill', phase:'Phase 2',
+  def:'Chấm độ tin của một bộ spec đã viết: nó xanh vì sản phẩm đúng, hay xanh vì nó không kiểm gì.',
+  detail:'Gọi bó cửa auto:review (9 luật) rồi soi tay năm chỗ máy mù — test phụ thuộc nhau, cleanup dọn sai thứ, oracle so app với chính app, dữ liệu trùng giữa hai lượt, data của task lọt vào suite chung. Chỗ quan trọng nhất là oracle tautology, vì máy không đọc được đặc tả nên nó mù hoàn toàn ở đó.',
+  why:'Gate đọc được chữ, không đọc được ý. Một bộ spec qua sạch chín luật vẫn có thể toàn case so app với chính app — và đó là kiểu xanh giả ổn định nhất, nên không ai nghi.',
+  ex:'Kit có BA dạng oracle: expect() của Playwright, assert: trong c.step, và status: TÍNH ĐƯỢC. Riêng status: PASSED viết cứng thì không phải oracle.',
+  trap:'Đo 29/10/2026: một detector chỉ biết expect() cho 4/5 dương tính giả, cả bốn vì nó không biết EvidenceRecorder của chính kit. Người review mắc đúng lỗi đó sẽ đòi sửa những spec đang kiểm đúng.',
+  src:'.agent/skills/phase2/automation_reviewer/SKILL.md', rel:['g-auto_review','c-tautology','c-oracle','f-phase2'] },
 
 { id:'sk-release_summary', t:'release_summary', cat:'skill', phase:'Shared',
   def:'Dựng bản tóm tắt go/no-go cho một đợt phát hành, có nguồn cho từng tiêu chí.',
