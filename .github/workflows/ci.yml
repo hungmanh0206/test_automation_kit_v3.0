@@ -98,7 +98,17 @@ jobs:
           cache: npm
       - run: npm ci
       # webkit đã cài ở lane regression (iphone-13 dùng engine webkit); FIREFOX chỉ cài Ở ĐÂY.
-      - run: npx playwright install --with-deps firefox webkit
+      #
+      # CHROMIUM cũng phải cài, dù lane này chạy `--project=firefox-desktop --project=webkit-desktop`.
+      # Lý do: vài spec trong phạm vi nightly KHÔNG test engine — chúng spawn một tiến trình CLI riêng
+      # (`discovery-cli`, `discovery-crawl`) và tiến trình đó tự mở chromium. `--project` không với tới
+      # được chỗ đó, nên thiếu chromium là `browserType.launch: Executable doesn't exist`.
+      #
+      # VÌ SAO LỖI NÀY SỐNG ĐƯỢC LÂU: job này có `if: github.event_name == 'workflow_dispatch'`, nên ở
+      # mọi lượt theo lịch nó bị SKIP — và `main` xanh vì nó không chạy, không phải vì nó đạt. Lượt
+      # dispatch 29/10/2026 là lần đầu nó chạy thật, và nó đỏ ngay. Một job chỉ chạy khi có người bấm
+      # tay là một job không ai biết nó hỏng.
+      - run: npx playwright install --with-deps chromium firefox webkit
 
       - name: Inventory gate (F1 — đúng scope 2 engine phụ)
         run: node scripts/qa/test_inventory_gate.js --out inventory-xb.json -- --project=firefox-desktop --project=webkit-desktop $(npm run -s ci:scope -- --print-nightly)

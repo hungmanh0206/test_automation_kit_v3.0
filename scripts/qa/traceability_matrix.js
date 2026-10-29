@@ -138,7 +138,15 @@ async function main() {
   fs.writeFileSync(path.join(T, 'reports', 'traceability-matrix.md'), L.join('\n'), 'utf8');
 
   /*
-   * VIEW `--pm` (v2.9.5 §7) — bản GỘP THEO MODULE.
+   * BẢN GỘP THEO MODULE (v2.9.5 §7) — sinh LUÔN, không cần cờ.
+   *
+   * Bản đầu để `--pm` là opt-in, với lý lẽ "không ai xin thì không sinh thêm artifact". Lý lẽ đó SAI ở
+   * đây, và chỗ sai lộ ra khi đo xem ai gọi nó: **không luồng nào**. Chỉ một skill nhắc tên nó — tức nó
+   * là một bản sinh chỉ tồn tại khi có người nhớ gõ thêm một cờ, đúng lớp "máy không ai gọi" mà kit vẫn
+   * chống. Và nó không phải artifact MỚI: nó gộp lại chính dữ liệu vừa ghi ra `traceability-matrix.md`,
+   * cùng một lượt đọc, không thêm phép đo nào.
+   *
+   * Cờ `--pm` vẫn nhận để lệnh cũ không vỡ, nhưng nó không còn tác dụng gì.
    *
    * Vì sao cần một view riêng: ma trận per-TC của một task thật dài 275 dòng (đo trên CSDL-9004). Không
    * ai ở vai quản lý đọc 275 dòng, nên trong thực tế người ta đọc dòng `>` tóm tắt — mà dòng đó chỉ có
@@ -149,7 +157,7 @@ async function main() {
    * mirror Sheet về. Gộp `?` thành 0 làm bảng đọc như "chưa publish gì cả" — một kết luận khác hẳn
    * "chưa đo được". Nên cột publish in cả hai số, và `?` có cột riêng.
    */
-  if (process.argv.includes('--pm')) {
+  {
     const theoModule = new Map();
     for (const r of rows) {
       /*

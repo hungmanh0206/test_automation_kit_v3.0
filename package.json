@@ -57,7 +57,6 @@
     "typecheck": "tsc --noEmit",
     "typecheck:scripts": "tsc -p tsconfig.scripts.json",
     "trace:matrix": "node scripts/qa/traceability_matrix.js",
-    "trace:matrix:pm": "node scripts/qa/traceability_matrix.js --pm",
     "select:tests": "node scripts/qa/select_tests.js",
     "metrics:collect": "node scripts/qa/metrics_collect.js",
     "run:analysis": "node scripts/qa/run_analysis.js",

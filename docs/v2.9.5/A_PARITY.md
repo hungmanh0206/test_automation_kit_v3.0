@@ -39,7 +39,7 @@ dày thì càng ít lượt thật sự đọc hết. B tách, và có hai máy 
 | §5 | A có `automation-code-reviewer` chấm rubric 6 nhóm | Skill `automation_reviewer` + **2 trong 3** luật `auto:review` mới. Luật thứ ba (`assert-before-act-only`) bị loại vì đo được là **tập con tuyệt đối 18/18** của luật kia | `npm run auto:review:enforce` | ✅ |
 | §5 | — | `no-assert-after-act` để **cảnh báo**, không chặn: dương tính giả soi tay **2/5 = 40%**, trên ngưỡng 20% đặt trước | `tests/fe/infra/automation-review.spec.ts` | ✅ |
 | §6 | `test-data-generator` của A có Data Chain Pattern + 4 lớp field | Thêm đúng bốn lớp (chiều · đỡ · tham chiếu · tính được) và mục chuỗi dữ liệu. `data:chain:check` gác bốn đường hỏng của chuỗi, và **lượt chạy đầu bắt được một lỗi thật** ở bộ CSDL-9004 | `npm run data:chain:check` | ✅ |
-| §7 | `test-report-analyzer` + `test-summary-reporter` của A | Skill `run_report_reader` (6 bước, mỗi bước ghi rõ nó KHÔNG trả lời được gì) + view `trace:matrix --pm` gộp theo module | `npm run trace:matrix:pm` · `npm run run:analysis:enforce` | ✅ |
+| §7 | `test-report-analyzer` + `test-summary-reporter` của A | Skill `run_report_reader` (6 bước, mỗi bước ghi rõ nó KHÔNG trả lời được gì) + view `trace:matrix --pm` gộp theo module | `npm run trace:matrix` · `npm run run:analysis:enforce` | ✅ |
 | §7 | — | Sổ phiên chạy tay thêm `Đơn vị / cấp học` và mục `## Không phán được` | `npm run manual:check:enforce` | ✅ |
 
 ## Chỗ cố ý KHÔNG port
