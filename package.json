@@ -80,6 +80,7 @@
     "scope:anchor": "node scripts/qa/scope_anchor.js",
     "recon:check": "node scripts/qa/recon_check.js",
     "router:check": "node scripts/qa/router_check.js",
+    "parity:check": "node scripts/qa/parity_check.js",
     "data:chain": "node scripts/qa/data_chain_check.js",
     "data:chain:check": "node scripts/qa/data_chain_check.js --enforce",
     "scope:anchor:enforce": "node scripts/qa/scope_anchor.js --enforce --record",

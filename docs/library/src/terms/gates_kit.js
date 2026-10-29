@@ -150,7 +150,7 @@ const TERMS_GATE3 = [
   src:'scripts/qa/scope_anchor.js', rel:['g-dimension_coverage','c-canonical','g-preflight_gate'] },
 { id:'g-gate_index', t:'gates:index', cat:'gate',
   def:'Sinh DANH MỤC GATE của kit từ chính source. Trả lời được "kit có bao nhiêu gate, mỗi cái CHẶN gì, gọi ở đâu".',
-  detail:'Quét source rồi suy mức từ code: exit 1 là CHẶN · ghi artifact là SINH · chỉ in là BÁO CÁO. Bảng hiện tại: 147 máy — 105 CHẶN, 23 SINH, 19 BÁO CÁO. Bản --check chặn khi bảng lệch source.',
+  detail:'Quét source rồi suy mức từ code: exit 1 là CHẶN · ghi artifact là SINH · chỉ in là BÁO CÁO. Bảng hiện tại: 148 máy — 106 CHẶN, 23 SINH, 19 BÁO CÁO. Bản --check chặn khi bảng lệch source.',
   why:'Kit có hơn 30 npm script dạng gate và gần 60 file trong scripts/qa/, nhưng không chỗ nào trả lời được câu trên. Hệ quả không phải bất tiện: luận đề của kit là "luật cần MÁY", mà máy không LIỆT KÊ ĐƯỢC thì không kiểm toán được. Không ai biết một gate đã âm thầm tụt thành cảnh báo, hay đã mất nơi gọi.',
   how:['npm run gates:index để sinh lại bảng.','npm run gates:index:check để chặn khi bảng lệch source.'],
   cmd:'npm run gates:index   ·   npm run gates:index:check',
@@ -441,5 +441,14 @@ const TERMS_GATE3 = [
   ex:'Lượt chạy ĐẦU TIÊN trên bộ CSDL-9004 bắt được một ca thật: TC_063 khai dựng ở TC_075, nhưng TC_075 nằm SAU nó trong file (dòng 80 so với dòng 92).',
   trap:'Ranh giới nằm ở ĐỘNG TỪ, không ở việc có tên TC. Bộ case thật còn 16 lượt trỏ TC khác nhưng là trích dẫn để đọc — "đã kiểm ở TC_045", "SQL ở TC_088". Gác cả 25 lượt là gác phần lớn dương tính giả, rồi người ta tắt cửa chứ không sửa theo nó. Và máy chỉ thấy chuỗi đã KHAI: case phụ thuộc mà không khai thì vẫn là phần chấm tay.',
   src:'scripts/qa/data_chain_check.js', rel:['sk-test_data_generator','sk-automation_reviewer','g-phase_check','c-gate-real-content'] },
+
+{ id:'g-parity_check', t:'parity:check', cat:'gate',
+  def:'Gác chính bảng nghiệm thu A_PARITY: không dòng nào được để trống, và mọi tên máy phải có thật.',
+  detail:'Mỗi dòng phải kết về một trong ba trạng thái — đã làm kèm máy gác, cố ý không port kèm lý do, hoặc đã làm phần tài liệu nhưng chưa có máy. Cửa còn đòi đủ ba khối, và chặn cả khối CHƯA CÓ MÁY rỗng.',
+  why:'Bảng nghiệm thu là lớp dẫn xuất viết tay, và mọi bảng viết tay trong kit đều đã trôi ít nhất một lần. Bảng nghiệm thu trôi thì tệ hơn bảng thường: nó là thứ người ta đọc để tin rằng đợt làm đã xong.',
+  cmd:'npm run parity:check',
+  ex:'Khối CHƯA CÓ MÁY rỗng cũng bị chặn — một đợt làm không còn chỗ nào thiếu máy là lời khai đáng ngờ hơn đáng mừng.',
+  trap:'Lượt chạy đầu bắt được hai lỗi của chính tài liệu: phần mở đầu dùng đúng cụm từ mà luật cấm nên nó tự chặn mình, và bảng nhắc một tên máy không tồn tại. Đã đổi lời chứ không thêm miễn trừ. Giới hạn: máy đọc ký hiệu và tên máy, KHÔNG đọc nghĩa.',
+  src:'scripts/qa/parity_check.js', rel:['c-canonical','c-forcing-function','c-gate-real-content','g-library_drift'] },
 
 ];

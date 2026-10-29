@@ -7,6 +7,70 @@
 > `.agent/**`, `tests/support/**` đều là **shared change** (xem `RULE_GLOBAL.md` §Shared Change Gate) —
 > ảnh hưởng mọi story đang chạy. Mỗi mục ghi **vấn đề → cách chữa**, không chỉ liệt kê tính năng.
 
+## v2.9.5 — 2026-10-29 — Vượt A ở mọi chỗ A còn hơn, và mỗi chỗ phải có máy đứng sau
+
+**Vấn đề.** Plugin `qig-qa-automation` (gọi là **A**) có vài chỗ dạy kỹ hơn kit này: quy trình recon, ví
+dụ testcase trọn vẹn, bảng định tuyến command, rubric review automation, chuỗi dữ liệu nhiều module, và
+hai skill đọc báo cáo. Nhưng phần lớn nội dung đó của A là **chữ không có máy** — `rbt-manual-testing`
+nhồi 936 dòng (~16,2k token) vào phần luôn-nạp, và cả plugin chỉ có 2 script Python. Port thẳng sang là
+rước đúng tật đó về.
+
+**Cách chữa.** Mỗi chỗ A hơn phải kết về một trong ba trạng thái, và điều kiện dừng là **không chỗ nào
+để trống**: đã làm kèm máy gác · cố ý không port kèm lý do · đã làm phần tài liệu nhưng chưa có máy, nói
+thẳng. Bảng nghiệm thu ở [`docs/v2.9.5/A_PARITY.md`](docs/v2.9.5/A_PARITY.md), và chính nó có cửa gác:
+`parity:check` chặn dòng treo, chặn tên máy bịa, và chặn cả khối "CHƯA CÓ MÁY" rỗng.
+
+**Thêm 8 máy** (148 tổng · 106 CHẶN) và **3 skill** (28 tổng):
+
+| Máy mới | Gác gì |
+|---|---|
+| `skills:route:check` | đo xem phần chữ có ĐỦ để agent chọn đúng skill — 69 ca tiếng Việt viết diễn ý, 98,6% |
+| `recon:check` | bản kê màn dựng từ recon phải nói rõ MỖI dòng lấy từ đâu, và tự nêu giới hạn |
+| `rule:consistency` | tài liệu cũ nói ngược luật mới — lớp hỏng đã cắn kit 3 lần |
+| `phase1:tables` | ba bảng đối soát cuối bộ, MÁY SINH; CHẶN khi một rule chỉ có case dương |
+| `router:check` | 32 điểm vào phải có dòng trong bảng định tuyến, kèm cột **KHÔNG dùng khi** |
+| `data:chain:check` | case khai tiền đề là output của case khác ⇒ bộ case thành CHUỖI, chuỗi phải đứng được |
+| `trace:matrix --pm` | bản gộp theo module — chỗ hổng to nhất lên dòng đầu |
+| `parity:check` | gác chính bảng nghiệm thu của đợt này |
+
+**Điều đáng ghi nhất của đợt này không phải 8 máy, mà là 6 lần phép đo của chính tôi sai trước khi
+đúng.** Giữ lại vì mỗi lần là một lớp lỗi lặp được:
+
+- **Cửa phủ đếm KHỚP chứ không đếm PHỦ.** `router:check` in *"31 dòng · 32 điểm vào"* rồi kết luận ĐẠT:
+  `rerun` tồn tại vừa là lệnh `/rerun` vừa là workflow `rerun.md`, nên khoá-theo-tên-trần làm một dòng
+  che hai điểm vào. Khoá phải gồm LOẠI.
+- **Bộ đo không biết API của chính kit.** Soi tay 5 finding đầu của `no-assert-after-act` thì **4 là
+  dương tính giả**, cả 4 vì detector chỉ đếm `expect(`. Kit có BA dạng oracle: `expect(` · `assert:`
+  trong `c.step` · `status:` TÍNH ĐƯỢC. Riêng `status: 'PASSED'` viết cứng thì không phải oracle.
+- **Mẫu hành động trượt dạng phổ biến nhất.** `await` + lớp ký tự + `.click(` không khớp
+  `getByRole('x', { name: 'y' }).click()`. Con số 20 hoá ra 34, và tỉ lệ dương tính giả phải soi lại.
+- **`\Z` không tồn tại trong regex JS** — nó khớp chữ `Z` thật. Mục nằm ở cuối file không bao giờ khớp,
+  nên cửa luôn báo thiếu; phép kiểm chiều dương vẫn xanh nhưng xanh vì lý do SAI.
+- **Một trường bắt buộc luôn được thoả bởi dòng khác là một trường không tồn tại.** Thêm
+  `Đơn vị / cấp học` vào sổ phiên mà 14/14 phép kiểm cũ vẫn xanh — vì chữ `trường` nằm ngay trong
+  **Môi trường**, nên dòng ghi host tự thoả nó.
+- **Nhãn mức của gate sai theo chiều nguy hiểm.** `gates:index` dán `router:check` là **BÁO CÁO** dù nó
+  exit 1, vì bộ nhận mức chỉ bắt `process.exit(1)` viết thẳng. Nới mẫu thì phát hiện nó cũng đang gán
+  sai cho `docs:index` — tổng CHẶN 102 → 104.
+
+**Ba việc bị chính phép đo loại bỏ**, và đó là kết quả chứ không phải thiếu sót:
+
+- `assert-before-act-only` — đo được là **tập con tuyệt đối 18/18** của `no-assert-after-act`. Hai tên
+  cho một phép đo thì báo cáo đếm đôi.
+- Đầu bài §3.3 "thêm 15 loại field + 6 component của A" — danh mục canonical của B **đã phủ trọn** cả
+  15 + 6. Chỗ lệch nằm ở hai checklist của skill: cùng khai "18 loại" với 18 nội dung KHÁC nhau, và
+  chính con số bằng nhau che được chuyện đó.
+- Hướng "spec tạo bản ghi mà thiếu dữ liệu unique" cho §6 — ra 11/66 ca, soi tay 3 ca thì **3/3 đều
+  giả** (`fill('')` xoá ô · một spec DỌN dữ liệu · một fixture local).
+
+**Và hai cửa mới bắt lỗi thật ngay lượt chạy đầu:** `data:chain:check` tìm ra `CSDL_NHANSU_TC_063` khai
+`(dựng ở TC_075)` trong khi TC_075 nằm SAU nó; `library:drift` bắt 4 máy mới chưa có mặt trên trang
+thư viện cùng 3 chỗ còn ghi số gate cũ.
+
+**Ngân sách token.** Thêm một lệnh vào workflow thì `gate:policy` đòi nó có mặt ở prompt điểm vào, và
+`prompt:budget` cấm nâng ngưỡng. Nên §3.2 phải cắt bù trong cùng luồng: **+106 → −2**. Từ §6 trở đi,
+máy mới được nối vào bó `phase1:check`/`phase2:check` thay vì thêm dòng prompt.
+
 ## v2.9.4 — 2026-10-23 — Tài liệu sinh ra phải đếm thứ CI NHÌN THẤY
 
 **Vấn đề.** Ba cửa sinh tài liệu — `docSpecs()`, `rule_coverage`, `gate_index` — quét ĐĨA. Máy người

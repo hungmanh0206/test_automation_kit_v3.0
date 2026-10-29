@@ -125,6 +125,13 @@ jobs:
       - name: Bảng định tuyến phủ mọi điểm vào (router:check)
         run: npm run router:check
 
+      # Bảng nghiệm thu là lớp DẪN XUẤT viết tay, và mọi bảng viết tay trong kit đều đã trôi ít nhất một
+      # lần. Bảng nghiệm thu trôi thì tệ hơn bảng thường: nó là thứ người ta đọc để tin đợt làm đã xong.
+      # Cửa chặn dòng để trống, chặn tên máy bịa, và chặn cả khối "CHƯA CÓ MÁY" rỗng — một đợt làm không
+      # còn chỗ nào thiếu máy là lời khai đáng ngờ hơn đáng mừng.
+      - name: Bảng nghiệm thu A_PARITY không có dòng treo (parity:check)
+        run: npm run parity:check
+
       # Trang docs/library/ và tài liệu hướng dẫn là lớp DẪN XUẤT: viết tay, nguồn thì đổi liên tục.
       # Trước đây gate này chỉ chạy khi có người NHỚ gõ lệnh — tức là nó chưa thật sự gác cổng.
       # Rẻ và tất định: chỉ đọc file trong repo, không cần môi trường ngoài.
