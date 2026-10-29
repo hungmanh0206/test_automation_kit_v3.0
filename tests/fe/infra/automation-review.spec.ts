@@ -308,3 +308,131 @@ test.describe('@infra auto:review — hai tầng, nợ có số, và cây không
     for (const s of ar.CAN_NGUOI_XEM) expect(r.out).toContain(s.slice(0, 40));
   });
 });
+
+/*
+ * v2.9.5 §5 — HAI LUẬT VỀ VỊ TRÍ VÀ CHẤT CỦA ORACLE.
+ *
+ * `presence-only` hiện NỔ 0 LƯỢT trên toàn corpus (2.873 test, đo 29/10/2026) — và đo hai lần để biết
+ * 0 đó nghĩa gì: kể cả khi chỉ xét `expect(` và bỏ `assert:`/`status:` ra ngoài, vẫn 0. Nên phép kiểm
+ * quan trọng nhất ở đây là ĐỐI CHỨNG DƯƠNG: một luật không chứng minh được là nó NỔ ĐƯỢC thì nó là cửa
+ * trang trí, và 0 vi phạm sẽ bị đọc thành "đã gác".
+ */
+test.describe('@infra auto:review — oracle SAI CHỖ và oracle YẾU (§5)', () => {
+  const than = (body: string) => `test('t', async ({ page }) => {\n${body}\n});\n`;
+
+  test('ĐỐI CHỨNG DƯƠNG `no-assert-after-act`: khẳng định xong rồi mới bấm', () => {
+    const r = ar.oracleSaiCho(than([
+      "  await expect(page.getByText('Hồ sơ')).toHaveText('Hồ sơ');",
+      "  await page.getByRole('button', { name: 'Ghi' }).click();",
+    ].join('\n')));
+    expect(r.map((x: { id: string }) => x.id)).toContain('no-assert-after-act');
+  });
+
+  test('ĐỐI CHỨNG ÂM: có khẳng định SAU hành động cuối ⇒ KHÔNG báo', () => {
+    const r = ar.oracleSaiCho(than([
+      "  await page.getByRole('button', { name: 'Ghi' }).click();",
+      "  await expect(page.getByText('Đã lưu')).toHaveText('Đã lưu');",
+    ].join('\n')));
+    expect(r.map((x: { id: string }) => x.id)).not.toContain('no-assert-after-act');
+  });
+
+  test('ĐỐI CHỨNG DƯƠNG `presence-only`: bấm rồi chỉ kiểm element CÓ MẶT', () => {
+    const r = ar.oracleSaiCho(than([
+      "  await page.getByRole('button', { name: 'Tìm' }).click();",
+      '  await expect(page.locator(\'#luoi\')).toBeVisible();',
+    ].join('\n')));
+    expect(r.map((x: { id: string }) => x.id)).toContain('presence-only');
+  });
+
+  test('ĐỐI CHỨNG ÂM: có thêm khẳng định về GIÁ TRỊ ⇒ KHÔNG còn presence-only', () => {
+    const r = ar.oracleSaiCho(than([
+      "  await page.getByRole('button', { name: 'Tìm' }).click();",
+      '  await expect(page.locator(\'#luoi\')).toBeVisible();',
+      "  await expect(page.locator('#tong')).toHaveText('12');",
+    ].join('\n')));
+    expect(r.map((x: { id: string }) => x.id)).not.toContain('presence-only');
+  });
+
+  test('ĐỐI CHỨNG ÂM — `toBeTruthy` trên BIẾN TÍNH ĐƯỢC không phải presence-only', () => {
+    /*
+     * `ensure-expanded.spec.ts:41` là ca thật: `expect(s.wrongDropdown).toBeTruthy()` khẳng định về một
+     * boolean suy ra từ DOM — oracle thật. Bản đầu gom cả `toBeTruthy` nên vu oan nó. Và `toBeTruthy`
+     * TRÊN LOCATOR thì `locator_lint` rule `weak-assert` đã gác; chép lại đây là nguồn trôi thứ hai.
+     */
+    const r = ar.oracleSaiCho(than([
+      "  await page.getByRole('button', { name: 'Tìm' }).click();",
+      '  const s = await state(page);',
+      '  expect(s.wrongDropdown).toBeTruthy();',
+    ].join('\n')));
+    expect(r.map((x: { id: string }) => x.id)).not.toContain('presence-only');
+  });
+
+  test('BIẾT BA DẠNG ORACLE CỦA KIT — `assert:` và `status:` tính được đều tính', () => {
+    /*
+     * Đo tay 5 finding của bản đầu thì 4 là DƯƠNG TÍNH GIẢ, cả 4 vì detector chỉ đếm `expect(` mà không
+     * biết EvidenceRecorder của chính kit. Đây là phép kiểm giữ lại bài học đó.
+     */
+    const qua = ar.oracleSaiCho(than([
+      "  await page.getByRole('button', { name: 'Ghi' }).click();",
+      "  await c.step(page, 'đã lưu', { assert: async () => sau === truoc + 1 });",
+    ].join('\n')));
+    expect(qua.map((x: { id: string }) => x.id), '`assert:` là oracle').not.toContain('no-assert-after-act');
+
+    const qua2 = ar.oracleSaiCho(than([
+      "  await page.getByRole('button', { name: 'Ghi' }).click();",
+      "  await c.step(page, 'đã lưu', { status: coChu ? 'PASSED' : 'FAILED' });",
+    ].join('\n')));
+    expect(qua2.map((x: { id: string }) => x.id), '`status:` TÍNH ĐƯỢC là oracle').not.toContain('no-assert-after-act');
+
+    /*
+     * Nhưng `status: 'PASSED'` VIẾT CỨNG thì KHÔNG phải oracle — verdict viết cứng đúng là thứ §6 cấm.
+     *
+     * Và test như thế có **ZERO** oracle, nên nó thuộc `no-assert` (P0, CHẶN) chứ không thuộc luật mới.
+     * Phiên bản đầu của phép kiểm này đòi `no-assert-after-act` phải nổ — đòi SAI: hai luật cùng báo một
+     * test thì người đọc tưởng hai lớp lỗi. Ranh giới đúng là: không có oracle ⇒ `no-assert`; có oracle
+     * nhưng sai chỗ ⇒ luật mới.
+     */
+    const cung = [
+      "  await page.getByRole('button', { name: 'Ghi' }).click();",
+      "  await c.step(page, 'đã lưu', { status: 'PASSED' });",
+    ].join('\n');
+    expect(ar.oracleSaiCho(than(cung)), 'không oracle ⇒ KHÔNG phải việc của luật mới').toEqual([]);
+    expect(ar.testKhongAssert(than(cung)).length, 'verdict viết cứng phải rơi vào `no-assert` (P0)')
+      .toBe(1);
+  });
+
+  test('case khai KHÔNG TUYÊN VERDICT (`finish("OBSERVATION")`) thì không bị đòi', () => {
+    const r = ar.oracleSaiCho(than([
+      "  await expect(page.locator('#x')).toHaveText('1');",
+      "  await page.getByRole('button', { name: 'Xuất' }).click();",
+      "  await c.finish('OBSERVATION', { comment: 'chỉ ghi nhận' });",
+    ].join('\n')));
+    expect(r.map((x: { id: string }) => x.id)).not.toContain('no-assert-after-act');
+  });
+
+  test('test KHÔNG có oracle nào KHÔNG bị đếm hai lần — đó là việc của `no-assert`', () => {
+    const r = ar.oracleSaiCho(than("  await page.getByRole('button', { name: 'Ghi' }).click();"));
+    expect(r, 'không oracle ⇒ để `no-assert` xử, hai luật cùng báo thì người đọc tưởng hai lỗi').toEqual([]);
+  });
+
+  test('`assert-before-act-only` KHÔNG được thêm — đo được là TẬP CON của `no-assert-after-act`', () => {
+    /*
+     * Kế hoạch §5 xin ba luật, trong đó `assert-before-act-only` ("mọi khẳng định trước hành động ĐẦU").
+     * Đo 29/10/2026: 18/18 ca của nó cũng bị `no-assert-after-act` bắt — tập con tuyệt đối. Hai tên cho
+     * một phép đo thì báo cáo đếm đôi và người đọc tưởng có hai lớp lỗi.
+     */
+    const ids = ar.RULES.map((r: { id: string }) => r.id);
+    expect(ids, 'luật này là tập con, cố ý KHÔNG ship').not.toContain('assert-before-act-only');
+    expect(ids).toContain('no-assert-after-act');
+    expect(ids).toContain('presence-only');
+  });
+
+  test('cả hai luật mới đều là P1 — vì tỉ lệ dương tính giả đã ĐO, không đoán', () => {
+    for (const id of ['no-assert-after-act', 'presence-only']) {
+      const r = ar.RULES.find((x: { id: string }) => x.id === id);
+      expect(r, `thiếu luật ${id}`).toBeTruthy();
+      expect(r.sev, `${id} phải là cảnh báo: dương tính giả đo được 1/4 = 25% > ngưỡng 20%`).toBe('P1');
+      expect(r.why, `${id} phải GHI SỐ ĐO trong lời giải thích`).toMatch(/\d/);
+    }
+  });
+});

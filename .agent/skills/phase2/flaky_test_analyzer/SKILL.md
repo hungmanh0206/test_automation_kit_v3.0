@@ -80,3 +80,5 @@ biệt skill này với `case-debugger`: skill này hỏi "có nhiễu không", 
 - Thêm timeout dài mù quáng.
 - Bỏ qua cleanup/data isolation.
 - Coi flaky là PASS chỉ vì rerun một lần thành công.
+
+**Câu kích hoạt mẫu:** "case này chạy lúc xanh lúc đỏ" · "test flaky, tìm nguyên nhân" · "sao chạy lại thì pass" · "lượt nào cũng đỏ một case khác nhau"

@@ -92,3 +92,5 @@ Mỗi hàng ma trận là 1 testcase → export Excel dùng chung script hiện 
 - [[requirements_analyzer]] — trích dimension/values/constraint từ requirement.
 - [[tc_validator]] — validate ma trận như testcase thường (trace + expected cụ thể).
 - Prompt quy trình: `prompt_templates/phase1/06_cross_module.md`.
+
+**Câu kích hoạt mẫu:** "sinh ma trận tổ hợp" · "pairwise cho mấy chiều này" · "bao nhiêu case là đủ cho tổ hợp này" · "đừng chạy full Cartesian, chọn bộ tối thiểu"

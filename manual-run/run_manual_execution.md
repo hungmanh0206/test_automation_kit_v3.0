@@ -32,8 +32,10 @@ Case chưa khai `[manual]` thì **dừng**. Sửa lời khai ở Phase 1 kèm l�
    khác và của task khác biến mất. Với những case đó: **bỏ qua rồi khai lý do**, hoặc nếu phải chạy thì ghi
    mọi thứ đã tạo/xoá vào sổ dữ liệu ở bước 6b.
    Máy chỉ **liệt kê**, không tự hạ verdict — có case mà thao tác xoá chính là thứ phải kiểm.
-3. **Chạy từng case**, theo đúng các bước trong ô `Các bước thực hiện`. Mỗi step một ảnh, highlight element
-   đang kiểm, mask PII khách. Case nhiều thao tác thì **quay video**.
+3. **Chạy từng case**, theo đúng các bước trong ô `Các bước thực hiện`. Case thường: **1 ảnh ở bước
+   quyết định**. Case thành bug (`product_bug`/`api_bug`): **ảnh từng step**, đủ chuỗi để dev dựng lại.
+   Mọi step vẫn phải ghi `status` riêng. Highlight element đang kiểm, mask PII khách. Case nhiều thao
+   tác thì **quay video**.
 3b. **Case đỏ thì chạy tiếp, đừng dừng cả lượt.** Dừng ở case đỏ đầu tiên làm mất cả buổi. Nhưng chạy tiếp
    mù cũng sai: **3 case LIÊN TIẾP đỏ cùng một tầng hạ tầng** (`setup_failure`, `env_issue`,
    `script_error`) là dấu hiệu môi trường sập, không phải 3 lỗi khác nhau — dừng, sửa môi trường, rồi chạy
@@ -74,7 +76,8 @@ Case chưa khai `[manual]` thì **dừng**. Sửa lời khai ở Phase 1 kèm l�
 
 ## Khuôn `session.md`
 
-Bốn trường này là thứ máy đọc. Thiếu trường nào thì lượt chạy không truy được về ai, trên build nào.
+**Năm** trường này là thứ máy đọc. Thiếu trường nào thì lượt chạy không truy được về ai, trên build nào,
+trên đơn vị nào.
 
 ```markdown
 # Lượt chạy tay — <TASK_KEY>
@@ -83,12 +86,21 @@ Bốn trường này là thứ máy đọc. Thiếu trường nào thì lượt 
 - Ngày: 09/10/2026
 - Môi trường: UAT, https://uat.example.gov.vn
 - Build / Version: 2026.10.08-rc2
+- Đơn vị / cấp học: TEST 1 (mã 01000754), cấp THCS
 
 ## Case trong lượt này
 
 | TC ID | Lý do khai `[manual]` | Verdict |
 |---|---|---|
 | CSDL_HS_TC_088 | Captcha không có đường tắt trong UAT | PASS |
+
+## Không phán được
+
+Mỗi case verdict `BLOCKED`/`SKIP` một dòng, kèm LÝ DO. Mục này bắt buộc khi lượt chạy có ca như vậy.
+
+| TC ID | Verdict | Vì sao không phán được |
+|---|---|---|
+| CSDL_HS_TC_091 | BLOCKED_SETUP | Không có trường nào trong UAT đang ở trạng thái "đã gửi" để mở khoá |
 
 ## Ghi chú
 
@@ -97,9 +109,19 @@ Chỗ nào lệch so với dự kiến thì ghi ở đây, kèm TC ID.
 
 Placeholder không tính là đã điền. `TBD`, `n/a`, dấu gạch, hay `______` đều bị bắt.
 
+**Vì sao `Đơn vị / cấp học` là một trường riêng, không gộp vào `Môi trường`:** `Môi trường` ghi host, mà
+thứ làm hỏng một phép đo nhiều nhất trên app này không phải sai host — là **chạy trên đơn vị hoặc cấp học
+khác với cái case cần**. Một tài khoản chỉ thuộc một cấp, hai task khác cấp chạy song song đổi cấp của
+nhau, và URL màn khác nhau theo cấp. Không ghi lại thì về sau không ai phân biệt được *app sai* với
+*đo sai chỗ*. Khai `Đơn vị`, `Cấp học` hay `Trường` đều được — tuỳ màn, thứ quyết định là cái nào.
+
+**Vì sao mục `## Không phán được` là bắt buộc:** `BLOCKED`/`SKIP` trong JSON là verdict hợp lệ, nhưng tự
+nó không nói vì sao. Người đọc về sau chỉ thấy một mã, và mã đó trông y như nhau dù lý do là "chưa tìm
+thấy dữ liệu" hay "app chặn không cho vào". Đây cũng là chỗ dễ biến thành `PASS` nhất nếu không ai ghi lại.
+
 ## Rules
 
-- **Evidence cho mọi case đã execute, cả PASS**, và mọi step. Ảnh hoặc video, không phải log hay JSON.
+- **Evidence cho mọi case đã execute, cả PASS** — 1 ảnh/video ở **bước quyết định**; case tầng bug (`product_bug`/`api_bug`) thì **từng step**. Mọi step vẫn phải có `status`. Ảnh hoặc video, không phải log hay JSON.
   Luật bên ngoài chỉ chụp khi FAIL là luật **bị bỏ**, xem `reference.md`.
 - Verdict chỉ lấy trong `.agent/config/verdict_taxonomy.json`. Không tự đặt.
 - Không mutate dữ liệu UAT ngoài phạm vi case. Không dựng state bằng DB.

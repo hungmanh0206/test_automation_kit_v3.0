@@ -115,7 +115,7 @@ Nếu precondition chỉ có thể DỰNG bằng DB hoặc backend internal stat
 - Không được xóa assertion quan trọng hoặc giảm phạm vi verify để làm case PASS.
 - Không được đổi expected result nếu chưa có bằng chứng requirement/API/design xác nhận expected cũ sai.
 - Không được mock/stub logic chính mà testcase cần kiểm thử thật.
-- Mock chỉ dùng cho fault injection hoặc dependency ngoài scope và phải ghi rõ trong actual result/report.
+- Mock chỉ dùng cho fault injection hoặc dependency ngoài scope, ghi rõ trong report. Dựng nhánh lỗi: skill `ui_mocking`.
 - PASS chỉ hợp lệ khi testcase thực sự validate behavior/expected result.
 - SKIP chỉ hợp lệ khi không thể chạy sau khi đã thử sửa setup/data/dependency hợp lý.
 - SKIP vì setup chỉ hợp lệ khi `Automation Readiness = Manual-only` trong Setup Strategy contract. Với `Ready`, phải setup theo `Setup Source`, không được skip vì setup. Với `Needs hook` mà hook chưa tồn tại, ghi blocker + đề xuất hook, không false-pass và không skip âm thầm.
@@ -260,11 +260,11 @@ Gen chỉ ghi 1 giá trị mẫu trong testcase (tránh nổ số case). Khi exe
 - Luôn kèm: default selection, **empty/no-match**, reset filter, và **giao điều kiện** khi filter kết hợp.
 - Ghi rõ trong Actual **đã cover bao nhiêu / loại option nào** (vét hết N, hay rút gọn + lý do), để không đọc nhầm "1 giá trị = đã phủ".
 
-# Evidence BẮT BUỘC cho MỌI case đã execute (PASS và FAIL) + MỌI step
+# Evidence BẮT BUỘC cho MỌI case đã execute (PASS và FAIL)
 Đây là yêu cầu chung, áp cho mọi case đã chạy (không chỉ case FAIL). Tuân thủ đầy đủ mục **Evidence — Quy chuẩn bắt buộc** trong `RULE_GLOBAL.md`. Vi phạm bất kỳ điểm nào = evidence KHÔNG hợp lệ, KHÔNG push:
 - **Mọi case có kết quả PASS hoặc FAIL đều phải có evidence cụ thể** (ảnh/video). Case `TODO`/chưa chạy thì KHÔNG cần.
 - **CHỈ ảnh (`.png/.jpg/.jpeg/.webp`) hoặc video (`.mp4/.webm`) mới là evidence hợp lệ** — cho CẢ case PASS lẫn step. TUYỆT ĐỐI KHÔNG dùng `.json`, `.md`, `.txt`, `.log`, `.html`, `.csv`, `trace.zip` làm evidence của case/step (kể cả `order_state.json`, `api_response.json`, dump state). Cần chứng minh dữ liệu API/DB/state → **chụp ảnh màn UI hiển thị giá trị đó**, KHÔNG đính file dữ liệu thô.
-- **Mỗi step phải có trạng thái PASS hoặc FAIL riêng, và 1 ảnh evidence của chính step đó.** Ảnh phải **highlight đúng element hay vùng đang kiểm**: khoanh viền hoặc tô đậm element được assert. Không chỉ chụp cả trang chung chung.
+- **Mỗi step phải có trạng thái PASS hoặc FAIL riêng.** Còn **ảnh**: 1 cái ở **bước quyết định**; case tầng bug thì **từng step**. Ảnh phải **highlight đúng element hay vùng đang kiểm**: khoanh viền hoặc tô đậm element được assert. Không chụp cả trang chung chung.
 - **PII khách hàng phải mask.** Màn có Email/SĐT/họ tên/địa chỉ/mã định danh khách (kể cả trong `<input>`) → dùng `mask` của helper che trước khi chụp; vẫn giữ highlight ở element cần kiểm. Artifact KHÔNG được để lộ PII khách (đồng bộ rule bảo mật).
 - **Video cho case phức tạp.** Case nhiều bước hoặc tương tác động thì PHẢI quay video, đính kèm cùng ảnh step chứ không chờ đến khi FAIL. Cụ thể là thanh toán qua cổng ngoài, trạng thái async, luồng qua nhiều màn, iframe, popup, drag & drop, upload. Bật bằng `PW_VIDEO=on`, `retain-on-failure` hoặc `context({recordVideo})`. Case đơn giản (1 màn) thì ảnh highlight là đủ.
 - **Verify đúng màn trước khi chấp nhận.** Sau khi chụp, PHẢI kiểm ảnh đúng màn và đúng kết quả của case. KHÔNG phải trang lỗi (404, 500, blank, timeout, "can't find that page"), KHÔNG phải màn sai bước, KHÔNG phải loading dở, KHÔNG phải cổng hay màn của bước khác. Sai màn → sửa selector/điều hướng và chụp lại; không push evidence sai. (Với data động: xác nhận order/link còn sống trước khi drive — link chết trả 404.)

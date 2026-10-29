@@ -117,6 +117,6 @@ lại từ đầu.
 ## 6. Còn lại
 
 1. **Chạy lại task mốc** (CSDL-9003) rồi `token:audit` — cần xác nhận chạm UAT.
-2. **Xác minh subagent** bằng `/agents` ở một phiên mới (H6).
+2. **Xác minh subagent** ở một phiên mới (lệnh `/agents` đã bị bỏ 10/2026 — hỏi Claude xem nó thấy agent nào) (H6).
 3. **H7** còn để ngỏ. Quyết lại bằng số sau khi có mục 1. Nếu context tụt còn 150k thì 3,4k của H7
    thành 2,3%, và lúc đó nó đáng hơn hôm nay.

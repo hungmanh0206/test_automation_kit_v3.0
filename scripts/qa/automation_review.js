@@ -171,6 +171,42 @@ const RULES = [
     why: 'Test KHÔNG có khẳng định nào: nó chỉ thao tác rồi kết thúc, nên luôn XANH — kể cả khi sản phẩm sai. Đây là false-green nặng nhất ở tầng spec.',
     fix: 'Thêm oracle theo cột `Kết quả mong đợi` của case. Chưa phán được thì `test.skip(true, "<lý do>")`, KHÔNG để test rỗng xanh.',
   },
+  {
+    /*
+     * v2.9.5 §5. `no-assert` bắt test KHÔNG có oracle nào; luật này bắt test CÓ oracle nhưng oracle
+     * nằm SAI CHỖ — mọi khẳng định đứng trước, hành động cuối không ai kiểm.
+     *
+     * P1 CHỨ KHÔNG P0, và con số quyết chuyện đó: soi tay 4 ca thì 1 là dương tính giả (25% > ngưỡng
+     * 20% đã đặt trước). Ca đó là `doc-luoi-thpt.spec.ts:112` — hành động cuối là `uncheck` DỌN trạng
+     * thái sau khi đã kiểm xong, không phải một tác động chưa kiểm. Mọi mẹo loại "dọn dẹp" đều thêm
+     * rủi ro mới, nên để nguyên mức cảnh báo và nói rõ tỉ lệ.
+     */
+    id: 'no-assert-after-act',
+    sev: 'P1',
+    khoi: true,
+    why: 'Mọi khẳng định đứng TRƯỚC hành động cuối: tác động cuối không ai kiểm, nên test xanh mà không chứng minh gì về nó. Đo 29/10/2026: 34 lượt trên 2.873 test (1 ở tầng shared), dương tính giả soi tay 2/5 = 40% — nên đây là CẢNH BÁO, không chặn. Hai dạng giả: hành động cuối là DỌN trạng thái, và hành động cuối là đọc-lại-để-ghi-log sau khi case đã kiểm xong.',
+    fix: 'Thêm oracle SAU hành động cuối. Nếu hành động cuối chỉ để dọn trạng thái hoặc đọc lại cho log thì ghi `// auto-review-disable-next-line dọn trạng thái, đã kiểm ở bước trên`.',
+  },
+  {
+    /*
+     * ĐO 0 LƯỢT TRÊN TOÀN CORPUS (2.873 test, 29/10/2026) — và đo hai lần để biết 0 đó nghĩa gì:
+     * kể cả khi CHỈ xét `expect(` và bỏ `assert:`/`status:` ra ngoài, vẫn 0. Tức corpus thật sự không
+     * có test nào chỉ-kiểm-có-mặt, chứ không phải luật bị dạng oracle khác che.
+     *
+     * Vẫn ship, vì 0 vi phạm HÔM NAY là trạng thái tốt của một cửa, không phải lý do bỏ cửa. Điều kiện
+     * là phải CHỨNG MINH nó nổ được — `automation-review.spec.ts` có đối chứng dương cho đúng chuyện đó.
+     * Cửa không bao giờ nổ được mới là cửa trang trí.
+     *
+     * CỐ Ý KHÔNG gom `toBeTruthy/toBeFalsy/not.toBeNull`: trên một biến boolean TÍNH ĐƯỢC chúng là
+     * oracle thật (`ensure-expanded.spec.ts:41`), còn trên locator thì `locator_lint` rule `weak-assert`
+     * đã gác. Chép lại ở đây là dựng nguồn trôi thứ hai — đúng lỗi hai bản lint SQL đã trả giá.
+     */
+    id: 'presence-only',
+    sev: 'P1',
+    khoi: true,
+    why: 'Test có hành động, nhưng MỌI khẳng định chỉ chứng minh element CÓ MẶT (`toBeVisible`/`toBeEnabled`…), không chứng minh GIÁ TRỊ. "Màn vẽ ra" không phải "màn vẽ ĐÚNG". Đo 29/10/2026: 0 lượt trên 2.873 test — đo 2 lần để chắc 0 đó là "không có ca nào" chứ không phải bị dạng oracle khác che. Giữ luật vì 0 vi phạm hôm nay là trạng thái TỐT của một cửa; spec có đối chứng dương chứng minh nó nổ được.',
+    fix: 'Khẳng định nội dung cụ thể theo cột `Kết quả mong đợi`: `toHaveText`, `toHaveValue`, `toBe(n)`. Case chỉ kiểm hiển thị thì neo `ui_catalog` và ghi rõ đó là chiều §12.',
+  },
 ];
 
 /** Tra một luật theo id — dùng cho luật cấp khối, để thông điệp chỉ có MỘT nguồn. */
@@ -373,7 +409,111 @@ function napNo(keu) {
   return { no: o.hardSleepDebt || {}, marker: o.probeMarker || '@auto-review-probe:' };
 }
 
-module.exports = { RULES, testKhongAssert, CAN_NGUOI_XEM, xoaRuotChuoi, napNo };
+/*
+ * HAI LUẬT CẤP KHỐI của v2.9.5 §5 — về VỊ TRÍ và CHẤT của oracle, không về việc có oracle hay không.
+ *
+ * BA DẠNG ORACLE CỦA KIT, và biết đủ ba dạng mới là cả giá trị của hàm này. Bản đầu chỉ đếm `expect(`,
+ * và đo tay thì 4/5 finding là dương tính giả — tất cả vì detector không biết API của chính kit:
+ *   ① `expect(...)`                                  — Playwright.
+ *   ② `assert: async () => …` trong `c.step(...)`     — EvidenceRecorder của kit.
+ *   ③ `status: <biểu thức>` trong `c.step(...)`       — verdict SUY RA được.
+ * Riêng `status: 'PASSED'` viết cứng KHÔNG tính: verdict viết cứng đúng là thứ §6 cấm.
+ *
+ * Và case khai KHÔNG TUYÊN VERDICT — `c.finish('OBSERVATION'|'BLOCKED_*'|'SKIP_*')` — thì không đòi
+ * oracle, ngang với `test.skip(cond, lý do)` mà `testKhongAssert` đã miễn từ trước.
+ */
+/*
+ * DÒ THEO DÒNG, không dò theo chuỗi liền.
+ *
+ * Bản đầu viết `await` + một lớp ký tự rồi `.click(` — và lớp ký tự đó không chứa dấu phẩy, dấu ngoặc
+ * nhọn hay hai chấm, nên nó TRƯỢT sạch `await page.getByRole('Ghi', { name: 'x' }).click()`, tức dạng
+ * locator phổ biến nhất của Playwright. Phép đo đặt severity cho hai luật này cũng chạy trên mẫu hụt
+ * ấy, nên đã phải đo lại sau khi sửa.
+ *
+ * Dòng có `await` VÀ có một lời gọi phương thức hành động = một hành động. Chuỗi đã được làm trắng nên
+ * `.click(` nằm trong chuỗi không còn tính.
+ */
+const ACT_TEN = /\.\s*(?:click|fill|press|selectOption|check|uncheck|setInputFiles|dblclick|type|dragTo)\s*\(/;
+const ORACLE_KHOI = /\bexpect\s*\(|\bassert\s*:/g;
+const STATUS_TINH = /\bstatus\s*:\s*(?!['"`])/g;
+const CO_MAT_KHOI = /\.\s*(?:toBeVisible|toBeHidden|toBeAttached|toBeEnabled|toBeDisabled)\s*\(/;
+const KHONG_TUYEN_VERDICT = /\.\s*finish\s*\(\s*['"`](?:OBSERVATION|BLOCKED|SKIP)/;
+
+/** Số dòng của mọi dòng vừa có `await` vừa có một lời gọi hành động. */
+function dongHanhDong(than) {
+  const ra = [];
+  const L = than.split('\n');
+  for (let i = 0; i < L.length; i += 1) {
+    if (/\bawait\b/.test(L[i]) && ACT_TEN.test(L[i])) ra.push(i + 1);
+  }
+  return ra;
+}
+
+/** Số DÒNG của mọi lần khớp — KHÔNG phải offset ký tự. */
+function dongKhop(s, re) {
+  const r = new RegExp(re.source, re.flags.includes('g') ? re.flags : `${re.flags}g`);
+  const ra = [];
+  let m;
+  while ((m = r.exec(s))) ra.push(s.slice(0, m.index).split('\n').length);
+  return ra;
+}
+
+/**
+ * Cắt thân từng `test(...)`, trả cả bản ĐÃ LÀM TRẮNG CHUỖI và bản GỐC.
+ *
+ * Phải có bản gốc: `status:` và `finish('OBSERVATION')` nằm ngay cạnh chuỗi, mà bản làm-trắng xoá sạch
+ * ruột chuỗi nên mẫu khớp trên nó không bao giờ nổ. Đã dính đúng chuyện này một lần trong lúc đo.
+ */
+function catKhoiTest(src) {
+  const HEAD = /(?<![.\w$])test(\s*\.\s*(only|fixme|skip|describe))?\s*\(\s*(['"`])([\s\S]*?)\3/g;
+  const blank = xoaRuotChuoi(src);
+  const heads = [];
+  let m;
+  while ((m = HEAD.exec(blank))) {
+    heads.push({
+      i: m.index,
+      bien: m[1] || '',
+      ten: src.slice(m.index + m[0].length - 1 - m[4].length, m.index + m[0].length - 1),
+      dong: blank.slice(0, m.index).split('\n').length,
+    });
+  }
+  const ra = [];
+  for (let k = 0; k < heads.length; k += 1) {
+    const h = heads[k];
+    if (/skip|fixme|describe/.test(h.bien)) continue;
+    const het = k + 1 < heads.length ? heads[k + 1].i : blank.length;
+    ra.push({ ...h, than: blank.slice(h.i, het), goc: src.slice(h.i, het) });
+  }
+  return ra;
+}
+
+/**
+ * Trả về `[{ id, ten, dong }]` cho `no-assert-after-act` và `presence-only`.
+ * Test KHÔNG có oracle nào thì bỏ qua ở đây — đó là việc của `no-assert`, không đếm hai lần.
+ */
+function oracleSaiCho(src) {
+  const ra = [];
+  for (const k of catKhoiTest(src)) {
+    if (KHONG_TUYEN_VERDICT.test(k.goc)) continue;
+    const oracle = [...dongKhop(k.than, ORACLE_KHOI), ...dongKhop(k.goc, STATUS_TINH)].sort((a, b) => a - b);
+    if (oracle.length === 0) continue;
+    const act = dongHanhDong(k.than);
+    if (act.length === 0) continue;
+
+    const L = k.than.split('\n');
+    const dongOracle = dongKhop(k.than, /\bexpect\s*\(/g).map((n) => L.slice(n - 1, n + 2).join('\n'));
+    if (dongOracle.length > 0 && dongOracle.every((d) => CO_MAT_KHOI.test(d))
+        && !/\bassert\s*:/.test(k.than) && !STATUS_TINH.test(k.goc)) {
+      ra.push({ id: 'presence-only', ten: k.ten, dong: k.dong });
+    }
+    if (Math.max(...act) > Math.max(...oracle)) {
+      ra.push({ id: 'no-assert-after-act', ten: k.ten, dong: k.dong });
+    }
+  }
+  return ra;
+}
+
+module.exports = { RULES, testKhongAssert, oracleSaiCho, catKhoiTest, CAN_NGUOI_XEM, xoaRuotChuoi, napNo };
 if (require.main === module) mainCli();
 
 function mainCli() {
@@ -453,6 +593,17 @@ function mainCli() {
           scope,
           tang,
           rule: luat('no-assert'),
+          code: `test("${String(t.ten).slice(0, 60)}")`,
+        });
+      }
+      /* Hai luật về VỊ TRÍ/CHẤT của oracle. Cùng đường miễn trừ `@auto-review-probe:` với `no-assert`. */
+      for (const t of oracleSaiCho(src)) {
+        findings.push({
+          file: rel,
+          line: t.dong,
+          scope,
+          tang,
+          rule: luat(t.id),
           code: `test("${String(t.ten).slice(0, 60)}")`,
         });
       }

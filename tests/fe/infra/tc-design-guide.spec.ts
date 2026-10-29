@@ -186,3 +186,96 @@ test.describe('@infra skills:refcheck — link thật vs đường dẫn minh ho
     } finally { donThuMucTam(tmp); }
   });
 });
+
+/*
+ * DANH MỤC CANONICAL ⇄ CHECKLIST CON NGƯỜI ĐỌC (v2.9.5 §3.3).
+ *
+ * `.agent/config/ui_components.json` là nguồn duy nhất của hai danh mục field/component, và
+ * `field-component-checklist.spec.ts` đã khoá nó với các file CHIỀU (`prompt_templates/phase1/dimensions/`).
+ * Nhưng hai checklist của skill `tc_design_guide` thì KHÔNG ai đối soát — và chúng đã lệch thật:
+ *
+ *   đo 29/10/2026 · `field_checklist.md` khai "18 loại" đúng bằng con số của danh mục canonical, nhưng
+ *   18 của nó là 18 KHÁC: thiếu `password`, `date_month_filter`, `otp`, `richtext`, `multiselect`,
+ *   `slider`; bù lại có 4 dòng mịn hơn (tiếng Việt có dấu, cascade, mã định danh, ô tự tính).
+ *   `component_checklist.md` thiếu `crud`, `permission`, `status_flow`, `tab` — tức thiếu đúng ba nhóm
+ *   nặng nhất: vòng đời CRUD, ma trận phân quyền và bảng trạng thái.
+ *
+ * Hai con số 18 bằng nhau là chỗ nguy hiểm nhất: nó làm người đọc tin hai bên đã khớp.
+ *
+ * Nên checklist phải mang MÃ canonical, không chỉ tên tiếng Việt — tên thì hai bên đặt khác nhau là
+ * chuyện bình thường, còn mã thì đối soát được. Mã nào chưa gặp trên app thì khai ở bảng "chưa gặp"
+ * KÈM NGÀY ĐO; đó vẫn là một lời khai, khác hẳn im lặng.
+ */
+test.describe('@infra checklist của skill ⇄ danh mục canonical', () => {
+  /* eslint-disable @typescript-eslint/no-var-requires, global-require */
+  const UIC = require(path.join(REPO, '.agent/config/ui_components.json'));
+  /* eslint-enable @typescript-eslint/no-var-requires, global-require */
+
+  /** Mã trong cột `Mã` của bảng field, cộng mã khai ở bảng "chưa gặp". */
+  const maField = (s: string) => new Set([
+    ...[...s.matchAll(/^\| *\d+ *\| *`([a-z_]+)` *\|/gm)].map((m) => m[1]),
+    ...[...s.matchAll(/^\| *`([a-z_]+)` *\| *\*\*chưa gặp\*\*/gm)].map((m) => m[1]),
+  ]);
+
+  /** Mã gắn trên tiêu đề mục của checklist component. */
+  const maComponent = (s: string) => new Set(
+    [...s.matchAll(/^## .*?— `([a-z_]+)`/gm)].map((m) => m[1]),
+  );
+
+  /** Mã canonical nào KHÔNG có mặt trong checklist. Tách ra để chạy được đối chứng dương. */
+  const thieu = (canon: string[], co: Set<string>) => canon.filter((c) => !co.has(c));
+
+  test('mọi mã `field_types` đều có dòng checklist, hoặc khai "chưa gặp" kèm ngày', () => {
+    const s = doc('references/field_checklist.md');
+    const co = maField(s);
+    /*
+     * CHỐNG RỖNG. Đổi hình bảng (bỏ cột `Mã`, đổi dấu nháy) làm regex trượt sạch, và lúc đó phép kiểm
+     * vẫn XANH vì `thieu` so với một tập rỗng... không, nó sẽ đỏ. Nhưng chiều ngược thì im: nếu ai đó
+     * đổi `maField` thành bắt mọi chuỗi trong nháy ngược thì tập `co` phình ra và phép kiểm mất nghĩa.
+     * Nên ghim luôn ĐỘ LỚN hợp lý của tập mã đọc được.
+     */
+    expect(co.size, 'không đọc được mã nào — bảng đã đổi hình, sửa regex chứ đừng bỏ phép kiểm')
+      .toBeGreaterThanOrEqual(10);
+    expect(co.size, 'đọc ra quá nhiều mã — regex đang bắt cả thứ không phải mã').toBeLessThanOrEqual(UIC.field_types.length);
+
+    const canon = UIC.field_types.map((f: { code: string }) => f.code);
+    const t = thieu(canon, co);
+    expect(t, `mã canonical KHÔNG có trong field_checklist.md: ${t.join(', ')} — viết dòng checklist, `
+      + 'hoặc khai ở bảng "chưa gặp" kèm ngày đo').toEqual([]);
+  });
+
+  test('mọi mã `components` đều có một mục trong component_checklist.md', () => {
+    const s = doc('references/component_checklist.md');
+    const co = maComponent(s);
+    expect(co.size, 'không đọc được mã nào trên tiêu đề mục — sửa regex chứ đừng bỏ phép kiểm')
+      .toBeGreaterThanOrEqual(5);
+
+    const canon = UIC.components.map((c: { code: string }) => c.code);
+    const t = thieu(canon, co);
+    expect(t, `mã canonical KHÔNG có mục trong component_checklist.md: ${t.join(', ')}`).toEqual([]);
+  });
+
+  test('ĐỐI CHỨNG DƯƠNG: thêm một mã vào danh mục canonical ⇒ phép kiểm ĐỎ', () => {
+    /*
+     * Đây là phép kiểm của chính phép kiểm. Không có nó thì một `thieu()` luôn trả `[]` (ví dụ vì so
+     * sai chiều) sẽ xanh mãi, và hai bên lại trôi khỏi nhau đúng như đã trôi lần này.
+     */
+    const co = maField(doc('references/field_checklist.md'));
+    expect(thieu(['mot_ma_khong_ton_tai'], co), 'mã không có trong checklist PHẢI bị báo thiếu')
+      .toEqual(['mot_ma_khong_ton_tai']);
+  });
+
+  test('"chưa gặp" phải có NGÀY ĐO — lời khai không ngày thì không biết đã cũ bao nhiêu', () => {
+    const s = doc('references/field_checklist.md');
+    /*
+     * Chỉ soi DÒNG BẢNG, không soi văn xuôi. Bản đầu bắt mọi dòng có chữ "chưa gặp", nên nó đỏ vì đúng
+     * cái đoạn giải thích *cách dùng* bảng — một dương tính giả, và kiểu dương tính giả hay dẫn tới
+     * chuyện tệ hơn: người ta gỡ đoạn giải thích đi cho hết đỏ.
+     */
+    const dong = s.split('\n').filter((l) => l.startsWith('| `') && /\*\*chưa gặp\*\*/.test(l));
+    expect(dong.length, 'không còn dòng "chưa gặp" nào thì bỏ cả phép kiểm này đi').toBeGreaterThan(0);
+    for (const l of dong) {
+      expect(l, `dòng "chưa gặp" thiếu ngày đo: ${l.slice(0, 60)}`).toMatch(/đo \d{2}\/\d{2}\/\d{4}/);
+    }
+  });
+});

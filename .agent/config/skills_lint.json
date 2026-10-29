@@ -5,15 +5,15 @@
   "dupDescThreshold": 0.3,
   "_dupDescThreshold_do_duoc": "Jaccard trên tập từ ≥ 4 ký tự. Đo 10/10/2026: **0 cặp** trong 25 skill đạt 0.30, nên ngưỡng này CHẶN được ngay. Hai skill mô tả giống nhau thì agent không có căn cứ để chọn, và nó sẽ chọn sai hoặc mở cả hai.",
   "no": {
-    "thieuKhiDung": 12,
-    "thieuKhiKhongDung": 11,
-    "thieuMayKiem": 9
+    "thieuKhiDung": 0,
+    "thieuKhiKhongDung": 0,
+    "thieuMayKiem": 0
   },
   "_no_vi_sao": "Ba tiêu chí này ở mức CẢNH BÁO vì nợ cũ lớn: đo 10/10/2026 trên 25 skill thì 17 skill thiếu mục 'dùng khi', 16 thiếu 'KHÔNG dùng khi', 13 không nhắc một máy kiểm nào. Chặn ngay là làm đỏ 17 skill rồi gate bị tắt — đúng lớp lỗi 'gate báo oan thì người ta tắt nó, chứ không sửa theo nó'.",
-  "_no_da_ha": "17/16/13 (10/10/2026, lúc dựng gate) → 15/15/13 sau khi sửa 4 ca CHẶN của G3.3 → 12/11/9 sau khi nâng cấp 5 skill mỏng ở G2.1 (`flaky_test_analyzer` · `test_data_generator` · `backlog_integration` · `tc_validator` · `security_check`). Ghi lại dãy này để lần sau biết nợ đang giảm thật, không phải ai đó nới số.",
+  "_no_da_ha": "17/16/13 (10/10/2026, lúc dựng gate) → 15/15/13 sau khi sửa 4 ca CHẶN của G3.3 → 12/11/9 sau khi nâng cấp 5 skill mỏng ở G2.1 (`flaky_test_analyzer` · `test_data_generator` · `backlog_integration` · `tc_validator` · `security_check`). Ghi lại dãy này để lần sau biết nợ đang giảm thật, không phải ai đó nới số. → 0/0/0 ngày 28/10/2026 (v2.9.5 §1.2): viết mục \"Dùng khi · KHÔNG dùng khi\" + \"Câu kích hoạt mẫu\" + con trỏ máy kiểm cho 15 skill còn nợ. Nội dung viết theo đúng việc của từng skill, không điền mẫu chung — mỗi ô KHÔNG dùng khi đều nêu skill thay thế hoặc lý do cấm cụ thể.",
   "_no_cach_go": "Nợ khai theo SỐ LƯỢNG và bị KHOÁ: nhiều hơn số khai = CHẶN, nên nợ không phình âm thầm. Mỗi lần nâng cấp một skill, hạ số tương ứng. Gate CẢNH BÁO khi số thực nhỏ hơn số khai, để con số không nằm lại cao hơn thực tế.",
   "_mien_tru_may_kiem": "Skill không có máy kiểm nào thì được khai bằng một dòng `> KHÔNG có máy kiểm vì <lý do>` trong chính file. Có skill thuần phán đoán (vd phân tích flaky) mà không có gì đo được, và bắt chúng bịa ra một gate là tệ hơn.",
   "_khong_kiem_gi": "Gate này KHÔNG chấm được mô tả có ĐÚNG hay không — nó chỉ chấm mô tả có ĐỦ THÔNG TIN để chọn hay chưa. Phần đúng/sai vẫn là việc người đọc.",
-  "thieuKhiDung": 11,
-  "_thieuKhiDung_ha": "Hạ 12 → 11 ngày 15/10/2026: `tc_design_guide` (v2.9.0) khai đủ cả \"dùng khi\" lẫn \"KHÔNG dùng khi\" ngay từ đầu, nên con số thực giảm. Cửa tự yêu cầu hạ — để nguyên thì sổ nợ lớn hơn nợ thật, và lần sau không ai phân biệt được \"nợ cũ\" với \"nợ mới thêm\"."
+  "_thieuKhiDung_ha": "Hạ 12 → 11 ngày 15/10/2026: `tc_design_guide` (v2.9.0) khai đủ cả \"dùng khi\" lẫn \"KHÔNG dùng khi\" ngay từ đầu, nên con số thực giảm. Cửa tự yêu cầu hạ — để nguyên thì sổ nợ lớn hơn nợ thật, và lần sau không ai phân biệt được \"nợ cũ\" với \"nợ mới thêm\".",
+  "_thieuKhiDung_ha_lan_2": "NHƯNG LẦN HẠ 15/10 KHÔNG CÓ TÁC DỤNG, phát hiện 28/10/2026. Nó ghi một khoá `thieuKhiDung` ở CẤP NGOÀI, trong khi `skills_lint.js:54` chỉ đọc `CFG.no`. Nên sổ nợ thật vẫn là 12 suốt 13 ngày, và gate vẫn in đúng câu 'thực 11 < khai 12 ⇒ hạ số' mỗi lượt chạy — không ai đọc. Nay đã hạ ĐÚNG CHỖ (`no.thieuKhiDung` = 11) và xoá khoá ngoài. Thêm máy chặn: khoá nợ nằm ngoài `no` ⇒ CHẶN, vì một con số ở chỗ không ai đọc thì tệ hơn không có số — nó làm người sửa tin là đã sửa."
 }

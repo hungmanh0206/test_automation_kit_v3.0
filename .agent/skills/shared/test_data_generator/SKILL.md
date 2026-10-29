@@ -58,6 +58,51 @@ có sẵn. Đây là quy định tổ chức (non-negotiable §1): được yêu
 - `RUN_ID` là mắt xích dọn dẹp. Thiếu nó thì dữ liệu hai lượt trùng nhau, và đó là nguồn flaky khó tìm
   nhất — `npm run reliability` chỉ thấy "case chập chờn", không thấy nguyên nhân.
 
+## Bốn lớp field — sinh giá trị theo lớp, không sinh đồng loạt
+
+Một form có nhiều ô, nhưng không phải ô nào cũng sinh theo cùng một cách. Nhầm lớp thì case xanh mà
+số sai: random một ô vốn phải lấy đúng từ bộ tổ hợp làm cả phép đo mất nghĩa.
+
+| Lớp | Là gì | Sinh thế nào |
+|---|---|---|
+| **Chiều** (dimension) | ô mang giá trị của một chiều trong ma trận tổ hợp | lấy **đúng** giá trị của bộ combo — **KHÔNG random** |
+| **Đỡ** (supporting) | ô bắt buộc nhưng không thuộc chiều nào | random + unique theo `RUN_ID` + truy vết được |
+| **Tham chiếu** (reference) | giá trị là **output của một bước/case TRƯỚC** | copy từ output đó, KHÔNG sinh lại |
+| **Tính được** (computed) | suy ra từ công thức hoặc luật nghiệp vụ | tính theo công thức, rồi **verify** — `oracle:calc` |
+
+Ô **tính được** là chỗ dễ sai nhất: sinh một giá trị rồi khẳng định app hiện đúng giá trị đó là
+tautology nếu giá trị ấy cũng do app tính. Công thức phải lấy từ đặc tả, không lấy từ màn.
+
+## Chuỗi dữ liệu — khi tiền đề của case là output của case khác
+
+Phần lớn case tự dựng tiền đề. Nhưng có case khai thẳng rằng tiền đề của nó do case khác dựng:
+
+```
+[pre_existing] Đã có "Hà Văn Tân Hiệu Trưởng" giữ Nhóm chức vụ Hiệu trưởng (dựng ở TC_084)
+```
+
+Lúc đó bộ case không còn là một tập hợp mà là một **chuỗi**, và chuỗi có bốn đường hỏng:
+
+| Đường hỏng | Triệu chứng khi chạy |
+|---|---|
+| nguồn đã bị xoá/đổi mã | tiền đề không ai dựng, nhưng case vẫn ra verdict |
+| case phụ thuộc chạy TRƯỚC nguồn | trông như "app thiếu dữ liệu", không như "tiền đề chưa dựng" |
+| vòng | không thứ tự nào dựng được |
+| nguồn FAILED mà case phụ thuộc PASSED | phép đo chạy trên tình huống **không tồn tại** |
+
+Đường cuối là đường đắt nhất: nó đã sinh ra **2 `product_bug` bịa** trong một phiên.
+
+**Máy gác:** `npm run data:chain` · `npm run data:chain:check` (thêm `--status <testcase-status.json>`
+mới chạy được phép kiểm verdict — thiếu nó thì cửa nói rõ là chưa phán). Lượt chạy đầu trên bộ CSDL-9004
+bắt được một ca thật: `TC_063` khai `(dựng ở TC_075)` nhưng `TC_075` nằm SAU nó trong file.
+
+> **Viết tiền đề cho máy đọc được**: dùng động từ **dựng / tạo / khai / đã chạy xong** kèm mã TC. Trích
+> dẫn để đọc ("đã kiểm ở TC_045") KHÔNG được tính là mắt chuỗi, và đó là cố ý — gác cả hai loại thì
+> phần lớn finding là dương tính giả, rồi người ta tắt cửa chứ không sửa theo nó.
+>
+> Và máy chỉ thấy chuỗi đã **KHAI**. Case phụ thuộc case khác mà không khai thì không máy nào biết —
+> chỗ đó nằm ở phần chấm tay của `automation_reviewer`.
+
 ## Decision Rules
 
 - Mỗi testcase phải có data cụ thể hoặc reference rõ tới fixture cụ thể.
@@ -77,3 +122,8 @@ có sẵn. Đây là quy định tổ chức (non-negotiable §1): được yêu
 - Data chung chung: “email hợp lệ”, “user bất kỳ”.
 - Dùng cùng một entity cố định cho nhiều test chạy song song.
 - Không dọn dữ liệu tạo bằng API/UI sau test.
+
+**Câu kích hoạt mẫu:** "sinh dữ liệu test cho case này" · "cần 50 hồ sơ để test lưới" · "tạo data unique theo RUN_ID" · "dữ liệu test xong thì dọn thế nào"
+
+> Đừng lẫn với `precondition_setup_planner`: skill đó CHỌN CÁCH dựng state (factory/hook/fixture/mock)
+> và khai readiness. Skill này SINH ra giá trị cụ thể, unique, truy vết và rollback được.

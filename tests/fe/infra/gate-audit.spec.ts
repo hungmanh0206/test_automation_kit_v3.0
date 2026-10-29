@@ -61,6 +61,39 @@ test.describe('@infra gate:audit — dùng CHUNG phép kiểm kê với gates:in
     const t = kq.theo_tang;
     expect(t.T0 + t.T1 + t.T2).toBe(kq.tong_may);
   });
+
+  test('`levelOf` nhận cả ĐƯỜNG RA GIÁN TIẾP — `process.exit(main())` + `return 1`', () => {
+    /*
+     * Bản trước chỉ bắt `process.exit(1)` viết thẳng, nên `router_check.js` bị dán nhãn **BÁO CÁO** dù
+     * nó CHẶN thật — nhãn sai theo đúng chiều nguy hiểm: người đọc danh mục tưởng chỗ đó chỉ in ra.
+     *
+     * Khi nới mẫu, phép đo nói "đổi đúng 1 dòng". SAI: nó đổi HAI. Phép đo chỉ soi `scripts/qa/`, còn
+     * `scripts/phase1/docs_index.js` cũng theo khuôn này và đang bị gán **SINH** trong khi nó
+     * `process.exit(flag('enforce') ? ma : 0)`. Nhãn mới của nó — CHẶN có cờ — mới là nhãn đúng.
+     */
+    // eslint-disable-next-line @typescript-eslint/no-var-requires, global-require
+    const gi = require(path.join(REPO, 'scripts/qa/gate_index.js'));
+    const gianTiep = 'function main() { if (x) return 1; return 0; }\nprocess.exit(main());';
+    expect(gi.levelOf(gianTiep), 'đường ra gián tiếp vẫn là đường ra').toBe('CHẶN');
+
+    /* ĐỐI CHỨNG ÂM: `process.exit(main())` mà KHÔNG có `return 1` thì không phải CHẶN. */
+    const khongChan = 'function main() { console.log("x"); return 0; }\nprocess.exit(main());';
+    expect(gi.levelOf(khongChan), 'không có đường ra 1 thì KHÔNG được gọi là CHẶN').toBe('BÁO CÁO');
+
+    /* ĐỐI CHỨNG ÂM: chỉ có `return 1` mà không exit qua hàm — ví dụ một hàm helper — cũng không phải. */
+    expect(gi.levelOf('function kiem() { return 1; }\nconsole.log(kiem());'), 'return 1 lẻ không phải đường ra')
+      .toBe('BÁO CÁO');
+  });
+
+  test('`router:check` phải nằm ở mức CHẶN trong danh mục', () => {
+    /* Phép kiểm neo vào KẾT QUẢ, không vào regex — regex đổi mà nhãn vẫn đúng thì không ai phải sửa đây. */
+    // eslint-disable-next-line @typescript-eslint/no-var-requires, global-require
+    const gi = require(path.join(REPO, 'scripts/qa/gate_index.js'));
+    const dong = gi.build().rows.find((r: { npm: string[] }) => r.npm.includes('router:check'));
+    expect(dong, '`router:check` phải có trong danh mục gate').toBeTruthy();
+    expect(String(dong.level), 'gate exit 1 mà danh mục ghi "chỉ in" là nhãn sai chiều nguy hiểm')
+      .toMatch(/^CHẶN/);
+  });
 });
 
 test.describe('@infra gate:audit — T0 lấy từ CONFIG, KHÔNG suy từ từ khoá', () => {

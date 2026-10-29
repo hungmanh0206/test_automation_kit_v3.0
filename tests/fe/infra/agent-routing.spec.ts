@@ -46,7 +46,12 @@ function docAgents(): Agent[] {
 }
 
 test.describe('@infra subagent — việc máy móc đi model rẻ', () => {
-  test('có agent, và mỗi agent khai đủ name, description, model, tools', () => {
+  /*
+   * TÊN PHÉP KIỂM PHẢI NÓI ĐÚNG THỨ NÓ GÁC. Bản trước đặt tên "…đủ name, description, model, tools"
+   * trong khi thân bài cố ý coi `model` là TUỲ CHỌN (xem chú thích bên dưới). Một phép kiểm tự khai
+   * gác nhiều hơn thứ nó gác thì người đọc danh sách test sẽ tưởng `model` đã được đòi.
+   */
+  test('có agent, và mỗi agent khai đủ name, description, tools (`model` tuỳ chọn)', () => {
     const list = docAgents();
     expect(list.length, 'chưa có agent nào thì H6 chưa làm gì').toBeGreaterThan(0);
     for (const a of list) {

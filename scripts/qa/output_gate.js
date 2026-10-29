@@ -453,7 +453,7 @@ function main() {
   if (COMPACT) engine.inGon(problems, { nhan: '-' });
   else {
     problems.forEach((p) => console.log(`  - ${p}`));
-    console.log('\n  Nhắc: comment mỗi ý 1 dòng "- …", không debug key=value; mọi step PASS/FAIL + ảnh riêng; case phức tạp cần video.');
+    console.log('\n  Nhắc: comment mỗi ý 1 dòng "- …", không debug key=value; mọi step phải có status PASS/FAIL; ảnh thì 1 cái ở bước quyết định, case tầng bug mới cần từng step; case phức tạp cần video.');
   }
   if (QA_APPROVED) { console.log('\n[gate] [--qa-approved] QA cố ý bỏ qua → exit 0 (đã ghi log vi phạm ở trên).'); process.exit(0); }
   console.log('\n[gate] BLOCK: chưa được push. (Muốn bỏ qua có chủ đích: --qa-approved.)');

@@ -18,7 +18,7 @@
 
 ## Evidence
 
-- Bắt buộc cho MỌI case đã execute (PASS và FAIL) + MỌI step; chỉ ảnh/video (cấm `.json/.md/.log/.txt/.html/.csv/trace.zip`). Highlight đúng element, mask PII khách, đúng màn (không 404/blank/loading).
+- Bắt buộc cho MỌI case đã execute (PASS và FAIL): case thường 1 ảnh/video ở **bước quyết định**, case tầng bug (`product_bug`/`api_bug`) ảnh **từng step**. Mọi step vẫn phải có `status` riêng. Chỉ ảnh/video (cấm `.json/.md/.log/.txt/.html/.csv/trace.zip`). Highlight đúng element, mask PII khách, đúng màn (không 404/blank/loading).
 - Case phức tạp (nhiều bước, async, cross-app, iframe) → quay video.
 - Screenshot/video trắng → rerun, hoặc render trang hiển thị data rồi CHỤP THÀNH ẢNH (bản `.html` không dùng làm evidence).
 - Backlog attachment chỉ ảnh/video; trace/log để local debug. Chi tiết: RULE_GLOBAL §"Evidence — Quy chuẩn bắt buộc".

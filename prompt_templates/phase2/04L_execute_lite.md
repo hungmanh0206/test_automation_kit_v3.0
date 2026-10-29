@@ -48,11 +48,11 @@ Oracle rỗng thì DỪNG và đi lấy giá trị từ spec; `app == app` là t
 là product bug hay log Backlog.
 **Máy gác:** `npm run bug:claim` (chưa đủ số lượt rerun = CHẶN).
 
-**6. Evidence.** Mọi case đã execute — **PASS lẫn FAIL** — và mọi step phải có ảnh (`.png`, `.jpg`, `.jpeg`, `.webp`)
-hoặc video (`.mp4`, `.webm`) đúng màn, có highlight, đã mask PII. Case nhiều thao tác thì phải có video.
+**6. Evidence.** Mọi case đã execute (PASS lẫn FAIL) cần ảnh (`.png`, `.jpg`, `.jpeg`, `.webp`) hoặc
+video (`.mp4`, `.webm`) đúng màn, có highlight, đã mask PII: **1 cái ở bước quyết định**, case tầng bug
+thì **từng step**. Step nào cũng có `status`. Case nhiều thao tác phải có video.
 CẤM dùng `.json`, `.md`, `.txt`, `.log`, `.html`, `.csv`, `trace.zip` làm evidence.
-**Máy gác:** `npm run gate:output` (thiếu evidence, sai loại file, step thiếu status hoặc thiếu ảnh riêng
-= CHẶN).
+**Máy gác:** `npm run gate:output` (thiếu evidence, sai loại file, step thiếu status = CHẶN).
 
 ---
 

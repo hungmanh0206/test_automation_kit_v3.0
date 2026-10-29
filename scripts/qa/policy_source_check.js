@@ -262,6 +262,57 @@ if (fs.existsSync(SKILLS_DIR)) {
   }
 }
 
+// ─── SKILL MỒ CÔI: có trong cây nhưng KHÔNG nơi nào gọi ────────────────────────────────────────────────
+//
+// Cùng lớp lỗi với "npm script không ai nhắc" ở khối dưới, chỉ khác đối tượng. Skill của kit KHÔNG
+// auto-load: agent chỉ mở nó khi một workflow / prompt / slash command / script trỏ tới. Nên một skill
+// không ai nhắc là công sức viết ra rồi không bao giờ sinh lợi — và nó hỏng IM LẶNG, không gate nào đỏ.
+//
+// Đo 28/10/2026 trên 26 skill: `ui_mocking` 0 chỗ nhắc ở MỌI nơi, `release_summary` 0 ở
+// workflow/prompt/command (chỉ 1 script nhắc). Mức CẢNH BÁO chứ không chặn: có skill hợp lệ khi chỉ được
+// gọi qua `Skill` tool theo mô tả, và chặn ngay sẽ thành lý do để ai đó nhắc tên nó một cách hình thức.
+{
+  const NOI_GOI = ['prompt_templates', '.agent/workflows', '.claude/commands', 'manual-run', 'partial-rerun', 'scripts'];
+  /*
+   * BỎ CHÍNH FILE NÀY RA KHỎI VÙNG QUÉT. Bắt được 28/10/2026, ngay lúc dựng:
+   *
+   * Khối chú thích phía trên nêu `ui_mocking` làm ví dụ. Vì `scripts/` nằm trong `NOI_GOI`, gate đọc
+   * chính mã nguồn của mình, thấy tên skill, rồi kết luận "không mồ côi" — cho MỌI skill mà nó từng
+   * nhắc tên. Đo bằng đối chứng: bỏ bản vá nối `ui_mocking` đi thì gate VẪN báo 0 mồ côi, tức nó là
+   * phép kiểm RỖNG.
+   *
+   * Đây là lớp lỗi tự-tham-chiếu: một máy gác nêu ví dụ bằng chính thứ nó đang đếm thì tự vô hiệu hoá.
+   */
+  const TU_THAM_CHIEU = 'scripts/qa/policy_source_check.js';
+  const noiDung = [];
+  const gom = (d, sau = 0) => {
+    if (sau > 6 || !fs.existsSync(d)) return;
+    for (const e of fs.readdirSync(d, { withFileTypes: true })) {
+      const p = path.join(d, e.name);
+      if (e.isDirectory()) { gom(p, sau + 1); continue; }
+      if (!/\.(md|js|ts|mjs|json|sh)$/.test(e.name)) continue;
+      if (path.relative(rc.REPO_ROOT, p).split(path.sep).join('/') === TU_THAM_CHIEU) continue;
+      try { noiDung.push(fs.readFileSync(p, 'utf8')); } catch { /* không đọc được thì bỏ qua */ }
+    }
+  };
+  for (const r of NOI_GOI) gom(path.join(rc.REPO_ROOT, r));
+  const bien = noiDung.join('\n');
+
+  const moCoi = [];
+  if (fs.existsSync(SKILLS_DIR)) {
+    for (const group of fs.readdirSync(SKILLS_DIR, { withFileTypes: true }).filter((e) => e.isDirectory())) {
+      const groupDir = path.join(SKILLS_DIR, group.name);
+      for (const skill of fs.readdirSync(groupDir, { withFileTypes: true }).filter((e) => e.isDirectory())) {
+        if (!fs.existsSync(path.join(groupDir, skill.name, 'SKILL.md'))) continue;
+        if (!bien.includes(skill.name)) moCoi.push(`${group.name}/${skill.name}`);
+      }
+    }
+  }
+  if (moCoi.length) {
+    warns.push(`${moCoi.length} skill MỒ CÔI — không workflow/prompt/command/script nào nhắc tên, nên agent không có đường mở: ${moCoi.join(' · ')}. Nối vào đúng chỗ việc đó xảy ra, hoặc xoá skill.`);
+  }
+}
+
 // ─── npm script phải CÓ NƠI NHẮC TỚI (điểm mù cũ của gate này) ─────────────────────────────────────────
 //
 // Gate này vốn gác 5 chiều: canonical pointer · CLAUDE.md ↔ code · rule mồ côi · prompt bước có đường vào ·

@@ -112,7 +112,15 @@ const GOI_Y = [
     nhom: 'gợi ý đúng lúc',
   },
   {
-    lenh: '/check',
+    /*
+     * `npm run check`, KHÔNG phải `/check` — sửa 28/10/2026.
+     *
+     * Dòng này từng phát ra `/check` như một lệnh để người dùng gõ. Nhưng `.claude/commands/check.md`
+     * CHƯA BAO GIỜ tồn tại (`git log --all --diff-filter=A` trả rỗng), nên người đọc gợi ý này gõ vào
+     * thì không có gì xảy ra. Mọi lệnh `/x` khác mà bộ gợi ý phát ra đều có file thật; chỉ cái này không.
+     * Và nó không hỏng im lặng ở phía kit — nó hỏng ở phía NGƯỜI DÙNG, chỗ không ai nhìn.
+     */
+    lenh: 'npm run check',
     khi: (s) => s.co_case_md && (s.so_no === null || s.so_no > 0),
     vi_sao: (s) => (s.so_no > 0
       ? `${s.so_no} món nợ T1 trong sổ — cửa ra sẽ chặn, trả trước khi tới đó`

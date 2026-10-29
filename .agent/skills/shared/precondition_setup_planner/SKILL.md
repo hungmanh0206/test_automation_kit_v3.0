@@ -32,7 +32,7 @@ Skill này không đề xuất DB để DỰNG state hoặc đọc toàn bộ so
 | Factory | Tạo data thật qua API/business API | Ưu tiên đầu tiên; tự đăng ký cleanup theo `RUN_ID` |
 | Hook (test hook) | Set state khó tạo bằng flow thường, hoặc trigger job/fault ngay | Cần capability test-only; thiếu hook → `Needs hook` |
 | Fixture | Data có sẵn/read-only, chỉ verify tồn tại | Không tạo mới |
-| Mock/Test double | Cô lập dependency NGOÀI scope (3rd-party/integration), fault injection | KHÔNG mock logic/behavior đang test; phải ghi trong report |
+| Mock/Test double | Cô lập dependency NGOÀI scope (3rd-party/integration), fault injection | KHÔNG mock logic/behavior đang test; phải ghi trong report. Cách dựng (route, nhánh 5xx/timeout/abort, chống mock rò sang case khác): skill `ui_mocking` |
 | Cleanup registry | Gom data tạo ra theo `RUN_ID` để rollback | LIFO, idempotent |
 | Hộp thư test (sandbox) | Kiểm email/thông báo GỬI ĐI: nội dung, người nhận, link kích hoạt | ⛔ **KHÔNG BAO GIỜ đọc hộp thư thật** — xem dưới. Chưa có hộp thư test ⇒ `needs_sandbox` |
 
@@ -169,3 +169,16 @@ Chỉ `needs_hook`/`needs_account`/`needs_sandbox` là "capability gap" đi vào
 ## Related
 
 - [[test_data_generator]] — sinh giá trị data cụ thể; planner này lo cách dựng state/precondition.
+
+## Máy kiểm
+
+| Máy | Gác gì |
+|---|---|
+| `npm run preflight -- --mode phase2 --task <KEY>` | tiền điều kiện khai mà input/config chưa đủ ⇒ CHẶN trước khi chạy, thay vì để case đỏ rồi mới biết |
+| `npm run gate:output` | case `BLOCKED_SETUP` không nêu capability còn thiếu |
+
+> Phần **chọn method** (factory/hook/fixture/mock) KHÔNG có máy kiểm vì nó phụ thuộc capability của app,
+> không có mốc tĩnh để so. Nhưng có một luật máy gác được và nó tuyệt đối: **KHÔNG dựng state bằng DB**
+> (CLAUDE.md §2) — `scripts/qa/hooks/guard_db_access.js` chặn ở tầng hook.
+
+**Câu kích hoạt mẫu:** "dựng tiền điều kiện cho case này" · "nên dùng factory hay hook" · "case này cần setup gì" · "làm sao có dữ liệu trước khi test" · "case chưa chạy được vì thiếu capability gì" · "readiness của case này là gì"

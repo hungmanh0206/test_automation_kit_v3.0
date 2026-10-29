@@ -70,3 +70,14 @@ Catalog block `lighthouse` (schema đầy đủ ở `scripts/qa/README.md`):
 - `scripts/qa/accessibility_check.js` — a11y sâu bằng axe-core (rule-level); Lighthouse a11y là điểm tổng quan. Đây là một SCRIPT, không phải skill: dạng `[[…]]` ở đây từng làm người đọc đi tìm một skill không tồn tại.
 - [[load_check]] — cùng kiểu opt-in tool ngoài (skip nếu thiếu).
 - mục 16 `prompt_templates/phase1/02_gen_testcases.md`.
+
+## Dùng khi · KHÔNG dùng khi
+
+| | |
+|---|---|
+| **Dùng khi** | Bộ TC có case đòi điểm Lighthouse hoặc tiêu chí a11y/SEO ở mức TRANG · Cần một số đối chiếu giữa hai lần phát hành của cùng một màn |
+| **KHÔNG dùng khi** | Cần đo **web vitals của một luồng người dùng** hoặc SLA của API ⇒ `perf_check`; Lighthouse chấm một TRANG tải lạnh, không chấm một chuỗi thao tác · Cần đo **nhiều VU** ⇒ `load_check` · `playwright-lighthouse` chưa cài — skill tự SKIP, và SKIP đó KHÔNG được đọc thành PASS · Lấy điểm Lighthouse làm verdict PASS/FAIL: nó là **advisory**, dải điểm đổi theo bản Lighthouse |
+
+**Câu kích hoạt mẫu:** "chấm điểm lighthouse trang này" · "đo accessibility và SEO" · "điểm performance của màn đăng nhập" · "trang này có đạt chuẩn a11y chưa"
+
+⚙️ **Máy kiểm:** `npm run lighthouse` — chạy qua CDP, verdict advisory theo dải điểm; thiếu dependency thì SKIP kèm lý do, không im lặng.

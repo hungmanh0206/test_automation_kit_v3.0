@@ -82,11 +82,55 @@ jobs:
       - name: INDEX.md khớp nguồn SKILL.md (artifact sinh trôi khỏi nguồn = không ai thấy)
         run: npm run skills:index:check
 
+      # Chất lượng MÔ TẢ skill — bật `--enforce` ngày 28/10/2026 (v2.9.5 §1.2), sau khi nợ về 0/0/0.
+      #
+      # Trước đó ba tiêu chí ("dùng khi" · "KHÔNG dùng khi" · nhắc máy kiểm) ở mức cảnh báo kèm sổ nợ,
+      # vì chặn ngay lúc 17/16/13 skill còn thiếu sẽ làm đỏ gần hết rồi gate bị tắt. Nợ đã sạch nên
+      # chặn được, và chặn ở đây mới giữ được: skill KHÔNG auto-load, nên `description` là thứ DUY NHẤT
+      # agent đọc để quyết định có mở hay không. Mô tả không nói được "dùng khi nào" thì skill thành
+      # file chết, và đó là kiểu hỏng im lặng nhất của kit — không gate nào đỏ, chỉ là công sức không
+      # bao giờ sinh lợi.
+      - name: Mô tả skill đủ thông tin để CHỌN (skills:lint:enforce)
+        run: npm run skills:lint:enforce
+
+      # Hai skill mô tả gần nhau thì agent không có căn cứ để chọn — `skills:lint` bắt được mô tả TRÙNG,
+      # nhưng không bắt được mô tả KHÁC NHAU mà vẫn không tách được việc. Cửa này đo chuyện đó trên 63
+      # câu yêu cầu tiếng Việt.
+      #
+      # ĐỌC ĐÚNG CON SỐ: đây là phép đo ĐẠI DIỆN trên từ ngữ, không mô phỏng cách model chọn. "98%" nghĩa
+      # là *phần chữ hiện có đủ phân biệt 98% số ca trong fixture*, KHÔNG phải "agent chọn đúng 98%".
+      - name: Mô tả skill tách được việc (skills:route:check)
+        run: npm run skills:route:check
+
       # Link trong skill phải trỏ file CÓ THẬT. Cửa này phân biệt link thật với đường dẫn minh hoạ —
       # xem khối chú thích đầu `skills_refcheck.js`: đếm ngây thơ sinh ra dương tính giả, rồi người ta
       # gỡ ví dụ trong tài liệu đi cho hết đỏ.
       - name: Link nội bộ của skill không gãy (skills:refcheck)
         run: npm run skills:refcheck
+
+      # Luật đổi lời thì tài liệu cũ KHÔNG tự đổi theo — nó ở lại và mâu thuẫn với luật mới, im lặng.
+      # Lớp hỏng này đã cắn 3 lần (luật evidence, `/check`, câu chữ step ở P2). Cửa đọc mệnh đề canonical
+      # trong `.agent/config/rule_consistency.json` rồi quét mọi file được track tìm câu nói ngược.
+      # Miễn trừ phải khai kèm `ly_do` ≥ 20 ký tự, và miễn trừ CHẾT (trỏ vào chỗ không còn mâu thuẫn) bị
+      # báo ra — không thì danh sách miễn trừ tự phình lên và cửa thành cửa giả.
+      - name: Tài liệu không nói ngược luật canonical (rule:consistency)
+        run: npm run rule:consistency
+
+      # Thêm một lệnh `/` hoặc một workflow mà không thêm dòng vào bảng định tuyến thì nó tồn tại mà
+      # không ai biết khi nào nên dùng — và quan trọng hơn, khi nào KHÔNG nên. Cửa đọc mẫu số từ ĐĨA,
+      # nên điểm vào mới là tự có mặt trong phép đo.
+      #
+      # Nó cũng chặn ô "KHÔNG dùng khi" để trống: đó là cột duy nhất ba bản liệt kê lệnh đã có
+      # (CHEATSHEET / kit-map / skills INDEX) KHÔNG có, tức là cả lý do bảng này tồn tại.
+      - name: Bảng định tuyến phủ mọi điểm vào (router:check)
+        run: npm run router:check
+
+      # Bảng nghiệm thu là lớp DẪN XUẤT viết tay, và mọi bảng viết tay trong kit đều đã trôi ít nhất một
+      # lần. Bảng nghiệm thu trôi thì tệ hơn bảng thường: nó là thứ người ta đọc để tin đợt làm đã xong.
+      # Cửa chặn dòng để trống, chặn tên máy bịa, và chặn cả khối "CHƯA CÓ MÁY" rỗng — một đợt làm không
+      # còn chỗ nào thiếu máy là lời khai đáng ngờ hơn đáng mừng.
+      - name: Bảng nghiệm thu A_PARITY không có dòng treo (parity:check)
+        run: npm run parity:check
 
       # Trang docs/library/ và tài liệu hướng dẫn là lớp DẪN XUẤT: viết tay, nguồn thì đổi liên tục.
       # Trước đây gate này chỉ chạy khi có người NHỚ gõ lệnh — tức là nó chưa thật sự gác cổng.

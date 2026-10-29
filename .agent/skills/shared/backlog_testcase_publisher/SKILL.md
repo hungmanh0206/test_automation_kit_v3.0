@@ -73,3 +73,14 @@ rồi agent `update_file` đẩy bản đã merge lên Drive.
 - Ghi đè Sheet (`update_file`) khi chưa review nội dung `.xlsx` local sắp upload.
 - Trộn testcase publish với Backlog bug logging sau Phase 2 — hai việc khác nhau, khác đích (Sheet vs Backlog).
 - Giả lập/viết code service-account hoặc OAuth mới cho việc này — auth dùng đúng Drive MCP đã kết nối sẵn trong phiên chat; nếu cần automation headless không có Claude, đó là việc khác, quay lại `scripts/integrations/google_sheet/` (scaffolding service-account có sẵn nhưng chưa wire) làm điểm bắt đầu.
+
+## Dùng khi · KHÔNG dùng khi
+
+| | |
+|---|---|
+| **Dùng khi** | Phase 1 đã chốt và bản xuất Excel đã qua gate, cần đưa bộ TC lên Google Sheet cho người ngoài đọc |
+| **KHÔNG dùng khi** | Bộ TC chưa qua `npm run gate:gen-testcase` và `npm run design:gate` — đẩy lên rồi sửa là sửa ở chỗ nhiều người đang đọc · Cần ghi KẾT QUẢ execute ngược vào cột `Result` ⇒ `npm run merge:execution-status`, không phải skill này · Sửa nội dung TC thẳng trên Sheet rồi coi bản đó là bản chuẩn — **MD canonical** mới là nguồn (CLAUDE.md §6), bản trên Sheet chỉ là bản trình bày · Drive MCP chưa nối — khi đó dừng và báo, đừng tạo file rời rồi gửi tay |
+
+**Câu kích hoạt mẫu:** "đẩy testcase lên Google Sheet" · "publish bộ TC" · "tạo sheet testcase cho BA xem" · "share bộ case này ra ngoài"
+
+⚙️ **Máy kiểm:** `npm run gate:output` (soi định dạng + độ đầy đủ trước khi đẩy) · `npm run gate:gen-testcase` cho lượt sinh TC. Cả hai chạy TRƯỚC khi publish — sau khi đẩy thì gate chỉ còn là bản kiểm hậu.

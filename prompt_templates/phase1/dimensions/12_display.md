@@ -49,6 +49,7 @@
    - `texts[]` cho empty-state/label/tiêu đề.
 2. Màn nào hiển thị **cùng một dữ liệu ở ≥2 chỗ** (vd Create/Edit và Order detail) → khai `fields` cho **cả hai** với cùng `expectedFields`. Lệch nhãn giữa 2 màn chỉ lộ khi cả hai cùng bị đối chiếu với một danh sách.
 3. Phase 2 **phải chạy** `node scripts/qa/ui_conformance_check.js --catalog <ui_catalog.json>`; sai lệch báo ra là bug hiển thị, không được tự bỏ qua.
+4. Bản `.md` đi kèm phải **khai NGUỒN** của catalog, và chạy `npm run recon:check -- --task <TASK_KEY>` để kiểm. Ba hình dạng hợp lệ: ① trích từ đặc tả (kèm câu CẤM lấy nhãn từ build đang chạy) · ② nguồn là **ảnh chụp build** khi task không có FS/Figma — hợp lệ, nhưng phải khai luôn giới hạn *"case dựa trên catalog này KHÔNG chứng minh build đúng đặc tả"* · ③ không khai nguồn gì ⇒ **CHẶN**. Dòng nào khai quan sát thì phải kèm dấu "chưa đo"/`OBSERVATION` — một nhãn lấy từ app rồi dùng làm expected là so app với chính nó, và phép so đó luôn PASS kể cả khi app sai.
 
 **Khung hoài nghi bắt buộc.** Giả định build CÓ THỂ lệch tài liệu. Nhiệm vụ là ĐỐI CHIẾU ngược build với tài liệu rồi liệt kê MỌI khác biệt, kể cả nhỏ như hoa thường, `-` thay vì `/`, hay thiếu 1 cột. KHÔNG mặc định build đúng, KHÔNG tự lọc bỏ "lỗi nhỏ".
 

@@ -1,0 +1,69 @@
+{
+  "_why": "Luật đổi ở MỘT chỗ canonical, nhưng nó được nhắc lại ở hàng chục chỗ khác — rule, prompt, skill, workflow, command, tài liệu chạy tay. Đổi luật mà không quét hết thì agent đọc prompt cũ vẫn làm theo luật cũ, và không có gì báo động. Đo 28/10/2026 khi dựng máy này: luật evidence đổi sang mức B ngày 22/10, nhưng 10 dòng ở 9 file vẫn dạy luật cũ, VÀ một máy gác (manual-run-usability.spec.ts) còn đang CƯỠNG CHẾ luật cũ.",
+  "_gioi_han": "Máy này DÒ CÂU, không hiểu nghĩa. Nó chỉ bắt được mệnh đề đã khai ở đây. Mệnh đề nào chưa khai thì không được canh — và im lặng không có nghĩa là nhất quán. Thêm luật mới thì phải thêm mục vào đây, nếu không máy này sẽ gác một nửa.",
+  "_enforced_by": "scripts/qa/rule_consistency.js — npm run rule:consistency",
+
+  "mien_tru": [
+    "CHANGELOG.md",
+    "BUILD_JOURNAL.md",
+    "docs/rationale/**",
+    "docs/v*/**",
+    "docs/token-diet/**",
+    "node_modules/**",
+    "outputs/**",
+    ".git/**",
+    "tests/fe/infra/rule-consistency.spec.ts"
+  ],
+  "_mien_tru_vi_sao": "Đây là vùng LỊCH SỬ: chúng kể lại luật từng như thế nào, nên chúng PHẢI được quyền nhắc câu cũ. Chặn chúng là bắt lịch sử nói dối. Riêng `tests/fe/infra/rule-consistency.spec.ts` miễn vì lý do khác: nó là BỘ KIỂM của chính máy này, nên bắt buộc phải chứa câu vi phạm làm đối chứng dương. Không miễn thì gate tự chặn bộ kiểm của nó — và cách chữa duy nhất còn lại là xoá đối chứng, tức làm gate thành đồ trang trí. Phát hiện ra chuyện này đúng lúc stage spec: gate đếm theo `git ls-files`, nên lúc file chưa track thì nó chưa nằm trong phạm vi.",
+
+  "mien_tru_dong": [
+    {
+      "file": "prompt_templates/run_phase2_template.md",
+      "chua": "mọi step tự set = PASSED",
+      "ly_do": "DƯƠNG TÍNH GIẢ. Dòng này nói về `status` (case PASSED thì step tự set PASSED), còn yêu cầu ảnh mà nó nêu là ảnh CẤP CASE — đúng mức B. Bộ dò làm việc theo DÒNG nên không tách được hai mệnh đề trong cùng một dòng."
+    },
+    {
+      "file": "scripts/qa/output_gate.js",
+      "chua": "ĐỔI 22/10/2026 (mức B). Trước:",
+      "ly_do": "LỊCH SỬ TRONG CODE. Chú thích kể lại luật cũ để người đọc hiểu vì sao đổi. Nằm trong chính máy thi hành luật mới."
+    },
+    {
+      "file": "tests/fe/infra/manual-run-usability.spec.ts",
+      "chua": "Nó đòi đúng chuỗi",
+      "ly_do": "LỊCH SỬ TRONG CODE. Chú thích kể lại việc gate này từng cưỡng chế luật cũ (sửa 28/10/2026), để lần sau không ai neo gate vào chữ của luật."
+    }
+  ],
+  "_mien_tru_dong_vi_sao": "Miễn trừ theo DÒNG, không theo file: miễn cả file là mất luôn phần còn lại của file đó. Mỗi mục phải có `ly_do` — một miễn trừ không giải thích được thì là một lần nới luật, không phải một ngoại lệ. Khớp theo CHUỖI CON chứ không theo số dòng, vì số dòng trôi mỗi lần sửa file.",
+
+  "menh_de": [
+    {
+      "ma": "EVIDENCE-MUC-B",
+      "ten": "Độ sâu evidence theo mức B",
+      "canonical": {
+        "file": "RULE_GLOBAL.md",
+        "muc": "### Evidence — Quy chuẩn bắt buộc → PHẠM VI (đổi 22/10/2026)",
+        "tom_tat": "Case thường: 1 ảnh/video ở bước QUYẾT ĐỊNH. Case tầng bug (product_bug/api_bug): ảnh TỪNG step. MỌI step vẫn phải có status."
+      },
+      "cam": {
+        "bat": "(MỌI|mỗi|từng)\\s+step",
+        "chi_khi_cung_dong_co": "ảnh|evidence|capture|screenshot",
+        "tha_khi_cung_dong_co": "bước\\s+quyết định|quyết định|tầng bug|product_bug|api_bug|status|trạng thái",
+        "_vi_sao_tha": "Ba nhóm chữ tha là ba cách nói ĐÚNG luật mới: nói về bước quyết định, nói về case tầng bug, hoặc nói về status (vế KHÔNG đổi). Một dòng mang chúng thì nó đang phát biểu luật mới, không phải luật cũ."
+      },
+      "pham_vi": [
+        "RULE_GLOBAL.md",
+        "CLAUDE.md",
+        "USER_GUIDE.md",
+        ".agent/rules/**/*.md",
+        ".agent/skills/**/*.md",
+        ".agent/workflows/**/*.md",
+        ".claude/commands/**/*.md",
+        "prompt_templates/**/*.md",
+        "manual-run/**/*.md",
+        "scripts/**/*.js",
+        "tests/fe/infra/**/*.ts"
+      ],
+      "_vi_sao_co_scripts_va_tests": "Hai chỗ bị sót ở lần đo 28/10 đều NGOÀI *.md: header của scripts/utils/evidence_recorder.js dạy luật cũ, và tests/fe/infra/manual-run-usability.spec.ts CƯỠNG CHẾ luật cũ. Quét chỉ *.md là bỏ đúng hai chỗ nặng nhất."
+    }
+  ]
+}

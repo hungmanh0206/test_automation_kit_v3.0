@@ -1,4 +1,4 @@
-/* NHÓM 3 — 26 skill (nguồn: .agent/skills/INDEX.md + từng SKILL.md) */
+/* NHÓM 3 — 28 skill (nguồn: .agent/skills/INDEX.md + từng SKILL.md) */
 const TERMS_SKILL = [
 
 /* ── Phase 1 ── */
@@ -193,6 +193,23 @@ const TERMS_SKILL = [
   ex:'Gate chặn ở chỗ SINH case chứ không chỉ ở chỗ chạy, vì output_gate không nhìn thấy cột Loại case.',
   trap:'Mock rồi kết luận "đã lưu vào DB" là tautology. Có máy bắt đúng câu đó.',
   src:'.agent/skills/phase2/ui_mocking/SKILL.md', rel:['c-tautology','c-oracle','f-phase2'] },
+
+{ id:'sk-automation_reviewer', t:'automation_reviewer', cat:'skill', phase:'Phase 2',
+  def:'Chấm độ tin của một bộ spec đã viết: nó xanh vì sản phẩm đúng, hay xanh vì nó không kiểm gì.',
+  detail:'Gọi bó cửa auto:review (9 luật) rồi soi tay năm chỗ máy mù — test phụ thuộc nhau, cleanup dọn sai thứ, oracle so app với chính app, dữ liệu trùng giữa hai lượt, data của task lọt vào suite chung. Chỗ quan trọng nhất là oracle tautology, vì máy không đọc được đặc tả nên nó mù hoàn toàn ở đó.',
+  why:'Gate đọc được chữ, không đọc được ý. Một bộ spec qua sạch chín luật vẫn có thể toàn case so app với chính app — và đó là kiểu xanh giả ổn định nhất, nên không ai nghi.',
+  ex:'Kit có BA dạng oracle: expect() của Playwright, assert: trong c.step, và status: TÍNH ĐƯỢC. Riêng status: PASSED viết cứng thì không phải oracle.',
+  trap:'Đo 29/10/2026: một detector chỉ biết expect() cho 4/5 dương tính giả, cả bốn vì nó không biết EvidenceRecorder của chính kit. Người review mắc đúng lỗi đó sẽ đòi sửa những spec đang kiểm đúng.',
+  src:'.agent/skills/phase2/automation_reviewer/SKILL.md', rel:['g-auto_review','c-tautology','c-oracle','f-phase2'] },
+
+{ id:'sk-run_report_reader', t:'run_report_reader', cat:'skill', phase:'Shared',
+  def:'Đọc kết quả một lượt chạy theo đúng thứ tự và đúng nguồn — artifact nào trả lời được câu gì.',
+  detail:'Sáu bước, mỗi bước ghi rõ nó KHÔNG trả lời được gì: results:summary cho biết case nào đỏ nhưng không cho biết vì sao; run:analysis cho biết lượt này có đủ mẫu số để phán chưa; ảnh cho biết app thật sự hiện gì; trace:matrix --pm cho biết module nào đang hổng; data:chain cho biết verdict nào đứng trên tiền đề chưa dựng.',
+  why:'Một lượt chạy để lại hàng trăm tệp, nên đọc sai thứ tự là tốn token cho thứ không trả lời được câu đang hỏi. Và có bốn câu mà các artifact nói NGƯỢC nhau — Excel chỉ có lô mới nhất, OBSERVATION không đè verdict cũ, did not run giữ verdict trước đó.',
+  how:['CẤM đọc results.json thô: nó dài, và results:summary đã bóc mã màu ANSI cùng phần lặp.','Ảnh trước, code sau — một bộ đo lệch sinh ra product_bug giả, đã có phiên 7 lần liên tiếp.'],
+  ex:'0% lỗi trên 0 request là KHÔNG BIẾT, không phải đạt. Áp cho cả perf, load và mọi phép đếm.',
+  trap:'% coverage có mẫu số là số TC ĐÃ VIẾT, không phải số thứ cần kiểm. Bộ case thiếu một vùng thì vùng đó không có dòng nào, và 100% vẫn không nói gì về nó.',
+  src:'.agent/skills/shared/run_report_reader/SKILL.md', rel:['g-summarize_results','g-run_analysis','g-data_chain','c-oracle'] },
 
 { id:'sk-release_summary', t:'release_summary', cat:'skill', phase:'Shared',
   def:'Dựng bản tóm tắt go/no-go cho một đợt phát hành, có nguồn cho từng tiêu chí.',

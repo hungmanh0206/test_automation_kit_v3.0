@@ -39,6 +39,13 @@ const REPO = path.resolve(__dirname, '..', '..');
 const CUA = [
   { ten: 'gates:index:check', file: 'scripts/qa/gate_index.js', args: ['--check'] },
   { ten: 'rule:coverage:check', file: 'scripts/qa/rule_coverage.js', args: ['--check'] },
+  /*
+   * `rule:consistency` vào đây (28/10/2026) vì nó cùng HỌ với hai cửa trên: cả ba canh "tài liệu khớp
+   * nguồn", và cả ba chỉ đáng tin khi đo ở CÂY SẠCH. Lý do cụ thể: luật evidence đổi sang mức B ngày
+   * 22/10 mà 14 dòng ở 12 file vẫn dạy luật cũ — trong đó một máy gác còn đang CƯỠNG CHẾ luật cũ. Phát
+   * hành một gói dạy hai luật trái nhau thì người nhận làm theo cái nào cũng có cửa chặn họ.
+   */
+  { ten: 'rule:consistency', file: 'scripts/qa/rule_consistency.js', args: [] },
 ];
 
 function headSha() {

@@ -29,7 +29,7 @@ Dùng cho REST API testcase, contract validation, auth flow và API setup/cleanu
 
 ## Evidence
 
-- Bắt buộc cho MỌI case đã execute (PASS và FAIL) + MỌI step; evidence hợp lệ CHỈ ảnh/video — chụp màn hiển thị response/data đã render. Request/response summary chỉ là log debug local, KHÔNG phải evidence.
+- Bắt buộc cho MỌI case đã execute (PASS và FAIL): case thường 1 ảnh/video ở **bước quyết định**, case tầng bug (`product_bug`/`api_bug`) ảnh **từng step**. Mọi step vẫn phải có `status` riêng. Evidence hợp lệ CHỈ ảnh/video — chụp màn hiển thị response/data đã render. Request/response summary chỉ là log debug local, KHÔNG phải evidence.
 - Backlog attachment chỉ ảnh/video (cấm `.json/.md/.txt/.log/.html/.csv/trace.zip`); cần proof thì kèm screenshot. Chi tiết: RULE_GLOBAL §Evidence.
 
 ## Anti-Patterns

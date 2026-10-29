@@ -63,6 +63,21 @@ const SESSION_FIELDS = [
   { key: 'Ngày', re: /ng(?:à|a)y\s*[:：]\s*(.+)/i },
   { key: 'Môi trường', re: /m(?:ô|o)i tr(?:ườ|uo)ng(?:[^:：]*)[:：]\s*(.+)/i },
   { key: 'Build', re: /build(?:\s*\/\s*version)?\s*[:：]\s*(.+)/i },
+  /*
+   * ĐƠN VỊ / CẤP HỌC (v2.9.5 §7) — trường thứ năm, và nó có lý do riêng.
+   *
+   * `Môi trường` chỉ ghi host. Nhưng trên app này, thứ làm hỏng một phép đo nhiều nhất KHÔNG phải sai
+   * host mà là **chạy trên đơn vị hoặc cấp học khác với cái case cần**: một tài khoản chỉ thuộc một cấp,
+   * hai task khác cấp chạy song song đổi cấp của nhau, và URL màn khác nhau theo cấp. Lượt chạy tay
+   * không ghi lại đơn vị thì về sau không ai phân biệt được "app sai" với "đo sai chỗ".
+   *
+   * Nhận cả `Đơn vị`, `Cấp học`, `Trường` — khai một trong ba là đủ, vì tuỳ màn thứ quyết định là cái nào.
+   *
+   * PHẢI NEO VÀO ĐẦU MỤC (`^[-*\s]*`). Bản đầu khớp ở giữa dòng, và `trường` nằm ngay trong **Môi
+   * trường** — nên dòng ghi host tự thoả trường này, và cửa báo ĐẠT trên một sổ phiên chưa khai đơn vị.
+   * Dấu hiệu: thêm trường thứ năm mà 14/14 phép kiểm cũ vẫn xanh, tức không có gì thật sự được đòi thêm.
+   */
+  { key: 'Đơn vị / cấp học', re: /^[-*\s]*(?:đ(?:ơ|o)n v(?:ị|i)|c(?:ấ|a)p h(?:ọ|o)c|tr(?:ườ|uo)ng)(?:[^:：\n]*)[:：]\s*(.+)/im },
 ];
 
 /* Giá trị "trông như đã điền nhưng chưa" — cùng khuôn placeholder của scope_anchor. */
@@ -119,6 +134,15 @@ function kiem(taskDir) {
     }
   }
 
+  /*
+   * MỤC "KHÔNG PHÁN ĐƯỢC" (v2.9.5 §7) — kiểm Ở DƯỚI, sau khi đã đọc được verdict.
+   *
+   * Người chạy tay là người gặp nhiều nhất tình huống không phán nổi: tiền đề không dựng được, màn không
+   * mở, dữ liệu không có. Luật đã nói rõ "không phán được KHÔNG thành PASS", nhưng sổ phiên lại không có
+   * chỗ nào ghi những ca đó — nên chúng chỉ còn tồn tại dưới dạng một verdict `BLOCKED` trong JSON, không
+   * ai biết vì sao. Mục này buộc mỗi ca như vậy phải có một dòng LÝ DO do người viết.
+   */
+
   // ── Kết quả: đi đúng đường của Phase 2, không tạo khuôn thứ hai ────────────────────────────────
   if (!fs.existsSync(statusPath)) {
     problems.push('thiếu `test-results/testcase-status.json` — đây là khuôn kết quả DUY NHẤT (`merge_execution_status.js` đọc nó để ghi cột Result). Chạy tay xong mà không ghi vào đó thì verdict không về được Sheet.');
@@ -147,6 +171,39 @@ function kiem(taskDir) {
     if (!laManual(tc)) {
       const tag = (String(tc.precondition || '').match(/^\s*\[([a-z_]+)\]/i) || [])[1] || 'không có tag';
       problems.push(`${id}: chạy TAY nhưng ô Tiền điều kiện khai \`[${tag}]\`, không phải \`[manual]\`. Nhánh này CHỈ dành cho case không dựng được state tự động. Case tự động hoá được mà đẩy sang chạy tay là lách automation, và coverage tụt mà không ai thấy. Muốn đổi thì sửa lời khai ở Phase 1 kèm lý do, đừng đổi ở đây.`);
+    }
+  }
+
+  /*
+   * ② MỖI CA "KHÔNG PHÁN ĐƯỢC" PHẢI CÓ LÝ DO TRONG SỔ PHIÊN.
+   *
+   * `BLOCKED*` / `SKIP*` trong JSON là một verdict hợp lệ, nhưng tự nó không nói vì sao. Người đọc về
+   * sau chỉ thấy một mã, và mã đó trông y như nhau dù lý do là "chưa tìm thấy dữ liệu" hay "app chặn
+   * không cho vào". Đòi một dòng LÝ DO do người viết, trong mục `## Không phán được` của sổ phiên.
+   */
+  const khongPhan = tests
+    .map((t) => ({ id: t.tcId || t.testKey || t.id || '', s: String(t.status || '') }))
+    .filter((x) => x.id && /^(BLOCKED|SKIP)/i.test(x.s));
+  if (khongPhan.length && sessionText !== undefined) {
+    /*
+     * CẮT THEO CHỈ SỐ, không dùng lookahead.
+     *
+     * Bản đầu viết `(?=^##\s|\Z)` — và `\Z` KHÔNG tồn tại trong regex JS: nó khớp chữ `Z` thật. Nên mục
+     * nằm ở CUỐI file (không có tiêu đề nào sau nó) không bao giờ khớp, và cửa luôn báo "thiếu mục" dù
+     * mục có đủ. Tệ hơn: phép kiểm dương tính của tôi vẫn xanh — nó xanh vì lý do SAI. Chỉ phép kiểm
+     * chiều ÂM mới lộ ra chuyện đó.
+     */
+    const dong = sessionText.split(/\r?\n/);
+    const iMuc = dong.findIndex((l) => /^##+\s*Kh(?:ô|o)ng ph(?:á|a)n đ(?:ư|u)ợc/i.test(l));
+    const iHet = iMuc < 0 ? -1 : dong.findIndex((l, k) => k > iMuc && /^##\s/.test(l));
+    const muc = iMuc < 0 ? null : [dong.slice(iMuc, iHet < 0 ? dong.length : iHet).join('\n')];
+    if (!muc) {
+      problems.push(`\`session.md\`: có ${khongPhan.length} case verdict \`BLOCKED\`/\`SKIP\` nhưng sổ phiên KHÔNG có mục \`## Không phán được\`. Một mã verdict không tự nói vì sao — và "không phán được" là chỗ dễ biến thành PASS nhất nếu không ai ghi lại.`);
+    } else {
+      const thieu = khongPhan.filter((x) => !muc[0].includes(x.id));
+      if (thieu.length) {
+        problems.push(`\`session.md\`: mục \`## Không phán được\` thiếu ${thieu.length}/${khongPhan.length} case: ${thieu.slice(0, 5).map((x) => x.id).join(', ')}${thieu.length > 5 ? ' …' : ''}. Mỗi ca phải có một dòng lý do.`);
+      }
     }
   }
 

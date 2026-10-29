@@ -159,7 +159,7 @@ Output:
 
 - Testcase phải được execute thật theo logic nghiệp vụ và expected result đã review.
 - Không được pass ảo bằng cách skip case, mock sai mục đích, xóa assertion quan trọng, hoặc đổi expected result tùy tiện.
-- **Evidence bắt buộc cho MỌI case đã execute (PASS và FAIL) và MỌI step**: mỗi case PASS/FAIL phải có evidence cụ thể (ảnh); mỗi step phải đánh dấu PASS/FAIL riêng và có 1 ảnh **highlight vào đúng element/vùng đang kiểm**. Case `TODO`/chưa chạy KHÔNG cần evidence.
+- **Evidence bắt buộc cho MỌI case đã execute (PASS và FAIL)**: **1 ảnh ở bước QUYẾT ĐỊNH**; case tầng bug thì **TỪNG step**. Mọi step vẫn phải đánh dấu PASS/FAIL riêng. Ảnh **highlight đúng element/vùng đang kiểm**. Case `TODO`/chưa chạy KHÔNG cần.
 - Không được skip testcase chỉ để tăng pass rate.
 - Không được sửa test theo hướng làm giảm chất lượng kiểm thử hoặc giảm coverage.
 - Không được đổi expected result nếu chưa chứng minh expected cũ sai bằng requirement, BA/PO confirmation, Swagger/OpenAPI, design, hoặc tài liệu nguồn đáng tin cậy.

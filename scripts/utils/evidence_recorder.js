@@ -1,7 +1,13 @@
 /**
- * EvidenceRecorder — chuẩn hoá evidence Phase 2 để MỌI case (PASS/FAIL) và MỌI step đều có:
- *   - trạng thái pass/fail theo từng step,
- *   - 1 ảnh evidence highlight vào đúng element được kiểm ở step đó.
+ * EvidenceRecorder — chuẩn hoá evidence Phase 2 theo mức B (đổi 22/10/2026):
+ *   - MỌI step của MỌI case đã execute phải có trạng thái pass/fail — chỗ này KHÔNG đổi;
+ *   - ẢNH thì theo độ sâu: case thường 1 ảnh ở BƯỚC QUYẾT ĐỊNH, case tầng bug
+ *     (`product_bug`/`api_bug`) ảnh TỪNG step, đủ chuỗi để dev dựng lại;
+ *   - ảnh nào cũng highlight vào đúng element được kiểm ở step đó.
+ *
+ * Recorder vẫn chụp được từng step — nó là công cụ, không phải chỗ phán. Máy quyết định đủ hay thiếu
+ * là `scripts/qa/output_gate.js` (nhận tầng bug bằng `laTangBug()` trong `lib/output_rules.js`).
+ * Luật: `RULE_GLOBAL.md` §Evidence. Số đo và lý do: `docs/rationale/evidence-muc-b.md`.
  *
  * Ảnh lưu: <projectOutputDir>/tasks/<taskKey>/test-results/evidence/<TC_ID>/<CẤP>/step-NN-<status>.png
  * Ghi ra:  <projectOutputDir>/tasks/<taskKey>/test-results/testcase-status.json

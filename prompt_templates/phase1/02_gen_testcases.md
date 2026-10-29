@@ -72,11 +72,13 @@ Một case mang **đúng một** loại. Thấy hợp 2 loại nghĩa là case �
 
 ## 0. Tiết kiệm token và context
 
-- Ưu tiên đọc requirement từ file/link/artifact local; không yêu cầu dán toàn bộ Backlog/tài liệu nguồn/Figma/Swagger vào prompt.
+- Đọc requirement từ file/artifact local; đừng đòi dán cả Backlog/Figma/Swagger vào prompt.
 - Nếu đã có `task.md`, raw requirement, snapshot hoặc `reports/phase1-summary.md`, dùng chúng làm nguồn chính và chỉ đọc thêm section còn thiếu.
 - Khi tài liệu lớn, chỉ mở phần liên quan đến module, user story, acceptance criteria, screen, endpoint hoặc business rule trong scope.
-- Coverage map có thể tạo nội bộ hoặc lưu vào `reports/phase1-summary.md`; không cần paste toàn bộ coverage map vào chat.
+- Coverage map lưu vào `reports/phase1-summary.md`; không paste cả map vào chat.
 - Không đọc file example của task khác trừ khi user yêu cầu dùng example đó làm input.
+- **Write-first — KHÔNG in bảng TC ra chat.** Ghi thẳng vào `test-cases/*.md` sau mỗi lô; in bảng rồi mới ghi file là bắt người chờ hai lần cho cùng nội dung. Chat chỉ hiện một dòng tiến độ mỗi lô (`lô 2/4 · validation · 18 case → test-cases/02-validation.md`), tối đa 3–5 dòng minh hoạ, và bảng đối soát ở cuối.
+- **Chia lô 15–25 case theo NHÓM CHỨC NĂNG**, công bố kế hoạch lô trước, rồi chạy hết mọi lô **trong một lượt** — đừng dừng hỏi "có tiếp không". Bộ TC dở nửa là bộ không ai dùng được.
 
 ## 0. Phân nhóm testcase bắt buộc
 
@@ -89,13 +91,9 @@ Vẫn giữ đúng template 10 cột — KHÔNG tự thêm cột thứ 11. Thay 
 `Nhóm chức năng` là nhóm chính theo business flow, không phải layer kỹ thuật thuần túy. Nhóm phải được suy ra từ domain/scope hiện tại, không hardcode theo một task cụ thể.
 
 Nguyên tắc đặt nhóm:
-- Dùng tên nhóm nghiệp vụ mà QA/BA/dev trong scope đó có thể review và lọc được.
-- Với CRUD/admin tool, có thể dùng các nhóm như `Xem danh sách`, `Xem chi tiết`, `Tạo`, `Sửa`, `Xóa`.
-- Với domain khác, thay bằng nhóm phù hợp, ví dụ: `Đăng nhập`, `Đăng ký`, `Thanh toán`, `Giỏ hàng`, `Quản lý hồ sơ`, `Tìm kiếm`, `Thông báo`, `Báo cáo`, `Cấu hình`, `Import/Export`.
-- Với API testcase, nếu endpoint phục vụ rõ một business flow thì nhóm chính vẫn là business flow đó, ví dụ `Tạo / API POST /api/v1/examination`, không tách thành nhóm chính `API`.
-- Chỉ dùng nhóm chính `API` khi testcase kiểm endpoint/platform behavior không thuộc flow nghiệp vụ cụ thể nào.
-- Với E2E/cross-app, nếu flow có business flow rõ thì nhóm chính vẫn là flow đó, ví dụ `Tạo / App 1 tạo bản ghi -> App 2 sync`; chỉ dùng `E2E/Cross-app` khi flow chính là sync/tích hợp đa hệ thống.
-- Với permission/security, nếu permission gắn với flow rõ thì nhóm chính vẫn là flow đó, ví dụ `Sửa / Permission role teacher cannot edit`; chỉ dùng `Permission/Security` khi testcase chủ yếu kiểm auth/role/security độc lập.
+- Tên nhóm phải là tên nghiệp vụ mà QA/BA/dev trong scope lọc được.
+- CRUD/admin tool: `Xem danh sách` · `Xem chi tiết` · `Tạo` · `Sửa` · `Xóa`. Domain khác thì thay bằng nhóm phù hợp (`Đăng nhập`, `Thanh toán`, `Quản lý hồ sơ`, `Báo cáo`, `Import/Export`…).
+- **Luật chung cho API · E2E/cross-app · permission/security:** gắn được vào một business flow rõ thì nhóm chính là flow đó (`Tạo / API POST /api/v1/examination` · `Tạo / App 1 tạo bản ghi -> App 2 sync` · `Sửa / role teacher không sửa được`). Chỉ dùng nhóm chính `API` / `E2E-Cross-app` / `Permission-Security` khi case kiểm chính bản thân endpoint, luồng tích hợp đa hệ thống, hoặc auth/role độc lập.
 - KHÔNG thêm cột label vào bảng testcase. **Không có label**: nhóm chức năng thể hiện qua **sheet riêng** trong workbook (1 sheet/nhóm chức năng, do `md_to_xlsx.js` dựng), TC ID nằm ở cột `ID_TC`.
 - `Khác` chỉ dùng khi requirement không thuộc nhóm nào rõ ràng và phải giải thích trong Coverage Gaps.
 

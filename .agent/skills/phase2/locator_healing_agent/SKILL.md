@@ -83,3 +83,14 @@ runtime (kit là Node thuần, không thêm dependency).
 - `.agent/rules/locator_strategy.md` — thứ tự ưu tiên khi viết locator (không sửa).
 - Neo workflow: `.agent/workflows/phase2_03_execute_and_auto_heal.md` (Bước 4).
 - [[learning_recorder]] — chuẩn ghi `knowledge/`; heal history dùng chung `knowledge/index.json`.
+
+## Dùng khi · KHÔNG dùng khi
+
+| | |
+|---|---|
+| **Dùng khi** | Một locator **ACTION** (click/fill/select) fail lúc execute và cần thử chuỗi fallback · Màn đã đổi layout và muốn ghi lại locator bền vào `knowledge/locators/` cho sprint sau |
+| **KHÔNG dùng khi** | Locator của một **ASSERTION** fail — skill này cố ý KHÔNG heal assertion, vì heal cái đang đo nghĩa là đổi phép đo cho khớp app, đúng định nghĩa gian lận để PASS · Chưa chạy lần nào mà đã muốn "sửa locator cho chắc" ⇒ drive thật trước đã · Cần hiểu VÌ SAO màn không bấm được (DOM nói dối, iframe, hộp 0×0) ⇒ `ui_debug_agent`; skill này tìm locator thay thế, nó không chẩn đoán |
+
+**Câu kích hoạt mẫu:** "locator này fail rồi" · "tự sửa selector giúp" · "click không trúng nút" · "selector đổi sau khi app update"
+
+⚙️ **Máy kiểm:** `npm run lint:locator` cảnh báo locator dễ vỡ, `npm run lint:locator:enforce` CHẶN — và nó đòi mỗi locator dễ vỡ phải có marker kèm lý do, nên heal xong không được để lại locator trần.

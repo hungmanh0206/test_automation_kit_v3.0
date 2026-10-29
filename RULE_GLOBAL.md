@@ -38,7 +38,7 @@
 | 3 | [Inputs](#inputs) | 90-102 | 332 | npm run rule -- 3 |
 | 4 | [Outputs](#outputs) | 103-172 | 1220 | npm run rule -- 4 |
 | 5 | &nbsp;&nbsp;[Giọng văn output](#giọng-văn-output) | 115-172 | 906 | npm run rule -- 5 |
-| 6 | [Rules](#rules) | 173-822 | 15534 | npm run rule -- 6 |
+| 6 | [Rules](#rules) | 173-822 | 15562 | npm run rule -- 6 |
 | 7 | &nbsp;&nbsp;[Language](#language) | 175-181 | 80 | npm run rule -- 7 |
 | 8 | &nbsp;&nbsp;[Security](#security) | 182-195 | 498 | npm run rule -- 8 |
 | 9 | &nbsp;&nbsp;[Project And Output](#project-and-output) | 196-207 | 284 | npm run rule -- 9 |
@@ -51,7 +51,7 @@
 | 16 | &nbsp;&nbsp;[Chiều coverage (Phase 1 — khai phạm vi, gắn tag, có máy đếm)](#chiều-coverage-phase-1-khai-phạm-vi-gắn-tag-có-máy-đếm) | 316-336 | 544 | npm run rule -- 16 |
 | 17 | &nbsp;&nbsp;[Execution Discipline (Kỷ luật thực thi — chạy thông suốt)](#execution-discipline-kỷ-luật-thực-thi-chạy-thông-suốt) | 337-346 | 452 | npm run rule -- 17 |
 | 18 | &nbsp;&nbsp;[7 trục mở rộng quanh case + luật đóng vòng (Phase 2 — có máy đứng sau)](#7-trục-mở-rộng-quanh-case-luật-đóng-vòng-phase-2-có-máy-đứng-sau) | 347-581 | 4339 | npm run rule -- 18 |
-| 19 | &nbsp;&nbsp;[Execute Results](#execute-results) | 582-601 | 224 | npm run rule -- 19 |
+| 19 | &nbsp;&nbsp;[Execute Results](#execute-results) | 582-601 | 252 | npm run rule -- 19 |
 | 20 | &nbsp;&nbsp;[Phân tầng lỗi FE hay BE — bắt buộc kiểm API trước khi kết luận](#phân-tầng-lỗi-fe-hay-be-bắt-buộc-kiểm-api-trước-khi-kết-luận) | 602-616 | 307 | npm run rule -- 20 |
 | 21 | &nbsp;&nbsp;[Evidence — Quy chuẩn bắt buộc](#evidence-quy-chuẩn-bắt-buộc) | 617-630 | 762 | npm run rule -- 21 |
 | 22 | &nbsp;&nbsp;[Comment kết quả (Test Execution) — Quy chuẩn trình bày](#comment-kết-quả-test-execution-quy-chuẩn-trình-bày) | 631-642 | 396 | npm run rule -- 22 |
@@ -68,7 +68,7 @@
 | 33 | [Examples](#examples) | 896-903 | 80 | npm run rule -- 33 |
 | 34 | [References](#references) | 904-912 | 84 | npm run rule -- 34 |
 
-> Cả file ~19844 token. Tra MỘT mục thay vì đọc cả file: npm run rule -- <số|từ khoá>
+> Cả file ~19872 token. Tra MỘT mục thay vì đọc cả file: npm run rule -- <số|từ khoá>
 <!-- MỤC-LỤC:KẾT-THÚC -->
 
 ## Purpose
@@ -587,7 +587,7 @@ Sau mỗi testcase đã execute, cập nhật testcase và report với:
 |---|---|
 | `Status` | `PASS`, `FAIL` hoặc `SKIP`. |
 | `Actual Result` | Kết quả quan sát được, không ghi chung chung. |
-| `Evidence` | **Bắt buộc cho MỌI case đã execute (PASS và FAIL)** + **MỌI step** (mỗi step có status PASS/FAIL riêng và ảnh riêng). Case `TODO`/chưa chạy không cần. Capture bằng `scripts/utils/evidence_recorder.js`; ảnh/video dưới `test-results/artifacts/<TC_ID>/`. Phải tuân thủ đầy đủ mục **Evidence — Quy chuẩn bắt buộc** bên dưới. |
+| `Evidence` | **Bắt buộc cho MỌI case đã execute (PASS và FAIL)**: case thường **1 ảnh/video ở bước QUYẾT ĐỊNH**; case tầng bug (`product_bug`/`api_bug`) ảnh **TỪNG step**. **MỌI step vẫn phải có status PASS/FAIL riêng** — chỗ này không đổi. Case `TODO`/chưa chạy không cần. Capture bằng `scripts/utils/evidence_recorder.js`; ảnh/video dưới `test-results/artifacts/<TC_ID>/`. Phải tuân thủ đầy đủ mục **Evidence — Quy chuẩn bắt buộc** bên dưới. |
 
 Với testcase `FAIL`, `Actual Result` phải có:
 

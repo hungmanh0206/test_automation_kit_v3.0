@@ -77,3 +77,14 @@ mà `covered_by` rỗng (**coverage gap**: có sự thật nghiệp vụ nhưng 
 - [[learning_recorder]] — ghi **cái đã sai** (bug/root cause); skill này ghi **cái đúng**. Hai nửa của learning loop.
 - `.agent/workflows/phase1_01_prepare_context.md` bước 7 (Ambiguity Gate) — điểm bắt rule.
 - prompt gen `02_gen_testcases.md` §12/§13 — nơi oracle phải trích nguồn.
+
+## Dùng khi · KHÔNG dùng khi
+
+| | |
+|---|---|
+| **Dùng khi** | Một business rule vừa được BA/dev **xác nhận**, và cần nó thành neo `BR-…` trích được cho oracle của testcase |
+| **KHÔNG dùng khi** | Rule còn là **quan sát từ app** — ghi vào đây là biến app thành oracle, đúng thứ CLAUDE.md §3 cấm. Quan sát chưa xác nhận thì là `OBSERVATION` + câu hỏi Ambiguity Gate · Chưa có `source` cụ thể (tài liệu nào, ai xác nhận, ngày nào) — một rule không truy được nguồn thì lần sau không ai dám dựa vào · Rule chỉ đúng cho một task ⇒ nó thuộc `requirements/` của task, không thuộc `knowledge/domain/` dùng chung |
+
+**Câu kích hoạt mẫu:** "ghi rule này vào knowledge" · "BA vừa chốt luật này" · "lưu business rule đã xác nhận" · "có neo BR nào cho ca này chưa"
+
+⚙️ **Máy kiểm:** `npm run domain:check` (schema + cảnh báo "oracle ma" khi ref `BR-` không có thật) · `npm run domain:trace-back` dò rule không case nào phủ.

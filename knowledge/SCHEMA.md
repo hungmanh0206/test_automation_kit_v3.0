@@ -631,6 +631,14 @@ Index phẳng để tra cứu theo module/tag mà không phải quét toàn bộ
 }
 ```
 
-- `type`: `business_rule` | `system_map` | `decision` (kèm `subtype`: `state_machine`|`permission_matrix`|`shared_surface`) | `bug` | `root_cause` | `historical_execution` | `locator`.
+- `type` **của entry trong `index.json`**: `business_rule` | `system_map` | `decision` | `bug` | `root_cause` | `historical_execution` | `locator`.
+  Riêng `system_map` có thêm `subtype`: `state_machine` | `permission_matrix` | `shared_surface`.
+
+  ⚠️ **ĐỪNG LẪN với `type` trong FILE RECORD** — sửa 28/10/2026. Trong file record dưới `knowledge/system/`,
+  `type` nhận **thẳng** `state_machine` / `permission_matrix` / `shared_surface` (xem ví dụ §`permission_matrix`
+  bên trên), KHÔNG phải `system_map` + `subtype`. Dạng `system_map` + `subtype` chỉ dùng cho entry chỉ mục.
+  `scripts/qa/system_map.js` đọc `d.type === 'permission_matrix'`, nên record khai sai dạng sẽ bị BỎ QUA
+  **im lặng**: không lỗi, không cảnh báo, chỉ là ma trận đó không bao giờ được kiểm. Tôi đã dính đúng bẫy
+  này khi dựng fixture cho dòng tổng ba mức — mất một lượt đo mới thấy.
 - Tra theo module = lọc `entries` theo `module`; tra theo tag = lọc theo `tags`.
 - Mỗi lần thêm/cập nhật entry file → cập nhật `entries` tương ứng + `updated_at`.
