@@ -132,6 +132,13 @@ jobs:
       - name: Bảng nghiệm thu A_PARITY không có dòng treo (parity:check)
         run: npm run parity:check
 
+      # Recon sinh ra bản kê màn/API, rồi bản kê đó được dùng làm NGUỒN để viết case. Một endpoint mình
+      # tự gọi bằng `fetch` trả 200 không nói gì về việc UI có gọi nó — nhưng nó TRÔNG như một phát hiện.
+      # Cửa chặn 7 kiểu tự-gửi-request, và chặn CẢ CHIỀU NGƯỢC: xoá sạch `page.on('response')` thì recon
+      # không quan sát gì nữa, mà phép kiểm thứ nhất vẫn xanh. Chỉ đọc file trong repo nên chạy được ở CI.
+      - name: Recon chỉ quan sát, không dò (recon:passive)
+        run: npm run recon:passive
+
       # Trang docs/library/ và tài liệu hướng dẫn là lớp DẪN XUẤT: viết tay, nguồn thì đổi liên tục.
       # Trước đây gate này chỉ chạy khi có người NHỚ gõ lệnh — tức là nó chưa thật sự gác cổng.
       # Rẻ và tất định: chỉ đọc file trong repo, không cần môi trường ngoài.

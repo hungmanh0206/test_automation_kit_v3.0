@@ -150,7 +150,7 @@ const TERMS_GATE3 = [
   src:'scripts/qa/scope_anchor.js', rel:['g-dimension_coverage','c-canonical','g-preflight_gate'] },
 { id:'g-gate_index', t:'gates:index', cat:'gate',
   def:'Sinh DANH MỤC GATE của kit từ chính source. Trả lời được "kit có bao nhiêu gate, mỗi cái CHẶN gì, gọi ở đâu".',
-  detail:'Quét source rồi suy mức từ code: exit 1 là CHẶN · ghi artifact là SINH · chỉ in là BÁO CÁO. Bảng hiện tại: 149 máy — 107 CHẶN, 23 SINH, 19 BÁO CÁO. Bản --check chặn khi bảng lệch source.',
+  detail:'Quét source rồi suy mức từ code: exit 1 là CHẶN · ghi artifact là SINH · chỉ in là BÁO CÁO. Bảng hiện tại: 150 máy — 108 CHẶN, 23 SINH, 19 BÁO CÁO. Bản --check chặn khi bảng lệch source.',
   why:'Kit có hơn 30 npm script dạng gate và gần 60 file trong scripts/qa/, nhưng không chỗ nào trả lời được câu trên. Hệ quả không phải bất tiện: luận đề của kit là "luật cần MÁY", mà máy không LIỆT KÊ ĐƯỢC thì không kiểm toán được. Không ai biết một gate đã âm thầm tụt thành cảnh báo, hay đã mất nơi gọi.',
   how:['npm run gates:index để sinh lại bảng.','npm run gates:index:check để chặn khi bảng lệch source.'],
   cmd:'npm run gates:index   ·   npm run gates:index:check',
@@ -460,5 +460,15 @@ const TERMS_GATE3 = [
   ex:'Bốn execution-summary thật ghi số theo BỐN khuôn khác nhau — một văn xuôi, ba bảng với tiêu đề khác nhau. Nên một cửa dò khuôn chuẩn chỉ chạy được trên một phần tư, và thiết kế đúng là máy SINH khối rồi gác khối.',
   trap:'Bản đầu đọc MÃ TESTCASE thành số đếm: TC_199 PASS bị tính là 199 PASS. Phải siết HAI lần — lần một chặn chữ và gạch dưới đứng trước, lần hai chặn thêm dấu gạch chéo, vì TC_184/185/217 PASS là một danh sách mã. Đo được 6 → 5 → 4 cảnh báo, và 4 cái còn lại đã soi ngữ cảnh là thật.',
   src:'scripts/qa/exec_summary_tally.js', rel:['g-phase_check','sk-run_report_reader','g-result_ledger','c-gate-real-content'] },
+
+{ id:'g-recon_passive', t:'recon:passive', cat:'gate',
+  def:'Recon chỉ được QUAN SÁT, không được DÒ — và phải vẫn còn đang nghe.',
+  detail:'Chặn 7 kiểu tự gửi request trong bộ máy recon: fetch, axios, page.request.*, XMLHttpRequest, $.ajax, module http/https, và spawn curl/wget. Điều hướng bằng goto và đọc DOM bằng page.evaluate thì được phép — chặn hai thứ đó là biến recon thành không làm được gì.',
+  why:'Recon sinh ra bản kê màn và API, rồi bản kê đó được dùng làm NGUỒN để viết case. Một endpoint mình tự gọi bằng fetch trả 200 không nói gì về việc UI có gọi nó, gọi với payload nào, hay người dùng có đường nào tới đó — nhưng nó TRÔNG như một phát hiện. Đó là đường ngắn nhất để một bản kê recon chứa thứ sản phẩm không có.',
+  how:['Chỉ đọc file trong repo, chạy được ở CI.','Chiều thứ hai mới chống được cửa rỗng: phải còn ít nhất một page.on(response) — xoá sạch listener thì recon không quan sát gì nữa, mà phép kiểm thứ nhất vẫn xanh.'],
+  cmd:'npm run recon:passive',
+  ex:'Đo 29/10/2026 trên 8 file của scripts/qa/discovery: 5 chỗ nghe thụ động, 0 chỗ tự gửi request. Cửa nổ 0 lượt, nên spec có đối chứng dương cho CẢ BẢY mẫu.',
+  trap:'Hai mẫu phải đọc trên bản CÒN ruột chuỗi vì thứ chúng tìm nằm TRONG chuỗi: require(https) và spawnSync(curl). Bản đầu cho cả bảy mẫu đọc trên bản đã làm trắng chuỗi nên hai mẫu đó không bao giờ nổ — và một mẫu hỏng chỉ lộ ra vì đối chứng dương của nó đỏ, mẫu còn lại chưa bị phát hiện vì vòng lặp của spec dừng trước đó.',
+  src:'scripts/qa/recon_passive.js', rel:['sk-requirements_analyzer','g-recon_check','c-tautology','c-gate-real-content'] },
 
 ];
