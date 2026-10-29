@@ -62,7 +62,7 @@ const CONFIRMERS = ['BA', 'Dev', 'QA-Lead', 'PO'];
  * bốn bản kia che. Tức cùng một số điện thoại được che trong báo cáo nhưng KHÔNG che trong ảnh chụp
  * màn — non-negotiable §1 hở ở đúng chỗ không ai so hai bản bao giờ.
  */
-const { EMAIL_RE, PHONE_RE } = require('./lib/pii_mask');
+const { EMAIL_RE, PHONE_RE } = require('./lib/pii_mask');
 const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
 
 function readJson(p) { try { return JSON.parse(fs.readFileSync(p, 'utf8')); } catch (e) { return { __err: e.message }; } }
@@ -113,6 +113,16 @@ const concreteExpected = (s, states) => {
   if (/\b[45]\d\d\b/.test(t) || /\d/.test(t)) return true;
   return (states || []).some((st) => t.includes(st));
 };
+
+/**
+ * Dồn ba mức bằng chứng của MỌI ma trận quyền để in một dòng tổng ở cuối lượt chạy.
+ *
+ * Vì sao cần: cảnh báo per-record chỉ bắn khi record đã khai `deny_*`, nên một ma trận 90% `unknown`
+ * mà chỉ có `allow` thì im lặng — và nó trông y hệt một ma trận đã kiểm chứng hết. Ô `unknown` KHÔNG
+ * phải deny: dựng một case 403 trên đó là khẳng định một yêu cầu chưa ai chốt, và nếu app cho phép thì
+ * bug log ra là bug BỊA. Tỉ lệ đó phải hiện ra để người đọc biết ma trận này tin được tới đâu.
+ */
+const TONG_PM = { record: 0, allow: 0, deny_verified: 0, deny_inferred: 0, unknown: 0 };
 
 function validate(r) {
   const problems = []; const warnings = [];
@@ -226,6 +236,20 @@ function validate(r) {
     const daPhanLoai = new Set(oAllow.concat(oDenyV, oDenyI));
     const chuaRo = [];
     for (const r2 of roles) for (const a of actions) if (!daPhanLoai.has(`${r2}:${a}`)) chuaRo.push(`${r2}:${a}`);
+
+    /*
+     * DỒN VÀO DÒNG TỔNG — thêm 28/10/2026 (v2.9.5 §2).
+     *
+     * Cảnh báo per-record ở dưới CHỈ bắn khi record đã khai `deny_*`. Đó là lựa chọn có chủ ý (xem khối
+     * "HAI TẦNG" phía trên) và tôi KHÔNG đổi nó. Nhưng nó để lại một chỗ mù: một record chỉ có `allow`
+     * thì mọi ô chưa phân loại im lặng, và một ma trận 90% `unknown` trông y hệt một ma trận đã kiểm
+     * chứng hết. Dòng tổng ở cuối lượt chạy làm cái tỉ lệ đó hiện ra, cho MỌI record, không đổi tầng gác.
+     */
+    TONG_PM.record += 1;
+    TONG_PM.allow += oAllow.length;
+    TONG_PM.deny_verified += oDenyV.length;
+    TONG_PM.deny_inferred += oDenyI.length;
+    TONG_PM.unknown += chuaRo.length;
     if (chuaRo.length && (d.deny_verified !== undefined || d.deny_inferred !== undefined)) {
       warnings.push(at(`${chuaRo.length}/${roles.length * actions.length} ô CHƯA phân loại ⇒ mức \`unknown\`, KHÔNG phải deny. Case guard chỉ được dựng trên \`deny_verified\` (oracle thật) hoặc \`deny_inferred\` (ghi rõ là suy). Ô \`unknown\` thì đưa vào câu hỏi Ambiguity Gate: ${chuaRo.slice(0, 6).join(' · ')}${chuaRo.length > 6 ? ` … +${chuaRo.length - 6}` : ''}`));
     }
@@ -463,6 +487,29 @@ if (flag('index')) {
   doc.updated_at = new Date().toISOString().slice(0, 10);
   fs.writeFileSync(idxFile, `${JSON.stringify(doc, null, 2)}\n`, 'utf8');
   console.log(`\n[system] index.json: +${n} entry system_map (tổng ${doc.entries.length}).`);
+}
+
+/*
+ * DÒNG TỔNG BA MỨC BẰNG CHỨNG — in LUÔN, kể cả khi 0 record.
+ *
+ * "Không in gì" và "không có record nào" là hai chuyện khác nhau, và người đọc không phân biệt được nếu
+ * gate im lặng. Nên khi chưa có `PM-*` thì nói thẳng là chưa có, đừng để trống.
+ */
+{
+  const t = TONG_PM;
+  const o = t.allow + t.deny_verified + t.deny_inferred + t.unknown;
+  if (!t.record) {
+    console.log('\n[system] ma trận quyền: 0 record `PM-*` ⇒ chưa có gì để tổng. Ba mức bằng chứng chưa được dùng lần nào.');
+  } else {
+    const pc = (n) => (o ? `${((n / o) * 100).toFixed(0)}%` : '—');
+    console.log(`\n[system] ba mức bằng chứng · ${t.record} ma trận quyền · ${o} ô role×action:`);
+    console.log(`  đã kiểm chứng  allow ${t.allow} (${pc(t.allow)}) · deny_verified ${t.deny_verified} (${pc(t.deny_verified)})`);
+    console.log(`  suy diễn       deny_inferred ${t.deny_inferred} (${pc(t.deny_inferred)}) — dùng được, nhưng phải ghi rõ là suy`);
+    console.log(`  chưa rõ        unknown ${t.unknown} (${pc(t.unknown)}) — KHÔNG phải deny; đừng dựng case 403 trên ô này`);
+    if (t.unknown > o / 2) {
+      console.log(`  ⚠ quá nửa số ô đang \`unknown\` ⇒ ma trận này chưa đủ để làm oracle cho case phân quyền.`);
+    }
+  }
 }
 
 if (warnings.length) { console.log(`\n⚠ ${warnings.length} cảnh báo:`); warnings.forEach((w) => console.log(`  ~ ${w}`)); }
