@@ -110,3 +110,5 @@ Hai dòng cuối ghi thẳng là chưa có máy. Một bảng như thế này ch
 Danh sách đầy đủ kèm máy bắt được: [`references/anti_patterns.md`](references/anti_patterns.md).
 Ba cái hay gặp nhất: kỳ vọng mô tả thao tác thay vì kết quả · một case kiểm năm thứ · dữ liệu test
 viết "hợp lệ/không hợp lệ" thay vì giá trị thật.
+
+**Câu kích hoạt mẫu:** "viết case này sao cho tốt" · "nên dùng kỹ thuật nào cho ô này" · "Tiền điều kiện khác Context chỗ nào" · "dạy tôi cách thiết kế case thủ công"

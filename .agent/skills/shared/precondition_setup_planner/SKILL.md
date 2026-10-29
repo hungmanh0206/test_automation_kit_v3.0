@@ -181,4 +181,4 @@ Chỉ `needs_hook`/`needs_account`/`needs_sandbox` là "capability gap" đi vào
 > không có mốc tĩnh để so. Nhưng có một luật máy gác được và nó tuyệt đối: **KHÔNG dựng state bằng DB**
 > (CLAUDE.md §2) — `scripts/qa/hooks/guard_db_access.js` chặn ở tầng hook.
 
-**Câu kích hoạt mẫu:** "dựng tiền điều kiện cho case này" · "nên dùng factory hay hook" · "case này cần setup gì" · "làm sao có dữ liệu trước khi test"
+**Câu kích hoạt mẫu:** "dựng tiền điều kiện cho case này" · "nên dùng factory hay hook" · "case này cần setup gì" · "làm sao có dữ liệu trước khi test" · "case chưa chạy được vì thiếu capability gì" · "readiness của case này là gì"

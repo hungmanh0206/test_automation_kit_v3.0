@@ -77,3 +77,8 @@ có sẵn. Đây là quy định tổ chức (non-negotiable §1): được yêu
 - Data chung chung: “email hợp lệ”, “user bất kỳ”.
 - Dùng cùng một entity cố định cho nhiều test chạy song song.
 - Không dọn dữ liệu tạo bằng API/UI sau test.
+
+**Câu kích hoạt mẫu:** "sinh dữ liệu test cho case này" · "cần 50 hồ sơ để test lưới" · "tạo data unique theo RUN_ID" · "dữ liệu test xong thì dọn thế nào"
+
+> Đừng lẫn với `precondition_setup_planner`: skill đó CHỌN CÁCH dựng state (factory/hook/fixture/mock)
+> và khai readiness. Skill này SINH ra giá trị cụ thể, unique, truy vết và rollback được.

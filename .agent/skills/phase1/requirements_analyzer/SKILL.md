@@ -130,3 +130,5 @@ Mẫu số của vùng sót lấy từ `npm run scope:anchor`, không tự liệ
 - Bỏ qua permission/error/rollback/API side-effect trong coverage input.
 - Bỏ qua vùng ảnh hưởng ngoài scope khi story đụng data/endpoint/component/rule/status/permission dùng chung (change impact — mục 17).
 - Coi số lượng testcase cao là coverage tốt nếu thiếu core/high-risk rule.
+
+**Câu kích hoạt mẫu:** "đọc đặc tả này rồi tóm scope" · "rút business rule từ tài liệu" · "cần recon màn nào trước khi viết case" · "tài liệu phủ được bao nhiêu phần chức năng"

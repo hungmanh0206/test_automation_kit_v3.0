@@ -93,6 +93,15 @@ jobs:
       - name: Mô tả skill đủ thông tin để CHỌN (skills:lint:enforce)
         run: npm run skills:lint:enforce
 
+      # Hai skill mô tả gần nhau thì agent không có căn cứ để chọn — `skills:lint` bắt được mô tả TRÙNG,
+      # nhưng không bắt được mô tả KHÁC NHAU mà vẫn không tách được việc. Cửa này đo chuyện đó trên 63
+      # câu yêu cầu tiếng Việt.
+      #
+      # ĐỌC ĐÚNG CON SỐ: đây là phép đo ĐẠI DIỆN trên từ ngữ, không mô phỏng cách model chọn. "98%" nghĩa
+      # là *phần chữ hiện có đủ phân biệt 98% số ca trong fixture*, KHÔNG phải "agent chọn đúng 98%".
+      - name: Mô tả skill tách được việc (skills:route:check)
+        run: npm run skills:route:check
+
       # Link trong skill phải trỏ file CÓ THẬT. Cửa này phân biệt link thật với đường dẫn minh hoạ —
       # xem khối chú thích đầu `skills_refcheck.js`: đếm ngây thơ sinh ra dương tính giả, rồi người ta
       # gỡ ví dụ trong tài liệu đi cho hết đỏ.

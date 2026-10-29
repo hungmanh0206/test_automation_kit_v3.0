@@ -75,3 +75,5 @@ Hai cờ hay cần (06/10/2026):
 - Log Backlog cho fail chưa rerun/xác minh.
 - Đưa execution summary hoặc markdown vào description.
 - Comment Backlog tự động nếu user không yêu cầu hoặc không phải Re-run PASS flow.
+
+**Câu kích hoạt mẫu:** "log bug này lên Backlog" · "tạo sub-bug cho case đỏ" · "đẩy bug kèm ảnh lên issue cha" · "case này đã qua Bug Claim Gate, log đi"

@@ -82,3 +82,8 @@ mọi con số ở skill này.
 - Expected chung chung như “hệ thống hoạt động đúng”.
 - **Kết quả mong đợi gộp range (`1-2.`/`2-3.`) thay vì đánh số KHỚP từng bước (bước 1→KQ 1, 2→2…) — CẤM; mỗi bước 1 dòng, xuống dòng `<br>`.**
 - Coverage PASS chỉ vì số lượng testcase nhiều.
+
+**Câu kích hoạt mẫu:** "bộ TC có đủ 10 cột chưa" · "validate testcase theo template" · "case này automation chạy được không" · "ô nào còn trống trong bộ case"
+
+> Đừng lẫn với `tc_reviewer`: skill này soi **CẤU TRÚC** (đủ cột, ô lõi rỗng, có execute được không).
+> Còn "bộ này dùng được chưa", "chấm điểm bộ TC" là **NỘI DUNG** ⇒ `tc_reviewer`.

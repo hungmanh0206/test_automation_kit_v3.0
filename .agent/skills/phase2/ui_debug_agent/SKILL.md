@@ -191,4 +191,4 @@ Nghi product bug ⇒ **chuyển Phase 2 triage**. **KHÔNG log Backlog từ skil
 > `isVisible` nói dối" không có mốc nào để máy so. Cái đo được là thứ skill ĐỂ LẠI trong spec, và hai
 > cửa trên gác đúng chỗ đó.
 
-**Câu kích hoạt mẫu:** "không bấm được nút này" · "locator đúng mà click timeout" · "soi DOM xem sao" · "element có mà Playwright không thấy"
+**Câu kích hoạt mẫu:** "không bấm được nút này" · "locator đúng mà click timeout" · "soi DOM xem sao" · "element có mà Playwright không thấy" · "chẩn đoán màn này" · "form nằm trong iframe hay sao" · "hộp dropdown hiện ra mà không bấm được"

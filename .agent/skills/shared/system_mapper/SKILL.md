@@ -1,6 +1,6 @@
 ---
 name: system_mapper
-description: Ghi bản đồ HỆ THỐNG đã xác nhận vào knowledge/system/ (state machine · ma trận phân quyền · surface dùng chung) để trả lời được "hành vi này là bug hay đúng thiết kế" và "sửa chỗ này phải regression đâu" mà không suy từ app.
+description: Ghi bản đồ HỆ THỐNG đã xác nhận vào knowledge/system/ — state machine, ma trận phân quyền, và DANH MỤC bề mặt dùng chung — để trả lời được "hành vi này là lỗi hay đúng thiết kế" và "chạm chỗ này phải regression đâu" mà không suy từ app. Đây là danh mục đã chốt, tra được mà không cần diff.
 ---
 
 # System Mapper — bản đồ hệ thống, không phải tài liệu để ngắm

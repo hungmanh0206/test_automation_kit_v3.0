@@ -71,3 +71,8 @@ thể bị chấm bằng cảm nhận. Khai nguồn thì máy tự biết tiêu 
 - [[decision_recorder]] — ghi lý do khi PM duyệt một ngoại lệ, để lần sau không bàn lại.
 - `npm run run:analysis` — lượt chạy có đủ mẫu số để phán hay chưa (v2.5.0 G1.2).
 - `npm run release:verify` — bản đóng gói chạy được hay không, việc khác hẳn.
+
+**Câu kích hoạt mẫu:** "gộp kết quả cả sprint lại" · "go hay no-go cho mốc này" · "tổng hợp nhiều lượt chạy thành một khuyến nghị" · "đối chiếu với tiêu chí exit đã chốt"
+
+> Đừng lẫn với `npm run results:summary`: lệnh đó tóm tắt MỘT lượt chạy. Skill này gộp NHIỀU lượt của
+> cùng một mốc rồi đối chiếu tiêu chí exit, và nó ra một khuyến nghị go/no-go — không chỉ một bảng số.

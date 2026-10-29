@@ -111,6 +111,7 @@
     "skills:index:check": "node scripts/qa/skills_index.js --check",
     "skills:lint": "node scripts/qa/skills_lint.js",
     "skills:lint:enforce": "node scripts/qa/skills_lint.js --enforce",
+    "skills:route:check": "node scripts/qa/skills_route.js",
     "course:numbers": "node scripts/qa/course_numbers.js",
     "course:maturity": "node scripts/qa/course_maturity.js",
     "course:maturity:check": "node scripts/qa/course_maturity.js --check",

@@ -70,3 +70,5 @@ một mẫu chưa xuất hiện, không đang dọn nợ — và nói ra điều
 - `tests/support/setup/mocks/externalDependencyMock.ts` — bộ mock fault injection đã có.
 - [[precondition_setup_planner]] — kiểm xem state dựng được bằng đường thật trước khi nghĩ đến mock.
 - `.agent/rules/playwright_fe.md` — quy ước Playwright, gồm phần Report.
+
+**Câu kích hoạt mẫu:** "mock API này đi" · "giả lập lỗi 500 xem FE xử lý sao" · "chặn response để test nhánh timeout" · "cô lập dependency ngoài phạm vi"

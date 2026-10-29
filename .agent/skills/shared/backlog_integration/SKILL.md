@@ -77,3 +77,8 @@ có ảnh" từ API là kết luận sai.
 
 - `scripts/integrations/backlog/backlog_fetcher.js`: fetch issue/project issues/parent-children từ Backlog.
 - `scripts/integrations/backlog/check_connection.js`: kiểm cấu hình + live connection.
+
+**Câu kích hoạt mẫu:** "đọc issue Backlog này" · "lấy đặc tả từ Backlog" · "issue cha nói gì" · "fetch context của task từ Backlog"
+
+> Đừng lẫn với `backlog_bug_reporter`: skill này **ĐỌC** Backlog để lấy ngữ cảnh; còn **GHI** bug lên
+> Backlog là việc của `backlog_bug_reporter`.
