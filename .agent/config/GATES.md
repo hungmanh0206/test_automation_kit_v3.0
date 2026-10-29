@@ -64,7 +64,7 @@ lịch sử, còn việc CHẶN nằm ở `dim:coverage` (chiều `bug_history` 
 | T1 | CHẶN | `seed:knowledge`, `seed:knowledge:apply` | Seed Knowledge từ lịch sử Backlog (Suggest-only, DRY-RUN mặc định). | `scripts/qa/seed_knowledge_from_backlog.js` | scripts/qa/README.md · docs/kit-map.md |
 | T1 | CHẶN | `skills:index`, `skills:index:check` | sinh bảng tra skill từ frontmatter của `.agent/skills/**\/SKILL.md`. | `scripts/qa/skills_index.js` | .gitlab-ci.yml · docs/kit-map.md · .github/workflows · tests/fe/infra |
 | T1 | CHẶN | `skills:refcheck` | mọi LINK THẬT trong skill phải trỏ tới file có thật. | `scripts/qa/skills_refcheck.js` | docs/kit-map.md · .github/workflows · tests/fe/infra |
-| T1 | CHẶN | `skills:route:check` | hai skill mô tả giống nhau thì agent KHÔNG có căn cứ để chọn. | `scripts/qa/skills_route.js` | .github/workflows |
+| T1 | CHẶN | `skills:route:check` | hai skill mô tả giống nhau thì agent KHÔNG có căn cứ để chọn. | `scripts/qa/skills_route.js` | .github/workflows · tests/fe/infra |
 | T1 | CHẶN | `lint:tcid` | MỘT case chỉ được ĐĂNG KÝ VỚI RECORDER ở MỘT file spec. | `scripts/qa/tcid_duplicate_check.js` | **KHÔNG BỀ MẶT NÀO** |
 | T1 | CHẶN | `sync:canonical` | MỘT BỘ GHI, TOẢ BA NƠI (v2.8.0 §0c). | `scripts/qa/testcases/sync_canonical.js` | RULE_GLOBAL.md · .agent/skills · prompt_templates · tests/fe/infra |
 | T1 | CHẶN | `trace:matrix` | sinh ma trận REQ → TC → AUTO → EXEC → BUG dạng artifact. | `scripts/qa/traceability_matrix.js` | docs/kit-map.md · .agent/workflows · .agent/skills · prompt_templates |
