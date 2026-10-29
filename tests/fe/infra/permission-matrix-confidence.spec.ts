@@ -90,15 +90,46 @@ test.describe('@infra ma trận quyền — dòng tổng ba mức bằng chứng
      * "Không in gì" và "không có record nào" là hai chuyện khác nhau, mà người đọc không phân biệt được
      * nếu gate im lặng. Cùng một luật với `rule:consistency` 0 mệnh đề ⇒ exit 2.
      *
-     * Đo trên REPO THẬT, không trên thư mục tạm: thư mục RỖNG đi theo nhánh thoát sớm ("Chưa có bản đồ
-     * hệ thống nào") và không bao giờ tới dòng tổng — nhánh đó đã nói rõ rồi. Ca mà dòng tổng phủ là ca
-     * TINH HƠN: kho CÓ bản đồ, nhưng chưa bản đồ nào là ma trận quyền. Đó đúng là trạng thái repo hiện
-     * tại, nên repo chính là fixture trung thực nhất ở đây.
+     * Ca này TINH HƠN ca thư mục rỗng: thư mục rỗng đi theo nhánh thoát sớm ("Chưa có bản đồ hệ thống
+     * nào") và không bao giờ tới dòng tổng. Ca cần phủ là: kho CÓ bản đồ, nhưng chưa bản đồ nào là ma
+     * trận quyền.
+     *
+     * BẢN ĐẦU ĐO TRÊN REPO THẬT, VÀ ĐÓ LÀ LỖI — chú thích cũ viết "đó đúng là trạng thái repo hiện tại,
+     * nên repo chính là fixture trung thực nhất". Sai: `knowledge/**` bị gitignore (`.gitignore:116`),
+     * chỉ `.gitkeep` được track. Hai bản đồ tôi quan sát được chỉ có trên MÁY TÔI, nên bản clone sạch —
+     * và CI — thấy thư mục RỖNG rồi rơi vào nhánh thoát sớm. Phép kiểm xanh ở máy, ĐỎ ở CI; chính lượt
+     * `ci-regression` dispatch 29/10/2026 bắt được (`regression (3)`, 1 failed).
+     *
+     * Đây là lớp "kết quả phụ thuộc môi trường chạy", và cách chữa là DỰNG fixture, không đi tìm một
+     * trạng thái repo may mắn: một record bản đồ hợp lệ nhưng KHÔNG phải ma trận quyền.
      */
-    const r = spawnSync(process.execPath, [SM], { cwd: REPO, encoding: 'utf8', env: gateEnv() });
-    const out = `${r.stdout || ''}${r.stderr || ''}`;
-    expect(out, 'repo phải có bản đồ để ca này có nghĩa').not.toMatch(/Chưa có bản đồ hệ thống nào/);
-    expect(out).toMatch(/0 record `PM-\*` ⇒ chưa có gì để tổng/);
+    const khongPhaiMaTran = {
+      id: 'UI-FIXTURE-001',
+      type: 'ui_contract',
+      module: 'Fixture',
+      screen: 'Màn dựng cho phép kiểm',
+      confirmed_by: 'QA',
+      confirmed_at: '2026-10-29',
+      version: 1,
+      status: 'active',
+    };
+    const r = chay([khongPhaiMaTran]);
+    expect(r.out, 'kho PHẢI có bản đồ, nếu không ca này rơi vào nhánh thoát sớm')
+      .not.toMatch(/Chưa có bản đồ hệ thống nào/);
+    expect(r.out).toMatch(/0 record `PM-\*` ⇒ chưa có gì để tổng/);
+    fs.rmSync(r.d, { recursive: true, force: true });
+  });
+
+  test('phép kiểm của file này KHÔNG được dựa vào `knowledge/**` của máy đang chạy', () => {
+    /*
+     * Khoá lại đúng lớp lỗi vừa gặp. `knowledge/**` bị gitignore, nên mọi phép kiểm đọc thẳng kho đó
+     * sẽ cho kết quả khác nhau giữa máy người và CI — và "xanh ở máy, đỏ ở CI" là dạng hỏng tốn nhiều
+     * thời gian nhất để tìm, vì nó trông như lỗi hạ tầng.
+     */
+    const src = fs.readFileSync(__filename.replace(/\.js$/, '.ts'), 'utf8');
+    const goiTran = [...src.matchAll(/spawnSync\(process\.execPath, \[SM\](?!,\s*\[)/g)];
+    expect(goiTran.length, 'mọi lượt gọi phải truyền `--dir <fixture>`, không gọi trần trên repo')
+      .toBe(0);
   });
 
   test('SCHEMA khai rõ `type` của RECORD khác `type` của entry chỉ mục', () => {
