@@ -49,12 +49,28 @@ const BUOC = {
     { ten: 'preflight (phase1)', cmd: ['scripts/qa/preflight_gate.js', '--mode', 'phase1'], task: '--task', chan: true },
     { ten: 'scope:anchor', cmd: ['scripts/qa/scope_anchor.js', '--enforce'], task: '--task', chan: true },
     { ten: 'dim:coverage', cmd: ['scripts/qa/dimension_coverage.js', '--enforce'], task: '--task', chan: true },
+    /*
+     * `data:chain` nằm trong BÓ chứ không thêm một dòng prompt mới: `prompt:budget` cấm nâng ngưỡng, và
+     * một cửa chỉ chạy khi có người nhớ gõ lệnh thì chưa thật sự gác cổng. Ở Phase 1 nó kiểm CẤU TRÚC
+     * chuỗi (trỏ hư không · ngược thứ tự · vòng); phép kiểm verdict tự bật ở Phase 2 khi đã có status.
+     */
+    { ten: 'data:chain', cmd: ['scripts/qa/data_chain_check.js', '--enforce'], task: null, chan: true },
     { ten: 'self-review', cmd: ['scripts/qa/self_review.js', '--enforce'], task: '--task', chan: true },
   ],
   2: [
     { ten: 'preflight (phase2)', cmd: ['scripts/qa/preflight_gate.js', '--mode', 'phase2'], task: '--task', chan: true },
     { ten: 'gate:output', cmd: ['scripts/qa/output_gate.js', '--mode', 'test-execution', '--compact'], task: null, chan: true },
     { ten: 'ledger:check', cmd: ['scripts/qa/result_ledger.js', '--enforce'], task: '--task', chan: true },
+    /*
+     * Ở Phase 2 CHÍNH CỬA ĐÓ tự tìm sổ verdict của lượt chạy, nên phép kiểm đắt nhất của nó mới bật
+     * được: case nguồn FAILED/BLOCKED mà case phụ thuộc PASSED. Lớp hỏng đó đã sinh ra 2 `product_bug`
+     * bịa trong một phiên.
+     *
+     * Bó này KHÔNG đọc sổ đó — nó chỉ spawn. (Chú thích bản đầu gọi tên tệp ra, và `phase-check.spec.ts`
+     * bắt đúng chỗ đó: một cái tên artifact nằm trong file này là dấu hiệu bó đã thành gate thứ hai.
+     * Lần thứ ba trong phiên một chú thích tự gây ra đúng phép kiểm nó đang giải thích.)
+     */
+    { ten: 'data:chain', cmd: ['scripts/qa/data_chain_check.js', '--enforce'], task: null, chan: true },
     { ten: 'self-review', cmd: ['scripts/qa/self_review.js', '--enforce'], task: '--task', chan: true },
     { ten: 'results:summary', cmd: ['scripts/qa/summarize_results.js'], task: null, chan: false },
     /*

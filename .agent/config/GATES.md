@@ -7,7 +7,7 @@
 > **T1** chỉ chặn ở cửa ra, lúc đang làm thì cảnh báo và ghi `reports/gate-debt.json` · **T2** không
 > bao giờ chặn. T0 khai tay trong `.agent/config/gate_tiers.json`; không khai thì mặc định T1.
 
-Tổng **146** máy — **104 CHẶN** · 23 SINH (ghi artifact) · 19 BÁO CÁO (chỉ in).
+Tổng **147** máy — **105 CHẶN** · 23 SINH (ghi artifact) · 19 BÁO CÁO (chỉ in).
 
 SINH/BÁO CÁO **không phải gate bị nới** — chúng không kiểm vi phạm. Ví dụ `bugs:checklist` in brief bug
 lịch sử, còn việc CHẶN nằm ở `dim:coverage` (chiều `bug_history` §20).
@@ -85,6 +85,7 @@ lịch sử, còn việc CHẶN nằm ở `dim:coverage` (chiều `bug_history` 
 | T0 | CHẶN (có cờ --enforce) | `canonical:drift`, `canonical:drift:enforce` | ĐO ĐỘ TRÔI giữa Markdown canonical và bản xuất `.xlsx`. | `scripts/qa/canonical_drift.js` | RULE_GLOBAL.md · .agent/workflows · .agent/rules · .agent/skills · prompt_templates · tests/fe/infra |
 | T1 | CHẶN (có cờ --enforce) | `concurrency:check` | HARNESS ĐỒNG THỜI/TRANH CHẤP (v2.8.4 mục A). | `scripts/qa/concurrency_check.js` | docs/kit-map.md · .agent/skills |
 | T1 | CHẶN (có cờ --enforce) | `xsurf:diff` | TRỤC 2: **cùng một giá trị, khác nơi hiển thị**. | `scripts/qa/cross_surface_diff.js` | RULE_GLOBAL.md · docs/kit-map.md · prompt_templates |
+| T1 | CHẶN (có cờ --enforce) | `data:chain`, `data:chain:check` | CHUỖI DỮ LIỆU giữa các case phải đứng được (v2.9.5 §6). | `scripts/qa/data_chain_check.js` | .agent/skills · tests/fe/infra |
 | T1 | CHẶN (có cờ --enforce) | `decisions:check`, `decisions:index` | quản lý `knowledge/decisions/`: LÝ DO của những quyết định QA đã chốt. | `scripts/qa/decisions.js` | docs/kit-map.md · .agent/workflows · .agent/skills · prompt_templates · tests/fe/infra |
 | T1 | CHẶN (có cờ --enforce) | `dim:coverage` | đếm case theo 15 CHIỀU coverage của `prompt_templates/phase1/02_gen_testcases.md` | `scripts/qa/dimension_coverage.js` | RULE_GLOBAL.md · USER_GUIDE.md · docs/kit-map.md · .agent/workflows · .agent/rules · .agent/skills · prompt_templates · partial-rerun · .claude/commands · tests/fe/infra |
 | T1 | CHẶN (có cờ --enforce) | `domain:check`, `domain:index`, `domain:trace-back` | quản lý `knowledge/domain/` (business rule đã XÁC NHẬN = nền của oracle). | `scripts/qa/domain_rules.js` | RULE_GLOBAL.md · docs/kit-map.md · .agent/workflows · .agent/skills · prompt_templates · partial-rerun · tests/fe/infra |

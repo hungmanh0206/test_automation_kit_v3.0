@@ -150,7 +150,7 @@ const TERMS_GATE3 = [
   src:'scripts/qa/scope_anchor.js', rel:['g-dimension_coverage','c-canonical','g-preflight_gate'] },
 { id:'g-gate_index', t:'gates:index', cat:'gate',
   def:'Sinh DANH MỤC GATE của kit từ chính source. Trả lời được "kit có bao nhiêu gate, mỗi cái CHẶN gì, gọi ở đâu".',
-  detail:'Quét source rồi suy mức từ code: exit 1 là CHẶN · ghi artifact là SINH · chỉ in là BÁO CÁO. Bảng hiện tại: 146 máy — 104 CHẶN, 23 SINH, 19 BÁO CÁO. Bản --check chặn khi bảng lệch source.',
+  detail:'Quét source rồi suy mức từ code: exit 1 là CHẶN · ghi artifact là SINH · chỉ in là BÁO CÁO. Bảng hiện tại: 147 máy — 105 CHẶN, 23 SINH, 19 BÁO CÁO. Bản --check chặn khi bảng lệch source.',
   why:'Kit có hơn 30 npm script dạng gate và gần 60 file trong scripts/qa/, nhưng không chỗ nào trả lời được câu trên. Hệ quả không phải bất tiện: luận đề của kit là "luật cần MÁY", mà máy không LIỆT KÊ ĐƯỢC thì không kiểm toán được. Không ai biết một gate đã âm thầm tụt thành cảnh báo, hay đã mất nơi gọi.',
   how:['npm run gates:index để sinh lại bảng.','npm run gates:index:check để chặn khi bảng lệch source.'],
   cmd:'npm run gates:index   ·   npm run gates:index:check',
@@ -431,5 +431,15 @@ const TERMS_GATE3 = [
   ex:'Ô "KHÔNG dùng khi" điền dấu `-` cho đủ cũng bị chặn — sàn 25 ký tự, đo từ ô ngắn nhất đang có là 44.',
   trap:'Bản đầu khoá bảng bằng TÊN TRẦN và nó báo ĐẠT trên bảng thiếu một dòng: `rerun` tồn tại VỪA là lệnh `/rerun` VỪA là workflow `rerun.md`, nên một dòng che hai điểm vào — 31 dòng phủ 32 điểm vào mà vẫn xanh. Khoá phải gồm LOẠI, và vùng phân loại neo bằng comment máy-đọc chứ không bằng câu chữ tiêu đề.',
   src:'scripts/qa/router_check.js', rel:['g-gate_index','c-forcing-function','c-gate-real-content','g-skills_index'] },
+
+{ id:'g-data_chain', t:'data:chain / data:chain:check', cat:'gate',
+  def:'Case khai tiền đề là OUTPUT của case khác thì bộ case thành một CHUỖI — và chuỗi đó phải đứng được.',
+  detail:'Đọc ô Tiền điều kiện, nhận mệnh đề có động từ dựng/tạo/khai/đã chạy xong kèm mã TC. Gác bốn đường hỏng: trỏ vào hư không, ngược thứ tự, vòng, và nguồn FAILED mà case phụ thuộc PASSED. Phép kiểm cuối cần testcase-status.json, và cửa tự tìm file đó ở đường dẫn chuẩn của task.',
+  why:'Đo 29/10/2026 trên bộ case thật: 9 ca khai phụ thuộc như vậy, và không máy nào trong kit nhìn thấy. Đường hỏng đắt nhất là nguồn chưa dựng mà vẫn chấm tiếp: phép đo chạy trên một tình huống KHÔNG TỒN TẠI, và lớp đó đã sinh ra 2 product_bug bịa trong một phiên.',
+  how:['Chỉ đọc artefact local, chạy được offline.','Nằm trong bó phase1:check và phase2:check chứ không thêm một dòng prompt mới — prompt:budget cấm nâng ngưỡng.'],
+  cmd:'npm run data:chain   ·   npm run data:chain:check',
+  ex:'Lượt chạy ĐẦU TIÊN trên bộ CSDL-9004 bắt được một ca thật: TC_063 khai dựng ở TC_075, nhưng TC_075 nằm SAU nó trong file (dòng 80 so với dòng 92).',
+  trap:'Ranh giới nằm ở ĐỘNG TỪ, không ở việc có tên TC. Bộ case thật còn 16 lượt trỏ TC khác nhưng là trích dẫn để đọc — "đã kiểm ở TC_045", "SQL ở TC_088". Gác cả 25 lượt là gác phần lớn dương tính giả, rồi người ta tắt cửa chứ không sửa theo nó. Và máy chỉ thấy chuỗi đã KHAI: case phụ thuộc mà không khai thì vẫn là phần chấm tay.',
+  src:'scripts/qa/data_chain_check.js', rel:['sk-test_data_generator','sk-automation_reviewer','g-phase_check','c-gate-real-content'] },
 
 ];
