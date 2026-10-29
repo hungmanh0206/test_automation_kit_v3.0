@@ -78,6 +78,7 @@
     "spec:gap": "node scripts/qa/spec_gap_report.js",
     "scope:anchor": "node scripts/qa/scope_anchor.js",
     "recon:check": "node scripts/qa/recon_check.js",
+    "router:check": "node scripts/qa/router_check.js",
     "scope:anchor:enforce": "node scripts/qa/scope_anchor.js --enforce --record",
     "scope:anchor:init": "node scripts/qa/scope_anchor.js --init",
     "ui:contract": "node --max-old-space-size=4096 scripts/qa/figma_to_ui_contract.js",

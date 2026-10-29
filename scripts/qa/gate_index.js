@@ -150,7 +150,17 @@ function purposeOf(text) {
  *   BÁO CÁO — không chặn, không ghi; chỉ in cho người/agent đọc
  */
 function levelOf(text) {
-  const hardBlock = /process\.exit\(1\)|process\.exitCode\s*=\s*1|throw new /.test(text);
+  /*
+   * ĐƯỜNG RA GIÁN TIẾP cũng là đường ra. Bản trước chỉ bắt `process.exit(1)` viết thẳng, nên một script
+   * theo khuôn `process.exit(main())` với `return 1` bị dán nhãn **BÁO CÁO** dù nó CHẶN thật
+   * (`router_check.js`, đo 29/10/2026). Nhãn sai theo đúng chiều nguy hiểm: người đọc danh mục tưởng
+   * chỗ đó chỉ in ra cho vui.
+   *
+   * Đo trước khi nới: toàn bộ `scripts/qa/` có ĐÚNG MỘT script thuộc khuôn này, nên mẫu mới đổi 1 dòng
+   * và không chạm 145 dòng còn lại.
+   */
+  const raGianTiep = /process\.exit\(\s*[A-Za-z_$][\w$]*\s*\(/.test(text) && /\breturn\s+1\s*;/.test(text);
+  const hardBlock = raGianTiep || /process\.exit\(1\)|process\.exitCode\s*=\s*1|throw new /.test(text);
   const hasEnforceFlag = /--enforce|'enforce'|"enforce"/.test(text);
   if (hardBlock) return hasEnforceFlag ? 'CHẶN (có cờ --enforce)' : 'CHẶN';
   if (/writeFileSync|appendFileSync/.test(text)) return 'SINH';

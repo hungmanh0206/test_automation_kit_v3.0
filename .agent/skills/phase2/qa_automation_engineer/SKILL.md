@@ -5,6 +5,9 @@ description: Sinh, cập nhật và chạy automation Playwright UI/API cho Phas
 
 # QA Automation Engineer
 
+> Chưa biết gõ lệnh nào, hay định làm tay một việc đã có luồng? → **[bảng định tuyến](references/router.md)**:
+> 13 lệnh `/` · 16 workflow · 3 subagent, mỗi dòng kèm cột **KHÔNG dùng khi**. Gác bằng `npm run router:check`.
+
 ## Purpose
 
 Thực hiện Phase 2 bằng Playwright: đọc testcase đã review, tạo/cập nhật spec/helper cần thiết, execute thật, auto-heal lỗi automation/setup hợp lý và sinh execution report.

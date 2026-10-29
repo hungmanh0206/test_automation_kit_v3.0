@@ -862,7 +862,7 @@ body.lropen{overflow:hidden}
 
     <h3 class="subhead"><span class="num">5</span>Lệnh hay dùng</h3>
     <p class="sectip">Danh mục gate của kit là <b>tự sinh từ source</b>, không viết tay — bản hiện tại đếm được
-      <b>145 máy: 102 CHẶN · 24 SINH · 19 BÁO CÁO</b>. Sinh lại bằng <code>npm run gates:index</code>.
+      <b>146 máy: 104 CHẶN · 23 SINH · 19 BÁO CÁO</b>. Sinh lại bằng <code>npm run gates:index</code>.
       Phiên bản kit: <b>2.9.4</b>.</p>
     <div id="cmdList"></div>
 
@@ -994,7 +994,7 @@ body.lropen{overflow:hidden}
       </ul>
 
       <h3>Vì sao cần</h3>
-      <p>Kit có 26 skill, 145 máy kiểm (102 trong đó CHẶN thật) và một bộ từ vựng riêng (oracle độc lập, tautology, failureLayer,
+      <p>Kit có 26 skill, 146 máy kiểm (104 trong đó CHẶN thật) và một bộ từ vựng riêng (oracle độc lập, tautology, failureLayer,
         readiness, TRI, chiều coverage…). Người mới vào phải đọc rải rác nhiều file mới ghép được bức tranh.
         Trang này gom lại một chỗ, giữ nguyên nguồn, và cố tình <b>không</b> diễn giải thêm ngoài những gì repo đã ghi.</p>
 
@@ -1795,7 +1795,7 @@ const TERMS_GATE3 = [
   src:'scripts/qa/scope_anchor.js', rel:['g-dimension_coverage','c-canonical','g-preflight_gate'] },
 { id:'g-gate_index', t:'gates:index', cat:'gate',
   def:'Sinh DANH MỤC GATE của kit từ chính source. Trả lời được "kit có bao nhiêu gate, mỗi cái CHẶN gì, gọi ở đâu".',
-  detail:'Quét source rồi suy mức từ code: exit 1 là CHẶN · ghi artifact là SINH · chỉ in là BÁO CÁO. Bảng hiện tại: 145 máy — 102 CHẶN, 24 SINH, 19 BÁO CÁO. Bản --check chặn khi bảng lệch source.',
+  detail:'Quét source rồi suy mức từ code: exit 1 là CHẶN · ghi artifact là SINH · chỉ in là BÁO CÁO. Bảng hiện tại: 146 máy — 104 CHẶN, 23 SINH, 19 BÁO CÁO. Bản --check chặn khi bảng lệch source.',
   why:'Kit có hơn 30 npm script dạng gate và gần 60 file trong scripts/qa/, nhưng không chỗ nào trả lời được câu trên. Hệ quả không phải bất tiện: luận đề của kit là "luật cần MÁY", mà máy không LIỆT KÊ ĐƯỢC thì không kiểm toán được. Không ai biết một gate đã âm thầm tụt thành cảnh báo, hay đã mất nơi gọi.',
   how:['npm run gates:index để sinh lại bảng.','npm run gates:index:check để chặn khi bảng lệch source.'],
   cmd:'npm run gates:index   ·   npm run gates:index:check',
@@ -2066,6 +2066,16 @@ const TERMS_GATE3 = [
   ex:'Sáu cặp skill dễ lẫn được khai thẳng trong fixture, để con số không đẹp lên nhờ bỏ qua đúng những ca khó.',
   trap:'ĐỌC ĐÚNG CON SỐ: đây là phép đo ĐẠI DIỆN trên từ ngữ. "98%" nghĩa là phần chữ hiện có đủ phân biệt 98% số ca trong fixture — KHÔNG phải "agent chọn đúng 98%".',
   src:'scripts/qa/skills_route.js', rel:['g-skills_lint','g-skills_index','g-skills_refcheck','f-kit-layers'] },
+
+{ id:'g-router_check', t:'router:check', cat:'gate',
+  def:'Bảng định tuyến phải phủ MỌI điểm vào, và mỗi dòng phải nói được khi nào KHÔNG dùng.',
+  detail:'Mẫu số đọc từ đĩa: 13 lệnh `/` trong .claude/commands, 16 workflow trong .agent/workflows, 3 subagent trong .claude/agents. Thiếu một dòng là CHẶN. Bảng nằm ở references/router.md của skill qa_automation_engineer.',
+  why:'Kit đã có ba chỗ liệt kê lệnh — CHEATSHEET, kit-map, skills INDEX — nhưng đo 29/10/2026 thì KHÔNG chỗ nào ghi "KHÔNG dùng khi". Một danh sách không ranh giới trả lời được "kit có lệnh gì", không trả lời được "lệnh nào SAI cho việc này". Chọn sai điểm vào tốn cả một lượt chạy, và lượt đó thường kết thúc bằng một kết luận nhìn rất hợp lý.',
+  how:['Chỉ đọc file trong repo, chạy được offline.','Dòng mồ côi (bảng còn tên mà đĩa không còn) chỉ CẢNH BÁO: quên xoá nhỏ hơn hẳn quên thêm.'],
+  cmd:'npm run router:check',
+  ex:'Ô "KHÔNG dùng khi" điền dấu `-` cho đủ cũng bị chặn — sàn 25 ký tự, đo từ ô ngắn nhất đang có là 44.',
+  trap:'Bản đầu khoá bảng bằng TÊN TRẦN và nó báo ĐẠT trên bảng thiếu một dòng: `rerun` tồn tại VỪA là lệnh `/rerun` VỪA là workflow `rerun.md`, nên một dòng che hai điểm vào — 31 dòng phủ 32 điểm vào mà vẫn xanh. Khoá phải gồm LOẠI, và vùng phân loại neo bằng comment máy-đọc chứ không bằng câu chữ tiêu đề.',
+  src:'scripts/qa/router_check.js', rel:['g-gate_index','c-forcing-function','c-gate-real-content','g-skills_index'] },
 
 ];
 
@@ -3231,7 +3241,7 @@ const TERMS_FLOW2 = [
 
 { id:'f-gate-catalog', t:'Danh mục gate (tự sinh)', cat:'flow',
   def:'Bảng liệt kê mọi máy của kit kèm mức chặn, sinh tự động từ source.',
-  detail:'Con số hiện tại: 145 máy — 102 CHẶN · 24 SINH (ghi artifact) · 19 BÁO CÁO (chỉ in). Mức được suy từ code chứ không khai tay: exit 1 là CHẶN, ghi artifact là SINH, chỉ in là BÁO CÁO. Bảng còn ghi mỗi máy được gọi từ đâu, và ghi ra .agent/config/GATES.md.',
+  detail:'Con số hiện tại: 146 máy — 104 CHẶN · 23 SINH (ghi artifact) · 19 BÁO CÁO (chỉ in). Mức được suy từ code chứ không khai tay: exit 1 là CHẶN, ghi artifact là SINH, chỉ in là BÁO CÁO. Bảng còn ghi mỗi máy được gọi từ đâu, và ghi ra .agent/config/GATES.md.',
   why:'Luận đề của kit là "luật cần MÁY". Nhưng máy mà không liệt kê được thì không kiểm toán được. Không ai biết một gate đã âm thầm tụt xuống thành cảnh báo, hay đã mất hết nơi gọi và thành mồ côi.',
   how:['Sinh lại: npm run gates:index.','Chặn khi bảng lệch source: npm run gates:index:check.'],
   trap:'SINH và BÁO CÁO không phải gate bị nới. Chúng không kiểm vi phạm, chỉ tạo dữ liệu cho máy khác chặn.',
@@ -3519,7 +3529,7 @@ const CMD_GROUPS = [
     ['npm run merge:execution-status -- --task <KEY>','Ghép kết quả execute vào bộ canonical']
   ]},
   { g:'Kit: tự kiểm toán & phát hành', items:[
-    ['npm run gates:index  ·  npm run gates:index:check','Danh mục gate tự sinh — 145 máy, 102 CHẶN; :check chặn khi bảng lệch source'],
+    ['npm run gates:index  ·  npm run gates:index:check','Danh mục gate tự sinh — 146 máy, 104 CHẶN; :check chặn khi bảng lệch source'],
     ['npm run rule -- <mục>  ·  npm run rule:toc','Tra RULE_GLOBAL theo mục (287 token) thay vì đọc cả file (12,8k)'],
     ['npm run version:check','Chặn phát hành thiếu số phiên bản; kiểm khớp tag'],
     ['npm run package:kit','Đóng gói dist/ CHỈ lớp GENERIC — không để lọt secret hay oracle của dự án khác'],

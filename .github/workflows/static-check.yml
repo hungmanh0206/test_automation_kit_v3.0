@@ -116,6 +116,15 @@ jobs:
       - name: Tài liệu không nói ngược luật canonical (rule:consistency)
         run: npm run rule:consistency
 
+      # Thêm một lệnh `/` hoặc một workflow mà không thêm dòng vào bảng định tuyến thì nó tồn tại mà
+      # không ai biết khi nào nên dùng — và quan trọng hơn, khi nào KHÔNG nên. Cửa đọc mẫu số từ ĐĨA,
+      # nên điểm vào mới là tự có mặt trong phép đo.
+      #
+      # Nó cũng chặn ô "KHÔNG dùng khi" để trống: đó là cột duy nhất ba bản liệt kê lệnh đã có
+      # (CHEATSHEET / kit-map / skills INDEX) KHÔNG có, tức là cả lý do bảng này tồn tại.
+      - name: Bảng định tuyến phủ mọi điểm vào (router:check)
+        run: npm run router:check
+
       # Trang docs/library/ và tài liệu hướng dẫn là lớp DẪN XUẤT: viết tay, nguồn thì đổi liên tục.
       # Trước đây gate này chỉ chạy khi có người NHỚ gõ lệnh — tức là nó chưa thật sự gác cổng.
       # Rẻ và tất định: chỉ đọc file trong repo, không cần môi trường ngoài.
