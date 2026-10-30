@@ -1,6 +1,7 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import { test, expect } from '@playwright/test';
+import { canLopProject } from './_trong_repo';
 
 const REPO = path.resolve(__dirname, '../../..');
 const NGUON = path.join(REPO, 'tests/fe/support/opsLogin.ts');
@@ -20,8 +21,7 @@ const NGUON = path.join(REPO, 'tests/fe/support/opsLogin.ts');
  * hẳn "đã kiểm và đạt", và một spec generic im lặng chấm xanh khi thiếu nguồn là đúng thứ kit cấm.
  */
 function docNguon(): string {
-  test.skip(!fs.existsSync(NGUON),
-    'thiếu `tests/fe/support/opsLogin.ts` (lớp PROJECT, không đóng gói) — KHÔNG kiểm được, và đó không phải "đạt"');
+  canLopProject(REPO, 'tests/fe/support/opsLogin.ts', 'đối chiếu mã nguồn helper đăng nhập QEMIS');
   return fs.readFileSync(NGUON, 'utf8');
 }
 

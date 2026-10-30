@@ -3,6 +3,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { spawnSync } from 'child_process';
 import { gateEnv } from './_gate_env';
+import { canRepoGit } from './_trong_repo';
 
 /*
  * `gate_codes.json` (v2.7.0 §A5) — MÃ LỖI PHẢI NÓI ĐƯỢC CÁCH SỬA.
@@ -88,17 +89,12 @@ test.describe('@infra gate_codes — mỗi mã đủ bốn trường', () => {
 
 test.describe('@infra gates:index --check — CÓ RĂNG với mã thiếu hướng dẫn', () => {
   /*
-   * SKIP KHI KHÔNG CÓ `.git` — vì spec này cũng chạy TRONG GÓI PHÁT HÀNH.
-   *
-   * `gate_index.js` lấy tập file qua `git ls-files`, và có nhánh dự phòng khi không hỏi được git (gói
-   * phát hành không có `.git`, ở đó nó đọc đĩa). Bản in của `--check` khác giữa hai nhánh, nên ba ca
-   * dưới đây — vốn khẳng định NGUYÊN VĂN thông điệp — đỏ oan trong gói.
-   *
-   * Đo 30/10/2026: 3 ca đỏ ở `release:verify`, cùng lượt với 25 ca của `parity-check`.
+   * `gate_index.js` lấy tập file qua `git ls-files` và có nhánh đọc đĩa khi không có `.git`; bản in của
+   * `--check` khác giữa hai nhánh, nên ba ca dưới — vốn khẳng định NGUYÊN VĂN thông điệp — đỏ oan trong
+   * gói. Đo 30/10/2026: 3 ca đỏ ở `release:verify`. Dùng `canRepoGit` của `_trong_repo.ts`.
    */
   test.beforeEach(() => {
-    test.skip(!fs.existsSync(path.join(REPO, '.git')),
-      'không có `.git` (đang chạy từ gói phát hành) — `gates:index --check` đi nhánh đọc đĩa nên thông điệp khác; KHÔNG kiểm được, và đó không phải "đạt"');
+    canRepoGit(REPO, 'đối chiếu thông điệp của `gates:index --check` theo tập file git track');
   });
 
   function chayCheck() {

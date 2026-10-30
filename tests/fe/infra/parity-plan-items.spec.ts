@@ -17,6 +17,7 @@ import os from 'os';
 import path from 'path';
 import { spawnSync } from 'child_process';
 import { gateEnv } from './_gate_env';
+import { canTaiLieu } from './_trong_repo';
 
 const REPO = path.resolve(__dirname, '..', '..', '..');
 const GATE = path.join(REPO, 'scripts/qa/parity_check.js');
@@ -53,13 +54,10 @@ const CON_OK = {
 };
 
 test.describe('@infra parity:check ⑤ — ✅ phải có mọi mục con đã xong', () => {
-  /*
-   * Cùng lý do với `parity-check.spec.ts`: spec này chạy cả TRONG GÓI, mà bảng nghiệm thu và bản kế
-   * hoạch đều là tài liệu NỘI BỘ của repo, cố ý không đóng gói.
-   */
+  /* Cùng lý do với `parity-check.spec.ts`, và cùng một helper — xem `_trong_repo.ts`. */
   test.beforeEach(() => {
-    test.skip(!fs.existsSync(DOC) || !fs.existsSync(KE_HOACH_THAT),
-      'thiếu `A_PARITY.md` hoặc `plan_items.json` (tài liệu NỘI BỘ, không đóng gói) — KHÔNG đối chiếu được, và đó không phải "đạt"');
+    canTaiLieu(REPO, 'docs/v2.9.5/A_PARITY.md', 'đối chiếu bảng nghiệm thu A_PARITY');
+    canTaiLieu(REPO, 'docs/v2.9.6/plan_items.json', 'đối chiếu mục con đã khai của từng §');
   });
 
   test('ĐỐI CHỨNG DƯƠNG: mục con thiếu spec mà § dán ✅ ⇒ CHẶN, và NÊU TÊN mục con', () => {
