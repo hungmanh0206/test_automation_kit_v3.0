@@ -86,8 +86,20 @@ phiên mới. Hai khả năng còn lại, và chúng dẫn tới hai quyết đ�
 - harness liệt kê **đủ 28** ở đầu phiên ⇒ dòng hook là **dư**, gỡ được ~232 token/phiên;
 - harness chỉ thông báo skill **mới đổi** ⇒ dòng hook vẫn là đường duy nhất để biết 28 tên ⇒ **giữ**.
 
-Phép đo một dòng ở phiên mới, chưa nén: xem ngữ cảnh đầu phiên có liệt kê **bao nhiêu** skill. Đếm được
-28 ⇒ gỡ. Đếm được 0 ⇒ giữ, và lúc đó kết luận có **số đo**, khác hẳn *"chưa đo được"*.
+**Một phép đo nữa làm hẹp chỗ chưa biết.** `npm run skills:index` ghi lại **cả 28** shim — đo được:
+mtime của một shim không-đổi-nội-dung **có** thay đổi, nội dung **y nguyên**. Mà harness chỉ thông báo
+**2**. Nên thông báo đi theo **nội dung / trạng thái đăng ký**, **không** theo mtime.
+
+Hệ quả: ở đầu một phiên, chưa có trạng thái trước để so, nên mọi skill hợp lệ đều ở thế *"vừa trở nên
+khả dụng"* — tức harness **có lẽ liệt kê đủ 28**. Hai mô hình giải thích khác nhau (thông báo khi *đổi
+nội dung* vs khi *đổi trạng thái parse*) đều dẫn tới cùng dự đoán đó.
+
+Nhưng **"có lẽ" không phải "đã đo"**, và hai chiều hỏng không đối xứng: gỡ dòng hook mà hoá ra cần thì
+hỏng **im lặng** (agent không biết 28 skill tồn tại); giữ thừa thì chỉ tốn **232 token/phiên**. Nên
+**GIỮ** cho tới khi có số.
+
+Phép đo một dòng ở phiên mới, chưa nén: đếm xem ngữ cảnh đầu phiên liệt kê **bao nhiêu** skill. **28** ⇒
+gỡ dòng hook. **0** ⇒ giữ, và lúc đó kết luận có **số đo**, khác hẳn *"chưa đo được"*.
 
 Tới khi có số đó thì **GIỮ** dòng hook — vì hỏng theo chiều "gỡ rồi mới biết là cần" thì im lặng, còn
 hỏng theo chiều "giữ thừa" thì chỉ tốn 232 token.
@@ -171,12 +183,20 @@ chưa vá.
 thuộc chỉ để gác sáu luật thì đắt hơn gác thẳng sáu luật). Vỡ theo kiểu khác — thụt lề, list, neo/alias —
 thì nó không thấy.
 
-### Còn lại cần phiên mới
+### ĐÃ XÁC NHẬN — và KHÔNG cần phiên mới
 
-`case-debugger` chỉ **xuất hiện** sau khi harness nạp lại sổ đăng ký. Phép đo một dòng ở phiên sau:
-gọi `Agent(case-debugger)` với một việc rỗng. Thấy ⇒ xác nhận nguyên nhân; không thấy ⇒ còn một nguyên
-nhân nữa, và lúc đó chạy `claude --debug` tìm lý do bỏ qua trong debug log (tài liệu nói lý do được ghi
-ở đó).
+Tôi tưởng phải chờ phiên mới. Không: **harness nạp lại file định nghĩa NGAY khi nội dung đổi.**
+
+| Mốc | `Agent(case-debugger)` | Danh sách agent |
+|---|---|---|
+| Trước khi vá | `Agent type 'case-debugger' not found` | 2/3 — vắng mặt |
+| Sau khi vá, **cùng phiên** | **chạy được**, trả đúng câu đã yêu cầu | **3/3** — harness tự thông báo agent mới |
+
+Hai chiều đều có số đo, nên nguyên nhân **đã xác nhận**, không còn là nghi vấn: `: ` không bọc nháy làm
+vỡ YAML ⇒ harness bỏ qua file ⇒ agent không vào sổ đăng ký. Vá xong là nó vào ngay.
+
+`claude --debug` không cần dùng tới — để lại đây làm đường dự phòng nếu lớp lỗi này tái phát theo một
+kiểu khác (tài liệu nói lý do bỏ qua được ghi vào debug log).
 
 ## N2.1 · `run:analysis --nhom` — gom case đỏ theo nguyên nhân
 
