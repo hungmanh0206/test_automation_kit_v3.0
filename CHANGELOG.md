@@ -1,11 +1,61 @@
 # Changelog
 
-> Lịch sử thay đổi **kit dùng chung** (shared). Kit chưa dùng semver → ghi theo **ngày + nhóm chủ đề**,
-> nguồn là `git log main` (kèm commit hash để tra ngược).
+> Lịch sử thay đổi **kit dùng chung** (shared). Mỗi mục là một **đợt phát hành** `vX.Y.Z` kèm ngày và
+> nhóm chủ đề; nguồn là `git log main` (kèm commit hash để tra ngược). `npm run version:check` gác
+> việc mục đỉnh khớp `package.json` và thứ tự giảm dần.
+>
+> *(Câu cũ ở đây phủ nhận việc kit đánh số theo semver. Đo 30/10/2026: 23/23 mục đều mang
+> `## vX.Y.Z`, nên câu ấy đã lạc hậu từ lâu và dạy người đọc sai về cách file này được ghi.
+> `version:check` nay chặn nó — và chặn bằng phép so CHỮ, nên chính ghi chú này cũng phải tránh
+> viết lại nguyên văn câu bị cấm. Đó là lần thứ ba trong một phiên văn của tôi làm nổ phép kiểm
+> của tôi.)*
 >
 > Vì sao cần file này: mọi thay đổi ở `playwright.config.js`, `package.json`, `scripts/**`, `prompt_templates/**`,
 > `.agent/**`, `tests/support/**` đều là **shared change** (xem `RULE_GLOBAL.md` §Shared Change Gate) —
 > ảnh hưởng mọi story đang chạy. Mỗi mục ghi **vấn đề → cách chữa**, không chỉ liệt kê tính năng.
+
+## v2.9.6 — 2026-10-30 — Skill tự nạp được, và bốn cửa tắt cùng lúc khi gọi FAIL bằng đúng tên chuẩn
+
+**Vấn đề → cách chữa**
+
+- **28 skill của kit không auto-load, nên agent chỉ mở khi tự nghĩ ra.** Sinh 28 shim
+  `.claude/skills/<tên>/SKILL.md` trỏ về bản gốc; `skills:index:check` gác cả ba chiều **thiếu · lệch ·
+  thừa**. Đo được: harness **nạp** shim (`Skill(run_report_reader)` chạy; tên bịa ra `Unknown skill`)
+  nhưng **không quảng bá** 28 tên vào ngữ cảnh. **Nạp được ≠ biết có mà gọi**, nên dòng liệt kê tên
+  trong hook **giữ lại** — không tiết kiệm được ~232 token/phiên như dự tính ban đầu.
+- **`run_report_reader` sinh ở v2.9.5 rồi sống mồ côi.** `gate:policy` nâng skill mồ côi từ cảnh báo
+  lên **CHẶN**. Và phát hiện kèm theo: cửa ấy đếm cả tên skill nằm trong **chú thích mã**, nên một câu
+  tôi viết trong `run_analysis.js` đã **tắt đối chứng dương của chính cửa** — nay bỏ chú thích trước khi
+  tìm, dùng lại `boChuThich` của `recon_passive.js`.
+- **Gọi `finish('FAIL', …)` — ĐÚNG TÊN CHUẨN của taxonomy — làm bốn cửa tắt cùng lúc.** `FAIL` là tên
+  chuẩn, `FAILED` chỉ là đồng nghĩa, mà `evidence_recorder` ghim nguyên văn `'FAILED'` ở bảy chỗ. Hệ quả:
+  `failureLayer` bị xoá trắng · phép kiểm bắt buộc khai tầng không nổ · phép kiểm giá trị tầng không chạy
+  · `reruns` không đếm · `bug_claim` không thấy case nào để đòi claim. Nay chuẩn hoá qua `synonyms` cho
+  mọi quyết định nội bộ, giữ nguyên chữ ghi ra sổ.
+- **`output_gate` chỉ kiểm CÓ tầng, không kiểm tầng CÓ THẬT.** Ba ca thật khai `be`/`fe` — hai giá trị
+  ngoài 8 tầng taxonomy — nên đi qua cửa đòi bug claim (`blockingLayers` chỉ gồm `product_bug`,
+  `api_bug`). Nay chặn mọi giá trị ngoài danh mục, ở **cả** lúc ghi và lúc đọc sổ.
+- **`run:analysis --nhom`** gom case đỏ theo `<tầng> ‖ <câu lỗi>`. **Giữ ở mức BÁO CÁO**: đo được nén chỉ
+  **1,34×**, **11%** ca nối được câu lỗi thật, **6/9** nhóm mẫu gom sai. Bản in tự khai cả bốn giới hạn
+  mỗi lượt chạy, kèm câu *"KHÔNG cửa nào được chặn dựa trên bản gom này"*.
+- **Một "giới hạn dữ liệu" hoá ra là lỗi nối của tôi.** Tôi đã ghi *"7% ca nối được, vì dữ liệu không
+  có"* vào tài liệu. Nhưng **77%** dòng lỗi *có* mã TC — hai số chênh 10 lần. Nguyên nhân: tiêu đề spec
+  dùng mã **trần** (`TC_021`), sổ dùng mã **đủ** (`CSDL_NHANSU_TC_021`). Vá bằng khớp hậu tố **khi và
+  chỉ khi hậu tố duy nhất trong sổ** (0 nhập nhằng trên 536 ca).
+- **`trace:matrix` thiếu chiều ngược.** Thêm mục *test đã chạy mà không TC nào nhận*, **phân ba loại** vì
+  đếm trần thì chôn ca đáng lo dưới đống đúng-thiết-kế. Bắt được **9 ca mở rộng mang PASS/FAIL mà không
+  có neo oracle** (5 trong đó `FAILED`) + **2 ca probe mang verdict**; 6 ca mở rộng CÓ neo nên không rỗng
+  chiều nào.
+- **Một ✅ trong bảng nghiệm thu có thể che mục con chưa xong.** `parity:check` khối ⑤ đọc
+  `docs/v2.9.6/plan_items.json`, nơi mỗi mục con **bắt buộc có neo máy phân giải được** (`script` ·
+  `spec` + số phép kiểm tối thiểu · `nguon` + ký hiệu · `nguoi` ⇒ buộc ⚠️ và phải ghi `vi_sao`). Có cả
+  **chiều ngược**: mọi mục con đã xong mà § vẫn ⚠️ thì cửa nhắc nâng lên, để ⚠️ không thành chỗ trú ẩn.
+- **Hai câu sai về bản A** (`rbt-manual-testing` "luôn-nạp", `tc_reviewer` 8 tiêu chí) đã sửa, và số về A
+  nay **máy đọc** từ `.agent/config/a_parity_source.json` chứ không gõ tay.
+- **`package.json` tụt lại ở `2.9.4`** trong khi CHANGELOG đỉnh là `v2.9.5` — lệch hai bước mà không máy
+  nào kêu. Thêm `npm run version:check`: mục đỉnh khớp `package.json` · CHANGELOG giảm dần · số máy gác
+  viết tay khớp bản máy sinh. Tài liệu **lịch sử** (CHANGELOG, `docs/v…`) cố ý được bỏ qua ở phép kiểm
+  cuối, vì số máy trong đó đúng ở thời điểm ghi.
 
 ## v2.9.5 — 2026-10-29 — Vượt A ở mọi chỗ A còn hơn, và mỗi chỗ phải có máy đứng sau
 

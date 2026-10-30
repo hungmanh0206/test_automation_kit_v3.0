@@ -266,6 +266,55 @@ Dòng cũ kể hai thứ (`run_report_reader` + `--pm`). Dòng mới kể đủ 
 sai"*. Một bảng nghiệm thu nói được giới hạn của chính nó thì khó dùng để khoe hơn. Dòng §7 thứ hai (sổ
 phiên chạy tay) đổi nhãn thành **§7b** để mục con của kế hoạch neo đúng dòng, không neo bừa cả hai.
 
+## N6 · Phiên bản và số đếm về chính kit
+
+### Trước (đo 30/10/2026)
+
+| Số đo | Giá trị |
+|---|---|
+| `package.json` version | **2.9.4** |
+| CHANGELOG mục đỉnh | **v2.9.5** |
+| Nhánh đang làm | **v2.9.6** |
+| ⇒ lệch | **hai bước**, và không cửa nào kêu |
+| Mục CHANGELOG dạng `## vX.Y.Z` | **23/23** — nhưng phần mở đầu phủ nhận việc dùng semver |
+| Chỗ nhắc số máy gác | **4** — 2 máy sinh (`GATES.md`, `RULE_COVERAGE.md`) · **2 viết tay** |
+
+### Vì sao `version:check` cũ không bắt được
+
+Cửa **đã tồn tại** và đã gác bốn thứ: semver hợp lệ · tag ↔ version · CHANGELOG **có** mục cho bản hiện
+tại · cảnh báo shared change. Ca lệch hai bước vẫn **xanh**, vì mục cho `2.9.4` còn nằm giữa file nên
+phép kiểm *"có mục"* thoả. Thiếu đúng chữ **ĐỈNH**.
+
+Thêm bốn phép kiểm, mỗi phép kiểm có đối chứng dương riêng:
+
+| # | Gác gì | Vì sao cần |
+|---|---|---|
+| ⑤ | mục ĐỈNH phải là bản hiện tại | ca lệch hai bước ở trên |
+| ⑥ | thứ tự phải GIẢM DẦN | là tiền đề của chữ "đỉnh"; chèn mục vào giữa thì "đỉnh" thôi còn nghĩa |
+| ⑦ | phần mở đầu không khai NGƯỢC cách file đang được ghi | câu cũ dạy người đọc sai về cả file |
+| ⑧ | số máy VIẾT TAY khớp bản MÁY SINH | bản sao viết tay của một con số do máy đếm là chỗ trôi được |
+
+### Ba lỗi của chính tôi trong mục này
+
+**① Tôi GHI ĐÈ một file đang có.** `Write` báo *"updated"* chứ không *"created"*, và tôi không soi trước
+— `scripts/qa/version_check.js` đã tồn tại **133 dòng**, có cả quy ước semver MAJOR/MINOR/PATCH và nhánh
+chạy-từ-ZIP-không-có-`.git`. Đã trả lại bản gốc từ HEAD rồi **thêm** bốn phép kiểm vào, không thay.
+
+**② `package.json` có hai khoá `"version:check"`.** Khoá ấy đã có; tôi chèn thêm một bản. `JSON.parse`
+lấy khoá **cuối** nên số script **không đổi** (vẫn 215), mục mới bị che **im lặng**, và không cửa nào
+kêu. Dấu hiệu duy nhất là con số lẽ ra phải tăng mà không tăng. Nay có phép kiểm đọc **thô bằng regex**
+để bắt khoá trùng — `JSON.parse` thì không bao giờ thấy.
+
+**③ Phép kiểm ⑧ bản đầu sai theo chiều PHÁ HOẠI.** Lượt chạy đầu nó bắt 4 *"chỗ lệch"* ở `CHANGELOG.md`
+(132 · 80 · 16 máy) và `docs/v2.9.2/PLAN.md` (134 máy). Những con số ấy **đúng ở thời điểm ghi**; bắt
+chúng khớp số hôm nay là đòi viết lại lịch sử. Ranh giới nay mechanical: tài liệu **trạng thái hiện tại**
+là `.md` không phải `CHANGELOG.md` và không nằm dưới `docs/v…`. Đánh đổi nói rõ: `A_PARITY.md` cũng bị bỏ
+qua dù đang sống — bù lại nó có `parity:check` riêng.
+
+Và lần thứ **ba** trong phiên, văn của tôi làm nổ phép kiểm của tôi: ghi chú giải thích câu bị cấm lại
+**chứa** chính câu đó. Giữ phép so thô có chủ ý — phân biệt *"khai"* với *"trích"* bằng máy thì mong manh
+hơn là chỉ cần diễn đạt lại.
+
 ## Các mục khác
 
-*(điền khi làm tới — N5 · N6 · N7)*
+*(điền khi làm tới — N5 · N7)*
