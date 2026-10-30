@@ -219,6 +219,30 @@ function gateTestExecution(doc, { fix = false } = {}) {
       if (!rules.hasFailureLayer(failText)) {
         problems.push(`${id}: FAIL nhưng KHÔNG phân tầng lỗi (product/api_bug? setup_failure? script_error? infra/flaky? thiếu data/quyền?) — nêu rõ tầng + root cause trong comment hoặc field failureLayer`);
       }
+
+      /*
+       * TẦNG PHẢI CÓ THẬT TRONG TAXONOMY — không chỉ "có khai tầng" (v2.9.6 N2.2).
+       *
+       * Phép kiểm trên hỏi "có chữ nào trông như tên tầng không". Nó KHÔNG hỏi tên đó có thật. Nên một
+       * giá trị tự phát vẫn lọt — và đã lọt: đo 30/10/2026 thì CSDL_HS_TC_064 · CSDL_HS_TC_132 khai tầng
+       * `be`, CSDL_HS_TC_172 khai `fe`, hai tên KHÔNG nằm trong 8 tầng `verdict_taxonomy.failureLayers`.
+       *
+       * Và lọt ở đây không vô hại: `bug_claim.js` lọc theo `blockingLayers: ["product_bug","api_bug"]`,
+       * nên ba ca ấy ĐI QUA cửa đòi bug claim mà không ai hỏi gì. Taxonomy nói rõ `product_bug` "PHẢI
+       * ghi rõ tầng FE hay BE theo quy tắc beVsFe" — tức FE/BE là chi tiết NẰM TRONG `product_bug`, chứ
+       * không phải một tầng thay thế nó. Khai `be` là tụt từ "lỗi sản phẩm cần claim" xuống một ô trống.
+       *
+       * `evidence_recorder` nay chặn ca MỚI (ném lỗi ngay lúc `finish`), nhưng sổ đã ghi rồi thì chỉ cửa
+       * đọc sổ mới soi được — nên phép kiểm phải ở CẢ HAI chỗ.
+       */
+      const tangHop = Object.keys((loadTaxonomy() || {}).failureLayers || {});
+      const tangKhai = String(t.failureLayer || '').trim();
+      if (tangKhai && tangHop.length && !tangHop.includes(tangKhai)) {
+        problems.push(`${id}: failureLayer "${tangKhai}" KHÔNG có trong verdict_taxonomy.failureLayers `
+          + `(${tangHop.join(' | ')}) — đừng tự đặt tầng mới. `
+          + `FE/BE là chi tiết NẰM TRONG \`product_bug\` theo quy tắc beVsFe, không phải tầng thay thế nó: `
+          + `khai \`be\`/\`fe\` làm case đi qua cửa bug claim (blockingLayers chỉ gồm product_bug, api_bug).`);
+      }
     }
 
     // 6) G2: oracle tautology (app==app) → CẢNH BÁO (không chặn oan).

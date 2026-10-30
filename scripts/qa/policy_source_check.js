@@ -262,6 +262,9 @@ if (fs.existsSync(SKILLS_DIR)) {
   }
 }
 
+/* Dùng lại bộ làm-trắng-chú-thích của `recon_passive.js` — một bản, không hai. */
+const { boChuThich } = require('./recon_passive.js');
+
 // ─── SKILL MỒ CÔI: có trong cây nhưng KHÔNG nơi nào gọi ────────────────────────────────────────────────
 //
 // Cùng lớp lỗi với "npm script không ai nhắc" ở khối dưới, chỉ khác đối tượng. Skill của kit KHÔNG
@@ -308,7 +311,22 @@ if (fs.existsSync(SKILLS_DIR)) {
       if (e.isDirectory()) { gom(p, sau + 1); continue; }
       if (!/\.(md|js|ts|mjs|json|sh)$/.test(e.name)) continue;
       if (path.relative(rc.REPO_ROOT, p).split(path.sep).join('/') === TU_THAM_CHIEU) continue;
-      try { noiDung.push(fs.readFileSync(p, 'utf8')); } catch { /* không đọc được thì bỏ qua */ }
+      try {
+        const s = fs.readFileSync(p, 'utf8');
+        /*
+         * CHÚ THÍCH TRONG MÃ KHÔNG NỐI GÌ CẢ — bỏ chúng ra trước khi tìm tên skill (v2.9.6 N2.2).
+         *
+         * Bắt được 30/10/2026 bởi ĐỐI CHỨNG DƯƠNG của chính cửa này, ở `tests/fe/infra/gates.spec.ts`:
+         * nó gỡ hai đường nối thật của `run_report_reader` rồi đòi exit 1, nhưng lượt đó exit 0. Lý do
+         * là tôi vừa viết trong chú thích của `scripts/qa/run_analysis.js` một câu nhắc tên skill ấy —
+         * và câu đó nói đúng điều NGƯỢC LẠI: rằng skill đó CHƯA CÓ tính năng này.
+         *
+         * Nên văn của tôi đã tắt phép kiểm của tôi, và tắt theo chiều tệ nhất: cửa vẫn xanh. Một câu
+         * chú thích không mở được skill cho ai; chỉ mã hoặc văn điều hướng (workflow · command · prompt)
+         * mới nối. Markdown thì GIỮ NGUYÊN, vì ở đó văn xuôi CHÍNH LÀ đường nối.
+         */
+        noiDung.push(/\.(js|ts|mjs)$/.test(e.name) ? boChuThich(s) : s);
+      } catch { /* không đọc được thì bỏ qua */ }
     }
   };
   for (const r of NOI_GOI) gom(path.join(rc.REPO_ROOT, r));

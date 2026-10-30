@@ -41,6 +41,35 @@ const VERDICT_TAXONOMY = (() => {
   }
 })();
 
+/*
+ * TÊN CHUẨN CỦA VERDICT — và vì sao recorder BẮT BUỘC phải tra bảng này.
+ *
+ * `verdict_taxonomy.json` khai tên chuẩn là `FAIL`, còn `FAILED` chỉ là **đồng nghĩa**
+ * (`synonyms: {"PASSED":"PASS","FAILED":"FAIL",…}`). Recorder trước đây ghim nguyên văn `'FAILED'` ở
+ * bảy chỗ và không hề tra `synonyms`. Hệ quả: gọi `finish('FAIL', …)` — **đúng tên chuẩn** — thì
+ *
+ *   · `failureLayer` bị xoá trắng,
+ *   · phép kiểm "FAIL bắt buộc khai tầng" không nổ,
+ *   · phép kiểm "tầng phải nằm trong taxonomy" không chạy,
+ *   · `reruns` không được đếm,
+ *   · và `bug_claim.js` lọc CHỈ theo `failureLayer` nên không thấy case nào để đòi claim.
+ *
+ * Bốn cửa tắt cùng lúc, và cách tắt chúng là **viết đúng chuẩn**. Đo 30/10/2026 bằng
+ * `tests/fe/infra/verdict-dong-nghia.spec.ts`: 4/5 ca kiểm đỏ trước khi vá. Trên sổ thật có 55 ca đỏ
+ * mang `status: 'FAIL'`, trong đó 6 ca khai tầng `be`/`fe` — hai giá trị KHÔNG nằm trong 8 tầng
+ * taxonomy khai, tức đúng loại giá trị mà phép kiểm lẽ ra phải chặn.
+ *
+ * Chỉ chuẩn hoá để QUYẾT ĐỊNH; `status` ghi ra sổ vẫn giữ nguyên chữ người gọi truyền, vì `output_gate`
+ * và `run:analysis` đều đã tự chuẩn hoá khi đọc — đổi dữ liệu ghi ra là đổi một lỗ lấy một lỗ.
+ */
+function chuanHoaVerdict(s) {
+  const v = String(s || '').trim().toUpperCase();
+  const dn = VERDICT_TAXONOMY.synonyms || {};
+  return dn[v] || v;
+}
+/** Case này có phải một lượt FAIL không — bất kể viết `FAIL` hay `FAILED`. */
+function laFail(s) { return chuanHoaVerdict(s) === 'FAIL'; }
+
 function pad2(n) { return String(n).padStart(2, '0'); }
 function ts() { try { return new Date().toISOString(); } catch { return ''; } }
 
@@ -225,9 +254,9 @@ class Case {
   /** Kết thúc case: status tổng (mặc định = FAILED nếu có step FAILED). Evidence cấp case = ảnh step lỗi (nếu có) hoặc step cuối. */
   async finish(overallStatus, opts = {}) {
     // opts.evidence: file cấp CASE thêm vào (vd video mô tả cả chuỗi thao tác — ảnh tĩnh không tả nổi).
-    const anyFail = this.steps.some((s) => s.status === 'FAILED');
+    const anyFail = this.steps.some((s) => laFail(s.status));
     const status = overallStatus || (anyFail ? 'FAILED' : (this.steps.length ? 'PASSED' : 'TODO'));
-    const failEv = this.steps.find((s) => s.status === 'FAILED');
+    const failEv = this.steps.find((s) => laFail(s.status));
     const caseEv = [...((failEv || this.steps[this.steps.length - 1] || {}).evidence || []), ...[].concat(opts.evidence || [])];
 
     /* `failureLayer` — verdict_taxonomy bắt buộc mọi FAIL phải khai tầng lỗi, và `bug_claim.js` đọc
@@ -237,14 +266,14 @@ class Case {
      * trong taxonomy để không đẻ ra giá trị tự phát. */
     // Chỉ gắn khi case THẬT SỰ fail: khai tầng lỗi trên một case PASS là thông tin sai trong file kết
     // quả, và `bug_claim.js` đọc trường này để đòi claim ⇒ sẽ đòi claim cho case không có lỗi nào.
-    let failureLayer = (opts.failureLayer && status === 'FAILED') ? String(opts.failureLayer) : '';
+    let failureLayer = (opts.failureLayer && laFail(status)) ? String(opts.failureLayer) : '';
     if (failureLayer) {
       const allowed = Object.keys(VERDICT_TAXONOMY.failureLayers || {});
       if (allowed.length && !allowed.includes(failureLayer)) {
         throw new Error(`failureLayer "${failureLayer}" không có trong verdict_taxonomy.failureLayers `
           + `(${allowed.join(' | ')}) — đừng tự đặt tầng lỗi mới`);
       }
-    } else if (status === 'FAILED') {
+    } else if (laFail(status)) {
       throw new Error(`${this.tcId} chấm FAILED nhưng thiếu failureLayer. `
         + `verdict_taxonomy bắt buộc khai tầng lỗi: finish('FAILED', { failureLayer: 'product_bug' | 'script_error' | … }). `
         + `FAIL không nói được là lỗi tầng nào thì chưa phán được, và "chưa phán được" KHÔNG thành bug.`);
@@ -260,7 +289,7 @@ class Case {
      * Case chuyển từ FAILED sang PASSED thì bộ đếm về 0 — lần fail sau là một quan sát mới, không được
      * cộng dồn vào chuỗi cũ. */
     let reruns = 0;
-    if (status === 'FAILED') {
+    if (laFail(status)) {
       let truoc = null;
       try {
         const shard = path.join(this.rec.shardDir, `${safeName(this.tcId)}.json`);
@@ -289,14 +318,14 @@ class Case {
         } catch { /* chưa có bản gộp = lượt chạy đầu */ }
       }
 
-      if (truoc && truoc.status === 'FAILED') reruns = Number(truoc.reruns || 0) + 1;
+      if (truoc && laFail(truoc.status)) reruns = Number(truoc.reruns || 0) + 1;
     }
 
     this.rec._put({
       tcId: this.tcId,
       status,
       ...(failureLayer ? { failureLayer } : {}),
-      ...(status === 'FAILED' ? { reruns } : {}),
+      ...(laFail(status) ? { reruns } : {}),
       comment: sanitize(opts.comment || (anyFail ? 'Có step FAILED — xem step evidence' : 'Executed')),
       evidence: caseEv,
       steps: this.steps,
