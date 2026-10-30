@@ -105,7 +105,17 @@ function main() {
    * tưởng đã đối soát.
    */
   try {
-    const cfgA = JSON.parse(fs.readFileSync(path.join(REPO, '.agent/config/a_parity_source.json'), 'utf8'));
+    /*
+     * `--a-source <file>` để phép kiểm trỏ vào BẢN SAO TẠM, không phải sửa file của repo.
+     *
+     * Bản trước không có cờ này, nên `parity-check.spec.ts` phải sửa-rồi-trả-lại
+     * `.agent/config/a_parity_source.json` thật. Khi Playwright chạy song song, một spec khác đọc
+     * file ĐANG bị sửa ⇒ khối ④ báo "số liệu A LỆCH" ⇒ đối chứng ÂM của
+     * `parity-plan-items.spec.ts` đỏ oan. Đã xảy ra hai lần, mỗi lần ở một ca kiểm khác nhau, và
+     * cả hai lần đều XANH khi chạy riêng — dấu hiệu kinh điển của trạng thái dùng chung.
+     */
+    const cfgA = JSON.parse(fs.readFileSync(
+      path.resolve(doiSo('a-source') || path.join(REPO, '.agent/config/a_parity_source.json')), 'utf8'));
     const gocA = (cfgA.duong_dan || []).find((d) => fs.existsSync(d));
     if (!gocA) {
       console.log(`\n[parity] ⓘ KHÔNG đo lại được số liệu về A — không đường dẫn nào trong`);
