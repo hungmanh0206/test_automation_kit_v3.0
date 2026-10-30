@@ -193,7 +193,35 @@ function main() {
       warnings.push('`GATES.md` không có dòng `Tổng **N** máy` để lấy làm nguồn ⇒ phép kiểm ⑦ KHÔNG phán được.');
     } else {
       const tongGate = Number(mTong[1]);
-      const dsMd = (git(['ls-files', '*.md']) || '').split('\n').map((x) => x.trim()).filter(Boolean);
+      /*
+       * KHÔNG CÓ `.git` THÌ ĐỌC ĐĨA, ĐỪNG IM LẶNG.
+       *
+       * Bản trước chỉ hỏi `git ls-files`, nên trong GÓI PHÁT HÀNH (không có `.git`) nó quét **0 file**
+       * rồi bỏ qua phép kiểm ⑦. Mà ⑦ ở đó vẫn có nghĩa: gói mang cả `README.md` lẫn `GATES.md`, và hai
+       * con số ấy phải khớp ở tay người nhận y như ở repo.
+       *
+       * Đo 30/10/2026: đúng chỗ này làm `release:verify` đỏ 2 ca cuối — hai ca của chính spec tôi viết,
+       * vì chúng khẳng định hành vi khi CÓ git mà không khai điều kiện ấy. `gate_index.js` đã có nhánh
+       * đọc đĩa từ trước; đây là cùng một bài học, lặp lại ở một cửa khác.
+       */
+      const dsMd = (() => {
+        const tuGit = (git(['ls-files', '*.md']) || '').split('\n').map((x) => x.trim()).filter(Boolean);
+        if (tuGit.length) return tuGit;
+        const BO_QUA = /^(node_modules|dist|outputs|test-results|playwright-report|\.git)(\/|$)/;
+        const ra = [];
+        const di = (d, tien) => {
+          let es;
+          try { es = fs.readdirSync(d, { withFileTypes: true }); } catch (e) { return; }
+          for (const e of es) {
+            const rel = tien ? `${tien}/${e.name}` : e.name;
+            if (BO_QUA.test(rel)) continue;
+            if (e.isDirectory()) di(path.join(d, e.name), rel);
+            else if (e.name.endsWith('.md')) ra.push(rel);
+          }
+        };
+        di(REPO, '');
+        return ra;
+      })();
       let soCho = 0;
       for (const f of dsMd) {
         const duong = f.replace(/\\/g, '/');

@@ -18,6 +18,7 @@
  */
 import { test, expect } from '@playwright/test';
 import fs from 'fs';
+import os from 'os';
 import path from 'path';
 import { spawnSync } from 'child_process';
 import { gateEnv } from './_gate_env';
@@ -147,5 +148,58 @@ test.describe('@infra version:check — phiên bản và số đếm về CHÍNH
     const trung = ten.filter((x, k) => ten.indexOf(x) !== k);
     expect([...new Set(trung)], 'khoá trùng thì JSON.parse lấy khoá cuối và mục kia bị che im lặng').toEqual([]);
     expect(ten.length, 'đọc thô phải thấy đủ script, nếu không phép kiểm này rỗng').toBeGreaterThan(100);
+  });
+});
+
+/*
+ * Phép kiểm ⑦ phải chạy được KHI KHÔNG CÓ `.git` — tức trong GÓI PHÁT HÀNH.
+ *
+ * LỖ ĐÃ ĐO RA: bản trước chỉ hỏi `git ls-files`, nên trong gói nó quét 0 file rồi bỏ qua ⑦. Mà ⑦ ở đó
+ * vẫn có nghĩa: gói mang cả `README.md` lẫn `GATES.md`, hai con số phải khớp ở tay người nhận y như ở
+ * repo. `release:verify` đỏ đúng 2 ca cuối vì chuyện này — và cả hai là ca của chính spec này, vì chúng
+ * khẳng định hành vi khi CÓ git mà không khai điều kiện ấy.
+ *
+ * `gate_index.js` đã có nhánh đọc đĩa từ trước. Đây là cùng một bài học, lặp lại ở một cửa khác.
+ */
+test.describe('@infra version:check ⑦ — chạy được trong gói (không `.git`)', () => {
+  /** Dựng cây tối thiểu, KHÔNG có `.git`, đủ để cửa chạy thật. */
+  function cayKhongGit(soMayTrongReadme: number, soMayTrongGates = 151) {
+    const d = fs.mkdtempSync(path.join(os.tmpdir(), 'nogit-'));
+    fs.mkdirSync(path.join(d, 'scripts/qa'), { recursive: true });
+    fs.mkdirSync(path.join(d, '.agent/config'), { recursive: true });
+    fs.copyFileSync(GATE, path.join(d, 'scripts/qa/version_check.js'));
+    fs.writeFileSync(path.join(d, 'package.json'), JSON.stringify({ name: 'x', version: '2.9.6' }, null, 2), 'utf8');
+    fs.writeFileSync(path.join(d, 'CHANGELOG.md'),
+      '# Changelog\n\n> Mỗi mục là một đợt phát hành.\n\n## v2.9.6 — 2026-10-30 — x\n\n- x\n', 'utf8');
+    fs.writeFileSync(path.join(d, '.agent/config/GATES.md'),
+      `# Gates\n\nTổng **${soMayTrongGates}** máy — 1 CHẶN.\n`, 'utf8');
+    fs.writeFileSync(path.join(d, 'README.md'),
+      `# Kit\n\nXem .agent/config/GATES.md (danh mục ${soMayTrongReadme} máy gác, tự sinh).\n`, 'utf8');
+    return d;
+  }
+  const chayTrong = (d: string) => {
+    const r = spawnSync(process.execPath, [path.join(d, 'scripts/qa/version_check.js')],
+      { cwd: d, encoding: 'utf8', env: gateEnv() });
+    return { code: r.status, out: `${r.stdout || ''}${r.stderr || ''}` };
+  };
+
+  test('ĐỐI CHỨNG ÂM: không `.git`, số khớp ⇒ ĐẠT và ⑦ VẪN ĐẾM ĐƯỢC', () => {
+    const d = cayKhongGit(151, 151);
+    expect(fs.existsSync(path.join(d, '.git')), 'cây này phải KHÔNG có .git, nếu không phép kiểm rỗng').toBe(false);
+    const r = chayTrong(d);
+    expect(r.code, r.out).toBe(0);
+    expect(r.out, 'phải ĐẾM được bản sao viết tay, không được bỏ qua ⑦')
+      .toMatch(/⑦ 1 bản sao viết tay của số máy, nguồn `GATES\.md` = 151/);
+    expect(r.out, 'và KHÔNG được khai "chưa gác gì"').not.toMatch(/CHƯA GÁC GÌ/);
+    fs.rmSync(d, { recursive: true, force: true });
+  });
+
+  test('ĐỐI CHỨNG DƯƠNG: không `.git`, số LỆCH ⇒ vẫn CHẶN', () => {
+    /* Vế quyết định: nhánh đọc đĩa phải GÁC ĐƯỢC, không chỉ đếm cho có. */
+    const d = cayKhongGit(150, 151);
+    const r = chayTrong(d);
+    expect(r.code, r.out).toBe(1);
+    expect(r.out).toMatch(/README\.md:\d+ ghi \*\*150\*\* máy, `GATES\.md` \(máy sinh\) đếm \*\*151\*\*/);
+    fs.rmSync(d, { recursive: true, force: true });
   });
 });
