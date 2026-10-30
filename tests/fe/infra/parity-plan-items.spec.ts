@@ -145,7 +145,13 @@ test.describe('@infra parity:check ⑤ — ✅ phải có mọi mục con đã x
       ma: 'X7', viec: 'việc đã vào mã',
       neo: { loai: 'nguon', duong: 'scripts/qa/parity_check.js', ky_hieu: 'plan_items.json' },
     }]);
-    expect(chay(co.f, co.kh).code, chay(co.f, co.kh).out).toBe(0);
+    /*
+     * MỘT LƯỢT CHẠY, MỘT KHẲNG ĐỊNH. Bản đầu viết `expect(chay(…).code, chay(…).out)` — gọi gate HAI
+     * lần, và thông điệp lỗi in ra là output của lượt KHÁC với lượt đang khẳng định. Đúng lớp "đối chứng
+     * hỏng thì kết luận hỏng": khi nó đỏ, dòng chẩn đoán kể về một lượt chạy không liên quan.
+     */
+    const rCo = chay(co.f, co.kh);
+    expect(rCo.code, rCo.out).toBe(0);
     fs.rmSync(co.d, { recursive: true, force: true });
 
     const khong = dungTam('✅', [{
