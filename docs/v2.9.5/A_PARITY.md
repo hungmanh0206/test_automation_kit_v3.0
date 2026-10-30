@@ -17,7 +17,7 @@
 | lệnh điểm vào | 32 command | 13 lệnh `/` + 16 workflow |
 | skill | 18 | 28 |
 | file luật | 6 | `RULE_GLOBAL.md` + `.agent/rules/**` + `CLAUDE.md` auto-load |
-| máy kiểm | 2 script Python (đọc/xuất testcase) | **148** máy trong `.agent/config/GATES.md` |
+| máy kiểm | 2 script Python (đọc/xuất testcase) | **150** máy trong `.agent/config/GATES.md` |
 | skill dài nhất | `rbt-manual-testing` **936 dòng** (~16,2k token, luôn-nạp) | trần **2.500 token** mỗi `SKILL.md`, phần dày ở `references/` |
 
 Con số cuối là khác biệt về HÌNH DẠNG, không phải về lượng: A nhồi hướng dẫn vào phần luôn-nạp, nên càng
@@ -56,8 +56,8 @@ dày thì càng ít lượt thật sự đọc hết. B tách, và có hai máy 
 
 | Việc | Vì sao chưa có máy |
 |---|---|
-| "Quan sát thụ động" trong `requirements_analyzer` | Phân biệt *quan sát* với *tác động* phải đọc ý của từng bước, máy chỉ đọc chữ. Review tay |
-| `execution-summary.md` có kể đúng lượt chạy không | Do người viết; máy không đối chiếu được lời kể với artifact. Đọc nó SAU `results:summary` và `run:analysis` |
+| "Quan sát thụ động" — phần Ý ĐỊNH của từng bước | Nay có `npm run recon:passive` chặn 7 kiểu tự-gửi-request và chặn cả chiều ngược (xoá sạch listener). Nhưng nó đọc TÊN HÀM, nên lời gọi mạng viết gián tiếp (`window[x]("/api")`, helper ở file khác) thì không thấy — chỗ đó vẫn review tay |
+| `execution-summary.md` **kể** đúng lượt chạy không | Nay có `npm run exec:tally:check` gác phần ĐO ĐƯỢC: con số trong báo cáo phải truy về một sổ verdict CÓ TÊN. Phần **kể** đúng hay không thì vẫn do người viết — máy không đối chiếu được lời kể với artifact |
 | "Đổi expected để pass" (`CLAUDE.md` §6) | Không máy nào so expected với bản trước. Muốn gác phải dựng một cửa trên `git diff` |
 | "Hardcode data task-specific vào template chung" | `package:kit` chỉ cảnh báo ở cửa phát hành, không bắt lúc đang sửa template. Luật quét mã task đã thử rồi bỏ: nó khớp cả `ISO-8601`/`RFC-2119` |
 | Case phụ thuộc case khác mà **không khai** | `data:chain` chỉ thấy chuỗi đã KHAI trong ô `Tiền điều kiện`. Chỗ không khai nằm ở phần chấm tay của `automation_reviewer` |

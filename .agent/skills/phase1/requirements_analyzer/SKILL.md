@@ -7,7 +7,7 @@ description: Phân tích requirement/UI/API artifact để tạo scope, business
 
 ## Purpose
 
-Chuyển Backlog/tài liệu nguồn/Figma/Swagger/local artifact thành requirement summary, business rule, open question và coverage input phục vụ sinh testcase.
+Chuyển Backlog/tài liệu/Figma/Swagger/artifact local thành requirement summary, business rule, open question và coverage input để sinh testcase.
 
 ## Responsibilities
 
@@ -18,7 +18,7 @@ Chuyển Backlog/tài liệu nguồn/Figma/Swagger/local artifact thành require
 | Risk | Phân loại rule/gap theo `Critical`, `High`, `Medium`, `Low`. |
 | Setup input | Từ Swagger/API spec, xác định endpoint/payload có thể dùng để setup precondition (input cho Setup Strategy contract của testcase). |
 | Question | Ghi open question khi tài liệu mâu thuẫn hoặc thiếu expected result. |
-| Impact/Affected area | Nhận diện bề mặt dùng chung story đụng tới (data/field · endpoint · component/rule · status/enum · calc · permission · job) — input cho mục 17; cái không suy được thì flag "QA confirm". |
+| Impact/Affected area | Bề mặt dùng chung story đụng tới: data/field · endpoint · component/rule · status/enum · calc · permission · job — input cho mục 17; không suy được thì flag "QA confirm". |
 
 ## Inputs · Outputs
 
@@ -57,9 +57,10 @@ Tất cả ra `knowledge/system/discovery/<build_id>/`, cùng một lượt `npm
 `discover` **never-auto**: TỪ CHỐI chạy khi thiếu `--confirm-nonprod`, kể cả khi tên host trông là
 non-prod — dấu hiệu trong tên host không thay được một lượt xác nhận của người.
 
-🚫 **Recon chỉ quan sát THỤ ĐỘNG.** Không `curl`/`fetch`/`page.evaluate` gọi endpoint để dò hành vi: một
-request mình tự tạo không chứng minh được gì về hành vi của UI. Luật này **chưa có máy gác** — lý do và
-số đo ở [`references/recon.md`](references/recon.md) §2.
+🚫 **Recon chỉ quan sát THỤ ĐỘNG.** Không `curl`/`fetch` gọi endpoint để dò: request mình tự tạo không
+chứng minh gì về hành vi UI, nhưng bản kê recon là NGUỒN viết case nên nó **trông như** phát hiện. Gác:
+`npm run recon:passive` — 7 kiểu tự-gửi, và **chiều ngược**: xoá sạch listener thì phép kiểm kia vẫn
+xanh. `goto` và `page.evaluate` đọc DOM được phép. Số đo: [`recon.md` §2](references/recon.md).
 
 ## Tài liệu bán phần — chia vùng trước khi mở browser
 

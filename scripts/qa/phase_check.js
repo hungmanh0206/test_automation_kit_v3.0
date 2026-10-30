@@ -71,6 +71,11 @@ const BUOC = {
      * Lần thứ ba trong phiên một chú thích tự gây ra đúng phép kiểm nó đang giải thích.)
      */
     { ten: 'data:chain', cmd: ['scripts/qa/data_chain_check.js', '--enforce'], task: null, chan: true },
+    /*
+     * `exec:tally:check` — số trong báo cáo phải truy được về một sổ verdict CÓ TÊN. Đứng ở bó CUỐI
+     * Phase 2 vì đó là lúc người ta sắp viết báo cáo, và vì nó cần sổ verdict đã có.
+     */
+    { ten: 'exec:tally:check', cmd: ['scripts/qa/exec_summary_tally.js', '--check'], task: null, chan: true },
     { ten: 'self-review', cmd: ['scripts/qa/self_review.js', '--enforce'], task: '--task', chan: true },
     { ten: 'results:summary', cmd: ['scripts/qa/summarize_results.js'], task: null, chan: false },
     /*
