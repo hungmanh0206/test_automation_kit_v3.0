@@ -73,6 +73,85 @@ async function loadPublished(taskOutputDir) {
   return out;
 }
 
+/*
+ * ─── TEST MỒ CÔI: đã chạy mà KHÔNG TC nào nhận (v2.9.6 N2.3) ──────────────────────────────────────
+ *
+ * Bảng chính đi một chiều: TC canonical → đã execute chưa. Chiều ngược chưa ai đo, và nó bỏ lọt đúng
+ * loại lỗi khó thấy nhất — một lượt chạy GHI VERDICT cho một mã mà bộ case không có dòng nào nhận.
+ *
+ * ĐẾM TRẦN MỘT CON SỐ LÀ VÔ DỤNG. Phần lớn ca "mồ côi" là ca MỞ RỘNG §7, vốn ĐÚNG THIẾT KẾ là không có
+ * dòng canonical. Một cột "mồ côi: 8" sẽ chôn ca đáng lo dưới đống đúng-thiết-kế, nên phải PHÂN LOẠI
+ * rồi mới đếm. Số đo 30/10/2026 trên CSDL-9004: 8/256 không có dòng canonical ⇒ **7 ca mở rộng KHÔNG có
+ * neo oracle (5 trong đó FAILED)** + 1 ca recon mang verdict; và **6 ca mở rộng CÓ neo** nên phép kiểm
+ * neo không rỗng ở cả hai chiều. CSDL-9001: 1/205, là một PROBE mang `PASSED`.
+ *
+ * Ba loại, và chỉ hai loại đầu là lỗi:
+ *   · MỞ RỘNG không có neo — CLAUDE.md §3: mở rộng chỉ được PASS/FAIL khi có `oracle_ref`; không neo thì
+ *     là `OBSERVATION`. Một FAIL mở rộng không neo là đúng thứ dễ thành bug sai.
+ *   · PROBE/RECON mang verdict — probe là bước khám phá, nó không phán gì.
+ *   · MẠO DANH — mã dạng `..._TC_<số>` mà không dòng nào nhận; verdict của nó rơi vào khoảng không.
+ *
+ * MẠO DANH đo được **0 ca**, và chỗ đó là một bài học riêng: phép đo nháp của tôi báo 2 ca
+ * (`CSDL_HSTRUONG_TC_127B`, `TC_161B`) vì regex nháp đòi hậu tố CHỮ THƯỜNG nên trượt chữ `B` hoa — hai
+ * mã ấy CÓ trong canonical. Bộ phân tích thật (`parseTestcases`) đọc đúng. Nên loại này ship kèm đối
+ * chứng dương tổng hợp, và ghi rõ là **chưa gác dòng dữ liệu thật nào**.
+ *
+ * "0 TC canonical đọc được" KHÔNG phải "sạch" — phải nói KHÔNG PHÁN ĐƯỢC.
+ */
+const RE_NEO_ORACLE = /\b(?:BR|SM|UI|BUS|RULE)-[A-Z0-9_.-]+/;
+
+function loaiMoCoi(id) {
+  if (/^PROBE_|^RECON_|_RECON_/.test(id)) return 'probe';
+  if (/^EXPANSION_|^EXT_|_EXT_/.test(id)) return 'moRong';
+  if (/_TC_\d+[A-Za-z]?$/.test(id)) return 'maoDanh';
+  return 'khongRoKhuon';
+}
+
+function testMoCoi(T, tcs) {
+  const canon = new Set(tcs.map((x) => normId(x.tcId)).filter(Boolean));
+  const so = readJson(path.join(T, 'test-results', 'testcase-status.json'));
+  if (!so) return { doDuoc: false, vi_sao: 'không đọc được `test-results/testcase-status.json`' };
+  if (!canon.size) return { doDuoc: false, vi_sao: 'bộ case canonical đọc ra 0 TC, nên không có gì để đối chiếu' };
+
+  const ghi = new Map();
+  for (const x of (so.tests || [])) if (x.tcId) ghi.set(normId(x.tcId), x);
+
+  const dem = { maoDanh: 0, khongNeo: 0, probe: 0, coNeo: 0, khongRoKhuon: 0 };
+  const ds = [];
+  for (const [id, x] of ghi) {
+    if (canon.has(id)) continue;
+    const L = loaiMoCoi(id);
+    const st = String(x.status || '');
+    const coVerdict = /^(PASS|FAIL)/i.test(st);
+
+    if (L === 'moRong') {
+      /* Neo có thể ở trường riêng hoặc viết trong comment/step — tìm cả hai, đừng đòi đúng một chỗ. */
+      const coNeo = Boolean(x.oracleRef || x.oracle_ref) || RE_NEO_ORACLE.test(JSON.stringify(x));
+      if (!coVerdict) continue;                       // mở rộng khai OBSERVATION là đúng luật, bỏ qua
+      if (coNeo) { dem.coNeo += 1; continue; }
+      dem.khongNeo += 1;
+      ds.push({ id, status: st, loai: 'mở rộng KHÔNG có neo oracle', viec: 'hạ về `OBSERVATION`, hoặc nêu `oracle_ref` (`BR-`/`SM-`/`UI-`…)' });
+      continue;
+    }
+    if (L === 'probe') {
+      if (!coVerdict) continue;                       // probe không mang verdict là đúng
+      dem.probe += 1;
+      ds.push({ id, status: st, loai: 'probe/recon mang verdict', viec: 'bỏ verdict — probe là bước khám phá, không phán' });
+      continue;
+    }
+    if (L === 'maoDanh') {
+      dem.maoDanh += 1;
+      ds.push({ id, status: st, loai: 'MẠO DANH mã canonical', viec: 'thêm dòng canonical cho mã này, hoặc đổi mã khỏi khuôn `_TC_<số>`' });
+      continue;
+    }
+    dem.khongRoKhuon += 1;
+    ds.push({ id, status: st, loai: 'không rõ khuôn', viec: 'đặt tên theo một trong ba khuôn đã khai, để máy phân loại được' });
+  }
+  ds.sort((a, b) => (a.loai === 'MẠO DANH mã canonical' ? -1 : 1) - (b.loai === 'MẠO DANH mã canonical' ? -1 : 1));
+  const soMoCoi = [...ghi.keys()].filter((id) => !canon.has(id)).length;
+  return { doDuoc: true, soGhi: ghi.size, soMoCoi, ds, dem };
+}
+
 async function main() {
   const T = taskDir();
   const taskKey = arg('task') || process.env.TASK_KEY || path.basename(T);
@@ -199,6 +278,36 @@ async function main() {
       for (const [k, m] of hong.slice(0, 10)) P.push(`- **${k}**: còn ${m.tc - m.exec}/${m.tc} TC chưa execute.`);
       if (hong.length > 10) P.push(`- … và ${hong.length - 10} module nữa (xem bảng trên).`);
     }
+    /* ─── CHIỀU NGƯỢC: test ĐÃ CHẠY mà KHÔNG TC nào nhận (v2.9.6 N2.3) ───────────────────────────── */
+    const moCoi = testMoCoi(T, tcs);
+    P.push('', '## Test đã chạy mà KHÔNG TC nào nhận', '');
+    if (!moCoi.doDuoc) {
+      P.push('- **KHÔNG phán được**: ' + moCoi.vi_sao + ' — đây không phải "sạch".');
+    } else if (!moCoi.ds.length && !moCoi.soMoCoi) {
+      P.push(`- Mọi ${moCoi.soGhi} tcId trong sổ verdict đều có dòng trong bộ case canonical.`);
+    } else if (!moCoi.ds.length) {
+      /*
+       * BA TRẠNG THÁI, KHÔNG HAI. Bản đầu gộp "không có ca mồ côi" với "có ca mồ côi nhưng đều đúng
+       * luật", nên khi mọi ca mở rộng đều có neo nó in "Mọi N tcId đều có dòng canonical" — một câu SAI,
+       * và sai theo chiều làm người đọc tưởng phép kiểm neo chưa chạy. Phép kiểm của chính spec bắt được.
+       */
+      P.push(`- ${moCoi.soMoCoi}/${moCoi.soGhi} tcId không có dòng canonical, nhưng **không ca nào là lỗi**:`
+        + ` ${moCoi.dem.coNeo} ca mở rộng CÓ neo oracle, phần còn lại khai \`OBSERVATION\`/không verdict.`
+        + ' Phép kiểm neo đã chạy và đã sạch — khác hẳn "không có gì để kiểm".');
+    } else {
+      P.push('| tcId | verdict | loại | việc phải làm |', '|---|---|---|---|');
+      for (const x of moCoi.ds) P.push(`| \`${x.id}\` | ${x.status} | ${x.loai} | ${x.viec} |`);
+      P.push('', `**${moCoi.ds.length}/${moCoi.soGhi} tcId trong sổ không có dòng canonical.** Đếm trần con số đó là vô dụng —`
+        + ' ba loại dưới đây cần ba việc khác nhau, và chỉ hai loại đầu là lỗi:');
+      P.push('', `- **${moCoi.dem.maoDanh} mạo danh mã canonical** — mã trông như \`..._TC_<số>\` nhưng không dòng nào nhận.`
+        + ' Verdict của nó rơi vào khoảng không, hoặc tệ hơn là bị đọc như đã phủ mã gần giống.');
+      P.push(`- **${moCoi.dem.khongNeo} ca MỞ RỘNG mang PASS/FAIL mà KHÔNG có neo oracle** — CLAUDE.md §3 nói`
+        + ' mở rộng không có `oracle_ref` (`BR-`/`SM-`/`UI-`…) thì là `OBSERVATION`, **không** phải verdict.'
+        + ' Nhất quán KHÔNG phải bằng chứng của đúng.');
+      P.push(`- **${moCoi.dem.probe} ca probe/recon mang verdict** — probe là bước khám phá, nó không phán gì.`);
+      P.push(`- *(${moCoi.dem.coNeo} ca mở rộng CÓ neo oracle — đúng luật, không tính là lỗi.)*`);
+    }
+
     P.push('', '> **Mẫu số của bảng này là số TC ĐÃ VIẾT, không phải số thứ cần kiểm.** Bộ case thiếu một',
       '> vùng thì vùng đó không có dòng nào ở đây, và `100% execute` vẫn không nói gì về nó. Mẫu số thật',
       '> neo ở `requirements/scope_inventory.md` (`npm run scope:anchor`), và chiều ngược ở `npm run spec:gap`.', '');

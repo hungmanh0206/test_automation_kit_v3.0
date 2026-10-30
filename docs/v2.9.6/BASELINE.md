@@ -161,6 +161,46 @@ phép kiểm riêng cho đúng chỗ đó.
 | tự khai giới hạn | bản in phải có tỉ lệ nén · tỉ lệ nối · *"KHÔNG cửa nào được chặn"* |
 | giữ ở mức báo cáo | đọc `phase_check.js`, chặn nếu `--nhom` bị nối vào bó gate |
 
+## N2.3 · `trace:matrix` — chiều NGƯỢC: test đã chạy mà không TC nào nhận
+
+Bảng chính đi một chiều (TC canonical → đã execute chưa), nên bỏ lọt loại khó thấy nhất: một lượt chạy
+**ghi verdict cho một mã mà bộ case không có dòng nào nhận**.
+
+### Vì sao KHÔNG đếm trần một con số
+
+Phần lớn ca mồ côi là ca **mở rộng §7**, vốn đúng thiết kế là không có dòng canonical. Một cột
+*"mồ côi: 8"* ở CSDL-9004 sẽ chôn ca đáng lo xuống dưới đống đúng-thiết-kế. Nên phân loại rồi mới đếm.
+
+| Task | mồ côi / tcId trong sổ | mở rộng KHÔNG neo | probe mang verdict | mạo danh | mở rộng CÓ neo |
+|---|---|---|---|---|---|
+| CSDL-9004 | 8/256 | **7** (5 trong đó `FAILED`) | 1 | 0 | 6 |
+| CSDL-4008 | 2/282 | **2** | 0 | 0 | 0 |
+| CSDL-9001 | 1/205 | 0 | **1** | 0 | 0 |
+| CSDL-9002 | 0/150 | 0 | 0 | 0 | 0 |
+| CSDL-9003 | 0/245 | 0 | 0 | 0 | 0 |
+
+**9 ca mở rộng đang mang PASS/FAIL mà không có neo oracle.** CLAUDE.md §3 nói rõ: mở rộng không có
+`oracle_ref` (`BR-`/`SM-`/`UI-`…) thì là `OBSERVATION`, **không** phải verdict. 5 trong số đó là `FAILED`
+— đúng loại dễ thành bug sai. Và **6 ca khác CÓ neo**, nên phép kiểm neo không rỗng ở cả hai chiều.
+
+Loại **mạo danh** đo được **0 ca**, và chỗ đó là một bài học riêng: phép đo nháp của tôi báo 2 ca
+(`CSDL_HSTRUONG_TC_127B`, `TC_161B`) vì regex nháp đòi hậu tố **chữ thường** nên trượt chữ `B` hoa — hai
+mã ấy **có** trong canonical. Bộ phân tích thật đọc đúng. Nên loại này ship kèm **đối chứng tổng hợp**
+và ghi rõ là *chưa gác dòng dữ liệu thật nào*.
+
+### Ba trạng thái, không hai
+
+Bản đầu gộp *"không có ca mồ côi"* với *"có ca mồ côi nhưng đều đúng luật"*, nên khi mọi ca mở rộng đều
+có neo nó in **"Mọi N tcId đều có dòng canonical"** — một câu **sai**, và sai theo chiều làm người đọc
+tưởng phép kiểm neo chưa chạy. Phép kiểm của chính spec bắt được. Nay ba trạng thái tách rõ: *sạch thật*
+· *đã kiểm và sạch* · *có lỗi*, cộng nhánh thứ tư **KHÔNG PHÁN ĐƯỢC** khi đọc ra 0 TC canonical.
+
+### Chưa nối vào cửa nào — đó là việc của người dùng quyết
+
+Phép kiểm đúng và đã đo hai chiều, nhưng bật chặn ngay sẽ **chặn 11 ca trên task đang chạy thật** của
+người dùng. Dữ liệu đó là của họ, nên chỗ nối (`self-review:enforce` chạy trước finalize/publish là chỗ
+hợp lý nhất, vì nó chặn PHÁT HÀNH chứ không chặn lượt chạy) để họ chốt.
+
 ## Các mục khác
 
-*(điền khi làm tới — N2.2 · N2.3 · N2.4 · N5 · N6 · N7)*
+*(điền khi làm tới — N2.4 · N5 · N6 · N7)*
