@@ -24,6 +24,11 @@
  * VÌ SAO CỬA NÀY KHÔNG DÙNG PARSER YAML: repo không có phụ thuộc YAML, và thêm một phụ thuộc chỉ để gác
  * bốn luật thì đắt hơn là gác thẳng bốn luật. Nên nó kiểm đúng các điều kiện TÀI LIỆU ĐÃ NÊU, bằng chữ.
  *
+ * CHUẨN HOÁ CRLF BẰNG `/\r\n/g`, KHÔNG BẰNG `/\r/g`. Repo này dùng CRLF, và kit có một cửa riêng
+ * (`slash-commands.spec.ts`, "chặn lần thứ BẢY") bắt đúng lớp lỗi kiểm frontmatter mà không chuẩn hoá.
+ * Cửa đó đã bắt chính file này ở bản đầu: tôi CÓ chuẩn hoá, nhưng bằng `/\r/g` — vừa không được máy
+ * nhận ra, vừa thô hơn cần thiết (xoá mọi CR thay vì chỉ chuẩn hoá kết thúc dòng).
+ *
  * GIỚI HẠN, nói thẳng: đây KHÔNG phải một bộ parse YAML. Một frontmatter vỡ theo kiểu khác (thụt lề sai,
  * list hỏng, neo/alias) thì cửa này KHÔNG thấy. Nó gác đúng lớp lỗi đã xảy ra, cộng vài lớp cùng họ.
  */
@@ -59,7 +64,7 @@ function timFile(d, sau = 0, ra = []) {
 
 /** Trả về `{ than, dong0 }` hoặc null nếu file không mở frontmatter ở DÒNG ĐẦU. */
 function layFrontmatter(s) {
-  const t = s.replace(/\r/g, '');
+  const t = s.replace(/\r\n/g, '\n');
   if (!t.startsWith('---\n')) return null;
   const het = t.indexOf('\n---', 4);
   if (het < 0) return { loi: 'frontmatter MỞ mà không ĐÓNG — tài liệu nói file này bị bỏ qua, không thông báo' };
@@ -147,7 +152,7 @@ function main() {
   let soCoFm = 0;
   for (const p of files) {
     const r = kiemMotFile(p);
-    if (fs.readFileSync(p, 'utf8').replace(/\r/g, '').startsWith('---\n')) soCoFm += 1;
+    if (fs.readFileSync(p, 'utf8').replace(/\r\n/g, '\n').startsWith('---\n')) soCoFm += 1;
     if (r.loi.length) xau.push(r);
   }
 

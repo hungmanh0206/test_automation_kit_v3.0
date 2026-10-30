@@ -48,25 +48,49 @@ cho agent biết 28 cái tên ấy tồn tại.
 
 Nên kết luận ngược lại dự định ban đầu:
 
-- **GIỮ** dòng liệt kê tên trong `inject_context.js`. Không tiết kiệm được 232 token/phiên — và giờ đã
-  biết vì sao: gỡ nó đi thì mất đúng nửa phần *biết có mà gọi*, trong khi nửa *nạp được* không bù vào.
+- **GIỮ** dòng liệt kê tên trong `inject_context.js`, nhưng **lý do tôi ghi ở đây ban đầu chỉ đúng một
+  nửa** — xem mục *BƯỚC 1B ĐÃ ĐO XONG* dưới: harness **CÓ** quảng bá skill. Quyết định giữ vẫn đứng, chỉ
+  là nó đứng trên một lý do khác: chưa đo được harness có liệt kê **đủ 28** ở đầu phiên mới hay chỉ thông
+  báo skill **vừa đổi**.
 - Nhưng 232 token ấy nay **đáng hơn trước**: trước 1a nó chỉ là tên để đi mở file bằng tay; sau 1a mỗi
   tên là một `Skill(<tên>)` gọi được ngay.
 - Shim **giữ lại**, và `skills:index:check` tiếp tục gác cả ba chiều thiếu · lệch · thừa.
 
-#### Còn đúng một chỗ chưa đo được
+#### BƯỚC 1B ĐÃ ĐO XONG — bằng một phép đo TỰ ĐẾN, và nó BÁC lập luận của tôi
 
-Phiên đo là phiên **đã nén ngữ cảnh**, nên việc "không thấy mục liệt kê skill" có thể là do nén chứ
-không phải do harness. Điều kiện để đo nốt: ở một phiên **mới, chưa nén**, kiểm xem ngữ cảnh có mục
-liệt kê skill nào không. Nếu CÓ thì mới xét lại việc gỡ dòng hook — và chỉ khi ấy.
+Ngay sau commit vá YAML frontmatter (xem N8), harness tự gửi một thông báo:
 
-Giả thuyết "do nén" đã yếu đi nhiều bởi một quan sát ngay trong chính ngữ cảnh ấy: **danh sách agent
-VẪN CÒN** (8 loại, kể cả hai agent của kit). Nén giữ được mục liệt kê agent mà bỏ mục liệt kê skill là
-một cách giải thích khó hơn là "không có mục liệt kê skill nào để bỏ". Chưa phải bằng chứng, nên vẫn
-ghi là *chưa đo được* — nhưng đừng trông đợi lượt đo kia đổi kết luận.
+```
+The following skills are available for use with the Skill tool:
+- automation_reviewer: …
+- backlog_testcase_publisher: …
+```
 
-Hai kết luận ở trên **không** phụ thuộc vào chỗ này: cả hai đều đứng trên phép đo *nạp được*, vốn không
-liên quan tới nén.
+**Đúng hai skill tôi vừa vá**, không skill nào khác. Nên:
+
+1. **Harness CÓ quảng bá skill** — nó phát một danh sách skill khả dụng. Kết luận trước của tôi
+   (*"KHÔNG thấy mục liệt kê skill nào"*) chỉ đúng về **ngữ cảnh đã nén**, không đúng về harness.
+2. **Vỡ YAML frontmatter làm skill KHÔNG được quảng bá, nhưng VẪN gọi được.** Trước khi vá,
+   `Skill(automation_reviewer)` nạp bình thường (tôi đã thử) — mà nó không nằm trong danh sách. Sau khi
+   vá thì nó xuất hiện. Đây là lớp hỏng **im lặng hơn** cả trường hợp agent: agent biến mất hẳn nên còn
+   dễ thấy; skill thì vẫn dùng được nếu BIẾT TÊN, chỉ là không ai được giới thiệu.
+3. **Lập luận cũ của tôi SAI.** Tôi viết: *"danh sách agent vẫn còn trong ngữ cảnh đã nén, nên 'nén ăn
+   mất danh sách skill' là cách giải thích khó hơn"*. Sai — hai thứ nằm ở hai chỗ khác nhau: danh sách
+   agent ở **mô tả tool** (giữ qua nén), danh sách skill ở **thông báo hệ thống** (nén bỏ được). Tôi đã
+   suy từ "cùng là danh sách" ra "cùng cách lưu", mà hai việc đó không liên quan.
+
+**Hệ quả cho quyết định giữ/gỡ dòng hook:** chỗ này nay **mở lại**, nhưng CHƯA đủ để gỡ. Phép đo mới chỉ
+chứng minh harness quảng bá **skill vừa đổi**; nó KHÔNG chứng minh harness liệt kê **đủ 28** ở đầu một
+phiên mới. Hai khả năng còn lại, và chúng dẫn tới hai quyết định trái nhau:
+
+- harness liệt kê **đủ 28** ở đầu phiên ⇒ dòng hook là **dư**, gỡ được ~232 token/phiên;
+- harness chỉ thông báo skill **mới đổi** ⇒ dòng hook vẫn là đường duy nhất để biết 28 tên ⇒ **giữ**.
+
+Phép đo một dòng ở phiên mới, chưa nén: xem ngữ cảnh đầu phiên có liệt kê **bao nhiêu** skill. Đếm được
+28 ⇒ gỡ. Đếm được 0 ⇒ giữ, và lúc đó kết luận có **số đo**, khác hẳn *"chưa đo được"*.
+
+Tới khi có số đó thì **GIỮ** dòng hook — vì hỏng theo chiều "gỡ rồi mới biết là cần" thì im lặng, còn
+hỏng theo chiều "giữ thừa" thì chỉ tốn 232 token.
 
 ## N8 · Subagent — ĐÃ TÌM RA NGUYÊN NHÂN, và nó không phải thứ tôi đoán
 
