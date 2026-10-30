@@ -315,6 +315,52 @@ Và lần thứ **ba** trong phiên, văn của tôi làm nổ phép kiểm củ
 **chứa** chính câu đó. Giữ phép so thô có chủ ý — phân biệt *"khai"* với *"trích"* bằng máy thì mong manh
 hơn là chỉ cần diễn đạt lại.
 
+## N5 · Sổ chung mệnh đề luật — và hai bề mặt của kit nói ngược nhau hơn hai tuần
+
+### Trước
+
+`rule_consistency.json` có đúng **1** mệnh đề (`EVIDENCE-MUC-B`). Một cửa gác một luật, trong khi nó tự
+nhắc *"máy này chỉ canh mệnh đề ĐÃ KHAI — luật mới ⇒ thêm mục, nếu không nó gác một nửa"*.
+
+### Lỗi tìm ra: cùng một luật, hai lời khai TRÁI NGƯỢC
+
+| Bề mặt | Khai gì | Đúng/sai |
+|---|---|---|
+| `.agent/config/GATES.md` | `expected:check` là cửa **CHẶN** (T0) | **đúng** — `expected_ledger.js` có từ 12/10/2026 |
+| `.agent/skills/phase2/automation_reviewer/SKILL.md` | *"**không máy nào** so expected với bản trước"*, và nên dựng gate bằng `git diff` | **sai cả hai vế** |
+| `.agent/skills/.../anti_patterns.md` | *"Máy: `npm run expected:check`"* | đúng, nhưng **bỏ mất** điều kiện phải chụp mốc |
+
+Vế `git diff` không chỉ sai mà còn **tốn kém**: nó đẩy người đọc đi dựng lại một đường **đã đo là cụt**
+(29/10/2026: **0** file testcase được git track vì `outputs/*` gitignore).
+
+Sự thật đo được 30/10/2026: máy **có**, nó so với **snapshot của chính nó**, và **1/5** task có snapshot
+— nên ở 4 task còn lại cửa đang ở trạng thái `CHƯA ĐƯỢC GÁC` (exit 2), **không phải "đạt"**.
+
+Mệnh đề `EXPECTED-CO-MAY` còn lôi ra **hai chỗ nữa tôi chưa biết**:
+
+- `scripts/qa/automation_review.js` — khai sai ở **thời hiện tại**;
+- chính header của `scripts/qa/expected_ledger.js` — kể lịch sử 11/10 nhưng viết ở thời hiện tại, nên
+  **máy thực thi luật lại tự khai rằng luật đó không có máy**.
+
+Cả bốn chỗ sửa **LỜI**, không chỗ nào dùng miễn trừ.
+
+### Phần hai: rà luật phát biểu hai kiểu — KHÔNG ship được detector nào
+
+Dò theo con số (số lệch là dấu hiệu rẻ nhất của *"một luật, hai cách nói"*) trên 4 khái niệm có nguồn
+canonical: **13 hit · 13 dương tính giả**. Nên **không** ship phép dò này thành cửa.
+
+Hai lý do dương tính giả, cả hai đều là giới hạn thật của heuristic:
+
+1. **Số sự cố bị đọc thành số luật** — *"7 verdict bị chặn"*, *"45 verdict của lượt GDTX"*, *"mất 166/199
+   verdict"* đều là số **ca đã xảy ra**, không phải phát biểu luật.
+2. **Cùng hình dạng, khác artifact.** `docs/course/**` dạy người đọc tự dựng `phan-quyet.json` với **7
+   status + 7 tầng lỗi** — con số ấy **đúng** cho artifact của khoá học, dù kit có 10 status + 8 tầng. Suýt
+   "sửa" 7→10 và phá một tài liệu đang dạy đúng, để khớp số của một thứ khác.
+
+Lý do ② là lý do quyết định: phép dò **không phân biệt được** "cùng khái niệm" với "khác artifact cùng
+hình dạng". Mà đó chính là việc mà một cửa nhất-quán phải làm được. Nên kết luận là **chưa có máy cho
+chiều này**, ghi vào khối CHƯA CÓ MÁY, không phải một cửa `--warn` cho đủ.
+
 ## Các mục khác
 
-*(điền khi làm tới — N5 · N7)*
+*(điền khi làm tới — N7)*

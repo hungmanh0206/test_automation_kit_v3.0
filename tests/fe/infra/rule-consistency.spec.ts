@@ -179,3 +179,75 @@ test.describe('@infra rule:consistency — nối vào kit, không mồ côi', ()
     }
   });
 });
+
+/*
+ * Mệnh đề EXPECTED-CO-MAY (v2.9.6 N5).
+ *
+ * VÌ SAO THÊM. Hai bề mặt của kit nói NGƯỢC NHAU về cùng một luật suốt hơn hai tuần:
+ *   · `.agent/config/GATES.md` khai `expected:check` là cửa **CHẶN** (đúng — `expected_ledger.js` có từ
+ *     12/10/2026);
+ *   · `.agent/skills/phase2/automation_reviewer/SKILL.md` khai **"không máy nào** so expected với bản
+ *     trước", và đề xuất dựng gate bằng `git diff` — **sai cả hai vế**, vì `git diff` là đường cụt đã đo
+ *     (0 file testcase được git track, `outputs/*` gitignore).
+ *
+ * Mệnh đề mới còn lôi ra **hai chỗ nữa** mà tôi chưa biết: `scripts/qa/automation_review.js` (khai sai ở
+ * thời hiện tại) và chính header của `scripts/qa/expected_ledger.js` (kể lịch sử 11/10 nhưng viết ở thời
+ * hiện tại nên bị đọc như trạng thái hôm nay). Cả hai đã sửa LỜI, không miễn trừ.
+ */
+test.describe('@infra rule:consistency — mệnh đề EXPECTED-CO-MAY', () => {
+  const CFG_EXP = {
+    mien_tru: [],
+    menh_de: [
+      JSON.parse(fs.readFileSync(path.join(REPO, '.agent/config/rule_consistency.json'), 'utf8'))
+        .menh_de.find((m: { ma: string }) => m.ma === 'EXPECTED-CO-MAY'),
+    ],
+  };
+
+  test('mệnh đề CÓ trong config thật, và có cả vế cấm lẫn vế tha', () => {
+    /* Thiếu phép kiểm này thì ba ca dưới chạy trên một mệnh đề tôi tự dựng, không phải mệnh đề đang dùng. */
+    const m = CFG_EXP.menh_de[0];
+    expect(m, '`EXPECTED-CO-MAY` phải có trong `.agent/config/rule_consistency.json`').toBeTruthy();
+    /* So CHUỖI, không so regex: mẫu trong config chính nó là một regex, nên bọc thêm một lớp regex nữa
+     * rất dễ sai — và đã sai một lần ở ngay dòng này. */
+    expect(m.cam.bat, 'phải cấm cách nói "không máy nào … expected"').toContain('m[áa]y');
+    expect(m.cam.bat, 'và phải cấm cả vế đề xuất git diff').toContain('git');
+    expect(String(m.cam.tha_khi_cung_dong_co || ''), 'phải THA câu nói đúng về git diff là đường cụt')
+      .toContain('đường cụt');
+    expect(String(m._vi_sao_can || '').length, 'mệnh đề phải ghi vì sao cần').toBeGreaterThan(80);
+  });
+
+  test('ĐỐI CHỨNG DƯƠNG: "không máy nào so expected với bản trước" ⇒ CHẶN', () => {
+    const r = chay({ 'prompt_templates/x.md': 'Chỗ này không máy nào so expected với bản trước.\n' }, CFG_EXP);
+    expect(r.code, r.out).toBe(1);
+    expect(r.out).toContain('EXPECTED-CO-MAY');
+    expect(r.out, 'phải nói ra câu canonical để người sửa biết viết gì').toMatch(/CÓ máy từ 12\/10\/2026/);
+    fs.rmSync(r.d, { recursive: true, force: true });
+  });
+
+  test('ĐỐI CHỨNG DƯƠNG: đề xuất dựng gate bằng `git diff` cho expected ⇒ CHẶN', () => {
+    /* Đây là vế thứ hai, và là vế tốn kém hơn: nó đẩy người đọc đi dựng lại một đường đã đo là cụt. */
+    const r = chay({ 'prompt_templates/x.md': 'Muốn gác thì cần một gate dựa trên git diff cho expected.\n' }, CFG_EXP);
+    expect(r.code, r.out).toBe(1);
+    expect(r.out).toContain('EXPECTED-CO-MAY');
+    fs.rmSync(r.d, { recursive: true, force: true });
+  });
+
+  test('ĐỐI CHỨNG ÂM: nói ĐÚNG rằng gate git-diff KHÔNG DỰNG ĐƯỢC ⇒ THA', () => {
+    /*
+     * Chiều này bắt buộc, và nó là lớp lỗi đã cắn BA LẦN trong phiên 30/10/2026: chính đoạn văn SỬA LỖI
+     * lại chứa cụm từ bị cấm, nên nó tự chặn mình. Không có nhóm tha thì không ai viết nổi phần giải
+     * thích — và lúc đó luật trở thành thứ không thể dạy.
+     */
+    const r = chay({
+      'prompt_templates/x.md': 'Gate dựa trên `git diff` cho expected thì KHÔNG DỰNG ĐƯỢC: 0 file testcase được git track.\n',
+    }, CFG_EXP);
+    expect(r.code, r.out).toBe(0);
+    fs.rmSync(r.d, { recursive: true, force: true });
+  });
+
+  test('ĐỐI CHỨNG ÂM: nhắc `expected` mà không khai sai ⇒ THA', () => {
+    const r = chay({ 'prompt_templates/x.md': 'Chạy `npm run expected:check` sau khi chụp mốc.\n' }, CFG_EXP);
+    expect(r.code, r.out).toBe(0);
+    fs.rmSync(r.d, { recursive: true, force: true });
+  });
+});

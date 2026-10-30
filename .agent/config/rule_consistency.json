@@ -2,7 +2,6 @@
   "_why": "Luật đổi ở MỘT chỗ canonical, nhưng nó được nhắc lại ở hàng chục chỗ khác — rule, prompt, skill, workflow, command, tài liệu chạy tay. Đổi luật mà không quét hết thì agent đọc prompt cũ vẫn làm theo luật cũ, và không có gì báo động. Đo 28/10/2026 khi dựng máy này: luật evidence đổi sang mức B ngày 22/10, nhưng 10 dòng ở 9 file vẫn dạy luật cũ, VÀ một máy gác (manual-run-usability.spec.ts) còn đang CƯỠNG CHẾ luật cũ.",
   "_gioi_han": "Máy này DÒ CÂU, không hiểu nghĩa. Nó chỉ bắt được mệnh đề đã khai ở đây. Mệnh đề nào chưa khai thì không được canh — và im lặng không có nghĩa là nhất quán. Thêm luật mới thì phải thêm mục vào đây, nếu không máy này sẽ gác một nửa.",
   "_enforced_by": "scripts/qa/rule_consistency.js — npm run rule:consistency",
-
   "mien_tru": [
     "CHANGELOG.md",
     "BUILD_JOURNAL.md",
@@ -15,7 +14,6 @@
     "tests/fe/infra/rule-consistency.spec.ts"
   ],
   "_mien_tru_vi_sao": "Đây là vùng LỊCH SỬ: chúng kể lại luật từng như thế nào, nên chúng PHẢI được quyền nhắc câu cũ. Chặn chúng là bắt lịch sử nói dối. Riêng `tests/fe/infra/rule-consistency.spec.ts` miễn vì lý do khác: nó là BỘ KIỂM của chính máy này, nên bắt buộc phải chứa câu vi phạm làm đối chứng dương. Không miễn thì gate tự chặn bộ kiểm của nó — và cách chữa duy nhất còn lại là xoá đối chứng, tức làm gate thành đồ trang trí. Phát hiện ra chuyện này đúng lúc stage spec: gate đếm theo `git ls-files`, nên lúc file chưa track thì nó chưa nằm trong phạm vi.",
-
   "mien_tru_dong": [
     {
       "file": "prompt_templates/run_phase2_template.md",
@@ -34,7 +32,6 @@
     }
   ],
   "_mien_tru_dong_vi_sao": "Miễn trừ theo DÒNG, không theo file: miễn cả file là mất luôn phần còn lại của file đó. Mỗi mục phải có `ly_do` — một miễn trừ không giải thích được thì là một lần nới luật, không phải một ngoại lệ. Khớp theo CHUỖI CON chứ không theo số dòng, vì số dòng trôi mỗi lần sửa file.",
-
   "menh_de": [
     {
       "ma": "EVIDENCE-MUC-B",
@@ -64,6 +61,35 @@
         "tests/fe/infra/**/*.ts"
       ],
       "_vi_sao_co_scripts_va_tests": "Hai chỗ bị sót ở lần đo 28/10 đều NGOÀI *.md: header của scripts/utils/evidence_recorder.js dạy luật cũ, và tests/fe/infra/manual-run-usability.spec.ts CƯỠNG CHẾ luật cũ. Quét chỉ *.md là bỏ đúng hai chỗ nặng nhất."
+    },
+    {
+      "ma": "EXPECTED-CO-MAY",
+      "ten": "\"Đổi expected để pass\" ĐÃ CÓ MÁY — và máy ấy so với SNAPSHOT, không so với git",
+      "canonical": {
+        "file": ".agent/config/GATES.md",
+        "muc": "T0 · `expected:check` / `expected:snapshot` (`scripts/qa/expected_ledger.js`)",
+        "tom_tat": "CÓ máy từ 12/10/2026: `npm run expected:check` ghi sổ mọi thay đổi expected và đòi lý do. Nó so với SNAPSHOT của chính nó, KHÔNG so với git — và đó không phải thiếu sót mà là điều kiện thực tế: 0 file testcase được git track (outputs/* gitignore), nên gate dựa trên `git diff` KHÔNG DỰNG ĐƯỢC. Chưa chụp mốc thì cửa trả CHƯA ĐƯỢC GÁC (exit 2), và đó không phải \"đạt\". Đo 30/10/2026: 1/5 task có snapshot."
+      },
+      "cam": {
+        "bat": "kh[ôo]ng\\s+m[áa]y\\s+n[àa]o[^.\\n]{0,80}expected|expected[^.\\n]{0,40}kh[ôo]ng\\s+m[áa]y\\s+n[àa]o|git\\s+diff[^.\\n]{0,60}expected|expected[^.\\n]{0,60}git\\s+diff",
+        "chi_khi_cung_dong_co": "expected",
+        "tha_khi_cung_dong_co": "KH[ÔO]NG D[ỰƯ]NG [ĐD][ƯU][ỢO]C|đường cụt|0 file testcase|không dựng được|đã đo|bản trước của mục này|EXPECTED-CO-MAY",
+        "_vi_sao_tha": "Hai cách nói ĐÚNG đều phải được viết: (a) nói rằng gate dựa-trên-git-diff KHÔNG DỰNG ĐƯỢC (kèm số đo), và (b) ghi chú kể lại rằng bản trước đã nói sai. Thiếu nhóm tha này thì chính đoạn văn sửa lỗi sẽ bị chặn — lớp lỗi đã cắn ba lần trong phiên 30/10/2026."
+      },
+      "pham_vi": [
+        "RULE_GLOBAL.md",
+        "CLAUDE.md",
+        "USER_GUIDE.md",
+        ".agent/rules/**/*.md",
+        ".agent/skills/**/*.md",
+        ".agent/workflows/**/*.md",
+        ".claude/commands/**/*.md",
+        "prompt_templates/**/*.md",
+        "manual-run/**/*.md",
+        "scripts/**/*.js",
+        "tests/fe/infra/**/*.ts"
+      ],
+      "_vi_sao_can": "HAI BỀ MẶT CỦA KIT NÓI NGƯỢC NHAU SUỐT HƠN HAI TUẦN. `GATES.md` khai `expected:check` là cửa CHẶN (đúng), còn `.agent/skills/phase2/automation_reviewer/SKILL.md` khai \"không máy nào so expected với bản trước\" và đề xuất dựng gate bằng `git diff` (sai cả hai vế). `anti_patterns.md` thì đúng là có máy nhưng bỏ mất điều kiện phải chụp mốc trước. Một người đọc skill sẽ chấm tay một chỗ đã có máy, và tệ hơn: sẽ đi dựng lại một gate đã đo là đường cụt."
     }
   ]
 }

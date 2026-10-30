@@ -68,14 +68,24 @@ một bộ spec có thể xanh toàn bộ mà vẫn không chứng minh gì.
    rồi bỏ: luật quét mã task khớp cả `ISO-8601`/`RFC-2119`, và phần lớn mã còn lại nằm trong chú thích
    ghi xuất xứ — thứ không phải lỗi.
 
-## Hai chỗ §6 vẫn CHƯA CÓ MÁY — nói thẳng để không ai tưởng đã kín
+## Hai chỗ §6 chỉ có máy MỘT NỬA — nói thẳng để không ai tưởng đã kín
 
-- **"Đổi expected để pass"** — không máy nào so expected với bản trước, nên sửa expected rồi chạy lại thì
-  không gì báo. Muốn gác phải so với bản đã commit, tức một gate dựa trên `git diff`.
+- **"Đổi expected để pass"** — **CÓ máy**: `npm run expected:check` (`scripts/qa/expected_ledger.js`).
+  Nhưng nó so với **snapshot của chính nó**, không so với git — và đó không phải thiếu sót mà là điều
+  kiện thực tế: đo 29/10/2026 thì **0** file testcase được git track (`outputs/*` gitignore), nên một
+  gate dựa trên `git diff` **không dựng được**. Phần người phải làm là **chụp mốc đúng lúc**: chụp ở thời
+  điểm bộ case được CHỐT. Chụp sau khi đã sửa expected thì mốc mang luôn bản đã sửa, và gate thành đồ
+  trang trí. Đo 30/10/2026: **1/5** task có snapshot, nên ở 4 task còn lại cửa đang ở trạng thái
+  `CHƯA ĐƯỢC GÁC` (exit 2) — **không phải "đạt"**.
 - **"Hardcode data task-specific vào template chung"** — `package:kit` có cảnh báo khi gói mang tên bảng
   hoặc host của dự án, nhưng đó là cửa phát hành, chứ không phải lúc đang sửa template.
 
 Hai chỗ này chấm tay, mỗi lượt review.
+
+> Bản trước của mục này viết *"không máy nào so expected với bản trước"* và đề xuất dựng gate bằng
+> `git diff`. **Cả hai vế đều sai**: máy có từ 12/10/2026, và `git diff` là đường cụt đã đo. `GATES.md`
+> thì khai đúng (CHẶN) — tức hai bề mặt của kit nói ngược nhau về cùng một luật suốt hơn hai tuần.
+> `rule:consistency` nay có mệnh đề `EXPECTED-CO-MAY` để chặn cách nói cũ quay lại.
 
 ## Thứ tự đọc khi gate đã sạch mà vẫn nghi
 

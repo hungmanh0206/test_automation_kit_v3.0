@@ -7,8 +7,10 @@
  * cho thấy §6 có ba vế, và chỉ hai vế có máy:
  *   · "xoá hoặc nới assertion"  → `auto:review` rule `no-assert` (P0) và `vacuous-url`/`vacuous-count`;
  *   · "hardcode data task-specific" → `package:kit` cảnh báo ở cửa phát hành;
- *   · "ĐỔI EXPECTED ĐỂ PASS"    → KHÔNG MÁY NÀO. Sửa cột `Kết quả mong đợi` rồi chạy lại thì case xanh,
- *     và không gì báo. Đây là cách gian lận RẺ NHẤT trong cả kit: một ô, không cần sửa code.
+ *   · "ĐỔI EXPECTED ĐỂ PASS"    → CHƯA CÓ MÁY **tính tới 11/10/2026**. Sửa cột `Kết quả mong đợi` rồi
+ *     chạy lại thì case xanh, và không gì báo. Đây là cách gian lận RẺ NHẤT trong cả kit: một ô, không
+ *     cần sửa code. (Vế này CHÍNH LÀ lỗ mà file này lấp từ 12/10/2026 — viết ở thời hiện tại thì nó bị
+ *     đọc như trạng thái hôm nay, và `rule:consistency` mệnh đề `EXPECTED-CO-MAY` chặn đúng cách đọc đó.)
  *
  * `git diff` KHÔNG dùng được ở đây. Testcase của task nằm trong `outputs/**`, mà cây đó bị gitignore
  * (CLAUDE.md §5: output của dự án không vào repo kit). Nên không có bản commit nào để so.
