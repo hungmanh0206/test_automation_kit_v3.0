@@ -288,6 +288,44 @@ test.describe('@infra gate:policy — phải THẬT SỰ quét, không no-op', (
     expect(scripts, 'phải in số npm script đã kiểm').toBeTruthy();
     expect(Number(scripts![1]), 'ít hơn 50 script là dấu hiệu đọc sai package.json').toBeGreaterThanOrEqual(50);
   });
+
+  test('skill MỒ CÔI nay CHẶN, không còn chỉ cảnh báo (v2.9.6 N3)', () => {
+    /*
+     * ĐỐI CHỨNG DƯƠNG, và nó phải dựng bằng cách GỠ ĐƯỜNG NỐI THẬT — không bịa một skill giả, vì skill
+     * giả không chứng minh được rằng cửa đọc đúng cây skill thật.
+     *
+     * Gỡ hai chỗ nhắc `run_report_reader` (workflow phase2_04 + lệnh /release) ⇒ phải exit 1.
+     * Trả lại ⇒ exit 0. Bản trước chỉ `warns.push`, nên lượt gỡ vẫn exit 0 và lỗi sống im lặng —
+     * đúng cách `run_report_reader` mồ côi suốt từ v2.9.5 tới 30/10/2026.
+     */
+    const NOI = [
+      path.join(REPO, '.agent/workflows/phase2_04_report_and_backlog_gate.md'),
+      path.join(REPO, '.claude/commands/release.md'),
+    ];
+    const cu = NOI.map((f) => fs.readFileSync(f, 'utf8'));
+    try {
+      NOI.forEach((f, i) => fs.writeFileSync(f, cu[i].split('run_report_reader').join('skill_da_go'), 'utf8'));
+      const r2 = run(['scripts/qa/policy_source_check.js']);
+      expect(r2.code, `gỡ đường nối mà vẫn exit 0 ⇒ cửa chỉ cảnh báo — ${r2.out}`).toBe(1);
+      expect(r2.out).toMatch(/skill MỒ CÔI/);
+      expect(r2.out).toContain('run_report_reader');
+    } finally {
+      NOI.forEach((f, i) => fs.writeFileSync(f, cu[i], 'utf8'));
+    }
+    expect(run(['scripts/qa/policy_source_check.js']).code, 'trả lại phải sạch').toBe(0);
+  });
+
+  test('cửa TỰ GHI phản biện và điều kiện xét lại, không chỉ ghi luật', () => {
+    /*
+     * Chú thích cũ cố ý để mức CẢNH BÁO với lý lẽ "có skill hợp lệ khi chỉ gọi qua `Skill` tool". Shim
+     * `.claude/skills/` của v2.9.6 làm lý lẽ đó MẠNH HƠN. Nâng lên chặn thì phải giữ lại phản biện và
+     * nói rõ số đo nào sẽ hạ nó về cảnh báo — nếu không, lần sau có người tranh luận lại từ đầu.
+     */
+    const src = fs.readFileSync(path.join(REPO, 'scripts/qa/policy_source_check.js'), 'utf8');
+    expect(src, 'phải giữ phản biện').toMatch(/MẠNH HƠN chứ không yếu đi|Skill` tool/);
+    expect(src, 'phải nêu điều kiện xét lại').toMatch(/ĐIỀU KIỆN XÉT LẠI/);
+    expect(src, 'phải tự khai rủi ro nhắc-cho-đủ').toMatch(/hình thức|nhắc cho đủ/);
+  });
 });
 
 /*

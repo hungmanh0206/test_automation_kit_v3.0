@@ -269,8 +269,24 @@ if (fs.existsSync(SKILLS_DIR)) {
 // không ai nhắc là công sức viết ra rồi không bao giờ sinh lợi — và nó hỏng IM LẶNG, không gate nào đỏ.
 //
 // Đo 28/10/2026 trên 26 skill: `ui_mocking` 0 chỗ nhắc ở MỌI nơi, `release_summary` 0 ở
-// workflow/prompt/command (chỉ 1 script nhắc). Mức CẢNH BÁO chứ không chặn: có skill hợp lệ khi chỉ được
-// gọi qua `Skill` tool theo mô tả, và chặn ngay sẽ thành lý do để ai đó nhắc tên nó một cách hình thức.
+// workflow/prompt/command (chỉ 1 script nhắc).
+//
+// NÂNG TỪ CẢNH BÁO LÊN CHẶN (v2.9.6 N3) — và phản biện phải ghi lại, vì nó KHÔNG yếu:
+//
+//   Bản trước để cảnh báo với lý lẽ "có skill hợp lệ khi chỉ được gọi qua `Skill` tool theo mô tả".
+//   Lý lẽ đó nay MẠNH HƠN chứ không yếu đi: v2.9.6 vừa sinh shim `.claude/skills/` để harness tự nạp,
+//   nên về lý thuyết mọi skill đều với tới được bằng mô tả.
+//
+//   Vẫn chặn, vì hai thứ đó không thay thế nhau. Gọi-bằng-mô-tả chỉ xảy ra khi agent TỰ NGHĨ RA là nên
+//   mở skill đó; được nhắc tên ĐÚNG CHỖ VIỆC XẢY RA là một bảo đảm khác hẳn — nó không phụ thuộc agent
+//   nhớ. Đo 30/10/2026: `run_report_reader` sinh ra ở v2.9.5 và sống mồ côi cho tới lúc này.
+//
+//   ĐIỀU KIỆN XÉT LẠI, nói trước để lần sau khỏi tranh luận từ đầu: nếu bước 1b chứng minh harness nạp
+//   shim VÀ đo được rằng agent thật sự chọn đúng skill từ mô tả, thì hạ lại về cảnh báo là có căn cứ.
+//   Chưa có số đo đó thì giữ chặn.
+//
+//   Rủi ro đã biết của việc chặn: ai đó nhắc tên skill một cách hình thức cho hết đỏ. Máy không phân
+//   biệt được "nhắc đúng chỗ" với "nhắc cho đủ" — chỗ đó là review tay.
 {
   const NOI_GOI = ['prompt_templates', '.agent/workflows', '.claude/commands', 'manual-run', 'partial-rerun', 'scripts'];
   /*
@@ -309,7 +325,7 @@ if (fs.existsSync(SKILLS_DIR)) {
     }
   }
   if (moCoi.length) {
-    warns.push(`${moCoi.length} skill MỒ CÔI — không workflow/prompt/command/script nào nhắc tên, nên agent không có đường mở: ${moCoi.join(' · ')}. Nối vào đúng chỗ việc đó xảy ra, hoặc xoá skill.`);
+    problems.push(`${moCoi.length} skill MỒ CÔI — không workflow/prompt/command/script nào nhắc tên, nên agent không có đường mở: ${moCoi.join(' · ')}. Nối vào đúng chỗ việc đó xảy ra, hoặc xoá skill.`);
   }
 }
 

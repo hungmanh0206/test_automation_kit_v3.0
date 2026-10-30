@@ -29,6 +29,12 @@ Dùng `--full` khi muốn xem nguyên output của mọi bước, kể cả bư�
    Ở BƯỚC FINALIZE thì dùng bản CÓ RĂNG: `npm run self-review:enforce -- --task <TASK_KEY>`, nó **exit 1** khi còn CHẶN.
 
    Vì sao cần bản có răng: bản advisory luôn exit 0, còn `output_gate` ở publish KHÔNG kiểm mở rộng 5 trục một chữ nào. Nên execute bám đúng chữ trong case rồi đẩy "toàn PASS" thì không gì cản, và điều đó đã xảy ra thật. Khối "5 trục" xoá bằng `npm run expansion:plan`, chạy vài giây và chỉ đọc Excel.
+0b. **ĐỌC lượt chạy TRƯỚC khi viết báo cáo hay log bug** — skill [`run_report_reader`](../skills/shared/run_report_reader/SKILL.md).
+   Sáu bước đọc theo đúng thứ tự, mỗi bước ghi rõ nó **KHÔNG** trả lời được gì. Bỏ bước này thì hai lỗi
+   hay gặp nhất đi thẳng vào báo cáo: lấy tỉ lệ pass làm kết luận trước khi xem `run:analysis`, và gán
+   `product_bug` trước khi nhìn ảnh. Riêng SỐ trong báo cáo là bản SINH — bó gate cuối phase đã gọi cửa
+   đối soát số với sổ verdict, nên đừng gõ tay con số nào vào `execution-summary.md`.
+
 1. Ghi execution summary:
    - Tổng case.
    - PASS/FAIL/SKIP.

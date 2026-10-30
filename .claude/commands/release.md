@@ -32,6 +32,10 @@ Cửa ra có **ba** trạng thái, không hai:
 
 `○` phải vào báo cáo cửa ra. Đọc nó thành `✓` là cho một thứ chưa ai kiểm đi qua cửa cuối.
 
+Nhận lại lượt chạy của người khác, hoặc không chắc số trong báo cáo đến từ đâu, thì mở skill
+[`run_report_reader`](../../.agent/skills/shared/run_report_reader/SKILL.md) trước khi kết luận go/no-go
+— nó nói artifact nào trả lời được câu gì, và câu nào **không** artifact nào trả lời được.
+
 ## Dừng khi
 
 - **Sổ nợ còn món.** Trả nợ là sửa vi phạm rồi chạy lại gate, **không** phải xoá file sổ. Xoá sổ để qua
