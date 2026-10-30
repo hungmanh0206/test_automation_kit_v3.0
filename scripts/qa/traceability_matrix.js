@@ -297,8 +297,13 @@ async function main() {
     } else {
       P.push('| tcId | verdict | loại | việc phải làm |', '|---|---|---|---|');
       for (const x of moCoi.ds) P.push(`| \`${x.id}\` | ${x.status} | ${x.loai} | ${x.viec} |`);
-      P.push('', `**${moCoi.ds.length}/${moCoi.soGhi} tcId trong sổ không có dòng canonical.** Đếm trần con số đó là vô dụng —`
-        + ' ba loại dưới đây cần ba việc khác nhau, và chỉ hai loại đầu là lỗi:');
+      /*
+       * HAI CON SỐ KHÁC NHAU, và bản đầu gắn nhãn sai: nó in `ds.length` (số ca LỖI) kèm chữ "không có
+       * dòng canonical" (số ca MỒ CÔI). Ở CSDL-9004 là 8 so với 27 — lệch hơn ba lần. Phát hiện ra vì
+       * `self:review` in 27 trong khi bản PM in 8; một con số đứng cạnh một con số khác thì mới lộ.
+       */
+      P.push('', `**${moCoi.soMoCoi}/${moCoi.soGhi} tcId trong sổ không có dòng canonical, ${moCoi.ds.length} trong đó là LỖI.**`
+        + ' Đếm trần con số đầu là vô dụng — ba loại dưới đây cần ba việc khác nhau, và chỉ hai loại đầu là lỗi:');
       P.push('', `- **${moCoi.dem.maoDanh} mạo danh mã canonical** — mã trông như \`..._TC_<số>\` nhưng không dòng nào nhận.`
         + ' Verdict của nó rơi vào khoảng không, hoặc tệ hơn là bị đọc như đã phủ mã gần giống.');
       P.push(`- **${moCoi.dem.khongNeo} ca MỞ RỘNG mang PASS/FAIL mà KHÔNG có neo oracle** — CLAUDE.md §3 nói`
@@ -320,4 +325,14 @@ async function main() {
   if (rows.length === 0) console.log('[trace] (0 TC — kiểm test-cases/*.md có bảng 9 cột không).');
 }
 
-main().catch((e) => { console.error('[trace] LỖI:', e.message); process.exit(1); });
+/*
+ * Export + CHỐT `require.main`.
+ *
+ * Bản trước gọi `main()` vô điều kiện, nên `require()` file này là chạy cả lượt sinh báo cáo — đúng cú
+ * đã ghi trong sổ kit. `self:review` cần dùng lại `testMoCoi` chứ không được sinh lại báo cáo.
+ */
+module.exports = { testMoCoi, parseTestcases, loaiMoCoi, RE_NEO_ORACLE };
+
+if (require.main === module) {
+  main().catch((e) => { console.error('[trace] LỖI:', e.message); process.exit(1); });
+}

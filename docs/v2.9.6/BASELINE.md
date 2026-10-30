@@ -420,6 +420,54 @@ không export `parseMarkdown`, nó ở `index.js`) ⇒ script in ra **rỗng**. 
 *"không có case trùng nào"* — tức đúng kết luận tôi đang muốn, bằng một phép đo không chạy. Đã bỏ catch
 im lặng; lỗi import nay nổ ra ngay.
 
+## Hai việc người dùng chốt (30/10/2026)
+
+### ① Nối phép kiểm test-mồ-côi vào cửa CHẶN — đặt ở `self:review`, không ở `output_gate`
+
+Phép kiểm đo được hai chiều và bắt ca thật, nhưng **chỗ nối** quyết định nó hữu ích hay bị tắt:
+
+| Nếu đặt ở | Hệ quả |
+|---|---|
+| `output_gate` (cửa push) | chặn **giữa** lượt execute — trong khi việc phải làm (hạ verdict mở rộng về `OBSERVATION`, hoặc nêu `oracle_ref`) là việc của lúc **chốt** |
+| `self:review --enforce` | chạy **trước** finalize/publish ⇒ không cho **phát hành** bộ kết quả có verdict không neo được, mà **không làm đứng lượt chạy nào** |
+
+Chọn `self:review`. Chạy thật trên CSDL-9004: **8 ca CHẶN** (1 probe mang verdict + 7 ca mở rộng không
+neo oracle), và dòng tổng nêu đúng khối: *"CHẶN ở: … test đã chạy mà không TC nào nhận"*.
+
+**Chỉ hai loại là CHẶN.** Loại *mạo danh mã canonical* để **cảnh báo**, vì nó đo được **0 ca** trên dữ
+liệu thật nên chỉ có đối chứng tổng hợp — một loại chưa gác dòng dữ liệu thật nào thì chưa đủ căn cứ để
+chặn, và chặn bằng niềm tin là cách nhanh nhất để bị tắt. Có phép kiểm khoá chỗ nối lại, để lần sau không
+ai lặng lẽ chuyển nó sang `output_gate`.
+
+**Và nó lôi ra một con số gắn nhãn sai trong bản PM:** báo cáo in *"8/256 tcId không có dòng canonical"*
+trong khi `self:review` in **27/256**. Bản PM dùng `ds.length` (số ca **LỖI**) mà gắn nhãn *"không có
+dòng canonical"* (số ca **MỒ CÔI**) — lệch hơn ba lần. Lộ ra chỉ vì hai con số đứng cạnh nhau. Nay in cả
+hai: *"27/256 tcId không có dòng canonical, 8 trong đó là LỖI."*
+
+### ② `expected:check` — chụp mốc cho 5 task, và mốc tự khai nó chụp GIỮA task
+
+Trước: **5/6** task không có mốc ⇒ cửa ở trạng thái `CHƯA ĐƯỢC GÁC` **vĩnh viễn**.
+
+Nhưng chụp mốc **bây giờ** thì mốc mang luôn mọi thay đổi đã xảy ra trước đó — chính cửa ấy cảnh báo
+*"chụp sau khi đã sửa expected thì mốc mang luôn bản đã sửa, và gate này thành đồ trang trí"*. Và **không
+có dấu hiệu máy nào** cho biết bộ case đã chốt: **0 mirror `from-sheet`** trên cả 6 task.
+
+Nên chụp theo cách khiến nó **không** thành đồ trang trí — thêm cờ `--giua-task "<lý do>"`:
+
+- **đòi** lý do (thiếu ⇒ exit 2): một mốc chụp giữa task mà không nói vì sao thì về sau không ai biết nó
+  tin được tới đâu;
+- ghi lý do **vào chính mốc**, kèm câu `_nghia` tự giải thích nó chứng minh được gì và **không** chứng
+  minh được gì;
+- **in lại cảnh báo ở MỌI lượt so về sau**, không chỉ lúc chụp. Đây là vế quan trọng nhất: một cảnh báo
+  chỉ hiện lúc chụp thì người đọc báo cáo ba tuần sau không bao giờ thấy, và lúc đó mốc lại được đọc như
+  mốc chốt.
+
+Đã chụp: CSDL-3544 (60) · CSDL-9001 (223) · CSDL-9002 (150) · CSDL-9003 (291) · CSDL-9004 (298).
+CSDL-4008 đã có mốc từ 20/10.
+
+Giá trị của mốc giữa task là **prospective**: nó gác từ thời điểm chụp trở đi. Có phép kiểm chứng minh
+đúng điều đó — đổi expected **sau** khi chụp thì cửa vẫn CHẶN và nêu đích danh case.
+
 ## Các mục khác
 
 *(không còn — N1 · N2.1–2.4 · N3 · N4 · N5 · N6 · N7 đã xong; N8 chờ phiên mới)*

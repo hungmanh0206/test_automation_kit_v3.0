@@ -222,3 +222,77 @@ test.describe('@infra expected:check — nối vào luật và tầng', () => {
     expect(`${r.stdout}${r.stderr}`).not.toContain('expected:snapshot');
   });
 });
+
+/*
+ * `--giua-task` — mốc chụp GIỮA task phải TỰ KHAI điều đó (v2.9.6).
+ *
+ * VÌ SAO THÊM. Mốc chỉ đáng tin khi chụp lúc bộ case được CHỐT; chụp giữa task thì nó mang luôn mọi thay
+ * đổi đã xảy ra trước đó, nên KHÔNG chứng minh được expected hiện tại là bản gốc. Nhưng đo 30/10/2026:
+ * 5/6 task KHÔNG có mốc nào, tức cửa ở trạng thái `CHƯA ĐƯỢC GÁC` **vĩnh viễn** — và không có dấu hiệu
+ * máy nào cho biết bộ case đã chốt (0 mirror `from-sheet` trên cả 6 task).
+ *
+ * Chụp giữa task tốt hơn không chụp, nhưng CHỈ KHI không ai đọc nó thành "chưa từng có expected nào bị
+ * sửa". Nên cờ này đòi lý do, ghi vào chính mốc, và in lại cảnh báo ở MỌI lượt so về sau.
+ */
+test.describe('@infra expected:check — mốc chụp giữa task phải tự khai', () => {
+  test('ĐỐI CHỨNG DƯƠNG: `--giua-task` KHÔNG kèm lý do ⇒ exit 2', () => {
+    /* Không có phép kiểm này thì cờ thành đường thoát: chụp giữa task mà chẳng ai phải nói vì sao. */
+    const t = dungTask(bo([{ id: 'T_001', expected: 'Lưu thành công' }]));
+    const r = chay(t.goc, ['--snapshot', '--giua-task']);
+    expect(r.status, `${r.stdout}${r.stderr}`).toBe(2);
+    expect(`${r.stdout}${r.stderr}`).toMatch(/`--giua-task` PHẢI kèm lý do/);
+    fs.rmSync(t.goc, { recursive: true, force: true });
+  });
+
+  test('có lý do ⇒ ghi vào mốc, và CẢNH BÁO in lại ở lượt SO về sau', () => {
+    /*
+     * "In lại ở lượt sau" là vế quan trọng nhất. Một cảnh báo chỉ hiện lúc chụp thì người đọc báo cáo ba
+     * tuần sau không bao giờ thấy — và lúc đó mốc lại được đọc như mốc chốt.
+     */
+    const t = dungTask(bo([{ id: 'T_001', expected: 'Lưu thành công' }]));
+    const LY_DO = 'chụp giữa task vì trước đó cửa ở trạng thái CHƯA ĐƯỢC GÁC vĩnh viễn';
+    const c = chay(t.goc, ['--snapshot', '--giua-task', LY_DO]);
+    expect(c.status, `${c.stdout}${c.stderr}`).toBe(0);
+    expect(`${c.stdout}`).toMatch(/MỐC CHỤP GIỮA TASK/);
+
+    const moc = JSON.parse(fs.readFileSync(
+      path.join(t.taskDir, 'test-results', 'expected-ledger.json'), 'utf8',
+    ));
+    expect(moc.chup_giua_task, 'mốc phải mang cờ').toBeTruthy();
+    expect(moc.chup_giua_task.ly_do).toBe(LY_DO);
+    expect(String(moc.chup_giua_task._nghia), 'mốc phải tự giải thích nó tin được tới đâu')
+      .toMatch(/KHÔNG chứng minh/);
+
+    /* Lượt SO (không có cờ) vẫn phải in cảnh báo. */
+    const s = chay(t.goc);
+    const out = `${s.stdout}${s.stderr}`;
+    expect(out).toMatch(/MỐC NÀY CHỤP GIỮA TASK, không ở cửa chốt/);
+    expect(out, 'phải in lại đúng lý do đã ghi').toContain(LY_DO.slice(0, 40));
+    expect(out, 'và vẫn phải so được').toMatch(/✓ ĐẠT|đổi `Kết quả mong đợi`/);
+    fs.rmSync(t.goc, { recursive: true, force: true });
+  });
+
+  test('ĐỐI CHỨNG ÂM: mốc chụp BÌNH THƯỜNG ⇒ KHÔNG in cảnh báo đó', () => {
+    /* Nếu cảnh báo in cả khi mốc chụp đúng lúc thì nó thành tiếng ồn, và tiếng ồn làm người đọc bỏ qua. */
+    const t = dungTask(bo([{ id: 'T_001', expected: 'Lưu thành công' }]));
+    chay(t.goc, ['--snapshot']);
+    const out = `${chay(t.goc).stdout}`;
+    expect(out).not.toMatch(/CHỤP GIỮA TASK/);
+    fs.rmSync(t.goc, { recursive: true, force: true });
+  });
+
+  test('mốc chụp giữa task VẪN gác được thay đổi SAU đó', () => {
+    /*
+     * Điểm của cả việc này: mốc giữa task gác TỪ ĐÓ TRỞ ĐI. Nếu nó không chặn nổi một thay đổi sau khi
+     * chụp thì nó đúng là đồ trang trí, và lúc ấy thà đừng chụp.
+     */
+    const t = dungTask(bo([{ id: 'T_001', expected: 'Lưu thành công' }]));
+    chay(t.goc, ['--snapshot', '--giua-task', 'lý do đủ dài để hợp lệ cho phép kiểm này']);
+    fs.writeFileSync(path.join(t.tcDir, 'tc.md'),
+      bo([{ id: 'T_001', expected: 'Chặn lưu vì sai định dạng' }]), 'utf8');
+    const r = chay(t.goc);
+    expect(r.status, `${r.stdout}${r.stderr}`).toBe(1);
+    expect(`${r.stdout}${r.stderr}`).toContain('T_001');
+    fs.rmSync(t.goc, { recursive: true, force: true });
+  });
+});
