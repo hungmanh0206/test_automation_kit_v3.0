@@ -52,6 +52,20 @@
   **chiều ngược**: mọi mục con đã xong mà § vẫn ⚠️ thì cửa nhắc nâng lên, để ⚠️ không thành chỗ trú ẩn.
 - **Hai câu sai về bản A** (`rbt-manual-testing` "luôn-nạp", `tc_reviewer` 8 tiêu chí) đã sửa, và số về A
   nay **máy đọc** từ `.agent/config/a_parity_source.json` chứ không gõ tay.
+- **Một agent của kit chưa bao giờ nạp được, suốt 20 ngày, và không cửa nào thấy.**
+  `.claude/agents/case-debugger.md` vào repo từ 10–11/10 mà harness không đăng ký. Nguyên nhân: ô
+  `description` chứa `: ` **không bọc nháy** ⇒ **vỡ YAML** ⇒ harness **bỏ qua file im lặng** (không log,
+  không cảnh báo). Tôi đoán sai suốt ba phiên vì so ba file **bằng mắt** và thấy khác biệt là thiếu dòng
+  `model:` — mà `model:` là **tuỳ chọn**. Thứ lôi ra sự thật là một **parser**, không phải một vòng so
+  sánh nữa. Quét toàn bộ: **5/75** file frontmatter vỡ cùng kiểu (1 agent + 2 skill nguồn + 2 shim). Vá
+  xong thì agent vào sổ đăng ký **ngay trong cùng phiên** — harness nạp lại khi nội dung đổi, không cần
+  khởi động lại. Thêm `npm run frontmatter:check` (trong bó `predeploy`), gác đúng các điều kiện tài liệu
+  đã nêu; cửa cũ vẫn khai *"frontmatter hợp lệ"* vì nó kiểm bằng **regex**, không parse.
+- **Vỡ YAML giết agent nhưng KHÔNG giết skill — nó chỉ làm skill mất quảng bá.** Trước khi vá,
+  `Skill(automation_reviewer)` vẫn nạp được mà skill ấy không nằm trong danh sách khả dụng; vá xong thì
+  harness thông báo nó. Skill nhận diện theo **tên thư mục**, agent theo `name` trong frontmatter. Đây là
+  lớp hỏng **im lặng hơn** cả trường hợp agent: vẫn dùng được nếu **biết tên**, chỉ là không ai được
+  giới thiệu.
 - **`package.json` tụt lại ở `2.9.4`** trong khi CHANGELOG đỉnh là `v2.9.5` — lệch hai bước mà không máy
   nào kêu. Thêm `npm run version:check`: mục đỉnh khớp `package.json` · CHANGELOG giảm dần · số máy gác
   viết tay khớp bản máy sinh. Tài liệu **lịch sử** (CHANGELOG, `docs/v…`) cố ý được bỏ qua ở phép kiểm
