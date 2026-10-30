@@ -48,8 +48,8 @@ Khác biệt thật nằm ở **hình dạng lúc dùng**, không phải ở ch�
 | §5 | A có `automation-code-reviewer` chấm rubric 6 nhóm | Skill `automation_reviewer` + **2 trong 3** luật `auto:review` mới. Luật thứ ba (`assert-before-act-only`) bị loại vì đo được là **tập con tuyệt đối 18/18** của luật kia | `npm run auto:review:enforce` | ✅ |
 | §5 | — | `no-assert-after-act` để **cảnh báo**, không chặn: dương tính giả soi tay **2/5 = 40%**, trên ngưỡng 20% đặt trước | `tests/fe/infra/automation-review.spec.ts` | ✅ |
 | §6 | `test-data-generator` của A có Data Chain Pattern + 4 lớp field | Thêm đúng bốn lớp (chiều · đỡ · tham chiếu · tính được) và mục chuỗi dữ liệu. `data:chain:check` gác bốn đường hỏng của chuỗi, và **lượt chạy đầu bắt được một lỗi thật** ở bộ CSDL-9004 | `npm run data:chain:check` | ✅ |
-| §7 | `test-report-analyzer` + `test-summary-reporter` của A | Skill `run_report_reader` (6 bước, mỗi bước ghi rõ nó KHÔNG trả lời được gì) + view `trace:matrix --pm` gộp theo module | `npm run trace:matrix` · `npm run run:analysis:enforce` | ✅ |
-| §7 | — | Sổ phiên chạy tay thêm `Đơn vị / cấp học` và mục `## Không phán được` | `npm run manual:check:enforce` | ✅ |
+| §7 | `test-report-analyzer` + `test-summary-reporter` của A | Skill `run_report_reader` (6 bước, mỗi bước ghi rõ nó KHÔNG trả lời được gì) + **bảng 8 tầng lỗi neo bằng số đo thật** (`script_error` = 0 ca là chỗ đáng ngờ nhất: 216/262 = 82% ca FAIL dồn về `product_bug`) + `run:analysis --nhom` gom theo `<tầng> ‖ <câu lỗi>` — **giữ ở mức BÁO CÁO**, vì đo được nén chỉ 1,34×, 11% ca nối được câu lỗi thật và 6/9 nhóm mẫu gom sai + **chiều NGƯỢC của `trace:matrix`**: test đã chạy mà không TC nào nhận, phân ba loại, bắt được 9 ca mở rộng mang verdict mà không có neo oracle | `npm run trace:matrix` · `npm run run:analysis:enforce` · `tests/fe/infra/run-analysis-nhom.spec.ts` · `tests/fe/infra/trace-test-mocoi.spec.ts` · `tests/fe/infra/verdict-dong-nghia.spec.ts` | ✅ |
+| §7b | — | Sổ phiên chạy tay thêm `Đơn vị / cấp học` và mục `## Không phán được` | `npm run manual:check:enforce` | ✅ |
 
 ## Chỗ cố ý KHÔNG port
 
@@ -70,6 +70,7 @@ Khác biệt thật nằm ở **hình dạng lúc dùng**, không phải ở ch�
 | "Đổi expected để pass" (`CLAUDE.md` §6) | **Không dựng được bằng `git diff` — điều kiện tiên quyết không tồn tại.** Đo 29/10/2026: **0** file testcase được track, `outputs/*` gitignore (`.gitignore:233`), **0** commit từng đụng `test-cases/*.md`. Ba nguồn so sánh khác cũng trống: `backups/` có **1** file trên toàn bộ task, mirror `from-sheet/*.xlsx` có **0** file, `tc-history.jsonl` có lịch sử verdict nhưng **không có ô expected**. Chi tiết ở ghi chú bên dưới |
 | "Hardcode data task-specific vào template chung" | `package:kit` chỉ cảnh báo ở cửa phát hành, không bắt lúc đang sửa template. Luật quét mã task đã thử rồi bỏ: nó khớp cả `ISO-8601`/`RFC-2119` |
 | Case phụ thuộc case khác mà **không khai** | `data:chain` chỉ thấy chuỗi đã KHAI trong ô `Tiền điều kiện`. Chỗ không khai nằm ở phần chấm tay của `automation_reviewer` |
+| Nối phép kiểm **test mồ côi** vào một cửa CHẶN | `trace:matrix` nay in ra, và đã đo hai chiều (bắt 9 ca mở rộng không neo oracle + 2 ca probe mang verdict; 6 ca mở rộng CÓ neo nên không rỗng chiều nào). Nhưng bật chặn là chặn **11 ca trên task đang chạy thật** — dữ liệu của người dùng, nên chỗ nối (`self-review:enforce` là chỗ hợp lý nhất, vì nó chặn PHÁT HÀNH chứ không chặn lượt chạy) do họ chốt, máy không tự quyết thay |
 | `presence-only` bắt đúng ở quy mô nào | Luật nổ **0 lượt** trên 2.873 test, đo hai lần. Có đối chứng dương chứng minh nó nổ được, nhưng chưa có số đo về độ chính xác khi có ca thật |
 
 ### Ghi chú: vì sao "đổi expected để pass" là đường cụt, không phải việc còn bỏ ngỏ

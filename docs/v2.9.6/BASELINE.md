@@ -201,6 +201,71 @@ Phép kiểm đúng và đã đo hai chiều, nhưng bật chặn ngay sẽ **ch
 người dùng. Dữ liệu đó là của họ, nên chỗ nối (`self-review:enforce` chạy trước finalize/publish là chỗ
 hợp lý nhất, vì nó chặn PHÁT HÀNH chứ không chặn lượt chạy) để họ chốt.
 
+## N2.4 · `parity:check` khối ⑤ — một ✅ không được dán khi mục con chưa xong
+
+### Vì sao cần, và vì sao chỗ này khó gác
+
+Bảng nghiệm thu chấm theo **§**, mà một § có thể gồm nhiều việc. v2.9.5 dán ✅ cho §7 khi nó chỉ có
+skill `run_report_reader` + view `trace:matrix --pm`; phần **lõi** của `test-report-analyzer` bên A (gom
+theo nguyên nhân · phân loại tầng · chiều test mồ côi) thì chưa có. Dòng ✅ ấy **không sai từng chữ**,
+nhưng nó làm người đọc tin cả § đã xong — và không máy nào bắt được, vì máy chỉ đọc **ký hiệu**.
+
+### Đo trước khi dựng: neo trong bảng đã đủ chưa
+
+| Số đo | Giá trị |
+|---|---|
+| Dòng ✅ trong bảng | **12** |
+| — không neo được (cột `Máy gác` không nêu script lẫn spec) | **0** |
+| — neo HỎNG (script/spec không tồn tại) | **0** |
+| Neo kiểm được | **16** (10 npm script · 6 đường dẫn spec) |
+
+Nên phép kiểm *"neo có tồn tại"* sẽ **rỗng** trên dữ liệu hiện tại. Chỗ **không rỗng** là chiều kế
+hoạch: một mục con chưa xong thì mục cha không được ✅.
+
+### `plan_items.json` không được là một lớp tự khai nữa
+
+Mỗi mục con bắt buộc có **neo máy phân giải được**, và chính đó là điểm của N2.4:
+
+| Loại neo | Máy kiểm gì |
+|---|---|
+| `script` | npm script phải có trong `package.json` |
+| `spec` | file spec phải tồn tại **và** có ≥ `toiThieu` phép kiểm `test(` |
+| `nguon` | file nguồn phải tồn tại **và** chứa `ky_hieu` ⇒ việc đã vào mã. *"Có file" chưa phải "đã làm"* |
+| `nguoi` | chỉ người kiểm được ⇒ **buộc § phải là ⚠️, không bao giờ ✅**, và phải ghi `vi_sao` |
+
+Nhánh `nguoi` là chỗ luật *"mọi mẫu lấy từ A phải có máy, hoặc phải khai rõ CHƯA CÓ MÁY"* được thi hành
+**bằng máy** thay vì bằng thiện chí. Và có **chiều ngược**: mọi mục con đã phân giải mà § vẫn ⚠️ thì cửa
+**nhắc** nâng lên — thiếu chiều này thì ⚠️ thành chỗ trú ẩn vĩnh viễn, vì hạ một dòng xuống ⚠️ là cách
+rẻ nhất để hết đỏ mà không làm gì.
+
+### Cửa chặn THẬT ngay lượt đầu
+
+Lượt chạy đầu tiên của khối ⑤ **đỏ trên dữ liệu thật**:
+
+```
+§7 đang dán ✅ nhưng 1 mục con CHƯA XONG: N2.4: thiếu spec `tests/fe/infra/parity-plan-items.spec.ts`
+```
+
+— tức nó chặn vì chính N2.4 chưa xong. Đó là đối chứng dương trên dữ liệu thật, không phải đồ dựng.
+
+### Hai chỗ phải nói ra
+
+1. **Nhánh `nguoi` hiện chỉ có đối chứng TỔNG HỢP.** Sau khi N2.1–N2.4 xong và đều có neo máy, §7 không
+   còn mục con `nguoi` nào, nên nhánh đó nổ **0 lượt** trên dữ liệu thật. Có đối chứng dương trong
+   `tests/fe/infra/parity-plan-items.spec.ts` chứng minh nó nổ được; **chưa** có số đo độ chính xác khi
+   gặp ca thật.
+2. **Việc nối phép kiểm test-mồ-côi vào cửa chặn KHÔNG phải mục con của §7** mà là một quyết định của
+   người dùng, nên nó nằm ở khối **CHƯA CÓ MÁY** của `A_PARITY.md`, không phải ở `plan_items.json`.
+   Gộp nó vào §7 rồi hạ §7 xuống ⚠️ sẽ làm dòng tổng ⚠️ lệch khỏi số dòng trong khối — và `parity:check`
+   đã có một phép kiểm khoá đúng chỗ đó.
+
+### Dòng §7 viết lại cho đúng thực tế
+
+Dòng cũ kể hai thứ (`run_report_reader` + `--pm`). Dòng mới kể đủ bốn, **kèm giới hạn ngay trong ô**:
+`--nhom` *"giữ ở mức BÁO CÁO, vì đo được nén chỉ 1,34×, 11% ca nối được câu lỗi thật và 6/9 nhóm mẫu gom
+sai"*. Một bảng nghiệm thu nói được giới hạn của chính nó thì khó dùng để khoe hơn. Dòng §7 thứ hai (sổ
+phiên chạy tay) đổi nhãn thành **§7b** để mục con của kế hoạch neo đúng dòng, không neo bừa cả hai.
+
 ## Các mục khác
 
-*(điền khi làm tới — N2.4 · N5 · N6 · N7)*
+*(điền khi làm tới — N5 · N6 · N7)*

@@ -139,6 +139,90 @@ function main() {
     sai.push(`không đọc được \`.agent/config/a_parity_source.json\`: ${e.message}`);
   }
 
+  /*
+   * ⑤ MỘT ✅ KHÔNG ĐƯỢC DÁN KHI MỤC CON CHƯA XONG (v2.9.6 N2.4).
+   *
+   * Bảng chấm theo §, mà một § có thể gồm nhiều việc. v2.9.5 dán ✅ cho §7 khi nó chỉ có skill
+   * `run_report_reader` + view `trace:matrix --pm`; phần LÕI của `test-report-analyzer` bên A (gom theo
+   * nguyên nhân, phân loại tầng, chiều test mồ côi) thì chưa có. Dòng ✅ ấy không sai từng chữ, nhưng nó
+   * làm người đọc tin cả § đã xong — và không máy nào bắt được, vì máy chỉ đọc KÝ HIỆU.
+   *
+   * `docs/v2.9.6/plan_items.json` khai mục con, và mỗi mục con bắt buộc có NEO MÁY PHÂN GIẢI ĐƯỢC
+   * (`script` · `spec` + số phép kiểm tối thiểu · `nguon` + ký hiệu phải có trong file). Không có neo thì
+   * file ấy chỉ là một lớp tự khai nữa, đúng thứ kit cấm.
+   *
+   * Mục `nguoi` (chỉ người kiểm được) buộc § phải là ⚠️ — KHÔNG BAO GIỜ ✅. Đó là chỗ luật "mọi mẫu lấy
+   * từ A phải có máy, hoặc phải khai rõ CHƯA CÓ MÁY" được thi hành bằng máy thay vì bằng thiện chí.
+   *
+   * VÀ CHIỀU NGƯỢC: mọi mục con đã phân giải mà § vẫn ⚠️ thì cửa NHẮC nâng lên. Thiếu chiều này thì ⚠️
+   * thành chỗ trú ẩn vĩnh viễn — hạ một dòng xuống ⚠️ là cách rẻ nhất để hết đỏ mà không làm gì.
+   */
+  /* `--plan <file>` để spec kiểm được mọi nhánh mà KHÔNG chạm bản kế hoạch thật. */
+  const KE_HOACH = path.resolve(doiSo('plan') || path.join(REPO, 'docs/v2.9.6/plan_items.json'));
+  if (!fs.existsSync(KE_HOACH)) {
+    console.log('\n[parity] ⓘ không có `docs/v2.9.6/plan_items.json` ⇒ khối ⑤ BỎ QUA (không phải đạt).');
+  } else {
+    let kh;
+    try { kh = JSON.parse(fs.readFileSync(KE_HOACH, 'utf8')); } catch (e) {
+      sai.push(`\`plan_items.json\` không đọc được: ${e.message}`);
+      kh = null;
+    }
+    if (kh && !(kh.muc || []).length) {
+      sai.push('`plan_items.json` có 0 mục ⇒ khối ⑤ rỗng; file rỗng KHÔNG đồng nghĩa với đạt.');
+    }
+    for (const m of ((kh && kh.muc) || [])) {
+      const chuaXong = [];
+      let coMucNguoi = false;
+      for (const c of (m.con || [])) {
+        const neo = c.neo || {};
+        if (neo.loai === 'nguoi') {
+          coMucNguoi = true;
+          if (!String(neo.vi_sao || '').trim()) {
+            sai.push(`${m.section}/${c.ma}: neo \`nguoi\` mà KHÔNG ghi \`vi_sao\` — "chỉ người làm được" phải nói được vì sao máy không làm được`);
+          }
+          continue;
+        }
+        if (neo.loai === 'script') {
+          if (!pkg.scripts[neo.ten]) chuaXong.push(`${c.ma}: npm script \`${neo.ten}\` không tồn tại`);
+          continue;
+        }
+        if (neo.loai === 'spec') {
+          const p = path.join(REPO, String(neo.duong || ''));
+          if (!fs.existsSync(p)) { chuaXong.push(`${c.ma}: thiếu spec \`${neo.duong}\``); continue; }
+          const n = (fs.readFileSync(p, 'utf8').match(/^\s*test\(/gm) || []).length;
+          const min = Number(neo.toiThieu || 1);
+          if (n < min) chuaXong.push(`${c.ma}: \`${neo.duong}\` chỉ có ${n} phép kiểm, khai tối thiểu ${min}`);
+          continue;
+        }
+        if (neo.loai === 'nguon') {
+          const p = path.join(REPO, String(neo.duong || ''));
+          if (!fs.existsSync(p)) { chuaXong.push(`${c.ma}: thiếu file \`${neo.duong}\``); continue; }
+          if (!fs.readFileSync(p, 'utf8').includes(String(neo.ky_hieu || ''))) {
+            chuaXong.push(`${c.ma}: \`${neo.duong}\` KHÔNG chứa \`${neo.ky_hieu}\` ⇒ việc chưa vào mã`);
+          }
+          continue;
+        }
+        sai.push(`${m.section}/${c.ma}: neo loại \`${neo.loai}\` không hiểu được — dùng script · spec · nguon · nguoi`);
+      }
+
+      const dongSec = nghiemThu.filter((r) => r.o[0] === m.section);
+      if (!dongSec.length) {
+        sai.push(`${m.section}: \`plan_items.json\` khai mục con nhưng bảng nghiệm thu KHÔNG có dòng nào cho § này`);
+        continue;
+      }
+      const coTick = dongSec.some((r) => r.tt === '✅');
+      if (chuaXong.length && coTick) {
+        sai.push(`${m.section} đang dán ✅ nhưng ${chuaXong.length} mục con CHƯA XONG: ${chuaXong.join(' · ')}`);
+      } else if (coMucNguoi && coTick) {
+        sai.push(`${m.section} đang dán ✅ nhưng có mục con chỉ NGƯỜI kiểm được ⇒ phải là ⚠️, không phải ✅`);
+      } else if (!chuaXong.length && !coMucNguoi && dongSec.every((r) => r.tt === '⚠️')) {
+        console.log(`\n[parity] ⓘ ${m.section}: mọi mục con đã phân giải mà dòng vẫn ⚠️ — nâng lên ✅ hoặc nói rõ còn thiếu gì.`);
+      }
+      console.log(`[parity] ⑤ ${m.section}: ${(m.con || []).length} mục con · ${chuaXong.length} chưa xong`
+        + `${coMucNguoi ? ' · có mục chỉ người kiểm được ⇒ § phải ⚠️' : ''}`);
+    }
+  }
+
   const dem = { '✅': 0, '⛔': 0, '⚠️': 0 };
   for (const r of nghiemThu) dem[r.tt] += 1;
 
