@@ -94,6 +94,51 @@ function main() {
   // ③ ba khối phải có mặt.
   for (const k of KHOI) if (!k.re.test(src)) sai.push(`thiếu khối **${k.ten}**`);
 
+  /*
+   * ④ SỐ LIỆU VỀ A PHẢI ĐỌC ĐƯỢC TỪ BẢN A (v2.9.6 N4), không gõ tay.
+   *
+   * Số về A là số của MỘT BẢN GIẢI NÉN CỤ THỂ. Gõ tay thì không ai kiểm lại được, và nó trôi im lặng y
+   * như mọi bảng viết tay khác của kit — đợt này vừa bắt được hai câu sai về A đúng kiểu đó.
+   *
+   * KHÔNG CÓ BẢN A ⇒ IN RÕ "không đo lại được" RỒI BỎ QUA. Bản A là plugin của bên khác, không thuộc
+   * repo, nên máy nào cũng đỏ vì thiếu nó là đỏ oan. Nhưng "bỏ qua" phải NÓI RA — im lặng thì người đọc
+   * tưởng đã đối soát.
+   */
+  try {
+    const cfgA = JSON.parse(fs.readFileSync(path.join(REPO, '.agent/config/a_parity_source.json'), 'utf8'));
+    const gocA = (cfgA.duong_dan || []).find((d) => fs.existsSync(d));
+    if (!gocA) {
+      console.log(`\n[parity] ⓘ KHÔNG đo lại được số liệu về A — không đường dẫn nào trong`);
+      console.log('[parity]   `.agent/config/a_parity_source.json` tồn tại trên máy này. Phép kiểm ④ BỎ QUA,');
+      console.log('[parity]   và bỏ qua KHÔNG đồng nghĩa với đạt.');
+    } else {
+      const demFile = (thuMuc, duoi) => {
+        try { return fs.readdirSync(path.join(gocA, thuMuc)).filter((f) => f.endsWith(duoi)).length; } catch { return -1; }
+      };
+      const demThuMucCoSkill = (thuMuc) => {
+        try {
+          return fs.readdirSync(path.join(gocA, thuMuc), { withFileTypes: true })
+            .filter((e) => e.isDirectory() && fs.existsSync(path.join(gocA, thuMuc, e.name, 'SKILL.md'))).length;
+        } catch { return -1; }
+      };
+      const lech = [];
+      for (const m of (cfgA.so_do || [])) {
+        const that = m.dem === 'so_thu_muc_co_SKILL_md' ? demThuMucCoSkill(m.trong) : demFile(m.trong, '.md');
+        if (that < 0) { lech.push(`${m.nhan}: không đọc được \`${m.trong}\` trong bản A`); continue; }
+        if (that !== m.da_ghi) lech.push(`${m.nhan}: config ghi ${m.da_ghi}, bản A thật có ${that}`);
+        /* Và con số đó phải có mặt ĐÚNG trong bảng "Hai bề mặt" của tài liệu. */
+        const dongBang = dong.find((l) => l.startsWith(`| ${m.nhan} |`));
+        if (dongBang && !new RegExp(`\\b${that}\\b`).test(dongBang)) {
+          lech.push(`${m.nhan}: bảng "Hai bề mặt" không mang số ${that} — ${dongBang.trim().slice(0, 70)}`);
+        }
+      }
+      console.log(`\n[parity] số liệu về A đọc từ ${path.basename(gocA)} · ${(cfgA.so_do || []).length} mục đối soát`);
+      if (lech.length) sai.push(...lech.map((x) => `số liệu A LỆCH — ${x}`));
+    }
+  } catch (e) {
+    sai.push(`không đọc được \`.agent/config/a_parity_source.json\`: ${e.message}`);
+  }
+
   const dem = { '✅': 0, '⛔': 0, '⚠️': 0 };
   for (const r of nghiemThu) dem[r.tt] += 1;
 

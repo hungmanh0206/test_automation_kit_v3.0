@@ -18,10 +18,19 @@
 | skill | 18 | 28 |
 | file luật | 6 | `RULE_GLOBAL.md` + `.agent/rules/**` + `CLAUDE.md` auto-load |
 | máy kiểm | 2 script Python (đọc/xuất testcase) | **150** máy trong `.agent/config/GATES.md` |
-| skill dài nhất | `rbt-manual-testing` **936 dòng** (~16,2k token, luôn-nạp) | trần **2.500 token** mỗi `SKILL.md`, phần dày ở `references/` |
+| skill dài nhất | `rbt-manual-testing` **937 dòng · 18.229 token KHI ĐƯỢC GỌI** | `tc_design_guide` **1.805 token** khi được gọi, `references/` **8.666 token** mở theo nhu cầu |
 
-Con số cuối là khác biệt về HÌNH DẠNG, không phải về lượng: A nhồi hướng dẫn vào phần luôn-nạp, nên càng
-dày thì càng ít lượt thật sự đọc hết. B tách, và có hai máy ép chuyện đó (`skills:lint`, `prompt:budget`).
+**Đính chính (30/10/2026) — bản trước ghi "luôn-nạp", và đó là SAI.** Skill không nạp cả thân vào mọi
+phiên: chỉ `description` luôn ở trong ngữ cảnh, thân nạp **khi skill được gọi**. Đo lại:
+
+| | luôn nạp | nạp khi gọi |
+|---|---|---|
+| A · `rbt-manual-testing` | description **190 token** | cả file **18.229 token**, một lần, không chia nhỏ |
+| B · `tc_design_guide` | description | `SKILL.md` **1.805 token**, `references/` **8.666 token** chỉ mở phần cần |
+
+Khác biệt thật nằm ở **hình dạng lúc dùng**, không phải ở chỗ "luôn nạp": gọi skill của A là nhận trọn
+18,2k token; gọi skill của B là nhận 1,8k rồi tự quyết mở thêm gì. Và B có hai máy ép giữ hình dạng đó
+(`skills:lint` trần 2.500 token/`SKILL.md`, `prompt:budget` cho phần nạp mỗi phiên).
 
 ---
 
@@ -49,7 +58,7 @@ dày thì càng ít lượt thật sự đọc hết. B tách, và có hai máy 
 | `fetch_jira_requirements`, `import_test_results_xray`, `jira-integration` | Kit đã **bỏ Jira/Confluence/AIO** có chủ đích, và có cửa giữ ranh giới đó. Thêm lại là đi ngược một quyết định đã chốt |
 | Mode routing `QUICK` / `FULL` / `CHECKLIST` trong một skill | Đó là tật **gộp** của A: một skill ba chế độ thì mô tả không nói được dùng khi nào. B tách theo việc, và `skills:route` đo được là tách bạch |
 | `generate_automation_framework` (scaffold Playwright/Selenium/Appium) | B chỉ dùng Playwright, và luật nói thẳng "không sinh framework ngoài Playwright". Scaffold ba framework là ba đường chưa từng chạy |
-| "AI Self-Quality Gate 9 tiêu chí" | B đã có `tc_reviewer` rubric 8 tiêu chí **có máy chấm**, trong đó 6 tiêu chí máy chấm đủ và 2 tiêu chí gắn cờ `AI`. Port thêm một bảng tự chấm là thêm một lớp tự khai |
+| "AI Self-Quality Gate 9 tiêu chí" | B đã có `tc_reviewer` rubric **9 tiêu chí** có máy chấm — **máy chấm 7, người chấm 2** (đo lại 30/10/2026 trên chính `tc_reviewer/SKILL.md`; bản trước ghi 8/6, sai cả hai số). Port thêm một bảng tự chấm là thêm một lớp tự khai |
 | `REST Assured` / `Appium` cho API và mobile | Ngoài phạm vi đang chạy. Khai một framework không có lượt chạy nào là khai năng lực không kiểm chứng được |
 
 ## Chỗ ĐÃ LÀM nhưng CHƯA CÓ MÁY — nói thẳng

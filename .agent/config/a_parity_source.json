@@ -1,0 +1,35 @@
+{
+  "_doc": "NGUỒN để đối soát số liệu về kit A trong docs/v2.9.5/A_PARITY.md. Số về A là số của MỘT BẢN GIẢI NÉN CỤ THỂ, nên nó phải đọc được từ bản đó chứ không gõ tay — gõ tay thì không ai kiểm lại được, và nó sẽ trôi im lặng y như mọi bảng viết tay khác của kit.",
+  "_vi_sao_khong_commit_ban_A": "Bản A là plugin của bên khác, không thuộc repo này. Nên config chỉ khai ĐƯỜNG DẪN; máy nào không có bản A thì `parity:check` in 'KHÔNG đo lại được' và BỎ QUA phép kiểm này — KHÔNG coi là đạt, và cũng không làm đỏ oan một lượt chạy không có dữ liệu.",
+  "_doc_duong_dan": "Đổi `duong_dan` cho khớp máy đang chạy. Chấp nhận nhiều đường; máy lấy đường ĐẦU TIÊN tồn tại.",
+
+  "duong_dan": [
+    "C:/Users/hungm/AppData/Local/Temp/claude/d--Project-test-automation-kit-v2/4a0841d2-6f5b-4834-ae75-63ad2b70b1ed/scratchpad/kitA",
+    "C:/Users/hungm/Downloads/kit_A_qig-qa-automation"
+  ],
+
+  "_doc_so_do": "Mỗi mục khai: nhãn trong bảng `Hai bề mặt`, cách ĐẾM từ bản A, và số đã ghi. `parity:check` đếm lại rồi so.",
+  "so_do": [
+    {
+      "nhan": "skill",
+      "dem": "so_thu_muc_co_SKILL_md",
+      "trong": "skills",
+      "da_ghi": 18,
+      "ghi_chu": "Đo 30/10/2026: 18 thư mục, cả 18 đều có SKILL.md. Prompt v2.9.6 đề nghị sửa thành 16 — KHÔNG sửa, vì phép đo trên chính bản A nói 18. Đếm lại bằng máy thay vì tranh luận."
+    },
+    {
+      "nhan": "lệnh điểm vào",
+      "dem": "so_file_md",
+      "trong": "commands",
+      "da_ghi": 32,
+      "ghi_chu": "Đo 29/10/2026 và 30/10/2026: cùng ra 32."
+    },
+    {
+      "nhan": "file luật",
+      "dem": "so_file_md",
+      "trong": "references/rules",
+      "da_ghi": 6,
+      "ghi_chu": "appium · automation · locator_strategy · playwright · reporting · selenium."
+    }
+  ]
+}

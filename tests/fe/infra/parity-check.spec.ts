@@ -120,6 +120,56 @@ test.describe('@infra parity:check', () => {
     fs.rmSync(t.d, { recursive: true, force: true });
   });
 
+  test('số liệu về A đọc từ BẢN A, không gõ tay (v2.9.6 N4)', () => {
+    /*
+     * Số về A là số của MỘT BẢN GIẢI NÉN CỤ THỂ. Gõ tay thì không ai kiểm lại được — và đợt này đã bắt
+     * được hai câu sai về A đúng kiểu đó (`rbt-manual-testing` "luôn-nạp", `tc_reviewer` 8 tiêu chí).
+     */
+    const r = chay();
+    expect(r.code, r.out).toBe(0);
+    expect(r.out, 'phải nói rõ đã đối soát với bản A, hoặc nói rõ không đo lại được')
+      .toMatch(/số liệu về A đọc từ|KHÔNG đo lại được số liệu về A/);
+  });
+
+  test('ĐỐI CHỨNG DƯƠNG: khai sai một số về A ⇒ CHẶN, và nói cả hai con số', () => {
+    const F = path.join(REPO, '.agent/config/a_parity_source.json');
+    const cu = fs.readFileSync(F, 'utf8');
+    try {
+      const j = JSON.parse(cu);
+      const i = j.so_do.findIndex((m: { nhan: string }) => m.nhan === 'skill');
+      j.so_do[i].da_ghi = Number(j.so_do[i].da_ghi) + 2;
+      fs.writeFileSync(F, JSON.stringify(j, null, 2), 'utf8');
+      const r = chay();
+      /* Không có bản A trên máy này thì phép kiểm bỏ qua — lúc đó ca này vô nghĩa, nên khai SKIP. */
+      if (/KHÔNG đo lại được/.test(r.out)) { test.skip(true, 'máy này không có bản A để đối soát'); return; }
+      expect(r.code, r.out).toBe(1);
+      expect(r.out).toMatch(/số liệu A LỆCH/);
+      expect(r.out, 'phải in CẢ hai số, không chỉ nói "sai"').toMatch(/config ghi \d+, bản A thật có \d+/);
+    } finally {
+      fs.writeFileSync(F, cu, 'utf8');
+    }
+  });
+
+  test('ĐỐI CHỨNG ÂM: không có bản A ⇒ BỎ QUA và NÓI RA, không đỏ oan', () => {
+    /*
+     * Bản A là plugin của bên khác, không thuộc repo. Máy nào cũng đỏ vì thiếu nó là đỏ oan. Nhưng bỏ
+     * qua mà im lặng thì người đọc tưởng đã đối soát — nên nó phải IN RA.
+     */
+    const F = path.join(REPO, '.agent/config/a_parity_source.json');
+    const cu = fs.readFileSync(F, 'utf8');
+    try {
+      const j = JSON.parse(cu);
+      j.duong_dan = ['C:/duong-dan-khong-he-ton-tai-cho-phep-kiem'];
+      fs.writeFileSync(F, JSON.stringify(j, null, 2), 'utf8');
+      const r = chay();
+      expect(r.code, 'thiếu bản A KHÔNG được làm đỏ').toBe(0);
+      expect(r.out).toMatch(/KHÔNG đo lại được số liệu về A/);
+      expect(r.out, 'phải nói rõ bỏ qua ≠ đạt').toMatch(/bỏ qua KHÔNG đồng nghĩa với đạt/);
+    } finally {
+      fs.writeFileSync(F, cu, 'utf8');
+    }
+  });
+
   test('gate TỰ NÓI giới hạn: đọc ký hiệu và tên máy, không đọc nghĩa', () => {
     const src = fs.readFileSync(GATE, 'utf8');
     expect(src).toMatch(/KHÔNG đọc nghĩa|không đọc nghĩa/);
