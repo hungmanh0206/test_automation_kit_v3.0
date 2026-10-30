@@ -94,6 +94,66 @@ if (alias.length) {
 const md = `${L.join('\n')}\n`;
 
 /*
+ * SHIM `.claude/skills/<tên>/SKILL.md` (v2.9.6 N1) — để harness TỰ NẠP skill.
+ *
+ * VẤN ĐỀ: skill của kit nằm ở `.agent/skills/**`, mà harness chỉ dò `.claude/skills/`. Hệ quả: 28 skill
+ * không bao giờ tự xuất hiện, và kit phải bơm danh sách TÊN qua hook SessionStart — tốn **232 token mỗi
+ * phiên** (đo 30/10/2026) mà vẫn chỉ cho agent cái tên, không cho mô tả.
+ *
+ * SHIM LÀ CON TRỎ, KHÔNG PHẢI BẢN SAO. Thân ≤ 5 dòng, chỉ trỏ về bản gốc. Chép cả nội dung sang đây là
+ * dựng nguồn thứ hai, và kit đã trả giá đúng chuyện đó ở hai bản lint SQL.
+ *
+ * VÌ SAO `--check` PHẢI CHẶN CẢ "THỪA": xoá một skill gốc mà quên xoá shim thì harness vẫn liệt kê nó,
+ * agent mở ra và gặp con trỏ chết. Thiếu/lệch/thừa đều chặn.
+ */
+const CLAUDE_SKILLS = path.join(rc.REPO_ROOT, '.claude', 'skills');
+
+function thanShim(r) {
+  return [
+    '---',
+    `name: ${r.name}`,
+    `description: ${r.description}`,
+    '---',
+    '',
+    '<!-- SINH TỰ ĐỘNG bởi `node scripts/qa/skills_index.js --write` — ĐỪNG SỬA TAY. -->',
+    '',
+    `**Bản đầy đủ: [\`${r.file}\`](../../../${r.file}) — đọc file đó trước khi làm.**`,
+    '',
+    'File này chỉ là con trỏ để harness thấy skill. Mọi luật, bảng và số đo nằm ở bản gốc.',
+    '',
+  ].join('\n');
+}
+
+/** `{ <tên>: <nội dung mong đợi> }` cho đủ skill. */
+function shimMongDoi() {
+  const ra = new Map();
+  for (const r of rows) ra.set(r.name, thanShim(r));
+  return ra;
+}
+
+/** Shim đang có trên đĩa. */
+function shimTrenDia() {
+  const ra = new Map();
+  if (!fs.existsSync(CLAUDE_SKILLS)) return ra;
+  for (const e of fs.readdirSync(CLAUDE_SKILLS, { withFileTypes: true })) {
+    if (!e.isDirectory()) continue;
+    const f = path.join(CLAUDE_SKILLS, e.name, 'SKILL.md');
+    if (fs.existsSync(f)) ra.set(e.name, fs.readFileSync(f, 'utf8').replace(/\r\n/g, '\n'));
+  }
+  return ra;
+}
+
+/** So hai bên, trả `{ thieu, lech, thua }`. */
+function soShim() {
+  const mong = shimMongDoi();
+  const co = shimTrenDia();
+  const thieu = [...mong.keys()].filter((k) => !co.has(k));
+  const thua = [...co.keys()].filter((k) => !mong.has(k));
+  const lech = [...mong.entries()].filter(([k, v]) => co.has(k) && co.get(k).trim() !== v.trim()).map(([k]) => k);
+  return { thieu, lech, thua, soCo: co.size, soMong: mong.size };
+}
+
+/*
  * `--check` — CHẶN khi INDEX.md trôi khỏi nguồn (`SKILL.md`).
  *
  * VÌ SAO THÊM (đo 07/09/2026): `policy_source_check` chỉ khoá TÊN skill, KHÔNG so description. Hậu quả
@@ -124,13 +184,35 @@ if (process.argv.includes('--check')) {
     console.error('  Chạy `npm run skills:index` rồi commit CẢ `SKILL.md` lẫn `INDEX.md`.');
     process.exit(1);
   }
-  console.log(`[skills] OK — INDEX.md khớp ${rows.length} skill.`);
+  const s = soShim();
+  if (s.thieu.length || s.lech.length || s.thua.length) {
+    console.error('[skills] CHẶN: shim `.claude/skills/` LỆCH nguồn.');
+    if (s.thieu.length) console.error(`  THIẾU shim (${s.thieu.length}): ${s.thieu.join(' · ')}`);
+    if (s.lech.length) console.error(`  SỬA TAY / lệch mô tả (${s.lech.length}): ${s.lech.join(' · ')}`);
+    if (s.thua.length) console.error(`  THỪA — skill gốc không còn (${s.thua.length}): ${s.thua.join(' · ')}`);
+    console.error('  Shim là con trỏ để harness thấy skill. Thiếu thì skill không tự nạp; thừa thì agent');
+    console.error('  mở ra gặp con trỏ chết. Chạy `npm run skills:index` rồi commit.');
+    process.exit(1);
+  }
+  console.log(`[skills] OK — INDEX.md khớp ${rows.length} skill · ${s.soCo} shim khớp nguồn.`);
   process.exit(0);
 }
 
 if (process.argv.includes('--write')) {
   fs.writeFileSync(OUT, md, 'utf8');
   console.log(`[skills] ${rows.length} skill → ${path.relative(rc.REPO_ROOT, OUT).replace(/\\/g, '/')}`);
+
+  /* Shim: ghi đủ, và XOÁ shim của skill không còn — thừa cũng là một kiểu lệch. */
+  fs.mkdirSync(CLAUDE_SKILLS, { recursive: true });
+  const mong = shimMongDoi();
+  for (const [ten, noi] of mong) {
+    const d = path.join(CLAUDE_SKILLS, ten);
+    fs.mkdirSync(d, { recursive: true });
+    fs.writeFileSync(path.join(d, 'SKILL.md'), noi, 'utf8');
+  }
+  const thua = [...shimTrenDia().keys()].filter((k) => !mong.has(k));
+  for (const t of thua) fs.rmSync(path.join(CLAUDE_SKILLS, t), { recursive: true, force: true });
+  console.log(`[skills] ${mong.size} shim → .claude/skills/<tên>/SKILL.md${thua.length ? ` · đã xoá ${thua.length} shim thừa: ${thua.join(' · ')}` : ''}`);
   const broken = rows.filter((r) => r.broken);
   if (broken.length) console.log(`[skills] ⚠ ${broken.length} skill thiếu name/description trong frontmatter: ${broken.map((b) => b.name).join(', ')} — agent sẽ không biết khi nào nên dùng.`);
 } else {
