@@ -22,7 +22,7 @@ const GATE = path.join(REPO, 'scripts/qa/traceability_matrix.js');
 type Tc = { tcId: string; status: string; comment?: string; oracleRef?: string };
 
 /** Dựng một task giả: bộ case canonical (bảng .md) + sổ verdict. */
-function dungTask(canon: string[], ghi: Tc[]) {
+function dungTask(canon: string[], ghi: Tc[], claims: Record<string, unknown> = {}) {
   const goc = fs.mkdtempSync(path.join(os.tmpdir(), 'mocoi-'));
   const T = path.join(goc, 'tasks', 'T-1');
   fs.mkdirSync(path.join(T, 'test-cases'), { recursive: true });
@@ -42,6 +42,13 @@ function dungTask(canon: string[], ghi: Tc[]) {
     ['# T-1 — Testcase giả cho phép kiểm', '', COT, `|${'---|'.repeat(11)}`, ...dong].join('\n'), 'utf8');
   fs.writeFileSync(path.join(T, 'test-results', 'testcase-status.json'),
     JSON.stringify({ taskKey: 'T-1', tests: ghi }, null, 2), 'utf8');
+  if (Object.keys(claims).length) {
+    const cd = path.join(T, 'reports', 'bug-claims');
+    fs.mkdirSync(cd, { recursive: true });
+    for (const [id, claim] of Object.entries(claims)) {
+      fs.writeFileSync(path.join(cd, `${id}.json`), JSON.stringify(claim, null, 2), 'utf8');
+    }
+  }
   return { goc, T };
 }
 
@@ -157,6 +164,58 @@ test.describe('@infra trace:matrix — test mồ côi phải được PHÂN LO�
     const m = muc(chay(k.goc).pm);
     expect(m).toMatch(/KHÔNG phán được/);
     expect(m, 'phải nói thẳng đây không phải sạch').toMatch(/không phải "sạch"/);
+    fs.rmSync(k.goc, { recursive: true, force: true });
+  });
+});
+
+/*
+ * NEO NẰM TRONG BUG CLAIM — và bỏ sót chỗ này làm cửa báo oan 5/9 ca.
+ *
+ * Bản đầu chỉ soi sổ verdict. Nhưng kit có cơ chế riêng cho đúng việc neo một phát hiện: bug claim ở
+ * `reports/bug-claims/<tcId>.json`, mang `oracle: { type, ref, quote }`. Đo 30/10/2026: CSDL-9004 có
+ * 22/22 claim CÓ `oracle.ref`, CSDL-9001 41/41, CSDL-4008 34/43 — và **5 trong 9** ca mà cửa báo "mở
+ * rộng không có neo" ĐÃ CÓ claim kèm neo. Cửa đang đòi một thứ đã có, chỉ nằm chỗ khác.
+ *
+ * Sau khi tra claim: 11 ca bị chặn còn 6 — và cả 6 đều là `PASSED` không neo, tức hạ về `OBSERVATION`
+ * không chôn mất phát hiện nào. Năm ca `FAILED` thì giữ nguyên verdict, vì chúng neo đúng.
+ */
+test.describe('@infra trace:matrix — bug claim cũng là NEO', () => {
+  const NEO = {
+    tc_id: 'EXPANSION_O_KHOA', status: 'claimed',
+    oracle: { type: 'UI', ref: 'CSDL-3760 (ô khoá form Sửa)', quote: 'Ô khoá thì server phải từ chối ghi.' },
+  };
+
+  test('ĐỐI CHỨNG ÂM: không neo trong sổ nhưng CÓ claim mang `oracle.ref` ⇒ KHÔNG bị nêu', () => {
+    const k = dungTask(['A_TC_001'],
+      [{ tcId: 'A_TC_001', status: 'PASS' }, { tcId: 'EXPANSION_O_KHOA', status: 'FAILED' }],
+      { EXPANSION_O_KHOA: NEO });
+    const m = muc(chay(k.goc).pm);
+    expect(m, 'claim mang neo thì KHÔNG được đòi neo lần nữa').not.toContain('EXPANSION_O_KHOA');
+    expect(m).toMatch(/1 ca mở rộng CÓ neo oracle/);
+    fs.rmSync(k.goc, { recursive: true, force: true });
+  });
+
+  test('ĐỐI CHỨNG DƯƠNG: claim ĐÃ RÚT ⇒ KHÔNG tính là neo, vẫn bị nêu', () => {
+    /*
+     * `status: 'withdrawn'` nghĩa là chính người khai đã bỏ lời khẳng định. Tính nó là neo thì một claim
+     * rút rồi vẫn giữ verdict đứng — đúng kiểu `bug_claim.js` đang gác ở chiều khác.
+     */
+    const k = dungTask(['A_TC_001'],
+      [{ tcId: 'A_TC_001', status: 'PASS' }, { tcId: 'EXPANSION_O_KHOA', status: 'FAILED' }],
+      { EXPANSION_O_KHOA: { ...NEO, status: 'withdrawn' } });
+    const m = muc(chay(k.goc).pm);
+    expect(m).toContain('EXPANSION_O_KHOA');
+    expect(m).toMatch(/mở rộng KHÔNG có neo oracle/);
+    fs.rmSync(k.goc, { recursive: true, force: true });
+  });
+
+  test('ĐỐI CHỨNG DƯƠNG: claim CÓ mà THIẾU `oracle.ref` ⇒ vẫn bị nêu', () => {
+    /* "Có claim" chưa phải "có neo" — claim không nêu được nguồn kỳ vọng thì nó chỉ là một lời kể. */
+    const k = dungTask(['A_TC_001'],
+      [{ tcId: 'A_TC_001', status: 'PASS' }, { tcId: 'EXPANSION_O_KHOA', status: 'FAILED' }],
+      { EXPANSION_O_KHOA: { tc_id: 'EXPANSION_O_KHOA', status: 'claimed', summary: 'ô khoá ghi đè được' } });
+    const m = muc(chay(k.goc).pm);
+    expect(m).toContain('EXPANSION_O_KHOA');
     fs.rmSync(k.goc, { recursive: true, force: true });
   });
 });

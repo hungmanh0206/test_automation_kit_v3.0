@@ -468,6 +468,51 @@ CSDL-4008 đã có mốc từ 20/10.
 Giá trị của mốc giữa task là **prospective**: nó gác từ thời điểm chụp trở đi. Có phép kiểm chứng minh
 đúng điều đó — đổi expected **sau** khi chụp thì cửa vẫn CHẶN và nêu đích danh case.
 
+### ③ Xử 11 ca bị chặn — và 5 trong số đó là CỬA TÔI BÁO OAN
+
+Đi đọc từng ca thay vì xử lô, vì hạ một ca `FAILED` xuống `OBSERVATION` mà không soi thì có thể **chôn
+mất một bug thật**.
+
+**Phát hiện: gate của tôi bỏ sót một chỗ neo.** Kit có cơ chế riêng cho đúng việc neo một phát hiện —
+bug claim ở `reports/bug-claims/<tcId>.json`, mang `oracle: { type, ref, quote }`. Gate chỉ soi sổ
+verdict. Số đo:
+
+| Task | Claim CÓ `oracle.ref` |
+|---|---|
+| CSDL-9004 | **22/22** |
+| CSDL-9001 | **41/41** |
+| CSDL-4008 | 34/43 |
+
+**5/9 ca** bị báo *"mở rộng không có neo"* đã có claim kèm neo — cửa đang đòi một thứ **đã có, chỉ nằm
+chỗ khác**. Đã vá: neo được công nhận ở **một trong ba** chỗ (trường riêng của record · chữ trong
+comment/step · bug claim). Đòi đúng một chỗ là bắt người ta ghi hai lần cùng một thứ. Claim **đã rút**
+(`status: 'withdrawn'`) thì **không** tính là neo.
+
+Hai tiền đề khác cũng phải kiểm trước khi sửa, và cả hai đều đổi kết luận:
+
+- mẫu neo chỉ nhận `BR-`/`SM-`/`UI-`, mà mấy ca viện **HDSD §3.2**. Nhưng quy ước *"§7 không phải
+  oracle"* **chỉ CSDL-9002 khai** — không phải quy ước chung, nên **không** tổng quát hoá thành luật máy;
+- bộ case CSDL-9004 khai *"Rule oracle: BR-NHANSU-001…016"*, mà **BR-NHANSU-018** (*"ô Mã số bị khoá"* —
+  đúng neo cho hai ca ô-khoá) nằm ngoài dải đó. Đo lại: bộ case thật dùng **38 mã, 001–037**, nên dòng
+  khai dải ấy **đã lạc hậu**.
+
+**Sau khi vá: 11 ca → 6 ca.** Năm ca `FAILED` giữ nguyên verdict (neo đúng qua claim), và **cả 6 ca còn
+lại đều là `PASSED`** — hạ về `OBSERVATION` chỉ bỏ một lời khai xanh không có căn cứ, **không** chôn mất
+phát hiện nào.
+
+| Ca | Vì sao `OBSERVATION` |
+|---|---|
+| `CSDL_NHANSU_RECON_001` · `PROBE_DONVI_CO_PHANHIEU` | bước **khám phá**, không neo vào đặc tả nào |
+| `EXPANSION_XSURF_LUOI_FORM` | oracle là **lưới == form**, tức app == app — §3 cấm tautology; 1/11 cặp còn *chưa đo được* |
+| `EXPANSION_GHI_SAI_CAP` | app chỉ trả câu lỗi **chung**, không mã BR nào khai *"tệp sai cấp phải bị chặn"* |
+| `CSDL_EMISTH_EXT_LIENCAP_09` · `_11` | **chính ô ghi nhận đã viết**: *"chưa có mã BR nào khai quan hệ này nên chỉ ghi nhận, không chấm"* |
+
+Sửa **cả sổ gộp lẫn shard theo TC** (11 chỗ): `evidence_recorder` ghi shard rồi gộp, nên sửa một chỗ thì
+lượt gộp sau dựng lại `PASSED`. Comment mỗi ca được **giữ nguyên** và nối thêm một dòng nói rõ ngày, điều
+luật, lý do — hạ verdict **không xoá** số đo hay evidence.
+
+Kết quả: cả **5/5** task sạch ở phép kiểm này.
+
 ## Các mục khác
 
 *(không còn — N1 · N2.1–2.4 · N3 · N4 · N5 · N6 · N7 đã xong; N8 chờ phiên mới)*

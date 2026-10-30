@@ -107,6 +107,30 @@ function loaiMoCoi(id) {
   return 'khongRoKhuon';
 }
 
+/*
+ * NEO CÓ THỂ NẰM TRONG BUG CLAIM — và bỏ sót chỗ này làm cửa báo oan 5/9 ca.
+ *
+ * Bản đầu chỉ soi sổ verdict. Nhưng kit có một cơ chế riêng cho đúng việc neo một phát hiện: bug claim
+ * ở `reports/bug-claims/<tcId>.json`, mang `oracle: { type, ref, quote }`. Đo 30/10/2026: CSDL-9004 có
+ * 22/22 claim CÓ `oracle.ref`, CSDL-9001 41/41, CSDL-4008 34/43. Và 5 trong 9 ca mà cửa này báo "mở rộng
+ * không có neo" ĐÃ CÓ claim kèm neo — tức cửa đang đòi một thứ đã có, chỉ nằm chỗ khác.
+ *
+ * Nên neo được công nhận khi ở MỘT trong ba chỗ: trường riêng của record · chữ trong comment/step · hoặc
+ * bug claim. Đòi đúng một chỗ là bắt người ta ghi hai lần cùng một thứ.
+ *
+ * CLAIM ĐÃ RÚT thì KHÔNG phải neo: `status: 'withdrawn'` nghĩa là chính người khai đã bỏ lời khẳng định
+ * đó. Tính nó là neo thì một claim rút rồi vẫn giữ verdict đứng — đúng kiểu `bug_claim.js` đang gác.
+ */
+function coClaimNeo(T, tcId) {
+  const f = path.join(T, 'reports', 'bug-claims', `${String(tcId).replace(/[^\w.-]+/g, '_')}.json`);
+  const j = readJson(f);
+  if (!j) return false;
+  const c = j.claim || j;
+  if (String(c.status || '') === 'withdrawn') return false;
+  const ref = c.oracle && c.oracle.ref;
+  return Boolean(String(ref || '').trim());
+}
+
 function testMoCoi(T, tcs) {
   const canon = new Set(tcs.map((x) => normId(x.tcId)).filter(Boolean));
   const so = readJson(path.join(T, 'test-results', 'testcase-status.json'));
@@ -126,7 +150,9 @@ function testMoCoi(T, tcs) {
 
     if (L === 'moRong') {
       /* Neo có thể ở trường riêng hoặc viết trong comment/step — tìm cả hai, đừng đòi đúng một chỗ. */
-      const coNeo = Boolean(x.oracleRef || x.oracle_ref) || RE_NEO_ORACLE.test(JSON.stringify(x));
+      const coNeo = Boolean(x.oracleRef || x.oracle_ref)
+        || RE_NEO_ORACLE.test(JSON.stringify(x))
+        || coClaimNeo(T, id);
       if (!coVerdict) continue;                       // mở rộng khai OBSERVATION là đúng luật, bỏ qua
       if (coNeo) { dem.coNeo += 1; continue; }
       dem.khongNeo += 1;
