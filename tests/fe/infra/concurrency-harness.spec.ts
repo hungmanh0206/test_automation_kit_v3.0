@@ -84,6 +84,23 @@ test.describe('@infra đồng thời — CẶP hỏng/đúng cho từng lỗi đ
       const bad: Ket = await cc.chayKichBan(dung(true), o(sBad.url));
       await sBad.close();
 
+      /*
+       * MÁY CHẬM THÌ LƯỢT ĐO KHÔNG XẢY RA, VÀ ĐÓ KHÔNG PHẢI LỖI CỦA HARNESS.
+       *
+       * Harness chỉ phán khi N request thật sự ĐUA: độ lệch thả phải dưới 50ms. Máy đang tải thì lệch
+       * lớn hơn và nó trả `CHUA_KIEM` kèm số đo — đúng luật "không phán được KHÔNG thành PASS".
+       *
+       * Bản trước đòi thẳng `PASS`, nên phép kiểm này ĐỎ trên máy bận. Đo 29/10/2026: chạy riêng xanh
+       * 2/2 lượt, chạy trong suite đầy đủ đỏ 2/2 lượt với "độ lệch thả 78ms > ngưỡng 50ms" — tức kết
+       * quả phụ thuộc TẢI CỦA MÁY, cùng lớp lỗi đã vá ở `permission-matrix-confidence.spec.ts`.
+       *
+       * Cách chữa KHÔNG phải nới ngưỡng (nới là bảo harness phán trên một lượt không đua). Lượt đo
+       * không xảy ra thì khai SKIP kèm lý do — vế quyết định bên dưới vẫn giữ nguyên răng.
+       */
+      if (ok.tt === cc.TT.chua_kiem) {
+        test.skip(true, `lượt đo chưa xảy ra trên máy này — ${ok.vi_sao}`);
+        return;
+      }
       expect(ok.tt, `bản ĐÚNG phải PASS — ${ok.vi_sao}`).toBe(cc.TT.pass);
       /*
        * Vế quyết định: nếu bản CÀI LỖI cũng PASS thì control này chưa có hiệu lực, và mọi lượt xanh về
