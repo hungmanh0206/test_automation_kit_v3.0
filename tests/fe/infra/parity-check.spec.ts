@@ -35,6 +35,23 @@ function bangTam(bien: (s: string) => string) {
 }
 
 test.describe('@infra parity:check', () => {
+  /*
+   * SKIP KHI THIẾU TÀI LIỆU NỘI BỘ — vì spec này CHẠY CẢ TRONG GÓI PHÁT HÀNH.
+   *
+   * `docs/v2.9.5/A_PARITY.md` là bảng nghiệm thu NỘI BỘ của repo, cố ý KHÔNG đóng gói: người nhận kit
+   * không cần nó. Nhưng `release:verify` giải nén gói rồi chạy `tests/fe/infra` trong đó, nên một spec
+   * generic đòi tài liệu nội bộ sẽ ĐỎ OAN ở bước phát hành.
+   *
+   * Đo 30/10/2026: đúng chỗ này làm `release:verify` đỏ **25 ca**, và `release:verify` CÓ trong CI
+   * (`.github/workflows/release.yml`). Tức luồng phát hành đã hỏng từ v2.9.5 mà không ai thấy.
+   *
+   * Skip phải NÓI RA: "không có tài liệu để đối chiếu" khác hẳn "đã đối chiếu và đạt".
+   */
+  test.beforeEach(() => {
+    test.skip(!fs.existsSync(DOC),
+      'thiếu `docs/v2.9.5/A_PARITY.md` (tài liệu NỘI BỘ, không đóng gói) — KHÔNG đối chiếu được, và đó không phải "đạt"');
+  });
+
   test('bảng THẬT đạt, và in ra đủ ba con số', () => {
     const r = chay();
     expect(r.code, r.out).toBe(0);
