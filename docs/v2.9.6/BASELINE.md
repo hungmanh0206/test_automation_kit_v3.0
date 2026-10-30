@@ -361,6 +361,65 @@ Lý do ② là lý do quyết định: phép dò **không phân biệt được*
 hình dạng". Mà đó chính là việc mà một cửa nhất-quán phải làm được. Nên kết luận là **chưa có máy cho
 chiều này**, ghi vào khối CHƯA CÓ MÁY, không phải một cửa `--warn` cho đủ.
 
+## N7 · Dữ liệu tổ hợp — đo xong thì KHÔNG dựng thêm máy
+
+### Trạng thái thật trước khi làm
+
+| Số đo | Giá trị |
+|---|---|
+| `combinatorial_matrix` có mã lớp kết quả `OC-n` | **có** (từ v2.9.5) |
+| Cửa gác mã đó | **có** — `matrix:coverage` khớp theo MÃ, không dò chữ |
+| Tên file: skill dạy đặt ↔ gate đi tìm | **khớp** (`<basename>_matrix.md`) — không có lỗi khuôn tên |
+| File `*_matrix.md` trong `test-cases/` của 6 task | **0** |
+| ⇒ `matrix:coverage` đã gác được bao nhiêu dòng dữ liệu thật | **0**, suốt 20 ngày kể từ 10/10/2026 |
+
+Cửa tự khai đúng điều đó mỗi lượt: *"0 file `*_matrix.md` ⇒ phép kiểm CHƯA GÁC GÌ. Đây KHÔNG phải đạt."*
+
+### Câu hỏi đáng đo: không ai dùng thì có SAI không
+
+Nếu bộ case đang **liệt kê tay** các tổ hợp thì đó là nổ case, và ma trận lẽ ra cắt được. Đo bằng cách
+chuẩn hoá ô `Trường hợp kiểm thử` (bỏ giá trị trong nháy · bỏ số · bỏ tên cấp) rồi gom:
+
+| Task | Case | Mô tả khác nhau | Nhóm ≥4 | Case trong nhóm ≥4 |
+|---|---|---|---|---|
+| CSDL-4008 | 312 | 310 | 0 | 0 (0%) |
+| CSDL-9004 | 298 | 298 | 0 | 0 (0%) |
+| CSDL-9003 | 291 | 276 | **1** | **5 (2%)** |
+| CSDL-9001 | 223 | 221 | 0 | 0 (0%) |
+| CSDL-9002 | 150 | 150 | 0 | 0 (0%) |
+| CSDL-3544 | 60 | 60 | 0 | 0 (0%) |
+| **Tổng** | **1.334** | — | **1** | **5 = 0,4%** |
+
+**⇒ Bộ case KHÔNG liệt kê tay lưới tổ hợp.** Đường tổ hợp đang không được dùng vì **không có nổ case để
+cắt**, không phải vì thiếu máy.
+
+### Quyết định: KHÔNG thêm máy, và nói rõ vì sao
+
+Thêm mã OC vào `test_data_generator` kèm mở rộng `data:chain:check` cho dữ liệu tổ hợp sẽ là dựng máy cho
+một khối việc **đo được là không tồn tại** — tức thêm một cửa nữa nổ 0 lượt. Kit đã có một cửa như thế
+(`presence-only`, 0/2.873) và nó nằm trong khối CHƯA CÓ MÁY vì lý do đó.
+
+Phần **có** làm, vì nó rẻ và bịt một đường nối hở thật: `test_data_generator` trước đây không nhắc `OC-n`
+ở đâu cả, nên nếu ai thật sự dựng ma trận thì hai skill **không nói cùng một thứ tiếng**. Đã thêm một mục
+ngắn: mỗi bộ dữ liệu trỏ về **đúng một mã** `OC-n` (không ghi chữ mô tả, vì chữ thì hai bên trôi khỏi
+nhau mà không ai thấy); bộ không ứng được mã nào là **thiếu lớp kết quả trong ma trận**, phải sửa ma trận
+trước. Mục đó tự khai là **hợp đồng chờ sẵn**, không phải mô tả việc đang diễn ra.
+
+### ĐIỀU KIỆN XÉT LẠI, nói trước để lần sau khỏi tranh luận từ đầu
+
+Dựng tiếp khi có **một** trong hai dấu hiệu, và phải là số đo chứ không phải cảm giác:
+
+1. một task sinh ra file `*_matrix.md` thật ⇒ `matrix:coverage` bắt đầu có dữ liệu, lúc đó mới biết nó
+   gác đúng hay sai;
+2. tỉ lệ case nằm trong nhóm ≥4 mô tả gần trùng **vượt 10%** ở bất kỳ task nào ⇒ đã có nổ case để cắt.
+
+### Một lỗi của chính tôi trong phép đo này
+
+Bản đầu của script đo bọc `parseMarkdown` trong `try/catch` im lặng. Import sai đường dẫn (`model.js`
+không export `parseMarkdown`, nó ở `index.js`) ⇒ script in ra **rỗng**. Và "rỗng" ở đây rất dễ đọc thành
+*"không có case trùng nào"* — tức đúng kết luận tôi đang muốn, bằng một phép đo không chạy. Đã bỏ catch
+im lặng; lỗi import nay nổ ra ngay.
+
 ## Các mục khác
 
-*(điền khi làm tới — N7)*
+*(không còn — N1 · N2.1–2.4 · N3 · N4 · N5 · N6 · N7 đã xong; N8 chờ phiên mới)*

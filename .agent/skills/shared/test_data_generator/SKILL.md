@@ -103,6 +103,21 @@ bắt được một ca thật: `TC_063` khai `(dựng ở TC_075)` nhưng `TC_0
 > Và máy chỉ thấy chuỗi đã **KHAI**. Case phụ thuộc case khác mà không khai thì không máy nào biết —
 > chỗ đó nằm ở phần chấm tay của `automation_reviewer`.
 
+## Nối với ma trận tổ hợp: nói cùng một thứ tiếng về LỚP KẾT QUẢ
+
+`combinatorial_matrix` khai lớp kết quả bằng **mã** `OC-1`, `OC-2`… (mỗi mã kèm `BR-`), và `matrix:coverage`
+gác việc mọi mã xuất hiện ít nhất một bộ. Khi sinh dữ liệu cho một ma trận:
+
+- mỗi bộ dữ liệu phải **trỏ về đúng một mã** `OC-n`, không ghi chữ mô tả — chữ mô tả thì hai bên trôi
+  khỏi nhau mà không ai thấy;
+- bộ nào không ứng được mã nào ⇒ **thiếu lớp kết quả trong ma trận**, không phải thiếu dữ liệu. Sửa ma
+  trận trước.
+
+> **Đo 30/10/2026: 0 file `*_matrix.md` trong cả 6 task, và chỉ 5/1.334 case (0,4%) nằm trong nhóm ≥4 mô
+> tả gần trùng.** Bộ case hiện tại KHÔNG liệt kê tay lưới tổ hợp, nên đường này chưa có lượt chạy thật.
+> Mục trên là **hợp đồng chờ sẵn**, không phải mô tả một việc đang diễn ra — đọc nó như lời khai năng lực
+> thì sai.
+
 ## Decision Rules
 
 - Mỗi testcase phải có data cụ thể hoặc reference rõ tới fixture cụ thể.
