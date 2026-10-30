@@ -53,6 +53,12 @@ const CUA = [
    * trong khi CHANGELOG đỉnh là v2.9.5, lệch hai bước mà không cửa nào kêu.
    */
   { ten: 'version:check', file: 'scripts/qa/version_check.js', args: [] },
+  /*
+   * `frontmatter:check` vao day (30/10/2026) vi mot file dinh nghia vo frontmatter thi harness BO QUA
+   * no IM LANG — khong log, khong canh bao. Mot kit phat hanh kem mot agent khong bao gio nap duoc la
+   * kit hong voi nguoi nhan, va khong cua nao khac thay. Do duoc: 5/75 file dang o trang thai do.
+   */
+  { ten: 'frontmatter:check', file: 'scripts/qa/frontmatter_check.js', args: [] },
 ];
 
 function headSha() {

@@ -38,7 +38,7 @@ Phép đo trả về một thứ **không nằm trong cả hai**, nên phải t�
 
 | Câu hỏi | Cách đo | Kết quả |
 |---|---|---|
-| Harness có **NẠP** `.claude/skills/<tên>/SKILL.md` không? | gọi `Skill(run_report_reader)` | **CÓ.** Trả về `Base directory … \.claude\skills\run_report_reader` + thân shim |
+| Harness có **NẠP** `.claude/skills/<tên>/SKILL.md` không? | gọi `Skill()` trên **3 shim ở 3 nhóm** (`run_report_reader` shared · `tc_validator` phase1 · `automation_reviewer` phase2) | **CÓ, 3/3.** Mỗi lượt trả `Base directory` trỏ đúng `.claude/skills/<tên>` kèm thân shim |
 | Có phải nó nhận bừa mọi tên? | gọi `Skill(khong_he_co_skill_nay)` — đối chứng âm | **KHÔNG.** `Unknown skill` ⇒ tên được tra trên một sổ đăng ký thật |
 | Harness có **QUẢNG BÁ** 28 tên đó vào ngữ cảnh không? | soi ngữ cảnh phiên này | **KHÔNG thấy mục liệt kê skill nào.** Tên skill trong ngữ cảnh chỉ đến từ dòng hook |
 
@@ -68,20 +68,91 @@ ghi là *chưa đo được* — nhưng đừng trông đợi lượt đo kia đ
 Hai kết luận ở trên **không** phụ thuộc vào chỗ này: cả hai đều đứng trên phép đo *nạp được*, vốn không
 liên quan tới nén.
 
-## N8 · Subagent — cũng chờ phiên mới
+## N8 · Subagent — ĐÃ TÌM RA NGUYÊN NHÂN, và nó không phải thứ tôi đoán
+
+### Hiện tượng
 
 | Số đo | Giá trị |
 |---|---|
 | Định nghĩa ở `.claude/agents/` | **3** (`case-debugger` · `excel-convert` · `test-runner`) |
-| Harness liệt kê (30/10, lần thứ ba) | **2/3** — `excel-convert` · `test-runner`; `case-debugger` vẫn vắng |
+| Harness đăng ký | **2/3** — `case-debugger` vắng mặt ở **ba** ngữ cảnh (28/10 · 29/10 · 30/10) |
+| `Agent(case-debugger)` | `Agent type 'case-debugger' not found`, kèm danh sách agent không có nó |
 
-Đã đo **ba lần, ba ngữ cảnh khác nhau** (28/10 · 29/10 · 30/10): cả ba lần harness chỉ liệt kê **2/3** —
-`case-debugger` vắng mặt. Đã loại ba giả thuyết: cả ba file **đều được git track**, `case-debugger.md`
-vào repo từ **10–11/10** nên không phải "thêm giữa phiên", và frontmatter hợp lệ theo chính cửa của kit.
+Khác hẳn chuyện skill ở N1: skill **nạp được mà không quảng bá**; agent này thì **thật sự không có trong
+sổ đăng ký**. Không áp được "nhánh thứ ba".
 
-Khác biệt cấu trúc duy nhất là thiếu trường `model:`. Nhưng theo tài liệu Claude Code trường đó là
-**tuỳ chọn**, nên đây vẫn là **tương quan, chưa phải nhân quả** — và `case-debugger` cố ý không ghim
-model rẻ vì nó làm việc cần suy luận. Chỉ thêm `model:` nếu đã thử ở một phiên mới và thấy có tác dụng.
+### KẾT LUẬN CŨ CỦA TÔI LÀ SAI — và sai theo kiểu dễ tin nhất
+
+Bản trước của mục này ghi: *"khác biệt cấu trúc duy nhất là thiếu trường `model:`"*, kèm câu *"đã loại ba
+giả thuyết"*. Cả hai câu đều quá tự tin:
+
+- Tài liệu Claude Code nói `model:` là **TUỲ CHỌN** — chỉ `name` và `description` bắt buộc. Thiếu
+  `model:` thì harness chọn theo thứ tự mặc định, **không** bỏ file.
+- *"Khác biệt duy nhất"* là kết quả của việc tôi **so ba file bằng MẮT**. Mắt không đọc được YAML.
+
+### Nguyên nhân THẬT, đo bằng parser
+
+Tài liệu liệt kê các điều kiện làm một file agent bị **bỏ qua**, trong đó có **YAML không parse được**.
+Parse frontmatter bằng parser YAML thật:
+
+```
+case-debugger.md:  ✗ Nested mappings are not allowed in compact mappings at line 2, column 14
+excel-convert.md:  PARSE OK
+test-runner.md:    PARSE OK
+```
+
+Dòng 2, cột 14 là đúng chỗ này:
+
+```yaml
+description: Gỡ MỘT case đỏ: đọc log và ảnh FAIL, …
+#                          ↑ `: ` giữa một plain scalar KHÔNG bọc nháy ⇒ YAML vỡ
+```
+
+Hai agent đang đăng ký được **không có dấu hai chấm nào** trong giá trị. Đó là khác biệt thật, và nó
+nằm ngay cạnh khác biệt tôi đã nhìn thấy.
+
+### Quét toàn bộ: 5/75 file, không phải 1
+
+| File | |
+|---|---|
+| `.claude/agents/case-debugger.md` | agent — **không đăng ký** |
+| `.agent/skills/phase2/automation_reviewer/SKILL.md` | skill nguồn |
+| `.agent/skills/shared/backlog_testcase_publisher/SKILL.md` | skill nguồn |
+| `.claude/skills/automation_reviewer/SKILL.md` | shim (sinh từ nguồn trên) |
+| `.claude/skills/backlog_testcase_publisher/SKILL.md` | shim |
+
+**Nhưng `Skill(automation_reviewer)` VẪN gọi được** — tôi thử trong chính phiên này. Nên skill và agent
+**không cùng cách nạp**: skill nhận diện theo **tên thư mục**, agent theo **`name` trong frontmatter**.
+Đó là lý do vỡ YAML giết agent mà không giết skill. *(Suy luận từ hành vi quan sát được, không phải từ
+tài liệu — tài liệu không nói chỗ này.)*
+
+Đã vá cả 5: bọc giá trị `description` trong nháy đôi. Sau vá: **0/75** file vỡ.
+
+### Cửa mới: `npm run frontmatter:check`
+
+Một file định nghĩa vỡ frontmatter thì harness **bỏ qua nó IM LẶNG** — không log, không cảnh báo, chỉ là
+agent/skill đó không bao giờ xuất hiện. Suốt **20 ngày** không cửa nào thấy, kể cả cửa của kit vẫn khai
+*"frontmatter hợp lệ"* — vì nó kiểm bằng **regex**, không parse YAML.
+
+Cửa gác đúng các điều kiện **tài liệu đã nêu**: giá trị chứa `: ` không bọc nháy · giá trị chứa ` #` ·
+giá trị mở đầu bằng ký tự cú pháp YAML · thiếu `name`/`description` · `name` sai khuôn hoặc **khác chỗ
+harness tra** · frontmatter mở mà không đóng. Nối vào bó **`predeploy`**: một kit phát hành kèm agent
+không nạp được là kit **hỏng với người nhận**.
+
+**Cửa KHÔNG rỗng, và có phép kiểm chứng minh:** nó lấy nội dung `case-debugger.md` **trước** commit vá từ
+git và đòi phải CHẶN. Một cửa mới luôn xanh trên cây đã vá; điều cần chứng minh là nó **đã** đỏ trên cây
+chưa vá.
+
+**Giới hạn, nói thẳng:** cửa này **không** parse YAML (repo không có phụ thuộc YAML, và thêm một phụ
+thuộc chỉ để gác sáu luật thì đắt hơn gác thẳng sáu luật). Vỡ theo kiểu khác — thụt lề, list, neo/alias —
+thì nó không thấy.
+
+### Còn lại cần phiên mới
+
+`case-debugger` chỉ **xuất hiện** sau khi harness nạp lại sổ đăng ký. Phép đo một dòng ở phiên sau:
+gọi `Agent(case-debugger)` với một việc rỗng. Thấy ⇒ xác nhận nguyên nhân; không thấy ⇒ còn một nguyên
+nhân nữa, và lúc đó chạy `claude --debug` tìm lý do bỏ qua trong debug log (tài liệu nói lý do được ghi
+ở đó).
 
 ## N2.1 · `run:analysis --nhom` — gom case đỏ theo nguyên nhân
 

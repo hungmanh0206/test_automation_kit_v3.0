@@ -17,7 +17,7 @@
 | lệnh điểm vào | 32 command | 13 lệnh `/` + 16 workflow |
 | skill | 18 | 28 |
 | file luật | 6 | `RULE_GLOBAL.md` + `.agent/rules/**` + `CLAUDE.md` auto-load |
-| máy kiểm | 2 script Python (đọc/xuất testcase) | **150** máy trong `.agent/config/GATES.md` |
+| máy kiểm | 2 script Python (đọc/xuất testcase) | **151** máy trong `.agent/config/GATES.md` |
 | skill dài nhất | `rbt-manual-testing` **937 dòng · 18.229 token KHI ĐƯỢC GỌI** | `tc_design_guide` **1.805 token** khi được gọi, `references/` **8.666 token** mở theo nhu cầu |
 
 **Đính chính (30/10/2026) — bản trước ghi "luôn-nạp", và đó là SAI.** Skill không nạp cả thân vào mọi

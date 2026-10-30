@@ -7,7 +7,7 @@
 > **T1** chỉ chặn ở cửa ra, lúc đang làm thì cảnh báo và ghi `reports/gate-debt.json` · **T2** không
 > bao giờ chặn. T0 khai tay trong `.agent/config/gate_tiers.json`; không khai thì mặc định T1.
 
-Tổng **150** máy — **108 CHẶN** · 23 SINH (ghi artifact) · 19 BÁO CÁO (chỉ in).
+Tổng **151** máy — **109 CHẶN** · 23 SINH (ghi artifact) · 19 BÁO CÁO (chỉ in).
 
 SINH/BÁO CÁO **không phải gate bị nới** — chúng không kiểm vi phạm. Ví dụ `bugs:checklist` in brief bug
 lịch sử, còn việc CHẶN nằm ở `dim:coverage` (chiều `bug_history` §20).
@@ -35,6 +35,7 @@ lịch sử, còn việc CHẶN nằm ở `dim:coverage` (chiều `bug_history` 
 | T1 | CHẶN | `exit:gate` | BA CỬA RA (v2.7.0 §A2). | `scripts/qa/exit_gate.js` | .agent/skills · prompt_templates · .claude/commands · tests/fe/infra |
 | T1 | CHẶN | `expansion:audit` | ĐO ĐỘ PHỦ 5 TRỤC trên MỌI task đã execute, để quyết định siết gate bằng SỐ. | `scripts/qa/expansion_audit.js` | RULE_GLOBAL.md · .claude/commands · tests/fe/infra |
 | T0 | CHẶN | `expected:check`, `expected:snapshot` | CHẶN "đổi expected để case xanh" (non-negotiable §6, tầng T0). | `scripts/qa/expected_ledger.js` | RULE_GLOBAL.md · .agent/skills · prompt_templates · .claude/commands · tests/fe/infra |
+| T1 | CHẶN | `frontmatter:check` | file định nghĩa agent/skill phải THẬT SỰ NẠP ĐƯỢC (v2.9.6). | `scripts/qa/frontmatter_check.js` | tests/fe/infra |
 | T1 | CHẶN | `full:suite`, `full:suite:check` | SỔ GHI LƯỢT CHẠY CẢ BỘ, và cửa chặn đóng gói khi sổ đã cũ. | `scripts/qa/full_suite_ledger.js` | docs/kit-map.md · .github/workflows · tests/fe/infra |
 | T1 | CHẶN | `golden:check`, `golden:snapshot` | BỘ DỮ LIỆU VÀNG cho parser canonical, và HAI PHÉP ĐẾM ĐỘC LẬP (v2.7.0 §A10.4 + §A10.5). | `scripts/qa/golden_check.js` | .gitlab-ci.yml · RULE_GLOBAL.md · .github/workflows · tests/fe/infra |
 | T1 | CHẶN | `json:check` | kiểm MỌI file .json ĐANG ĐƯỢC TRACK có parse được không. | `scripts/qa/json_check.js` | .gitlab-ci.yml · .github/workflows · tests/fe/infra |
