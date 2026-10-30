@@ -105,7 +105,13 @@ function main() {
   const demKhoi = (re) => {
     const i = dong.findIndex((l) => re.test(l));
     if (i < 0) return 0;
-    const j = dong.findIndex((l, k) => k > i && /^##\s/.test(l));
+    /*
+     * DỪNG Ở `##` HOẶC `###`. Bản trước chỉ dừng ở `##`, nên một mục con `###` ghi chú nằm trong khối
+     * bị đếm lẫn vào: số "chưa có máy" nhảy từ 6 lên 11 chỉ vì tôi thêm một bảng giải thích. Dòng tổng
+     * của cửa mà nói sai về chính tài liệu nó đang gác thì nó dạy người đọc tin một con số rỗng — đây
+     * là lần thứ hai cùng lớp lỗi ở file này.
+     */
+    const j = dong.findIndex((l, k) => k > i && /^#{2,3}\s/.test(l));
     return dong.slice(i, j < 0 ? dong.length : j)
       .filter((l) => l.trim().startsWith('|') && !/^\|[\s|:-]*\|$/.test(l.trim()) && !/^\| A có \||^\| Việc \|/.test(l.trim()))
       .length;

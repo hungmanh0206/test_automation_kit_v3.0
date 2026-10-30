@@ -44,6 +44,29 @@ test.describe('@infra parity:check', () => {
     expect(r.out).not.toMatch(/⚠️ chưa có máy 0/);
   });
 
+  test('mục con `###` trong khối KHÔNG được đếm lẫn vào số "chưa có máy"', () => {
+    /*
+     * Lỗi thật: thêm một mục `### Ghi chú` kèm bảng 4 dòng vào khối CHƯA CÓ MÁY làm số nhảy 6 → 11.
+     * Bản trước của `demKhoi` chỉ dừng ở `##`. Dòng tổng của cửa mà nói sai về chính tài liệu nó đang
+     * gác thì nó dạy người đọc tin một con số rỗng.
+     */
+    const s = fs.readFileSync(DOC, 'utf8');
+    const i = s.indexOf('## Chỗ ĐÃ LÀM nhưng CHƯA CÓ MÁY');
+    const j = s.indexOf('### Ghi chú', i);
+    expect(j, 'tài liệu phải CÓ mục con trong khối, nếu không phép kiểm này rỗng').toBeGreaterThan(i);
+
+    const r = chay();
+    expect(r.code, r.out).toBe(0);
+    const m = r.out.match(/⚠️ chưa có máy (\d+)/);
+    expect(m, 'phải in số "chưa có máy"').toBeTruthy();
+    const n = Number(m![1]);
+    /* Số dòng bảng NGAY dưới tiêu đề khối, trước mục con đầu tiên. */
+    const that = s.slice(i, j).split('\n')
+      .filter((l) => l.trim().startsWith('|') && !/^\|[\s|:-]*\|$/.test(l.trim()) && !/^\| Việc \|/.test(l.trim()))
+      .length;
+    expect(n, `cửa in ${n}, bảng thật có ${that} dòng`).toBe(that);
+  });
+
   test('ĐỐI CHỨNG DƯƠNG: một dòng còn dấu hiệu TREO ⇒ CHẶN', () => {
     const t = bangTam((s) => s.replace('| ✅ |', '| TBD |'));
     const r = chay(['--file', t.f]);

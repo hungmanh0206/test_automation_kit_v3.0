@@ -58,10 +58,40 @@ dày thì càng ít lượt thật sự đọc hết. B tách, và có hai máy 
 |---|---|
 | "Quan sát thụ động" — phần Ý ĐỊNH của từng bước | Nay có `npm run recon:passive` chặn 7 kiểu tự-gửi-request và chặn cả chiều ngược (xoá sạch listener). Nhưng nó đọc TÊN HÀM, nên lời gọi mạng viết gián tiếp (`window[x]("/api")`, helper ở file khác) thì không thấy — chỗ đó vẫn review tay |
 | `execution-summary.md` **kể** đúng lượt chạy không | Nay có `npm run exec:tally:check` gác phần ĐO ĐƯỢC: con số trong báo cáo phải truy về một sổ verdict CÓ TÊN. Phần **kể** đúng hay không thì vẫn do người viết — máy không đối chiếu được lời kể với artifact |
-| "Đổi expected để pass" (`CLAUDE.md` §6) | Không máy nào so expected với bản trước. Muốn gác phải dựng một cửa trên `git diff` |
+| "Đổi expected để pass" (`CLAUDE.md` §6) | **Không dựng được bằng `git diff` — điều kiện tiên quyết không tồn tại.** Đo 29/10/2026: **0** file testcase được track, `outputs/*` gitignore (`.gitignore:233`), **0** commit từng đụng `test-cases/*.md`. Ba nguồn so sánh khác cũng trống: `backups/` có **1** file trên toàn bộ task, mirror `from-sheet/*.xlsx` có **0** file, `tc-history.jsonl` có lịch sử verdict nhưng **không có ô expected**. Chi tiết ở ghi chú bên dưới |
 | "Hardcode data task-specific vào template chung" | `package:kit` chỉ cảnh báo ở cửa phát hành, không bắt lúc đang sửa template. Luật quét mã task đã thử rồi bỏ: nó khớp cả `ISO-8601`/`RFC-2119` |
 | Case phụ thuộc case khác mà **không khai** | `data:chain` chỉ thấy chuỗi đã KHAI trong ô `Tiền điều kiện`. Chỗ không khai nằm ở phần chấm tay của `automation_reviewer` |
 | `presence-only` bắt đúng ở quy mô nào | Luật nổ **0 lượt** trên 2.873 test, đo hai lần. Có đối chứng dương chứng minh nó nổ được, nhưng chưa có số đo về độ chính xác khi có ca thật |
+
+### Ghi chú: vì sao "đổi expected để pass" là đường cụt, không phải việc còn bỏ ngỏ
+
+Dòng này trong bản đầu viết *"muốn gác phải dựng một cửa trên `git diff`"*. Câu đó **giả định sai**: nó
+cho rằng bộ case có trong git. Đo 29/10/2026 thì không — và đây là chỗ đáng ghi lại, để lần sau không ai
+đi lại đường cụt.
+
+Cửa đó cần **hai** tín hiệu cùng lúc: ô `Kết quả mong đợi` đổi, **và** verdict lật FAIL→PASS.
+
+**Nửa thứ nhất không có nguồn nào.** Bốn chỗ đã tra, tất cả đều trống:
+
+| Nguồn | Thực tế |
+|---|---|
+| `git diff` | 0 file testcase được track · `outputs/*` gitignore (`.gitignore:233`) · 0 commit đụng `test-cases/*.md` |
+| `backups/` | 1 file trên toàn bộ task — làm tay, không hệ thống |
+| mirror `from-sheet/*.xlsx` | 0 file |
+| `tc-history.jsonl` | có `at · key · status · flaky`, **không có** ô expected |
+
+**Nửa thứ hai đo được, và không nhỏ:** 91 lượt lật FAIL→PASS trên **69/267** TC task có lịch sử. Nhưng
+con số đó **không phân biệt** ba nguyên nhân — sửa automation cho đúng · app được fix · đổi expected cho
+qua — và hai nguyên nhân đầu mới là đa số. Một cửa chặn trên tín hiệu không phân biệt được nguyên nhân
+sẽ vu oan phần lớn, rồi người ta tắt nó.
+
+Thêm một giới hạn của mẫu số: `tc-history.jsonl` chỉ ghi spec **đã promote vào `tests/fe/`** (267 TC),
+trong khi bộ case thật chạy phần lớn ở `outputs/**`.
+
+**Đường làm cho nó khả thi là một quyết định, không phải một cửa:** đưa `test-cases/*.md` vào git. Khi đó
+expected có lịch sử và cửa `git diff` dựng được. Đánh đổi: bộ case vào repo chung, và chúng mang tên đơn
+vị/trường — không phải PII khách, nhưng vẫn là dữ liệu dự án. Chưa ai quyết chuyện đó, nên dòng này ở lại
+khối **chưa có máy**.
 
 ---
 
