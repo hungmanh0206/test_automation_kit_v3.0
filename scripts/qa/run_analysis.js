@@ -88,13 +88,232 @@ function dauVanTay(tests) {
   return { hash: h, n: ids.length };
 }
 
+/*
+ * ─── GOM LỖI THEO NGUYÊN NHÂN GỐC (`--nhom`, v2.9.6 N2.1) ────────────────────────────────────────────
+ *
+ * VÌ SAO. Một lượt chạy 40 case đỏ không phải 40 việc. Thường là 3–4 nguyên nhân, mỗi nguyên nhân kéo
+ * theo chục case. Đọc theo từng case thì người sửa đi hết 40 lượt và vẫn không thấy nguyên nhân chung —
+ * đây đúng là lõi của `test-report-analyzer` bên A mà `run_report_reader` chưa có.
+ *
+ * NGUỒN DỮ LIỆU, đo 30/10/2026 trên toàn repo trước khi dựng:
+ *   · `testcase-status.json` — 407 case đỏ/chặn, **203 có `failureLayer`**, và **0 ca có trường `error`**;
+ *   · `results.json`        — 550 file, **193 file có lỗi**, **286 dòng lỗi** (câu assertion thật).
+ * Nên chữ ký phải ghép HAI nguồn: tầng lỗi lấy từ sổ verdict, câu lỗi lấy từ `results.json`. Chỉ dùng
+ * một nguồn thì hoặc mất tầng, hoặc mất câu.
+ *
+ * CHUẨN HOÁ GÌ, VÀ VÌ SAO CHỈ CHỪNG ẤY. Bỏ số, id, đường dẫn tạm, thời gian — những thứ khác nhau giữa
+ * hai lượt chạy của CÙNG một lỗi. KHÔNG bỏ mã HTTP: hai lỗi khác nhau cùng trả 500 phải là HAI nhóm,
+ * vì gộp chúng là dạy người đọc rằng "500" là một nguyên nhân.
+ */
+function chuanHoaLoi(s) {
+  return String(s || '')
+    .split('\n')[0]
+    .replace(/^(Error|AssertionError|TimeoutError):\s*/i, '')
+    /* đường dẫn tạm và đường dẫn tuyệt đối — khác nhau mỗi lượt, không phải nguyên nhân */
+    .replace(/[A-Za-z]:[\\/][^\s"')]+/g, '<đường-dẫn>')
+    .replace(/\/tmp\/[^\s"')]+/g, '<đường-dẫn>')
+    /* thời gian và mốc */
+    .replace(/\d{4}-\d{2}-\d{2}[T ]\d{2}:\d{2}(:\d{2})?/g, '<lúc>')
+    .replace(/\b\d+\s?ms\b/gi, '<ms>')
+    /* id và mã case — khác nhau giữa các case CÙNG một lỗi */
+    .replace(/\b[A-Z][A-Z0-9_]*_TC_\d+\b/g, '<TC>')
+    /*
+     * Số còn lại, NHƯNG giữ mã HTTP 3 chữ số đứng sau chữ "HTTP"/"status".
+     *
+     * BẢN ĐẦU CÓ LÍNH GÁC NÀY MÀ NÓ VÔ DỤNG, và chỉ phép kiểm đơn vị trong
+     * `tests/fe/infra/run-analysis-nhom.spec.ts` lôi ra: neo `§500§` bị chính lượt `\b\d+\b` bên dưới ăn
+     * thành `§<số>§`, nên lượt tháo neo không còn gì để tháo. Hai lỗi trả 500 và 404 ra CÙNG một chữ ký.
+     * Đối chứng ở mức bản in thì vẫn xanh (phần còn lại của câu khác nhau) — nên lỗi này chỉ hiện ra ở
+     * mức hàm. Vá bằng lookaround chừa đúng chữ số đang nằm trong neo, KHÔNG nới phép chuẩn hoá.
+     */
+    .replace(/(HTTP|status)\s*(\d{3})/gi, (m, a, b) => `${a} §${b}§`)
+    .replace(/(?<!§)\b\d+\b(?!§)/g, '<số>')
+    .replace(/§(\d{3})§/g, '$1')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+/** Mọi dòng lỗi trong một `results.json`, theo tiêu đề spec. */
+function loiTuResults(duong) {
+  const ra = new Map();
+  let j;
+  try { j = JSON.parse(fs.readFileSync(duong, 'utf8')); } catch { return ra; }
+  const di = (s) => {
+    for (const sp of (s.specs || [])) {
+      for (const t of (sp.tests || [])) {
+        for (const r of (t.results || [])) {
+          if (r.error && r.error.message) ra.set(sp.title, String(r.error.message));
+        }
+      }
+    }
+    for (const c of (s.suites || [])) di(c);
+  };
+  for (const s of (j.suites || [])) di(s);
+  return ra;
+}
+
+/**
+ * MỌI `results.json` của task, gộp lại.
+ *
+ * Bản đầu chỉ nhìn cạnh sổ verdict và thư mục cha — và nó nối được **0/86** ca, vì file cạnh sổ có
+ * **0 dòng lỗi**. Đo 30/10/2026: lỗi thật nằm ở `test-results/runs/<id>/results.json`, mỗi lượt một
+ * file; riêng CSDL-9004 có **59/126** file mang lỗi. Nhìn một chỗ là nhìn đúng chỗ KHÔNG có gì.
+ */
+function timResults(duongStatus) {
+  const goc = path.dirname(duongStatus);
+  const ra = [];
+  const di = (d, sau = 0) => {
+    if (sau > 3) return;
+    let es;
+    try { es = fs.readdirSync(d, { withFileTypes: true }); } catch { return; }
+    for (const e of es) {
+      const p = path.join(d, e.name);
+      if (e.isDirectory()) di(p, sau + 1);
+      else if (e.name === 'results.json') ra.push(p);
+    }
+  };
+  di(goc);
+  return ra;
+}
+
+/** Gộp dòng lỗi của NHIỀU `results.json`. Lượt mới ghi đè lượt cũ cho cùng một tiêu đề. */
+function loiCuaTask(duongStatus) {
+  const ra = new Map();
+  for (const f of timResults(duongStatus)) {
+    for (const [k, v] of loiTuResults(f)) ra.set(k, v);
+  }
+  return ra;
+}
+
+/*
+ * Mã TC trong tiêu đề spec. PHẢI nhận hậu tố chữ: bộ case thật có `CSDL_HS_TC_078c`, `TC_084b` — và
+ * mẫu `TC_\d+\b` bỏ sót đúng những ca đó, làm tỉ lệ nối tụt từ thật xuống 70%.
+ */
+const RE_TC_TRONG_TIEU_DE = /\b(?:[A-Z][A-Z0-9]*_)*TC_\d+[a-z]?\b/;
+
+/**
+ * Gom case đỏ thành nhóm theo chữ ký `<tầng lỗi> ‖ <câu lỗi đã chuẩn hoá>`.
+ * Trả `[{ chuKy, tang, cau, tc: [], anh: '' }]`, nhóm lớn nhất trước.
+ */
+/*
+ * BỘ NỐI — dùng chung cho cả phép gom và con số "nối được" in ra.
+ *
+ * Tách ra vì bản đầu có HAI bản sao logic nối: một trong `gomTheoNguyenNhan`, một trong chỗ đếm của
+ * `inNhom`. Hai bản sao thì bản in có thể khai "0 ca nối được" trong khi phép gom đã nối 28 ca — và
+ * một con số tự nói sai về chính mình thì tệ hơn là không in.
+ */
+function boNoi(tests, loiTheoTieuDe) {
+  /*
+   * MÃ TRẦN TRONG TIÊU ĐỀ, MÃ ĐỦ TRONG SỔ — và bản đầu so bằng-nhau-tuyệt-đối nên trượt sạch.
+   *
+   * Đo 30/10/2026: CSDL-9004 có 39 dòng lỗi, 28 mã TC trong tiêu đề, mà nối được **0/86** ca. Lý do:
+   * spec đặt tiêu đề `TC_021` còn sổ ghi `CSDL_NHANSU_TC_021`. Đó là GIỚI HẠN GIẢ, không phải thiếu dữ
+   * liệu — nên vá: mã trần được khớp mã đủ khi và CHỈ KHI sổ có ĐÚNG MỘT ca mang hậu tố ấy. Đo trên 536
+   * ca đỏ toàn repo: **0 trường hợp nhập nhằng**, nối 41 → 56 ca.
+   *
+   * Nhưng nói nốt cho đúng: 8% → **10%**, KHÔNG đổi kết luận. Nguyên nhân chính nằm chỗ khác — ba trong
+   * năm task có **0 dòng lỗi** (193 ca đỏ), và không logic nối nào cứu được chỗ không có gì để nối.
+   */
+  const theoHauTo = new Map();
+  for (const t of tests) {
+    const h = (String(t.tcId || '').match(/TC_\d+[a-z]?$/) || [])[0];
+    if (h) theoHauTo.set(h, (theoHauTo.get(h) || 0) + 1);
+  }
+  const maTuTieuDe = new Map();
+  for (const [tieuDe, msg] of loiTheoTieuDe) {
+    const m = (tieuDe.match(RE_TC_TRONG_TIEU_DE) || [])[0];
+    if (m && !maTuTieuDe.has(m)) maTuTieuDe.set(m, msg);
+  }
+  /** Câu lỗi THẬT của một mã TC, hoặc `undefined` nếu không nối được. */
+  return (tcId) => {
+    const ma = String(tcId || '');
+    if (!ma) return undefined;
+    if (maTuTieuDe.has(ma)) return maTuTieuDe.get(ma);
+    const hau = (ma.match(/TC_\d+[a-z]?$/) || [])[0];
+    /* mã trần ⇄ mã đủ: chỉ nhận khi hậu tố là DUY NHẤT trong sổ, nếu không thì thà không nối */
+    return hau && theoHauTo.get(hau) === 1 ? maTuTieuDe.get(hau) : undefined;
+  };
+}
+
+function gomTheoNguyenNhan(tests, loiTheoTieuDe) {
+  const nhom = new Map();
+  const cauThat = boNoi(tests, loiTheoTieuDe);
+
+  for (const t of tests) {
+    const st = String(t.status || '');
+    if (!/^(FAIL|TIMED|BLOCK)/i.test(st)) continue;
+    const tang = t.failureLayer || (t.steps || []).map((s) => s.failureLayer).find(Boolean) || '(chưa khai tầng)';
+    /*
+     * Câu lỗi: ưu tiên `results.json` (lỗi thật của Playwright), lùi về `comment` của sổ verdict.
+     * Lùi chứ không bỏ, vì 0/407 case có trường `error` trong sổ — bỏ là mất gần hết nhóm.
+     */
+    /*
+     * NỐI THEO MÃ TC RÚT TỪ TIÊU ĐỀ, không bằng `includes` trần. `includes` làm `TC_01` khớp nhầm
+     * `TC_010`, và nó cũng không nhận hậu tố chữ (`TC_078c`) — hai lỗi ngược chiều nhau.
+     */
+    const tho = cauThat(t.tcId) || String(t.comment || '');
+    const cau = chuanHoaLoi(tho) || '(không có câu lỗi)';
+    const chuKy = `${tang} ‖ ${cau}`;
+    if (!nhom.has(chuKy)) nhom.set(chuKy, { chuKy, tang, cau, tc: [], anh: '' });
+    const g = nhom.get(chuKy);
+    g.tc.push(t.tcId);
+    if (!g.anh) g.anh = (t.evidence || [])[0] || ((t.steps || []).flatMap((s) => s.evidence || [])[0] || '');
+  }
+  return [...nhom.values()].sort((a, b) => b.tc.length - a.tc.length);
+}
+
 const khopTinHieu = (s, list) => {
   const t = String(s || '').toLowerCase();
   return (list || []).filter((k) => t.includes(String(k).toLowerCase()));
 };
 
+/** `--nhom`: in bản gom theo nguyên nhân gốc rồi thoát. Đây là BÁO CÁO, không phải cửa. */
+function inNhom(f, tests, taskKey) {
+  const dsRj = timResults(f);
+  const loi = loiCuaTask(f);
+  const nhom = gomTheoNguyenNhan(tests, loi);
+  const soDo = tests.filter((t) => /^(FAIL|TIMED|BLOCK)/i.test(String(t.status || ''))).length;
+
+  console.log(`[run-analysis] ${taskKey || '(không rõ task)'} · ${soDo} case đỏ/chặn → **${nhom.length} nhóm**`);
+  console.log(`[run-analysis] câu lỗi: ${dsRj.length} file results.json · ${loi.size} dòng lỗi đọc được`
+    + ' — ca không nối được thì lùi về `comment` của sổ');
+  if (!soDo) {
+    console.log('[run-analysis] 0 case đỏ ⇒ không có gì để gom. Đây KHÔNG phải một kết luận về chất lượng.');
+    return 0;
+  }
+
+  console.log('');
+  for (const [i, g] of nhom.entries()) {
+    console.log(`${String(i + 1).padStart(2)}. [${g.tang}] ${g.cau.slice(0, 110)}`);
+    console.log(`    ${g.tc.length} case: ${g.tc.slice(0, 8).join(' · ')}${g.tc.length > 8 ? ` … (+${g.tc.length - 8})` : ''}`);
+    if (g.anh) console.log(`    ảnh đại diện: ${g.anh}`);
+  }
+
+  /* Tỉ lệ nối được — con số quyết định bản gom này đáng tin tới đâu. */
+  const cauThat = boNoi(tests, loi);
+  const noiDuoc = tests.filter((t) => /^(FAIL|TIMED|BLOCK)/i.test(String(t.status || ''))
+    && cauThat(t.tcId) !== undefined).length;
+
+  console.log('\n[run-analysis] ĐỌC ĐÚNG BẢN NÀY — ba giới hạn, đều đo được:');
+  console.log(`  ① Nén ${(soDo / nhom.length).toFixed(1)}× (${soDo} ca → ${nhom.length} nhóm). Nén ~1,0× nghĩa là KHÔNG gom được gì.`);
+  console.log(`  ② Chỉ ${noiDuoc}/${soDo} ca nối được CÂU LỖI THẬT từ \`results.json\`; số còn lại gom theo`);
+  console.log('     `comment` của sổ verdict — mà comment phần lớn là CÂU KHUÔN MẪU, không phải nguyên nhân.');
+  console.log('  ③ Vì vậy nhóm to KHÔNG tự nghĩa là một nguyên nhân. Đo 30/10/2026 trên 9 nhóm mẫu: 6 nhóm');
+  console.log('     gom sai — nhóm 23 case chỉ chung câu "Lệch kỳ vọng ở N bước", và hai nhóm cùng nghĩa bị');
+  console.log('     tách vì lệch một chữ ("trên phạm vi" ≠ "trong phạm vi").');
+  console.log('  ④ Và ĐỪNG đọc tỉ lệ nén như điểm chất lượng: vá bộ nối cho CSDL-9004 làm nén TỤT');
+  console.log('     (57 → 65 nhóm) đúng vì gom ĐÚNG HƠN — câu lỗi thật thì khác nhau, comment khuôn mẫu');
+  console.log('     thì gom bừa. Nén cao có thể chỉ nghĩa là đang gom theo câu khuôn mẫu.');
+  console.log('');
+  console.log('[run-analysis] Nên đây là BẢN NHÌN ĐẦU, KHÔNG phải kết luận: dùng để đoán chỗ đáng soi trước,');
+  console.log('[run-analysis] rồi mở ảnh. KHÔNG cửa nào được chặn dựa trên bản gom này.');
+  console.log('[run-analysis] Mã HTTP được GIỮ khi chuẩn hoá: hai lỗi cùng trả 500 vẫn là hai nhóm.');
+  return 0;
+}
+
 function main() {
   const { f, tests, taskKey, at } = docStatus();
+  if (flag('nhom')) process.exit(inNhom(f, tests, taskKey));
   if (!tests.length) {
     console.log(`[run-analysis] ${path.basename(f)} có 0 case ⇒ KHÔNG phán được gì. Đây không phải đạt.`);
     process.exit(0);
@@ -199,5 +418,5 @@ function main() {
   process.exit(0);
 }
 
-module.exports = { dauVanTay, chuanHoa };
+module.exports = { dauVanTay, chuanHoa, chuanHoaLoi, boNoi, gomTheoNguyenNhan, loiTuResults, timResults, loiCuaTask, RE_TC_TRONG_TIEU_DE };
 if (require.main === module) main();
