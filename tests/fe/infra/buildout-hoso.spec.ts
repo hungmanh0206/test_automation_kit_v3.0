@@ -347,3 +347,41 @@ test.describe('@infra §A0 L2 — bước nghiệp vụ nhận NHÃN ĐẶC TẢ
     }
   });
 });
+
+/*
+ * `ghiDuoc` không được NUỐT lỗi đọc thuộc tính — lỗi thật, `release:verify` lôi ra ngày 31/10/2026.
+ *
+ * Bản trước viết `o.getAttribute('readonly').catch(() => null)`, nên **"không đọc được"** và **"không có
+ * thuộc tính"** ra cùng một kết quả. Dưới tải song song, lần đọc hết hạn rồi trả `null`, nên `dau_hieu`
+ * mất hẳn dấu `readonly` của một ô THẬT SỰ có `readonly`.
+ *
+ * Triệu chứng: `buildout-hoso.spec.ts` đỏ ở `release:verify` nhưng xanh **30/30 ba lượt liền** khi chạy
+ * riêng. Cùng lớp lỗi với "chờ hết hạn thành số đo": một phép đo không chạy được mà trả về giá trị trông
+ * như số đo thì nó **nói sai**, không phải nói thiếu.
+ *
+ * Phép kiểm dưới đây KHÔNG cần trình duyệt: nó đưa vào một locator giả mà `getAttribute` luôn ném.
+ */
+test.describe('@infra §A0 L0.5 textbox — đọc thuộc tính không được nuốt lỗi', () => {
+  /** Locator giả, chỉ đủ cho nhánh đọc thuộc tính. */
+  const oGia = (loi: Error | null) => ({
+    getAttribute: async () => { if (loi) throw loi; return null; },
+  } as unknown as Parameters<typeof textbox.ghiDuoc>[1]);
+
+  test('ĐỐI CHỨNG DƯƠNG: đọc thuộc tính HẾT HẠN ⇒ NÉM, không trả `null`', async ({ page }) => {
+    const loi = new Error('locator.getAttribute: Timeout 5000ms exceeded.');
+    await expect(textbox.ghiDuoc(page, oGia(loi))).rejects.toThrow(/không đọc được thuộc tính/);
+    await expect(textbox.ghiDuoc(page, oGia(loi)), 'thông điệp phải nói rõ phép đo KHÔNG chạy được')
+      .rejects.toThrow(/phép đo KHÔNG chạy được/);
+  });
+
+  test('ĐỐI CHỨNG ÂM: đọc được và thuộc tính KHÔNG có ⇒ không ném vì chuyện đó', async ({ page }) => {
+    /*
+     * Chiều này bắt buộc: nếu nhánh mới ném cả khi thuộc tính vắng mặt một cách bình thường thì mọi ô
+     * không `readonly` đều thành lỗi script, và cả tầng widget hoá ra không dùng được.
+     */
+    let loiNem: Error | null = null;
+    try { await textbox.ghiDuoc(page, oGia(null)); } catch (e) { loiNem = e as Error; }
+    expect(String(loiNem && loiNem.message), 'ô bình thường KHÔNG được ném vì đọc thuộc tính')
+      .not.toMatch(/không đọc được thuộc tính/);
+  });
+});
