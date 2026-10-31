@@ -55,6 +55,23 @@ jobs:
       - name: Cặp bẩn/sạch và đường định tuyến của 21 mã T0/T1 (gate:code-pair --enforce)
         run: npm run gate:code-pair:enforce
 
+      # CHUẨN HÀNH VĂN của tài liệu kit, nối vào CI ngày 30/10/2026.
+      #
+      # Vì sao nối vào ĐÂY mà không vào `predeploy`: `predeploy` chỉ chạy ở cửa phát hành, nên văn trôi
+      # giữa hai đợt sẽ sống nguyên tới lúc đó. Văn trôi theo từng lần sửa tài liệu, nên phải bắt theo
+      # từng push.
+      #
+      # Vì sao trước đây nó KHÔNG được nối: không lý do nào, và đó mới là vấn đề. Cửa có từ lâu, có mốc
+      # suy ra từ MAX của 34 bài người viết tay, nhưng không bó nào gọi nó — nên 6 file đã trôi khỏi mốc
+      # mà CI vẫn xanh. Trong đó `24_time.md` có câu trung bình 25,6 từ so với mốc 16, và một file tôi
+      # tự làm trôi ở v2.9.5.
+      #
+      # Mốc KHÔNG được nới để qua cửa: `--baseline-write` chỉ dùng SAU khi đã viết lại thật. Sáu file nói
+      # trên đã dọn bằng cách tách câu, tách danh sách thành gạch đầu dòng, và bỏ viết tắt gạch chéo —
+      # không chạm một mốc nào.
+      - name: Chuẩn hành văn tài liệu kit (writing:lint:docs — mốc suy từ 34 bài viết tay)
+        run: npm run writing:lint:docs
+
       - name: Bản đồ luật → gate → spec khớp nguồn, và không mục luật nào chưa ai rà
         run: npm run rule:coverage:check
 

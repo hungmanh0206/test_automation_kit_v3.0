@@ -111,7 +111,7 @@ Bảng **chiều → tag → file → "mở khi"** nằm ở mục *Chiều cove
 > đã tới §23: sáu chiều có file, có gate đếm, mà không có dòng nào ở bảng. Bản sao không có máy canh thì
 > trôi — bỏ bản sao rẻ hơn canh nó.
 
-**Vì sao bắt buộc:** `npm run dim:coverage -- --enforce` đếm case **theo tag** rồi chặn nếu thiếu chiều mà `requirements/dimension_manifest.json` khai `required`. Không có tag thì gate rơi về chế độ GỢI Ý (suy từ văn bản) và **tự từ chối chặn** — đo trên 530 case thật: suy diễn vừa thiếu recall (§5 đếm 0 dù 17 case nhắc "api") vừa kém precision (§12 nhận cả case điều hướng, vì "hiển thị" là động từ chuẩn của MỌI expected tiếng Việt). Tag là đường duy nhất để chiều được **máy** gác.
+**Vì sao bắt buộc:** `npm run dim:coverage -- --enforce` đếm case **theo tag** rồi chặn nếu thiếu chiều mà `requirements/dimension_manifest.json` khai `required`. Không có tag thì gate rơi về chế độ GỢI Ý (suy từ văn bản) và **tự từ chối chặn**. Đo trên 530 case thật: suy diễn hỏng cả hai chiều. Thiếu recall: §5 đếm 0 dù 17 case nhắc "api". Kém precision: §12 nhận cả case điều hướng, vì "hiển thị" là động từ chuẩn của MỌI expected. Tag là đường duy nhất để chiều được **máy** gác.
 
 Case phủ nhiều chiều thì ghi nhiều tag (`[Negative][Validation][Security]`). Chiều không áp dụng cho task thì khai `"n/a"` **kèm lý do** trong `dimension_manifest.json` — bỏ chiều mà không nói vì sao sẽ bị cảnh báo.
 

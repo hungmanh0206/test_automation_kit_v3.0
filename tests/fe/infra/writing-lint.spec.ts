@@ -103,3 +103,58 @@ test.describe('@infra writing:lint — cột Kết quả mong đợi phải KI�
     expect(r.out).not.toContain('phải là điều kiểm được');
   });
 });
+
+/*
+ * `writing:lint:docs` phải ĐƯỢC MỘT CỬA GỌI — nối vào CI ngày 30/10/2026.
+ *
+ * LỖ: cửa có từ lâu, mốc suy ra từ MAX của 34 bài người viết tay, nhưng KHÔNG bó nào gọi nó. Nên 6 file
+ * đã trôi khỏi mốc mà CI vẫn xanh — trong đó `24_time.md` có câu trung bình 25,6 từ so với mốc 16, và
+ * một file do chính tôi làm trôi ở v2.9.5. Một cửa không ai gọi thì cái nó gác lặng lẽ không xảy ra.
+ *
+ * Nối vào `static-check.yml` (chạy mọi push và pull_request), KHÔNG vào `predeploy`: `predeploy` chỉ chạy
+ * ở cửa phát hành, nên văn trôi giữa hai đợt sẽ sống nguyên tới lúc đó. Văn trôi theo từng lần sửa tài
+ * liệu, nên phải bắt theo từng push.
+ */
+test.describe('@infra writing:lint:docs — phải có cửa gọi, và phải còn răng', () => {
+  test('`static-check.yml` CÓ gọi `writing:lint:docs`', () => {
+    const yml = fs.readFileSync(path.join(REPO, '.github/workflows/static-check.yml'), 'utf8');
+    expect(yml, 'cửa không ai gọi thì cái nó gác lặng lẽ không xảy ra').toContain('npm run writing:lint:docs');
+  });
+
+  test('bộ tài liệu THẬT đang trong mốc — và in ra mẫu số', () => {
+    const r = spawnSync(process.execPath, [MACHINE, '--docs'], { cwd: REPO, encoding: 'utf8', env: gateEnv() });
+    const out = `${r.stdout || ''}${r.stderr || ''}`;
+    expect(r.status, out).toBe(0);
+    expect(out, 'phải in số file đã soi, nếu không "OK" là lời khai rỗng').toMatch(/OK — \d+ file trong mốc/);
+    const n = Number((out.match(/OK — (\d+) file trong mốc/) || [])[1]);
+    expect(n, 'soi dưới 50 file là dấu hiệu phạm vi hỏng').toBeGreaterThan(50);
+  });
+
+  test('ĐỐI CHỨNG DƯƠNG: profile `doc` CHẶN văn dài và viết tắt gạch chéo', () => {
+    /*
+     * Không có ca này thì "108 file trong mốc" có thể là vì thước không đo gì. Dựng một file vi phạm cả
+     * ba chiều cùng lúc: câu dài, gạch chéo, và câu trung bình cao.
+     */
+    const d = fs.mkdtempSync(path.join(os.tmpdir(), 'wl-doc-'));
+    const f = path.join(d, 'xau.md');
+    const cauDai = 'Đây là một câu rất dài được viết ra để vượt ngưỡng câu dài của cửa và nó nối nhiều mệnh '
+      + 'đề lại với nhau bằng dấu phẩy rồi tiếp tục nối thêm vài mệnh đề nữa cho đủ số từ cần thiết để '
+      + 'chạm mốc ba mươi lăm từ và vượt qua nó một cách rõ ràng.';
+    fs.writeFileSync(f, `${cauDai}\n\n${cauDai}\n\nDùng ảnh/video và nhãn/thứ tự và ngày/giờ ở đây.\n`, 'utf8');
+    const r = spawnSync(process.execPath, [MACHINE, f, '--profile', 'doc'], { cwd: REPO, encoding: 'utf8', env: gateEnv() });
+    const out = `${r.stdout || ''}${r.stderr || ''}`;
+    expect(r.status, out).toBe(1);
+    expect(out).toMatch(/longSent|slash|meanSent/);
+    fs.rmSync(d, { recursive: true, force: true });
+  });
+
+  test('ĐỐI CHỨNG ÂM: cùng nội dung mà viết ngắn, không gạch chéo ⇒ QUA', () => {
+    const d = fs.mkdtempSync(path.join(os.tmpdir(), 'wl-doc-'));
+    const f = path.join(d, 'tot.md');
+    fs.writeFileSync(f, 'Câu này ngắn. Câu kia cũng ngắn. Dùng ảnh hoặc video. Nhãn và thứ tự đều rõ.\n'
+      + '\nMỗi ý một dòng. Không nối mệnh đề. Không viết tắt bằng gạch chéo.\n', 'utf8');
+    const r = spawnSync(process.execPath, [MACHINE, f, '--profile', 'doc'], { cwd: REPO, encoding: 'utf8', env: gateEnv() });
+    expect(r.status, `${r.stdout}${r.stderr}`).toBe(0);
+    fs.rmSync(d, { recursive: true, force: true });
+  });
+});
