@@ -46,6 +46,23 @@ async function motLuot(page: any, goc: string, tcId: string, verdict: string, op
   return ca;
 }
 
+/*
+ * KHÔNG ĐI QUA BƯỚC CHỤP ẢNH cho hai ca đòi NÉM một thông điệp CỤ THỂ.
+ *
+ * `motLuot` gọi `tc.step(page, …)`, và `step` chụp ảnh. Dưới tải song song, ảnh có thể lỗi TRƯỚC khi
+ * `finish` kịp ném — lúc đó `rejects.toThrow(/thiếu failureLayer/)` nhận một thông điệp khác và đỏ.
+ *
+ * Đo 31/10/2026: ca này xanh 3/3 lượt khi chạy riêng trong gói, nhưng đỏ ở `release:verify` — nơi cả bó
+ * chạy song song. Phép kiểm đang đo CẢ đường chụp ảnh, trong khi nó chỉ tuyên bố đo logic verdict.
+ *
+ * `finish` không cần step nào để chạy phép kiểm tầng lỗi, nên bỏ ảnh ra là đo đúng thứ mình nói.
+ */
+async function finishTran(goc: string, tcId: string, verdict: string, opts: any = {}) {
+  const rec = new EvidenceRecorder({ taskKey: 'TEST-VD', projectOutputDir: 'out', repoRoot: goc, log: false });
+  await rec.case(tcId).finish(verdict, opts);
+  await rec.write();
+}
+
 const tam = () => fs.mkdtempSync(path.join(os.tmpdir(), 'verdict-'));
 
 test.describe('@infra verdict đồng nghĩa — tên CHUẨN không được làm tắt cửa', () => {
@@ -62,21 +79,19 @@ test.describe('@infra verdict đồng nghĩa — tên CHUẨN không được l�
     fs.rmSync(goc, { recursive: true, force: true });
   });
 
-  test('ĐỐI CHỨNG DƯƠNG: `FAIL` mà THIẾU tầng ⇒ phải NÉM, không được ghi im lặng', async ({ page }) => {
+  test('ĐỐI CHỨNG DƯƠNG: `FAIL` mà THIẾU tầng ⇒ phải NÉM, không được ghi im lặng', async () => {
     const goc = tam();
-    await page.goto(TRANG_TRONG);
-    await expect(motLuot(page, goc, 'TC_C', 'FAIL', {}), 'FAIL thiếu tầng phải bị chặn')
+    await expect(finishTran(goc, 'TC_C', 'FAIL', {}), 'FAIL thiếu tầng phải bị chặn')
       .rejects.toThrow(/thiếu failureLayer/);
     fs.rmSync(goc, { recursive: true, force: true });
   });
 
-  test('ĐỐI CHỨNG DƯƠNG: tầng TỰ ĐẶT bị chặn với cả hai cách viết', async ({ page }) => {
-    /* `be`/`fe` là ví dụ thật: 6 ca trong sổ khai chúng, mà taxonomy không có tầng nào tên vậy. */
+  test('ĐỐI CHỨNG DƯƠNG: tầng TỰ ĐẶT bị chặn với cả hai cách viết', async () => {
+    /* `be` và `fe` là ví dụ thật: 6 ca trong sổ khai chúng, mà taxonomy không có tầng nào tên vậy. */
     const goc = tam();
-    await page.goto(TRANG_TRONG);
-    await expect(motLuot(page, goc, 'TC_D', 'FAILED', { failureLayer: 'be' }))
+    await expect(finishTran(goc, 'TC_D', 'FAILED', { failureLayer: 'be' }))
       .rejects.toThrow(/không có trong verdict_taxonomy/);
-    await expect(motLuot(page, goc, 'TC_E', 'FAIL', { failureLayer: 'be' }), 'tên chuẩn cũng phải bị chặn')
+    await expect(finishTran(goc, 'TC_E', 'FAIL', { failureLayer: 'be' }), 'tên chuẩn cũng phải bị chặn')
       .rejects.toThrow(/không có trong verdict_taxonomy/);
     fs.rmSync(goc, { recursive: true, force: true });
   });

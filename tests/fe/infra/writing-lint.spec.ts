@@ -4,6 +4,7 @@ import os from 'os';
 import path from 'path';
 import { spawnSync } from 'child_process';
 import { gateEnv } from './_gate_env';
+import { canLopProject } from './_trong_repo';
 
 /*
  * `writing:lint` — output phải đọc như QA viết cho người đọc, không như máy sinh.
@@ -122,6 +123,19 @@ test.describe('@infra writing:lint:docs — phải có cửa gọi, và phải c
   });
 
   test('bộ tài liệu THẬT đang trong mốc — và in ra mẫu số', () => {
+    /*
+     * MỐC NỢ LÀ LỚP PROJECT, nên phép kiểm này chỉ phán được TRONG REPO.
+     *
+     * `.agent/config/writing-lint-baseline.json` là ảnh chụp nợ văn phong của CHÍNH repo này, và
+     * `config-presence.spec.ts` xếp nó vào lớp PROJECT có chủ ý. Gói không mang nó, nên trong gói cửa so
+     * với MỐC ĐÍCH chứ không phải baseline — và ở mốc đích thì `RULE_GLOBAL.md` (câu tb 17,4 so với 16)
+     * cùng vài prompt vượt một cách hợp lệ.
+     *
+     * Đo 31/10/2026: đúng chỗ này làm `release:verify` đỏ. Cửa KHÔNG sai, và gói KHÔNG thiếu file: lời
+     * khẳng định của tôi mới là chỗ thiếu điều kiện.
+     */
+    canLopProject(REPO, '.agent/config/writing-lint-baseline.json',
+      'đối chiếu bộ tài liệu với MỐC NỢ hiện có của repo');
     const r = spawnSync(process.execPath, [MACHINE, '--docs'], { cwd: REPO, encoding: 'utf8', env: gateEnv() });
     const out = `${r.stdout || ''}${r.stderr || ''}`;
     expect(r.status, out).toBe(0);
