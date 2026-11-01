@@ -174,34 +174,59 @@ test.describe('@infra run:analysis — xu hướng chỉ khi CÙNG nguồn TC', 
 });
 
 test.describe('@infra run:analysis — repo thật, và cấu hình thiếu', () => {
-  test('chạy được trên dữ liệu THẬT, và dải báo đúng', () => {
+  test('NGƯỠNG phân biệt được ba dải — kiểm bằng fixture, KHÔNG bằng dữ liệu sống', () => {
     /*
-     * Hai lượt thật, hai dải khác nhau — chứng minh ngưỡng phân biệt được trên dữ liệu của chính dự án.
+     * TÍNH CHẤT NÀY KHÔNG ĐƯỢC NEO VÀO DỮ LIỆU PROJECT, và đây là lần thứ BA cùng một bài học:
      *
-     * KHÔNG GHIM SỐ PHẦN TRĂM NỮA (sửa 13/10/2026). Bản đầu ghim `28.9%` cho CSDL-9004, và nó ĐỎ khi
-     * dữ liệu task đó trôi còn `28.6%` — dải vẫn y nguyên (`KHÔNG được kết luận`), chỉ con số lẻ đổi.
-     * `testcase-status.json` là dữ liệu PROJECT SỐNG: nó bị ghi lại mỗi lượt execute và mỗi lượt gộp,
-     * nên ghim một con số lẻ ở đó làm một test ĐÚNG đỏ vì một lý do SAI.
+     *   · bản đầu ghim `28.9%` cho CSDL-9004 ⇒ đỏ khi dữ liệu trôi còn `28.6%`;
+     *   · sửa 13/10/2026 đổi sang ghim DẢI, và đòi hai bộ thật rơi vào hai dải khác nhau;
+     *   · đo 01/11/2026: CSDL-9004 trôi tiếp về **18.5%**, tức rơi vào ĐÚNG dải của CSDL-9003. Tiền đề
+     *     "hai bộ thật ở hai dải khác nhau" hết hiệu lực, và phép kiểm đỏ trong khi `run:analysis` vẫn
+     *     đang chạy hoàn toàn đúng.
      *
-     * Thứ test này muốn chứng minh là **ngưỡng phân biệt được hai bộ dữ liệu thật**, không phải "bộ
-     * 9004 có đúng 28,9%". Nên nay nó ghim DẢI, và đòi hai bộ rơi vào HAI dải khác nhau — nếu ngưỡng
-     * hỏng tới mức gộp cả hai vào một dải thì test vẫn đỏ, đúng chỗ nó cần đỏ.
+     * Ghim thô hơn chỉ làm bài học chậm lại, không chữa nó: dải CŨNG là một tính chất của dữ liệu đổi
+     * được. Thứ test này muốn chứng minh là NGƯỠNG PHÂN BIỆT ĐƯỢC — và tính chất đó thuộc về `run:analysis`,
+     * không thuộc về bộ 9004. Nên nay nó dùng fixture, nơi tôi đặt được tỉ lệ chính xác, và kiểm cả BA
+     * dải thay vì hai. Dữ liệu thật chuyển sang phép kiểm dưới, với vai trò đúng của nó.
      */
-    const ca: [string, RegExp][] = [
-      ['outputs/CSDL/tasks/CSDL-9003/test-results/testcase-status.json', /NÊU NGAY ĐẦU/s],
-      ['outputs/CSDL/tasks/CSDL-9004/test-results/testcase-status.json', /KHÔNG được kết luận/s],
+    const ca: [number, RegExp, string][] = [
+      [2, /dưới 5\.0%, không cần nêu riêng/s, 'dưới ngưỡng thấp'],
+      [10, /\(dải 5\.0%–20\.0%\) ⇒ phải NÊU NGAY ĐẦU/s, 'dải giữa'],
+      [50, /VƯỢT 20\.0% ⇒ KHÔNG được kết luận/s, 'vượt ngưỡng cao'],
     ];
-    const dai: string[] = [];
-    for (const [f, mong] of ca) {
-      const p = path.join(REPO, f);
-      if (!fs.existsSync(p)) { test.skip(true, `không có ${f} trên máy này — dữ liệu lớp PROJECT`); return; }
+    const thay: string[] = [];
+    for (const [blocked, mong, ten] of ca) {
+      const r = chay(status({ BLOCKED_SETUP: blocked, PASS: 100 - blocked }), []);
+      expect(r.out, `${ten}: BLOCKED ${blocked}/100`).toMatch(mong);
+      thay.push(mong.source);
+      fs.rmSync(r.d, { recursive: true, force: true });
+    }
+    /* Ba dải phải là BA thông điệp khác nhau — gộp bất kỳ hai dải lại là ngưỡng mất tác dụng. */
+    expect(new Set(thay).size, 'ba mức BLOCKED phải cho ba dải KHÁC nhau').toBe(3);
+  });
+
+  test('chạy được trên dữ liệu THẬT — và KHÔNG ghim bộ đó đang ở dải nào', () => {
+    /*
+     * Vai trò đúng của dữ liệu thật ở đây: chứng minh `run:analysis` đọc nổi hình dạng thật của
+     * `testcase-status.json` (khoá lạ, verdict lạ, mảng rỗng, trường thiếu) — những thứ fixture do tôi
+     * tự sinh KHÔNG đại diện được. Nó KHÔNG chứng minh gì về ngưỡng, nên không ghim dải.
+     *
+     * Vì sao chuyện này đáng một phép kiểm riêng: `testcase-status.json` bị ghi lại mỗi lượt execute,
+     * mỗi lượt gộp, và cả khi ai đó chạy task từ IDE song song — đo được đúng việc đó lúc 19:38
+     * 01/11/2026. Dữ liệu sống thì chỉ dùng được cho câu hỏi "đọc nổi không", không dùng cho câu hỏi
+     * "con số bằng bao nhiêu".
+     */
+    const ds = ['CSDL-9003', 'CSDL-9004']
+      .map((t) => path.join(REPO, `outputs/CSDL/tasks/${t}/test-results/testcase-status.json`))
+      .filter((p) => fs.existsSync(p));
+    if (!ds.length) { test.skip(true, 'không có bộ dữ liệu PROJECT nào trên máy này'); return; }
+    for (const p of ds) {
       const r = spawnSync(process.execPath, [RA, '--status', p], { cwd: REPO, encoding: 'utf8', env: gateEnv() });
       const out = `${r.stdout}${r.stderr}`;
-      expect(out, f).toMatch(mong);
-      dai.push(mong.source);
+      /* Đòi nó PHÁN được một dải nào đó — im lặng ở đây nghĩa là không đọc được, và đó không phải đạt. */
+      expect(out, `${p}: phải báo được tỉ lệ BLOCKED`).toMatch(/BLOCKED \d+\/\d+ = [\d.]+%/);
+      expect(out, `${p}: phải đọc được verdict`).toMatch(/verdict:/);
     }
-    /* Và hai bộ phải rơi vào HAI dải khác nhau — đó mới là điều test này khẳng định. */
-    expect(new Set(dai).size, 'hai bộ dữ liệu thật phải rơi vào hai dải KHÁC nhau').toBe(2);
   });
 
   test('0 case ⇒ KHÔNG phán được, và nói rõ đây không phải đạt', () => {

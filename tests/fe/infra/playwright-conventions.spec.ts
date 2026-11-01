@@ -215,3 +215,58 @@ test.describe('@infra auto:review — rule `spec-page-locator`', () => {
     expect(Number(m![1]), 'detector phải đếm được ít nhất một lượt').toBeGreaterThan(0);
   });
 });
+
+/*
+ * TRẦN `workers` CỤC BỘ (v2.9.7) — trần thời gian của test là TUYỆT ĐỐI, số worker thì KHÔNG.
+ *
+ * `workers: undefined` để Playwright lấy `cores/2`. Nghe như tự thích nghi, nhưng nó biến mức đặt-quá-tải
+ * thành hàm của số lõi: mỗi worker mở một browser, và đo 01/11/2026 thì một `chrome-headless-shell` chiếm
+ * 3–4 tiến trình. 12 lõi ⇒ 6 worker ⇒ ~24 tiến trình; 32 lõi ⇒ 16 worker ⇒ ~64. Trong khi trần của
+ * `discovery-crawl` là 250ms/400ms mỗi khối · 8s mỗi trang · 15s mỗi `page.goto` · 3 phút mỗi file — toàn
+ * số tuyệt đối. Nên MÁY NHIỀU LÕI HƠN KHÔNG AN TOÀN HƠN, và đúng cú treo `page.goto` của v2.9.6 sinh ra ở
+ * vùng đó.
+ *
+ * Trần 6 có cơ sở là phép đo: đó là cấu hình `full:suite` đã chạy 2384 xanh · 0 đỏ nhiều lượt. Trên 6 là
+ * vùng CHƯA ĐO — không có máy nhiều lõi hơn để đo.
+ *
+ * Phép kiểm này giả lập số lõi bằng cách nạp config trong tiến trình con có `os.cpus` bị thay, vì đọc
+ * `workers` trên chính máy đang chạy chỉ đo được ĐÚNG máy này — và trên máy này trần không đổi gì (6).
+ * Một phép kiểm không phân biệt được hai nhánh thì nó không kiểm gì.
+ */
+test.describe('@infra playwright.config — `workers` cục bộ phải có TRẦN', () => {
+  const doc = (soLoi: number, env: Record<string, string> = {}) => {
+    const js = `const os = require('os');`
+      + `os.cpus = () => new Array(${soLoi}).fill({ model: 'gia-lap', speed: 1, times: {} });`
+      + `const c = require(${JSON.stringify(path.join(REPO, 'playwright.config.js'))});`
+      + `process.stdout.write(String((c.default || c).workers));`;
+    const r = spawnSync(process.execPath, ['-e', js], {
+      cwd: REPO, encoding: 'utf8', env: { ...gateEnv(), ...env },
+    });
+    const n = Number(String(r.stdout).trim());
+    expect(Number.isFinite(n), `không đọc được workers (stdout="${r.stdout}" stderr="${r.stderr}")`).toBe(true);
+    return n;
+  };
+
+  test('ĐỐI CHỨNG DƯƠNG: máy 32 lõi KHÔNG được ra 16 worker', () => {
+    expect(doc(32), 'cores/2 = 16, trần phải kéo về 6').toBe(6);
+    expect(doc(64), 'và trần không được nhượng theo số lõi').toBe(6);
+  });
+
+  test('ĐỐI CHỨNG ÂM: máy ít lõi vẫn theo cores/2, trần không can thiệp', () => {
+    expect(doc(4), 'cores/2 = 2, dưới trần ⇒ giữ nguyên').toBe(2);
+    expect(doc(12), 'cores/2 = 6, đúng trần ⇒ giữ nguyên, máy này không bị đổi hành vi').toBe(6);
+  });
+
+  test('máy 1 lõi vẫn phải ra ít nhất 1 worker, không ra 0', () => {
+    expect(doc(1), 'floor(1/2) = 0 ⇒ phải được kéo lên 1, nếu không thì không chạy được gì').toBe(1);
+  });
+
+  test('`PW_WORKERS` vượt trần được, vì người đo được thì phải đổi được', () => {
+    expect(doc(12, { PW_WORKERS: '10' })).toBe(10);
+    expect(doc(32, { PW_WORKERS: '2' })).toBe(2);
+  });
+
+  test('CI vẫn cố định 2 worker — trần cục bộ KHÔNG được chạm vào nhánh CI', () => {
+    expect(doc(32, { CI: 'true' }), 'runner 4 vCPU đã chốt 2 từ trước').toBe(2);
+  });
+});

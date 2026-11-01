@@ -110,6 +110,106 @@ test.describe('@infra expected:check — bắt được thay đổi expected', (
   });
 });
 
+/*
+ * MẪU SỐ CỦA CHÍNH CÂU `✓ ĐẠT` (v2.9.7).
+ *
+ * Đo 01/11/2026 trên CSDL-4008: bộ có 312 case, mốc chứa 273, cửa in `+ 39 case MỚI` rồi kết luận
+ * `✓ ĐẠT`. Câu đó đúng từng chữ — không case nào ĐỔI expected — nhưng nó không nói nó phán trên bao
+ * nhiêu, nên người đọc nhận được "cả bộ đã gác". Đổi expected ở đúng 39 case đó là vô hình.
+ *
+ * Bộ test này khoá ba chuyện: câu ĐẠT phải mang mẫu số · dạng `--enforce` phải CHẶN · và lời khai
+ * "chụp ở cửa chốt" phải bị tố cáo khi bộ case lớn thêm sau mốc.
+ *
+ * Cửa có HAI đường in `✓ ĐẠT` (0 case đổi · có đổi nhưng đã khai đủ). Lượt vá đầu của tôi chỉ sửa
+ * đường thứ hai, mà ca CSDL-4008 nổ ở đường THỨ NHẤT — tức bản vá rỗng đúng với ca sinh ra nó. Nên
+ * mỗi đường có một phép kiểm RIÊNG ở đây.
+ */
+test.describe('@infra expected:check — câu ĐẠT phải mang mẫu số', () => {
+  test('ĐƯỜNG ①: 0 case đổi + có case MỚI ⇒ ĐẠT mang mẫu số, nói rõ chỗ hở', () => {
+    const t = dungTask(bo([{ id: 'TC_001', expected: '1. Hiện A' }]));
+    chay(t.goc, ['--snapshot']);
+    fs.writeFileSync(path.join(t.tcDir, 'tc.md'), bo([
+      { id: 'TC_001', expected: '1. Hiện A' },
+      { id: 'TC_002', expected: '1. Hiện B' },
+      { id: 'TC_003', expected: '1. Hiện C' }]), 'utf8');
+    const r = chay(t.goc);
+    expect(`${r.stdout}`, 'phải nói gác được 1 trên 3').toContain('1/3');
+    expect(`${r.stdout}`).toContain('KHÔNG có băm nào để so');
+    expect(`${r.stdout}`, 'và nói ra lối chặn').toContain('--enforce');
+    expect(r.status, 'mặc định KHÔNG chặn — thêm case giữa task là bình thường').toBe(0);
+  });
+
+  test('ĐƯỜNG ②: có case đổi ĐÃ khai + có case MỚI ⇒ ĐẠT vẫn mang mẫu số', () => {
+    const t = dungTask(bo([{ id: 'TC_001', expected: '1. Hiện A' }, { id: 'TC_002', expected: '1. Hiện B' }]));
+    chay(t.goc, ['--snapshot']);
+    fs.writeFileSync(path.join(t.tcDir, 'tc.md'), bo([
+      { id: 'TC_001', expected: '1. Hiện A ĐÃ ĐỔI' },
+      { id: 'TC_002', expected: '1. Hiện B' },
+      { id: 'TC_009', expected: '1. Hiện mới' }]), 'utf8');
+    khaiLyDo(t.taskDir, ['- TC_001: spec BR-X-001 đổi ngưỡng, đã xác nhận với BA ngày 01/11/2026']);
+    const r = chay(t.goc);
+    expect(`${r.stdout}`, 'gác được 2 trên 3').toContain('2/3');
+    expect(r.status).toBe(0);
+  });
+
+  test('ĐỐI CHỨNG DƯƠNG: `--enforce` + case chưa có mốc ⇒ CHẶN, nêu mẫu số', () => {
+    const t = dungTask(bo([{ id: 'TC_001', expected: '1. Hiện A' }]));
+    chay(t.goc, ['--snapshot']);
+    fs.writeFileSync(path.join(t.tcDir, 'tc.md'), bo([
+      { id: 'TC_001', expected: '1. Hiện A' }, { id: 'TC_002', expected: '1. Hiện B' }]), 'utf8');
+    const r = chay(t.goc, ['--enforce']);
+    expect(r.status, 'ở cửa publish, case không có mốc là chỗ hở thật').toBe(1);
+    expect(`${r.stdout}`).toContain('CHẶN (--enforce)');
+    expect(`${r.stdout}`, 'phải nói 1 trên 2, không nói suông').toContain('1/2');
+  });
+
+  test('ĐỐI CHỨNG ÂM: `--enforce` mà mốc phủ HẾT bộ ⇒ KHÔNG chặn, không kêu chỗ hở', () => {
+    const t = dungTask(bo([{ id: 'TC_001', expected: '1. Hiện A' }, { id: 'TC_002', expected: '1. Hiện B' }]));
+    chay(t.goc, ['--snapshot']);
+    const r = chay(t.goc, ['--enforce']);
+    expect(r.status, 'mốc phủ hết thì enforce không có gì để chặn').toBe(0);
+    expect(`${r.stdout}`).toContain('2/2');
+    expect(`${r.stdout}`).not.toContain('CHẶN (--enforce)');
+    expect(`${r.stdout}`, 'không có case mới thì không được kêu chỗ hở').not.toContain('KHÔNG có băm nào để so');
+  });
+
+  test('mốc tự khai CỬA CHỐT mà bộ lớn thêm ⇒ tố cáo lời khai tự mâu thuẫn', () => {
+    const t = dungTask(bo([{ id: 'TC_001', expected: '1. Hiện A' }]));
+    chay(t.goc, ['--snapshot']); /* không `--giua-task` ⇒ mốc khai là chụp ở cửa chốt */
+    fs.writeFileSync(path.join(t.tcDir, 'tc.md'), bo([
+      { id: 'TC_001', expected: '1. Hiện A' }, { id: 'TC_002', expected: '1. Hiện B' }]), 'utf8');
+    const r = chay(t.goc);
+    expect(`${r.stdout}`).toContain('CHỤP Ở CỬA CHỐT');
+    expect(`${r.stdout}`).toContain('không thể cùng đúng');
+  });
+
+  test('ĐỐI CHỨNG ÂM: mốc ĐÃ khai giữa-task thì KHÔNG bị tố cáo câu đó', () => {
+    const t = dungTask(bo([{ id: 'TC_001', expected: '1. Hiện A' }]));
+    chay(t.goc, ['--snapshot', '--giua-task', 'chụp giữa task vì bộ case còn đang bổ sung, gác từ đây trở đi']);
+    fs.writeFileSync(path.join(t.tcDir, 'tc.md'), bo([
+      { id: 'TC_001', expected: '1. Hiện A' }, { id: 'TC_002', expected: '1. Hiện B' }]), 'utf8');
+    const r = chay(t.goc);
+    expect(`${r.stdout}`, 'vẫn phải kêu chỗ hở').toContain('KHÔNG có băm nào để so');
+    expect(`${r.stdout}`, 'nhưng KHÔNG tố cáo lời khai cửa chốt — nó đã khai đúng').not.toContain('CHỤP Ở CỬA CHỐT');
+  });
+
+  test('`--json` trả MẪU SỐ máy đọc được, không chỉ chữ trong log', () => {
+    const t = dungTask(bo([{ id: 'TC_001', expected: '1. Hiện A' }]));
+    chay(t.goc, ['--snapshot']);
+    fs.writeFileSync(path.join(t.tcDir, 'tc.md'), bo([
+      { id: 'TC_001', expected: '1. Hiện A' },
+      { id: 'TC_002', expected: '1. Hiện B' },
+      { id: 'TC_003', expected: '1. Hiện C' },
+      { id: 'TC_004', expected: '1. Hiện D' }]), 'utf8');
+    const o = JSON.parse(chay(t.goc, ['--json']).stdout);
+    expect(o.so_case).toBe(4);
+    expect(o.so_case_co_moc).toBe(1);
+    expect(o.so_case_khong_moc).toBe(3);
+    expect(o.ty_le_duoc_gac).toBe(25);
+    expect(o.moc_tu_khai_cua_chot, 'chụp không kèm --giua-task ⇒ tự khai là cửa chốt').toBe(true);
+  });
+});
+
 test.describe('@infra expected:check — cờ `--task` phải THẮNG env', () => {
   /*
    * LỖ NÀY DO `gate:selfmutate` TÌM RA (§A10.6). Nó nới `i >= 0` trong hàm đọc cờ `val()` lên một ngưỡng

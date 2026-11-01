@@ -58,9 +58,15 @@ test.describe('@infra version:check — phiên bản và số đếm về CHÍNH
      * Dựng lại đúng ca đã xảy ra: chèn một mục phiên bản CAO HƠN lên đỉnh. Mục cho bản hiện tại vẫn còn
      * nguyên ở dưới, nên phép kiểm 3) của bản gốc vẫn xanh — chỉ ⑤ bắt được.
      */
-    voi(CL, (s) => s.replace('## v2.9.6', '## v9.9.9 — 2026-12-31 — mục giả cho phép kiểm\n\n## v2.9.6'), (r) => {
+    /*
+     * NEO VÀO `package.json`, KHÔNG GÕ SỐ. Bản đầu ghim cứng `2.9.6` ở cả mẫu thay thế lẫn mẫu khớp
+     * thông điệp, nên nó mục đúng vào lần tăng phiên bản kế tiếp — và đã mục thật ở 2.9.7: phép kiểm đỏ
+     * với thông điệp hoàn toàn sai chỗ ("không tìm thấy mẫu"), trong khi cửa vẫn đang chạy đúng.
+     */
+    const ver = JSON.parse(fs.readFileSync(PKG, 'utf8')).version as string;
+    voi(CL, (s) => s.replace(`## v${ver}`, `## v9.9.9 — 2026-12-31 — mục giả cho phép kiểm\n\n## v${ver}`), (r) => {
       expect(r.code, r.out).toBe(1);
-      expect(r.out).toMatch(/CHANGELOG đỉnh là \*\*v9\.9\.9\*\* mà package\.json ghi \*\*2\.9\.6\*\*/);
+      expect(r.out).toMatch(new RegExp(`CHANGELOG đỉnh là \\*\\*v9\\.9\\.9\\*\\* mà package\\.json ghi \\*\\*${ver.replace(/\./g, '\\.')}\\*\\*`));
       expect(r.out, 'phải nói rõ vì sao phép kiểm cũ không bắt được').toMatch(/phép kiểm "có mục" KHÔNG bắt được ca này/);
     });
   });
@@ -173,8 +179,15 @@ test.describe('@infra version:check ⑦ — chạy được trong gói (không `
       '# Changelog\n\n> Mỗi mục là một đợt phát hành.\n\n## v2.9.6 — 2026-10-30 — x\n\n- x\n', 'utf8');
     fs.writeFileSync(path.join(d, '.agent/config/GATES.md'),
       `# Gates\n\nTổng **${soMayTrongGates}** máy — 1 CHẶN.\n`, 'utf8');
+    /*
+     * README mang CẢ HAI bản sao viết tay: số máy (cho ⑦) và số phiên bản (cho ⑨). Thêm vế phiên bản
+     * 01/11/2026 — không phải để nới gì, mà vì cây mẫu thiếu nó thì ⑨ khai "CHƯA GÁC GÌ" một cách CHÍNH
+     * ĐÁNG, và câu khẳng định "không được khai chưa gác gì" ở dưới sẽ đỏ vì một lý do không phải lỗi.
+     * Thêm vào thì câu khẳng định đó giữ nguyên độ chặt và nay soi được cả ⑨ trong ngữ cảnh gói.
+     */
     fs.writeFileSync(path.join(d, 'README.md'),
-      `# Kit\n\nXem .agent/config/GATES.md (danh mục ${soMayTrongReadme} máy gác, tự sinh).\n`, 'utf8');
+      `# Kit\n\nXem .agent/config/GATES.md (danh mục ${soMayTrongReadme} máy gác, tự sinh).\n\n`
+      + 'Phiên bản kit: **2.9.6**.\n', 'utf8');
     return d;
   }
   const chayTrong = (d: string) => {
@@ -201,5 +214,131 @@ test.describe('@infra version:check ⑦ — chạy được trong gói (không `
     expect(r.code, r.out).toBe(1);
     expect(r.out).toMatch(/README\.md:\d+ ghi \*\*150\*\* máy, `GATES\.md` \(máy sinh\) đếm \*\*151\*\*/);
     fs.rmSync(d, { recursive: true, force: true });
+  });
+});
+
+/*
+ * ⑨ BẢN SAO VIẾT TAY CỦA SỐ PHIÊN BẢN (v2.9.7).
+ *
+ * ⑦ gác số MÁY viết tay. Nhưng số PHIÊN BẢN cũng có bản sao viết tay, và nó vừa trôi thật: thư viện
+ * thuật ngữ ghi `Phiên bản kit: 2.9.6` trong khi `package.json` đã là 2.9.7. `library:drift` không bắt
+ * được vì nó so `index.html` với `src/` — tức so hai bản sao VỚI NHAU, cả hai cùng sai thì vẫn xanh.
+ *
+ * Và phép kiểm này đỏ ngay lượt đầu vì CHÍNH CÂU CHÚ THÍCH của nó: chú thích dẫn `Phiên bản kit: 2.9.6`
+ * làm ví dụ, cửa đọc ví dụ thành một bản sao thật. Cùng bài học với `gate:policy` ở v2.9.6 — nên ⑨ bỏ
+ * chú thích trước khi tìm, bằng `boChuThich` đã có, và dưới đây có một phép kiểm riêng cho chuyện đó.
+ */
+test.describe('@infra version:check ⑨ — số phiên bản viết tay phải khớp `package.json`', () => {
+  /*
+   * DỰNG CÂY RIÊNG, KHÔNG NEO VÀO FILE CỦA REPO.
+   *
+   * Lượt đầu của hai phép kiểm dưới đây neo vào `docs/library/src/shell.html`. Chúng xanh ở repo rồi ĐỎ
+   * trong gói: `release:verify` 14/15, vì gói KHÔNG chở `docs/library/**` — vế dương ENOENT, vế âm không
+   * thấy dòng đếm vì trong gói không bề mặt nào khai phiên bản.
+   *
+   * Đó là lần thứ SÁU trong một phiên cùng một họ lỗi: chạy ở repo, chết trong gói. Nên phép kiểm về một
+   * CƠ CHẾ phải tự dựng đầu vào của nó, giống các phép kiểm ⑦ ở trên — có thế nó mới đúng ở cả hai ngữ
+   * cảnh, và mới kiểm được những ca repo thật không có.
+   */
+  function cay(verPkg: string, beMat: Record<string, string> = {}) {
+    const d = fs.mkdtempSync(path.join(os.tmpdir(), 'ver9-'));
+    fs.mkdirSync(path.join(d, 'scripts/qa'), { recursive: true });
+    fs.mkdirSync(path.join(d, '.agent/config'), { recursive: true });
+    fs.copyFileSync(GATE, path.join(d, 'scripts/qa/version_check.js'));
+    fs.writeFileSync(path.join(d, 'package.json'), JSON.stringify({ name: 'x', version: verPkg }), 'utf8');
+    fs.writeFileSync(path.join(d, 'CHANGELOG.md'),
+      `# Changelog\n\n> Mỗi mục là một đợt phát hành.\n\n## v${verPkg} — 2026-11-01 — x\n\n- x\n`, 'utf8');
+    fs.writeFileSync(path.join(d, '.agent/config/GATES.md'), '# Gates\n\nTổng **7** máy — 1 CHẶN.\n', 'utf8');
+    fs.writeFileSync(path.join(d, 'README.md'), '# Kit\n\nXem .agent/config/GATES.md (danh mục 7 máy gác, tự sinh).\n', 'utf8');
+    for (const [ten, noi] of Object.entries(beMat)) {
+      fs.mkdirSync(path.dirname(path.join(d, ten)), { recursive: true });
+      fs.writeFileSync(path.join(d, ten), noi, 'utf8');
+    }
+    return d;
+  }
+  const chayTrongCay = (d: string) => {
+    const r = spawnSync(process.execPath, [path.join(d, 'scripts/qa/version_check.js')],
+      { cwd: d, encoding: 'utf8', env: gateEnv() });
+    return { code: r.status, out: `${r.stdout || ''}${r.stderr || ''}` };
+  };
+
+  test('ĐỐI CHỨNG DƯƠNG: bề mặt khai phiên bản CŨ ⇒ CHẶN, nêu đích danh file', () => {
+    const d = cay('2.9.9', { 'docs/trang.html': '<p>Phiên bản kit: <b>1.0.0</b>.</p>\n' });
+    const r = chayTrongCay(d);
+    expect(r.code, r.out).toBe(1);
+    expect(r.out, 'phải nêu đích danh file, không chỉ nói "có chỗ lệch"').toContain('docs/trang.html');
+    expect(r.out).toContain('1.0.0');
+    expect(r.out).toContain('2.9.9');
+    fs.rmSync(d, { recursive: true, force: true });
+  });
+
+  test('ĐỐI CHỨNG ÂM: khớp `package.json` ⇒ ĐẠT, và nói ra đếm được mấy bản sao', () => {
+    const d = cay('2.9.9', { 'docs/trang.html': '<p>Phiên bản kit: <b>2.9.9</b>.</p>\n' });
+    const r = chayTrongCay(d);
+    expect(r.code, r.out).toBe(0);
+    expect(r.out).toMatch(/⑨ 1 bản sao viết tay của số phiên bản/);
+    expect(r.out, 'phải nói nguồn là package.json').toContain('nguồn `package.json`');
+    fs.rmSync(d, { recursive: true, force: true });
+  });
+
+  test('KHÔNG bề mặt nào khai phiên bản ⇒ "CHƯA GÁC GÌ", KHÔNG phải "đạt"', () => {
+    /*
+     * Đây đúng là trạng thái của GÓI phát hành (không chở `docs/library/**`). Phải khai là chưa gác,
+     * chứ không được im lặng rồi để câu `✓ ĐẠT` ở cuối nói thay — "không đo được" KHÔNG thành "đo ra 0".
+     */
+    const d = cay('2.9.9');
+    const r = chayTrongCay(d);
+    expect(r.code, 'không có bề mặt nào thì cũng không có gì để chặn').toBe(0);
+    expect(r.out).toMatch(/⑨ CHƯA GÁC GÌ ở lượt này \(không phải đạt\)/);
+    expect(r.out, 'và KHÔNG được in dòng đếm như thể đã gác').not.toMatch(/⑨ \d+ bản sao/);
+    fs.rmSync(d, { recursive: true, force: true });
+  });
+
+  test('CÂY NÀY (repo hoặc gói) — mọi bề mặt đang khai đều khớp `package.json`', () => {
+    /*
+     * Phép kiểm về TRẠNG THÁI của cây đang chạy, nên nó phải đúng ở CẢ repo (có `docs/library/**`) và
+     * trong gói (không có). Số bề mặt được ĐO, không phải giả định — rồi hai nhánh ĐỀU bị khẳng định,
+     * nên không có nhánh nào lặng lẽ cho qua.
+     */
+    const r = chay();
+    expect(r.code, r.out).toBe(0);
+    const m = r.out.match(/⑨ (\d+) bản sao viết tay của số phiên bản/);
+    if (m) {
+      expect(Number(m[1]), 'đếm được bề mặt thì phải > 0').toBeGreaterThan(0);
+      expect(r.out).toContain('nguồn `package.json`');
+    } else {
+      expect(r.out, 'không đếm được bề mặt nào thì PHẢI khai là chưa gác').toMatch(/⑨ CHƯA GÁC GÌ/);
+    }
+  });
+
+  test('CHÚ THÍCH trong mã KHÔNG được tính thành một bản sao', () => {
+    /*
+     * Lượt đầu của ⑨ đỏ vì chú thích của chính nó. Nếu phép kiểm này mất, câu chú thích sau sẽ lại tắt
+     * cửa — hoặc tệ hơn, ai đó sẽ nới `vi_sao` để cho qua.
+     */
+    const f = path.join(REPO, 'scripts/qa/case_paths.js');
+    voi(f, (s) => `/* ví dụ trong chú thích: Phiên bản kit: 0.0.1 — KHÔNG phải một bản khai thật */\n${s}`, (r) => {
+      expect(r.code, 'chú thích chỉ là ví dụ, không phải lời khai').toBe(0);
+      expect(r.out).not.toContain('0.0.1');
+    });
+  });
+
+  test('ĐỐI CHỨNG: cùng chuỗi đó nằm trong MÃ THẬT thì VẪN bị bắt', () => {
+    /*
+     * Cặp với phép trên. Bỏ chú thích mà bỏ luôn cả mã thật thì ⑨ thành đồ trang trí, và hai phép kiểm
+     * này là cách duy nhất phân biệt "bỏ đúng chú thích" với "bỏ hết".
+     */
+    const f = path.join(REPO, 'scripts/qa/case_paths.js');
+    voi(f, (s) => `const _khai = 'Phiên bản kit: 0.0.1';\n${s}`, (r) => {
+      expect(r.code, 'chuỗi trong mã thật là một lời khai').toBe(1);
+      expect(r.out).toContain('0.0.1');
+    });
+  });
+
+  test('tài liệu LỊCH SỬ được bỏ qua — số trong đó đúng ở thời điểm ghi', () => {
+    expect(fs.existsSync(path.join(REPO, 'CHANGELOG.md'))).toBe(true);
+    voi(CL, (s) => `Phiên bản kit: **0.0.1**\n${s}`, (r) => {
+      expect(r.code, 'CHANGELOG là sổ lịch sử, không phải bề mặt trạng-thái-hiện-tại').toBe(0);
+    });
   });
 });

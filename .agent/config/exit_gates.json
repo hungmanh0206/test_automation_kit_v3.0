@@ -11,7 +11,7 @@
       "may": [
         { "lenh": "self-review:enforce", "vi_sao": "bó sẵn preflight + design_gate + output_gate + typecheck:task + ledger của task; dùng lại thay vì liệt kê lại từng máy" },
         { "lenh": "canonical:drift:enforce", "vi_sao": "bản xuất đem publish phải vừa sinh TỪ Markdown canonical, không phải bản .xlsx sửa tay" },
-        { "lenh": "expected:check", "vi_sao": "đổi `Kết quả mong đợi` mà chưa khai lý do thì không được đẩy bộ đó cho cả team đọc" }
+        { "lenh": "expected:check:enforce", "vi_sao": "đổi `Kết quả mong đợi` mà chưa khai lý do thì không được đẩy bộ đó cho cả team đọc. Dạng `:enforce` vì ĐÂY là lúc bộ case chốt: case không có mốc để so thì phần chênh đó không ai gác, mà bản mặc định in `✓ ĐẠT` kèm cảnh báo rồi vẫn thoát 0 — đo 01/11/2026 trên CSDL-4008: 312 case, mốc có 273, cửa vẫn ✓. Cửa `done` giữ bản mặc định để không chặn 6 task đang chạy ở giữa đường." }
       ],
       "doi_so_no_sach": true,
       "_vi_sao_cua_nay": "Publish là lúc bộ case thôi là việc riêng của một người: cả team đọc nó, và Phase 2 chạy theo nó. Một vi phạm T1 lọt qua đây sẽ được nhân lên theo số người đọc."

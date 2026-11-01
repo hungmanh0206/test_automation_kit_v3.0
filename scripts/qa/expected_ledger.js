@@ -61,6 +61,22 @@ const GIUA_TASK = (() => {
   return v;
 })();
 const JSON_OUT = process.argv.includes('--json');
+/*
+ * `--enforce` — CASE MỚI KHÔNG CÓ MỐC LÀ MỘT CHỖ HỞ, KHÔNG PHẢI MỘT DÒNG THÔNG BÁO.
+ *
+ * Đo 01/11/2026 trên CSDL-4008: bộ có 312 case, mốc chỉ chứa 273, tức 39 case KHÔNG có băm nào để so.
+ * Cửa in `+ 39 case MỚI` rồi kết luận `✓ ĐẠT`. Câu đó đúng từng chữ — không case nào ĐỔI expected —
+ * nhưng người đọc nhận được "cả bộ đã được gác", trong khi 39/312 case nằm ngoài tầm với của cửa. Đổi
+ * expected ở đúng 39 case đó là vô hình.
+ *
+ * Đây là lớp hỏng mẫu số: `✓ ĐẠT` không nói nó phán trên bao nhiêu. Nên từ nay câu ĐẠT luôn mang
+ * `<đã gác>/<tổng>`, và `--json` trả `so_case_co_moc` · `so_case_khong_moc` · `ty_le_duoc_gac`.
+ *
+ * VÌ SAO MẶC ĐỊNH KHÔNG CHẶN: thêm case giữa task là chuyện bình thường, và 6 task đang chạy đều có
+ * case mới. Chặn ngay ở lượt mặc định là làm gãy gate của story đang chạy (§5). Nên dạng chặn tách ra
+ * `--enforce`, dùng ở cửa publish — nơi bộ case ĐÃ chốt nên "case chưa có mốc" mới thật sự là lỗi.
+ */
+const ENFORCE = process.argv.includes('--enforce');
 const val = (name, def) => {
   const i = process.argv.indexOf(`--${name}`);
   return i >= 0 && process.argv[i + 1] && !process.argv[i + 1].startsWith('--') ? process.argv[i + 1] : def;
@@ -232,12 +248,24 @@ async function main() {
     daKhai.push({ tcId: id, ly_do: l.ly_do });
   }
 
+  /*
+   * MẪU SỐ CỦA CHÍNH PHÉP PHÁN NÀY. `cases.size` là bộ hiện tại; chỉ những case CÓ băm trong mốc mới
+   * nằm trong tầm với của cửa. Hiệu số đó là `kq.them` — case mới, chưa có gì để so.
+   */
+  const soCoMoc = cases.size - kq.them.length;
+  const tyLe = cases.size ? Math.round((soCoMoc / cases.size) * 1000) / 10 : 0;
   const ra = {
     task: taskKey, so_case: cases.size, chup_luc: cu.chup_luc,
+    so_case_co_moc: soCoMoc, so_case_khong_moc: kq.them.length, ty_le_duoc_gac: tyLe,
+    moc_tu_khai_cua_chot: !cu.chup_giua_task,
     ...kq, da_khai: daKhai, chua_khai: chuaKhai, khai_rong: khaiRong,
     duong_khai: path.relative(REPO, lyDo.duong).split(path.sep).join('/'),
   };
-  if (JSON_OUT) { console.log(JSON.stringify(ra, null, 2)); process.exit(chuaKhai.length || khaiRong.length ? 1 : 0); }
+  const chanVietThem = ENFORCE && kq.them.length > 0;
+  if (JSON_OUT) {
+    console.log(JSON.stringify({ ...ra, enforce: ENFORCE, chan_vi_case_chua_co_moc: chanVietThem }, null, 2));
+    process.exit(chuaKhai.length || khaiRong.length || chanVietThem ? 1 : 0);
+  }
 
   console.log(`[expected] task ${taskKey} · ${cases.size} case · mốc chụp ${String(cu.chup_luc).slice(0, 19)}`);
   /*
@@ -249,20 +277,53 @@ async function main() {
     console.log('             và KHÔNG chứng minh expected trước đó là bản gốc.');
     console.log(`             Lý do khi chụp: "${String(cu.chup_giua_task.ly_do || '').slice(0, 110)}"`);
   }
-  if (kq.them.length) console.log(`           + ${kq.them.length} case MỚI (chưa có trong mốc): ${kq.them.slice(0, 6).join(', ')}${kq.them.length > 6 ? ' …' : ''}`);
+  if (kq.them.length) {
+    console.log(`           + ${kq.them.length} case MỚI (chưa có trong mốc): ${kq.them.slice(0, 6).join(', ')}${kq.them.length > 6 ? ' …' : ''}`);
+    console.log(`             ⚠ ${kq.them.length} case này KHÔNG có băm nào để so ⇒ cửa KHÔNG gác được chúng.`);
+    console.log('               Đổi `Kết quả mong đợi` ở đúng những case này là vô hình với máy.');
+    if (!cu.chup_giua_task) {
+      /*
+       * Mốc KHÔNG mang `chup_giua_task` nghĩa là người chụp khai nó chụp ở cửa chốt. Có case mới sau
+       * mốc thì lời khai đó tự mâu thuẫn: bộ case đã lớn thêm SAU cái gọi là cửa chốt.
+       */
+      console.log('             ⚠ Mốc này KHÔNG khai `chup_giua_task`, tức đang được đọc là CHỤP Ở CỬA CHỐT —');
+      console.log('               mà bộ case lại lớn thêm sau đó. Hai điều đó không thể cùng đúng.');
+    }
+  }
   if (kq.mat.length) console.log(`           - ${kq.mat.length} case BIẾN MẤT khỏi bộ: ${kq.mat.slice(0, 6).join(', ')}${kq.mat.length > 6 ? ' …' : ''}`);
   if (daKhai.length) {
     console.log(`           ✓ ${daKhai.length} case đổi expected ĐÃ khai lý do:`);
     for (const d of daKhai.slice(0, 6)) console.log(`               ${d.tcId}: ${d.ly_do.slice(0, 80)}`);
   }
 
-  if (!kq.doi.length) {
-    console.log('[expected] ✓ ĐẠT — không case nào đổi `Kết quả mong đợi` so với mốc.');
+  if (!kq.doi.length && !chanVietThem) {
+    /*
+     * MẪU SỐ Ở CẢ HAI ĐƯỜNG `✓`. Đường này là đường thật sự nổ ở ca CSDL-4008 (0 case đổi, 39 case
+     * chưa có mốc) — vá mỗi đường dưới là vá rỗng đúng với ca sinh ra nó. Tôi đã vá hụt một lượt.
+     */
+    console.log(`[expected] ✓ ĐẠT — không case nào đổi \`Kết quả mong đợi\` so với mốc · gác được ${soCoMoc}/${cases.size} case (${tyLe}%).`);
+    if (kq.them.length) {
+      console.log(`           Chỗ hở còn lại: ${kq.them.length} case chưa có mốc. Chụp lại khi bộ case chốt,`);
+      console.log(`           hoặc chạy dạng chặn: node scripts/qa/expected_ledger.js --task ${taskKey} --enforce`);
+    }
     return;
   }
-  if (!chuaKhai.length && !khaiRong.length) {
-    console.log('[expected] ✓ ĐẠT — mọi thay đổi expected đều đã khai lý do.');
+  if (!chuaKhai.length && !khaiRong.length && !chanVietThem) {
+    /* Câu ĐẠT mang luôn mẫu số: `✓` trên 273/312 không cùng nghĩa với `✓` trên 312/312. */
+    console.log(`[expected] ✓ ĐẠT — mọi thay đổi expected đều đã khai lý do · gác được ${soCoMoc}/${cases.size} case (${tyLe}%).`);
+    if (kq.them.length) {
+      console.log(`           Chỗ hở còn lại: ${kq.them.length} case chưa có mốc. Chụp lại khi bộ case chốt,`);
+      console.log(`           hoặc chạy dạng chặn: node scripts/qa/expected_ledger.js --task ${taskKey} --enforce`);
+    }
     return;
+  }
+
+  if (chanVietThem) {
+    console.log('');
+    console.log(`[expected] ✗ CHẶN (--enforce): ${kq.them.length}/${cases.size} case KHÔNG có mốc nào để so.`);
+    console.log('             Ở cửa publish, bộ case phải đã chốt — nên một case không có mốc nghĩa là mốc cũ');
+    console.log('             hơn bộ case, và phần chênh đó không ai gác. Chụp lại mốc sau khi đã rà và khai:');
+    console.log(`               node scripts/qa/expected_ledger.js --task ${taskKey} --snapshot`);
   }
 
   console.log('');
@@ -275,6 +336,7 @@ async function main() {
     console.log(`[expected] ✗ CHẶN: ${khaiRong.length} case khai lý do RỖNG NGHĨA (dưới ${TOI_THIEU_LY_DO} ký tự, hoặc chỉ là "sửa lại"):`);
     for (const k of khaiRong.slice(0, 8)) console.log(`             ${k.tcId}: "${k.ly_do}"`);
   }
+  if (chuaKhai.length || khaiRong.length) {
   console.log('');
   console.log(`  Khai vào \`${ra.duong_khai}\`, một dòng một case:`);
   console.log('    - TC_012: spec BR-HS-004 đổi ngưỡng từ 30 xuống 20 ngày — đã xác nhận với BA ngày 11/10');
@@ -282,7 +344,10 @@ async function main() {
   console.log('  ĐÂY KHÔNG PHẢI THỦ TỤC. Đổi expected là cách gian lận RẺ NHẤT trong cả kit: một ô, không cần');
   console.log('  sửa code, và case đỏ thành xanh. Luật không cấm đổi — expected đổi vì spec đổi là chuyện');
   console.log('  bình thường. Thứ bị chặn là đổi mà KHÔNG AI BIẾT.');
-  console.log('  Rà xong và khai xong thì chụp lại mốc bằng `--snapshot`.');
+  }
+  if (chuaKhai.length || khaiRong.length) {
+    console.log('  Rà xong và khai xong thì chụp lại mốc bằng `--snapshot`.');
+  }
   process.exit(1);
 }
 

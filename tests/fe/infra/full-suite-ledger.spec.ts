@@ -99,3 +99,60 @@ test.describe('@infra full:suite — mẫu số của lượt chạy phải bằ
     expect(src, 'phải lấy danh sách file từ `package_kit`, không gõ lại').toMatch(/package_kit|collect\(/);
   });
 });
+
+/*
+ * ĐỌC SỐ CỦA LƯỢT CHẠY (v2.9.7) — và con số sai ĐÚNG LÚC NÓ QUAN TRỌNG NHẤT.
+ *
+ * Đo 01/11/2026: lượt `full:suite` thật có 2404 xanh · 6 đỏ, sổ ghi `1 xanh · 6 đỏ`. `out.match` không
+ * có cờ `g` nên lấy lần khớp ĐẦU TIÊN, và lần đầu nằm trong MÃ NGUỒN của một spec được in kèm thông điệp
+ * lỗi — chú thích ở đó có chuỗi `"1 passed"`.
+ *
+ * Đoạn mã chỉ in ra KHI CÓ CA ĐỎ. Nên sổ đúng ở mọi lượt xanh và sai ở lượt đỏ. Đây là lần thứ ba trong
+ * cùng đợt một cửa đọc phải CHỮ TRONG CHÚ THÍCH thay vì dữ liệu.
+ */
+test.describe('@infra full:suite — số ghi sổ phải ĐỐI SOÁT được với mẫu số', () => {
+  test('ĐỐI CHỨNG DƯƠNG: chuỗi `1 passed` trong CHÚ THÍCH không được thành số của cả bộ', () => {
+    const out = [
+      'Running 3 tests using 2 workers',
+      '  1) [chromium-desktop] › tests/fe/infra/x.spec.ts:9:7 › @infra ví dụ',
+      '     * run thật chạy 1 test và kết luận **"1 passed"**. Nghĩa là',
+      '  2 passed (1.0s)',
+      '  1 failed',
+    ].join('\n');
+    const r = L.docKetQua(out);
+    expect(r.loi, r.loi).toBeUndefined();
+    expect(r.xanh, 'phải là 2 (dòng tổng kết), KHÔNG phải 1 (chữ trong chú thích)').toBe(2);
+    expect(r.do_).toBe(1);
+  });
+
+  test('đọc đúng số trên log THẬT của lượt đã chạy', () => {
+    const f = path.join(REPO, 'knowledge/metrics/full-suite.last.log');
+    test.skip(!fs.existsSync(f), 'chưa có log lượt chạy nào — phép kiểm này cần dữ liệu thật');
+    const r = L.docKetQua(fs.readFileSync(f, 'utf8'));
+    expect(r.loi, r.loi).toBeUndefined();
+    /*
+     * Không ghim con số cụ thể (log đổi mỗi lượt chạy), mà đòi ĐỐI SOÁT: bốn nhóm cộng lại đúng mẫu số
+     * Playwright khai. Đó là tính chất bản vá này mang lại, và nó đúng với mọi log.
+     */
+    expect(r.xanh + r.do_ + r.boQua + r.chapChon, 'bốn nhóm phải cộng đúng tổng khai').toBe(r.tong);
+    expect(r.tong, 'log thật phải có mẫu số > 0').toBeGreaterThan(0);
+  });
+
+  test('ĐỐI CHỨNG DƯƠNG: cộng KHÔNG khớp mẫu số ⇒ KHÔNG ghi sổ', () => {
+    const r = L.docKetQua('Running 10 tests using 2 workers\n  2 passed (1.0s)\n');
+    expect(r.loi, 'lệch mẫu số thì phải từ chối, không được ghi một con số không đối soát được').toMatch(/KHÔNG đối soát nổi/);
+    expect(r.xanh, 'và không được trả về số nào để ai đó ghi nhầm vào sổ').toBeUndefined();
+  });
+
+  test('ĐỐI CHỨNG DƯƠNG: thiếu dòng `Running <N> tests` ⇒ không có mẫu số ⇒ KHÔNG ghi sổ', () => {
+    const r = L.docKetQua('  2 passed (1.0s)\n');
+    expect(r.loi).toMatch(/không có mẫu số để đối soát/);
+  });
+
+  test('`flaky` và `skipped` được tính vào phép đối soát, không bị bỏ rơi', () => {
+    const r = L.docKetQua('Running 7 tests using 2 workers\n  4 passed (1.0s)\n  1 failed\n  1 skipped\n  1 flaky\n');
+    expect(r.loi, r.loi).toBeUndefined();
+    expect(r.boQua).toBe(1);
+    expect(r.chapChon, 'chập chờn bị bỏ rơi thì phép đối soát sẽ đỏ oan ở mọi lượt có flaky').toBe(1);
+  });
+});

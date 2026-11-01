@@ -1,6 +1,6 @@
 {
   "name": "test-automation-kit",
-  "version": "2.9.6",
+  "version": "2.9.7",
   "private": true,
   "engines": {
     "node": ">=22"
@@ -176,6 +176,7 @@
     "canonical:drift:enforce": "node scripts/qa/canonical_drift.js --enforce",
     "gate:audit": "node scripts/qa/gate_audit.js",
     "expected:check": "node scripts/qa/expected_ledger.js",
+    "expected:check:enforce": "node scripts/qa/expected_ledger.js --enforce",
     "expected:snapshot": "node scripts/qa/expected_ledger.js --snapshot",
     "exit:gate": "node scripts/qa/exit_gate.js",
     "check": "node scripts/qa/check.js",

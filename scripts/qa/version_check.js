@@ -28,6 +28,52 @@ const path = require('path');
 const { execFileSync } = require('child_process');
 
 const REPO = path.resolve(__dirname, '..', '..');
+/*
+ * `boChuThich` — BẢN SAO CÓ CHỦ Ý, và đây là lý do, vì mặc định của kit là DÙNG LẠI chứ không chép.
+ *
+ * `recon_passive.js` đã có hàm này, và v2.9.6 đã chốt "dùng lại, không viết lại" cho `gate:policy`.
+ * Nhưng `version_check.js` mang một hợp đồng khác: nó phải chạy được trong cây ĐÃ LƯỢC BỚT, và phép
+ * kiểm `⑦ chạy được trong gói` dựng cây chỉ có ĐÚNG MỘT file là `scripts/qa/version_check.js`. Lượt
+ * đầu của tôi `require('./recon_passive.js')` ⇒ cửa **chết hẳn** (`Cannot find module`) trong cây đó.
+ * Đó là lần thứ năm trong phiên này cùng một họ lỗi: chạy ở repo, chết trong gói.
+ *
+ * Nên bản sao ở đây là có chủ ý. Để nó không âm thầm trôi khỏi bản gốc, `version-changelog.spec.ts` có
+ * một phép kiểm đòi hai bản cho CÙNG kết quả trên cùng bộ mẫu — chép mà không có máy so thì mới là nợ.
+ */
+function boChuThich(s) {
+  return s
+    .replace(/\/\*[\s\S]*?\*\//g, (m) => m.replace(/[^\n]/g, ' '))
+    .replace(/(^|[^:])\/\/[^\n]*/g, (m) => m.replace(/[^\n]/g, ' '));
+}
+
+/*
+ * LIỆT KÊ FILE: hỏi `git ls-files` trước, KHÔNG CÓ `.git` THÌ ĐỌC ĐĨA — đừng im lặng.
+ *
+ * Gộp ở đây vì ⑦ và ⑨ cần cùng một hành vi, và lượt đầu của ⑨ chỉ hỏi git: trong gói phát hành (không
+ * `.git`) nó quét **0 file** rồi tự khai "CHƯA GÁC GÌ". Một phép kiểm không chạy mà báo như đã chạy thì
+ * nó nói sai, không phải nói thiếu. Bài học này đã có ở `gate_index.js`, rồi lặp ở ⑦ (30/10), rồi lặp
+ * lần nữa ở ⑨ (01/11) — nên nay nó chỉ còn MỘT chỗ để sai.
+ */
+const BO_QUA_THU_MUC = /^(node_modules|dist|outputs|test-results|playwright-report|\.git)(\/|$)/;
+function lietKeFile(khopTen, mauGit) {
+  const tuGit = (git(['ls-files', ...(mauGit ? [mauGit] : [])]) || '')
+    .split('\n').map((x) => x.trim()).filter(Boolean)
+    .filter((f) => khopTen.test(f));
+  if (tuGit.length) return tuGit;
+  const ra = [];
+  const di = (d, tien) => {
+    let es;
+    try { es = fs.readdirSync(d, { withFileTypes: true }); } catch (e) { return; }
+    for (const e of es) {
+      const rel = tien ? `${tien}/${e.name}` : e.name;
+      if (BO_QUA_THU_MUC.test(rel)) continue;
+      if (e.isDirectory()) di(path.join(d, e.name), rel);
+      else if (khopTen.test(e.name)) ra.push(rel);
+    }
+  };
+  di(REPO, '');
+  return ra;
+}
 const SEMVER = /^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-[0-9A-Za-z-.]+)?$/;
 
 /** Chạy git; KHÔNG có `.git` (hoặc không có git) thì trả null thay vì ném. */
@@ -204,24 +250,7 @@ function main() {
        * vì chúng khẳng định hành vi khi CÓ git mà không khai điều kiện ấy. `gate_index.js` đã có nhánh
        * đọc đĩa từ trước; đây là cùng một bài học, lặp lại ở một cửa khác.
        */
-      const dsMd = (() => {
-        const tuGit = (git(['ls-files', '*.md']) || '').split('\n').map((x) => x.trim()).filter(Boolean);
-        if (tuGit.length) return tuGit;
-        const BO_QUA = /^(node_modules|dist|outputs|test-results|playwright-report|\.git)(\/|$)/;
-        const ra = [];
-        const di = (d, tien) => {
-          let es;
-          try { es = fs.readdirSync(d, { withFileTypes: true }); } catch (e) { return; }
-          for (const e of es) {
-            const rel = tien ? `${tien}/${e.name}` : e.name;
-            if (BO_QUA.test(rel)) continue;
-            if (e.isDirectory()) di(path.join(d, e.name), rel);
-            else if (e.name.endsWith('.md')) ra.push(rel);
-          }
-        };
-        di(REPO, '');
-        return ra;
-      })();
+      const dsMd = lietKeFile(/\.md$/, '*.md');
       let soCho = 0;
       for (const f of dsMd) {
         const duong = f.replace(/\\/g, '/');
@@ -244,6 +273,43 @@ function main() {
       else console.log(`[version] ⑦ ${soCho} bản sao viết tay của số máy, nguồn \`GATES.md\` = ${tongGate}`);
     }
   }
+
+  /*
+   * ⑨ BẢN SAO VIẾT TAY CỦA CHÍNH SỐ PHIÊN BẢN (thêm 01/11/2026).
+   *
+   * ⑦ gác số MÁY viết tay. Nhưng số PHIÊN BẢN cũng có bản sao viết tay, và nó vừa trôi: thư viện thuật
+   * ngữ ghi `Phiên bản kit: 2.9.6` trong khi `package.json` đã là 2.9.7. `library:drift` không bắt được
+   * vì nó so `index.html` với `src/`, tức so hai bản sao VỚI NHAU — cả hai cùng sai thì nó vẫn xanh.
+   * Đúng lớp hỏng mà đợt này đang chữa: một con số được tin mà không ai hỏi nó lấy từ đâu.
+   */
+  const dsVer = lietKeFile(/\.(md|html|js)$/);
+  let soChoVer = 0;
+  for (const f of dsVer) {
+    const duong = f.split(path.sep).join('/');
+    if (duong === 'CHANGELOG.md' || /^docs\/v\d+\.\d+(\.\d+)?\//.test(duong)) continue;
+    let noi;
+    try { noi = fs.readFileSync(path.join(REPO, f), 'utf8'); } catch (e) { continue; }
+    /*
+     * BỎ CHÚ THÍCH TRƯỚC KHI TÌM, ở file mã. Lượt đầu của phép kiểm này đỏ vì chính CÂU CHÚ THÍCH
+     * ngay trên đây — nó dẫn `Phiên bản kit: 2.9.6` làm ví dụ, và cửa đọc ví dụ đó thành một bản sao
+     * thật. Cùng bài học với `gate:policy` ở v2.9.6: cửa ấy đếm tên skill nằm trong chú thích mã, và
+     * một câu tôi viết đã TẮT đối chứng dương của chính nó. Nên dùng lại `boChuThich`, không viết lại.
+     */
+    if (/\.js$/.test(duong)) noi = boChuThich(noi);
+    /* Chỉ bắt dạng KHAI RÕ "phiên bản kit là X", không quét mọi chuỗi trông như semver. */
+    const re = /Phiên bản kit:\s*(?:\*\*|<b>)?\s*(\d+\.\d+\.\d+)/g;
+    let m = re.exec(noi);
+    while (m) {
+      soChoVer += 1;
+      if (version && m[1] !== version) {
+        problems.push(`${duong} khai \`Phiên bản kit: ${m[1]}\` nhưng \`package.json\` là \`${version}\`. `
+          + 'Một bản sao viết tay của số phiên bản mà không ai gác thì nó trôi, và người đọc tin con số cũ.');
+      }
+      m = re.exec(noi);
+    }
+  }
+  if (!soChoVer) warnings.push('không bề mặt nào khai `Phiên bản kit: X.Y.Z` ⇒ phép kiểm ⑨ CHƯA GÁC GÌ ở lượt này (không phải đạt).');
+  else console.log(`[version] ⑨ ${soChoVer} bản sao viết tay của số phiên bản, nguồn \`package.json\` = ${version}`);
 
   console.log(`[version] ${version || '(chưa có)'} · ${problems.length} CHẶN · ${warnings.length} cảnh báo`);
   if (warnings.length) { console.log('\n[version] ⚠ Cảnh báo:'); warnings.forEach((w) => console.log(`  ~ ${w}`)); }
