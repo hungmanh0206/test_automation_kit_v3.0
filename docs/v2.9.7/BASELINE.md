@@ -244,6 +244,17 @@ là file test **tự tạo** hoặc **cố tình** không tồn tại. Nên máy
 chốt"* với *"test tự tạo"* — việc thiết kế thật, có rủi ro dương-tính-giả, **không** phải việc dọn. Chưa
 dựng; ghi lại số đo để lượt sau khỏi đo lại.
 
+## Và nhan đề của chính mục này từng đếm thiếu
+
+Nhan đề mục CHANGELOG của đợt này ban đầu ghi **"Ba con số"**. Tới lúc viết xong thì mục đó có **7
+bullet**, và bảng ở đầu tài liệu này liệt **5** con số. Tôi đặt tên trước rồi thêm bullet sau, và không
+ai đếm lại — tức một con số ở **nhan đề** đếm thiếu chính nội dung nó mô tả, trong một đợt phát hành đi
+chữa đúng chuyện đó.
+
+Phát hiện **sau khi đã tag** `v2.9.7`. Nên tôi tag trước bằng bản đã nghiệm thu (nội dung đúng từng
+bullet; chỉ cái nhãn sai), nói ra, rồi vá riêng — không sửa âm thầm một bản đã phát hành. Nhan đề mới
+(`Năm con số`) được kiểm bằng cách **đếm lại bảng** ở đầu tài liệu này, không bằng lời khai.
+
 ## Hai lần tôi tự làm rỗng phép đo
 
 - `/usr/bin/time` không có trong Git Bash ⇒ lượt đo worker **đầu không chạy gì**, mà lớp bọc vẫn báo

@@ -14,7 +14,7 @@
 > `.agent/**`, `tests/support/**` đều là **shared change** (xem `RULE_GLOBAL.md` §Shared Change Gate) —
 > ảnh hưởng mọi story đang chạy. Mỗi mục ghi **vấn đề → cách chữa**, không chỉ liệt kê tính năng.
 
-## v2.9.7 — 2026-11-01 — Ba con số được tin mà không ai hỏi chúng đếm trên bao nhiêu
+## v2.9.7 — 2026-11-01 — Năm con số được tin mà không ai hỏi chúng đếm trên bao nhiêu
 
 **Vấn đề → cách chữa**
 
