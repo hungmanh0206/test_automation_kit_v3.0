@@ -35,6 +35,21 @@
 - **`output_gate` chỉ kiểm CÓ tầng, không kiểm tầng CÓ THẬT.** Ba ca thật khai `be`/`fe` — hai giá trị
   ngoài 8 tầng taxonomy — nên đi qua cửa đòi bug claim (`blockingLayers` chỉ gồm `product_bug`,
   `api_bug`). Nay chặn mọi giá trị ngoài danh mục, ở **cả** lúc ghi và lúc đọc sổ.
+- **Lượt bò khám phá tới 0 màn vẫn tự khai `status: "observed"`.** Lôi ra từ một phép kiểm chập chờn có
+  sẵn trong `discovery-crawl.spec.ts`. Nguyên nhân thật: dưới tranh chấp tài nguyên, `page.goto` tới
+  trang đầu hết hạn ở 15s, trong khi `http.get` thuần tới **cùng URL** đáp **6–48ms** (36 mẫu, 0 lỗi) —
+  server khoẻ, nghẽn nằm trong đường ống của browser. Lượt bò khi đó trả `screens: []`, mà `screens` là
+  **mẫu số** của `dimension_manifest` và `scope_anchor`. Nay `boApp` **ném** `BO_DUOC_0_MAN` và lệnh
+  `discover` thoát **mã 2** (*không phán được*); ngoại lệ duy nhất là `--max-trang 0`.
+- **Điều hướng hỏng nhất thời làm teo mẫu số, và ở trang đầu thì mất cả lượt bò.** Nay thử lại tối đa
+  **3 lần**, chỉ với hết hạn hoặc không nối được — **4xx/5xx giữ nguyên**, vì đó là câu trả lời thật của
+  server. Ở **trang đầu** thì **dựng lại page** thay vì chờ: đo được lúc một lượt `goto` đang treo, page
+  mới qua sau **27ms** còn chờ trên page cũ mất **11.359ms**. Số lượt phải thử lại công khai ở
+  `so_lan_thu_lai_dieu_huong`.
+- **Hai ô báo cáo không có khả năng báo cáo** trong cùng hàm đó: `firewall: bienBan.chan.length ? 0 : 0`
+  (ternary chết) và `const apiRec = o.apiRec` chụp một lần (nên bộ theo dõi API nghe trên page đã đóng
+  sau khi dựng lại page). Bản vá **đầu** của tôi cho ô thứ nhất đếm **sai vế** — số request ghi bị chặn,
+  không phải số route không tới được — đúng khuyết điểm ② mà chính hàm ấy ra đời để chữa.
 - **`run:analysis --nhom`** gom case đỏ theo `<tầng> ‖ <câu lỗi>`. **Giữ ở mức BÁO CÁO**: đo được nén chỉ
   **1,34×**, **11%** ca nối được câu lỗi thật, **6/9** nhóm mẫu gom sai. Bản in tự khai cả bốn giới hạn
   mỗi lượt chạy, kèm câu *"KHÔNG cửa nào được chặn dựa trên bản gom này"*.

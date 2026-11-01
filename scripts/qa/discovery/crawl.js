@@ -270,7 +270,8 @@ async function gomLink(page, origin, cfg) {
 async function boApp(browser, o) {
   const cfg = o.cfg || fw.napCfg();
   const gh = cfg.gioi_han_luot_bo;
-  // `== null` chứ không `||`: `maxTrang: 0` là một yêu cầu hợp lệ (dùng để đo nhánh "bò được 0 màn").
+  // `== null` chứ không `||`: `maxTrang: 0` là một yêu cầu hợp lệ (dùng để đo nhánh "bò được 0 màn") —
+  // và là ngoại lệ duy nhất được phép trả về 0 màn mà không bị coi là phép đo hỏng, xem cuối hàm.
   const maxTrang = o.maxTrang == null ? gh.so_trang_toi_da : o.maxTrang;
   const doSau = o.doSau == null ? gh.do_sau_toi_da : o.doSau;
   const hanPhut = gh.thoi_gian_toi_da_phut || 20;
@@ -297,14 +298,23 @@ async function boApp(browser, o) {
    * đi tiếp. Và kit KHÔNG tự đăng nhập ở đây — QEMIS có captcha mỗi lượt, nên session phải được nạp sẵn
    * từ ngoài. `context.newPage()` và `browser.newPage()` cùng chữ ký nên chỗ gọi không đổi gì khác.
    */
-  const page = await (o.context || browser).newPage();
-  const bienBan = await fw.install(page, { cfg, domainChoPhep: [new URL(o.baseUrl).host] });
+  /* `let` chứ không `const`: trang ĐẦU có thể phải dựng lại page — xem `diToi` bên dưới. */
+  let page = await (o.context || browser).newPage();
+  let bienBan = await fw.install(page, { cfg, domainChoPhep: [new URL(o.baseUrl).host] });
   /*
    * Bộ theo dõi API gắn vào CÙNG `page`, trước lần `goto` đầu tiên. Nó chỉ NGHE `response`, không gửi gì.
    * Crawler có nhiệm vụ gọi `datRoute()` trước mỗi lần điều hướng — không có bước đó thì danh mục vẫn
    * đúng về endpoint nhưng mất cột `goi_tu`, mà `goi_tu` chính là thứ suy ra `shared_surface`.
    */
-  const apiRec = o.apiRec || null;
+  /*
+   * ĐỌC `o.apiRec` THEO TỪNG LƯỢT, không chụp một lần.
+   *
+   * `discover.js` bọc `newPage` để gắn bộ theo dõi API cho MỖI page mới, rồi truyền vào đây bằng một
+   * getter (`get apiRec() { return rec; }`). Bản trước chụp giá trị đó một lần ở đây, nên khi `diToi`
+   * dựng lại page ở trang đầu, biến này vẫn trỏ vào bộ theo dõi CŨ — một bộ đang nghe trên page đã
+   * đóng. Hậu quả sẽ là `api_inventory` rỗng mà không ai thấy lỗi gì: đúng kiểu hỏng im lặng.
+   */
+  const layApiRec = () => o.apiRec || null;
 
   const hangDoi = [{ url: o.baseUrl, sau: 0 }];   // mục có `lanCan: true` là trang NGOÀI phạm vi, thăm rồi dừng
   const daThay = new Set([o.baseUrl]);
@@ -315,20 +325,79 @@ async function boApp(browser, o) {
   const screens = [];
   const khongToiDuoc = { needs_account: [], captcha: [], error: [], budget: [], firewall: [] };
   const batDau = Date.now();
+  const thuLai = [];   // mỗi lượt điều hướng phải thử lại: giữ để báo cáo, vì một con số 0 ở đây mới có nghĩa
+
+  /*
+   * ĐIỀU HƯỚNG CÓ THỬ LẠI — và chỉ thử lại khi lỗi là NHẤT THỜI.
+   *
+   * Đo 01/11/2026: dưới tranh chấp tài nguyên, `page.goto` tới trang đầu hết hạn ở 15s, trong khi CÙNG
+   * lúc đó `http.get` thuần tới CÙNG URL đáp trong 6–48ms (36 mẫu, 0 lỗi). Tức server khoẻ, app khoẻ,
+   * nghẽn nằm trong đường ống của browser. Một lần hết hạn như vậy không nói gì về sản phẩm.
+   *
+   * Hậu quả khi KHÔNG thử lại, đo được: lượt bò trả về 0 màn, `route_toi_duoc: 0`, `ti_le: 0` — và vì
+   * trang đầu là nơi mọi link khác được gom, mất nó là mất TOÀN BỘ lượt bò. Với một trang giữa lượt thì
+   * nhẹ hơn nhưng cùng bản chất: mẫu số teo lại vì một sự cố nhất thời, rồi mọi tỉ lệ coverage về sau
+   * tính trên mẫu số teo đó.
+   *
+   * KHÔNG thử lại với 4xx/5xx: đó là câu trả lời THẬT của server, phải được ghi nguyên. Chỉ thử lại khi
+   * hết hạn hoặc không nối được — hai thứ không phải lời khai của app.
+   */
+  const RE_NHAT_THOI = /(Timeout|ERR_CONNECTION|ERR_NETWORK|ERR_EMPTY_RESPONSE|ERR_SOCKET|NS_ERROR|net::ERR_ABORTED)/i;
+  const LAN_TOI_DA = 3;
+
+  /*
+   * TRANG ĐẦU HỎNG thì DỰNG LẠI PAGE, không chờ trên page đang treo. Chọn thế vì đo được, 01/11/2026,
+   * ngay lúc một lượt `goto` đang treo:
+   *   · goto lượt hai trên CÙNG page : qua sau **11.359ms**
+   *   · page MỚI, cùng browser       : qua sau **27ms**
+   *   · browser mới                  : qua sau **20ms**
+   * Tức cú treo bám vào context đó, và cách ra khỏi nó rẻ hơn cách chờ nó hết **420 lần**.
+   *
+   * CHỈ ở trang đầu, và chỉ khi chưa thu được gì: lúc đó `bienBan` còn rỗng nên dựng lại không mất lời
+   * khai nào của tường lửa. Giữa lượt bò thì KHÔNG dựng lại — `bienBan` đang giữ sổ request đã chặn, và
+   * một hàng rào an toàn mất sổ thì tệ hơn một trang bị bỏ.
+   *
+   * `setTimeout` thuần thay cho `page.waitForTimeout`: bản trước chờ trên chính page vừa hỏng, nên khi
+   * page đã đóng, bước nghỉ ném "Target page, context or browser has been closed" — một thông điệp nói
+   * sai chỗ hỏng.
+   */
+  const nghi = (ms) => new Promise((r) => setTimeout(r, ms));
+  async function diToi(url, { laTrangDau = false } = {}) {
+    let loiCuoi = null;
+    for (let lan = 1; lan <= LAN_TOI_DA; lan++) {
+      try {
+        return { resp: await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 15000 }) };
+      } catch (e) {
+        loiCuoi = e;
+        if (!RE_NHAT_THOI.test(String(e.message)) || lan === LAN_TOI_DA) break;
+        let dungPageMoi = false;
+        if (laTrangDau) {
+          try {
+            await page.close();
+            page = await (o.context || browser).newPage();
+            bienBan = await fw.install(page, { cfg, domainChoPhep: [new URL(o.baseUrl).host] });
+            dungPageMoi = true;
+          } catch (e2) { /* dựng lại không được thì cứ thử tiếp trên page cũ — vẫn hơn là bỏ lượt bò */ }
+        }
+        thuLai.push({ url, lan, page_moi: dungPageMoi, vi_sao: String(e.message).split('\n')[0].slice(0, 120) });
+        await nghi(dungPageMoi ? 100 : 500 * lan);
+      }
+    }
+    return { loi: String(loiCuoi && loiCuoi.message).slice(0, 120) };
+  }
 
   while (hangDoi.length) {
     if (screens.length >= maxTrang) { khongToiDuoc.budget.push(...hangDoi.map((h) => h.url)); break; }
     if ((Date.now() - batDau) / 60000 > hanPhut) { khongToiDuoc.budget.push(...hangDoi.map((h) => h.url)); break; }
 
     const { url, sau, lanCan: laLanCan } = hangDoi.shift();
+    const apiRec = layApiRec();
     if (apiRec) apiRec.datRoute(chuanHoaRoute(url));
-    let resp = null;
-    try {
-      resp = await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 15000 });
-    } catch (e) {
-      khongToiDuoc.error.push({ url, vi_sao: String(e.message).slice(0, 120) });
-      continue;
-    }
+    /* "Trang đầu" = chưa thu được màn nào, không phải "vòng lặp thứ nhất": một trang đầu 404 rồi tới
+     * trang thứ hai vẫn là lúc `bienBan` còn rỗng, nên dựng lại page vẫn an toàn. */
+    const dh = await diToi(url, { laTrangDau: routeDaTham.size === 0 });
+    if (dh.loi) { khongToiDuoc.error.push({ url, vi_sao: dh.loi }); continue; }
+    const resp = dh.resp;
     const code = resp ? resp.status() : 0;
     if (code === 401 || code === 403) { khongToiDuoc.needs_account.push({ url, status: code }); continue; }
     if (code >= 400) { khongToiDuoc.error.push({ url, status: code }); continue; }
@@ -465,6 +534,36 @@ async function boApp(browser, o) {
    */
   const soPhatHien = routePhatHien.size;
   const soToiDuoc = routeDaTham.size;
+  /*
+   * LƯỢT BÒ TỚI 0 MÀN KHÔNG PHẢI MỘT QUAN SÁT — nó là một phép đo KHÔNG CHẠY ĐƯỢC, và hai thứ đó phải
+   * ra hai kết quả khác nhau.
+   *
+   * Bản trước trả về `{screens: [], ti_le: 0, status: 'observed'}`. Người đọc kế tiếp không phải người
+   * mà là `dimension_manifest` và `scope_anchor`: chúng lấy `screens` làm MẪU SỐ. Mẫu số 0 thì mọi tỉ lệ
+   * phủ về sau là 0/0, và lượt bò vẫn tự khai `observed` — đúng lớp lỗi "0% lỗi trên 0 request" mà kit
+   * đã bị cắn ở lượt k6: một con số tính trên không có gì, trông như một con số.
+   *
+   * Đo 01/11/2026: dưới tranh chấp, trang đầu hết hạn ở 15s (server khoẻ, http thuần 6–48ms) và lượt bò
+   * trả về 0 màn, `status: 'observed'`. Phép kiểm tính tất định đọc kết quả đó rồi kết tội CRAWLER mất
+   * tất định — một lời buộc tội SAI cho một phép đo chưa từng chạy.
+   *
+   * NÉM, không trả về. Lượt bò đã thử lại tới 3 lần mỗi trang trước khi tới đây, nên đây không phải lỗi
+   * nhất thời: nó là "không vào được app", và câu trả lời đúng cho câu đó là dừng lại, không phải báo cáo.
+   */
+  /*
+   * NGOẠI LỆ DUY NHẤT: `maxTrang: 0`. Đó là người gọi CỐ Ý xin một lượt bò 0 trang (nhánh đo ngân sách),
+   * nên 0 màn ở đây là câu trả lời đúng chứ không phải phép đo hỏng. Phân biệt được vì ngân sách 0 ghi
+   * toàn bộ hàng đợi vào `khong_toi_duoc.budget`, không ghi gì vào `error`.
+   */
+  if (soToiDuoc === 0 && maxTrang !== 0) {
+    const ct = JSON.stringify(khongToiDuoc).slice(0, 400);
+    const e = new Error(`[crawl] KHÔNG BÒ ĐƯỢC MÀN NÀO từ ${o.baseUrl} — đây là phép đo KHÔNG CHẠY ĐƯỢC, `
+      + `không phải "app có 0 màn". Đã thử lại ${thuLai.length} lượt điều hướng `
+      + `(trần ${LAN_TOI_DA} lần/lượt). Chi tiết: ${ct}`);
+    e.code = 'BO_DUOC_0_MAN';
+    e.chi_tiet = khongToiDuoc;
+    throw e;
+  }
   return {
     target: { host: kt.host, is_nonprod_confirmed: true },
     /*
@@ -486,9 +585,29 @@ async function boApp(browser, o) {
         captcha: khongToiDuoc.captcha.length,
         error: khongToiDuoc.error.length,
         budget: khongToiDuoc.budget.length,
-        firewall: bienBan.chan.length ? 0 : 0,
+        /*
+         * SỬA 01/11/2026. Dòng này từng là `bienBan.chan.length ? 0 : 0` — một ternary CHẾT, luôn trả 0
+         * bất kể gì: một ô báo cáo KHÔNG CÓ KHẢ NĂNG báo cáo.
+         *
+         * Bản vá ĐẦU của tôi đặt `bienBan.chan.length`, và nó SAI VẾ: cả khối này đếm ROUTE KHÔNG TỚI
+         * ĐƯỢC, còn `chan` đếm REQUEST GHI BỊ CHẶN — hai đơn vị khác nhau, và số request ghi bị chặn đã
+         * có chỗ riêng ở `tuong_lua.request_ghi_bi_chan`. Đúng khuyết điểm ② mà chính hàm này ra đời để
+         * chữa: tử số đếm màn, mẫu số đếm URL thô.
+         *
+         * Giá trị đúng là `khongToiDuoc.firewall.length`. Nó bằng 0 hôm nay, nhưng là một số 0 THẬT:
+         * hiện KHÔNG nhánh nào ghi vào giỏ đó, vì tường lửa chặn request chứ chưa bao giờ làm một route
+         * không tới được. Ngày có nhánh như vậy thì ô này báo, còn ternary cũ thì không.
+         */
+        firewall: khongToiDuoc.firewall.length,
       },
       chi_tiet_khong_toi_duoc: khongToiDuoc,
+      /*
+       * SỐ LẦN PHẢI THỬ LẠI điều hướng. Công khai chứ không im lặng: một lượt bò thử lại 40 lần vẫn ra
+       * kết quả "đủ màn", nhưng nó đang nói rằng môi trường đo không ổn định — và người đọc phải biết
+       * điều đó trước khi lấy lượt bò này làm mẫu số.
+       */
+      so_lan_thu_lai_dieu_huong: thuLai.length,
+      chi_tiet_thu_lai: thuLai.slice(0, 20),
       /*
        * Link CỐ Ý KHÔNG đi theo. Ghi ra chứ không im lặng: người đọc phải biết lượt bò đã tránh những
        * đường nào, nếu không thì "không thấy màn Đăng xuất" trông như một thiếu sót của lượt bò.

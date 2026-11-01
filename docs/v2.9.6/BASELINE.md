@@ -628,6 +628,60 @@ luật, lý do — hạ verdict **không xoá** số đo hay evidence.
 
 Kết quả: cả **5/5** task sạch ở phép kiểm này.
 
+## Lượt bò khám phá: một phép kiểm chập chờn, và ba lỗi thật sau nó
+
+`discovery-crawl.spec.ts` có một phép kiểm *"hai lượt cùng cấu hình ⇒ cùng danh sách màn"* đỏ khoảng
+**3/6 lượt** dưới tải. Tôi từng báo nó mất **4 route bậc hai**. **Sai** — có máy đo rồi mới thấy lượt thứ
+hai chết ở `page.goto` **đầu tiên** nên ra **0 màn**.
+
+### Chuỗi loại nghi phạm
+
+| Nghi phạm | Phép đo | Kết luận |
+|---|---|---|
+| Server fixture đói CPU | `http.get` thuần tới cùng URL lúc `goto` treo: **6–48ms**, 36 mẫu, 0 lỗi | **loại** |
+| Trạng thái tích tụ sau lượt trước | lượt 5 và 6 xanh lại sau 3 lượt liền đỏ | **loại** |
+| `srv.reset()` thiếu giữa hai lượt | vá rồi vẫn đỏ **0·2·1** | **loại** |
+| `doTre: 0` ghi đè độ trễ 250ms | đặt lại 250ms vẫn đỏ **1·1·0** | **loại** |
+| Tải CPU thuần là đủ để tái hiện | 10 rồi 21 tiến trình quay CPU: **0/10 lượt** tái hiện bằng probe node | **không đủ** |
+| Page chết hẳn | `goto` lượt hai **cùng page: 11.359ms**; page mới **27ms**; browser mới **20ms** | **treo nhất thời** |
+
+Hai hàng cuối là chỗ bẻ được bài: cú treo bám vào context đó, và **ra khỏi nó rẻ hơn chờ nó hết 420 lần**.
+
+### Ba lỗi thật, đều ở `crawl.js`
+
+1. **0 màn vẫn `status: 'observed'`** — `screens` là mẫu số của `dimension_manifest` và `scope_anchor`.
+   Nay ném `BO_DUOC_0_MAN`; `discover` thoát **mã 2**. Ngoại lệ: `--max-trang 0`.
+2. **Điều hướng hỏng nhất thời không thử lại** — nay thử tối đa 3 lần, và ở **trang đầu** thì dựng lại
+   page. 4xx/5xx **không** thử lại.
+3. **Hai ô báo cáo không thể báo cáo** — `firewall: … ? 0 : 0` và `const apiRec = o.apiRec` chụp một lần.
+
+### Hai lỗi của chính tôi trong lượt này
+
+- **Máy đo tự nó rỗng:** đọc `khong_toi_duoc` rồi lọc theo `.length`, mà đó là map **số đếm** — nên nó in
+  *"không route nào bị bỏ"* cho một lượt mất trắng 7 màn. Chi tiết nằm ở `chi_tiet_khong_toi_duoc`.
+- **Bản vá đếm sai vế:** cho ô `firewall` lấy `bienBan.chan.length`, tức số request ghi bị chặn, trong
+  khi cả khối đếm **route không tới được** — đúng khuyết điểm ② mà chính hàm ấy ra đời để chữa.
+
+### Hai phép kiểm khai quá, lộ ra nhờ chốt mới
+
+`gomLink` chạy **sau** trần mỗi trang, nên một trang hết giờ không đóng góp link nào — từ một trang đầu
+hết giờ thì lượt bò **không thể** đi tiếp. Vậy mà hai phép kiểm mang tên *"lượt bò ĐI TIẾP"* và *"một
+trang hỏng KHÔNG làm chết cả lượt"* đều chạy trên lượt bò **không có trang hỏng nào** hoặc **chỉ có một
+trang**. Nay cả hai mang tên đúng việc chúng làm, và nhánh "đi tiếp" do một phép kiểm mới gác — ở đó `/`
+vào được và `/mat` trả 404 thật.
+
+### Số đo cuối
+
+| Phép đo | Trước | Sau |
+|---|---|---|
+| Nhóm `TẤT ĐỊNH`, tải 11 tiến trình, 3 lượt | **3 đỏ · 3 đỏ · 3 đỏ** | **9 xanh · 9 xanh · 9 xanh** |
+| Thời gian mỗi lượt dưới cùng mức tải | 6,2–6,6 phút | 1,4–2,2 phút |
+| Cả 5 spec nhóm `discovery`, máy rỗi | — | **128 xanh** |
+
+Trần thời gian của file nâng lên 3 phút, kèm số đo: một lượt bò đầy đủ mất 19s khi rỗi và **28–41s** dưới
+tải, mà phép kiểm tất định phải bò **hai** lượt — tức 56–82s, đã ăn **91%** trần 90s khi mọi thứ hoàn
+toàn khoẻ. Không assertion nào đổi.
+
 ## Các mục khác
 
-*(không còn — N1 · N2.1–2.4 · N3 · N4 · N5 · N6 · N7 đã xong; N8 chờ phiên mới)*
+*(không còn — N1 · N2.1–2.4 · N3 · N4 · N5 · N6 · N7 · N8 đã xong)*

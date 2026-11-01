@@ -31,6 +31,23 @@ import { chromium, Browser } from '@playwright/test';
  */
 test.describe.configure({ mode: 'default' });
 
+/*
+ * TRẦN THỜI GIAN RIÊNG CHO FILE NÀY — 90s mặc định KHÔNG đủ, và con số nói rõ vì sao.
+ *
+ * Đo 01/11/2026, một lượt bò đầy đủ trên fixture (7 màn, 35 URL):
+ *   · máy rỗi          : 19s
+ *   · 10–21 tiến trình quay CPU : 28s · 34s · 36s · 41s
+ * Phép kiểm tính tất định phải bò HAI lượt, nên dưới tranh chấp nó cần 56–82s khi mọi thứ hoàn toàn
+ * khoẻ — tức đã ăn tới 91% trần 90s trước khi có bất kỳ sự cố nào. Một trần mà phép kiểm khoẻ cũng chỉ
+ * vừa đủ thì nó không còn gác thời gian, nó chỉ sinh đỏ ngẫu nhiên.
+ *
+ * Trần này KHÔNG nới phép kiểm nào: không assertion nào đổi, không giá trị mong đợi nào đổi. Nó chỉ nói
+ * rằng một spec bò hai lượt UI thì tốn hơn một spec mở một trang.
+ *
+ * 90s của `playwright.config.js` chọn cho "login OIDC + first paint của SPA" — một việc khác hẳn.
+ */
+test.setTimeout(3 * 60 * 1000);
+
 const FX = path.resolve(__dirname, '..', 'fixtures', 'discovery-app', 'server.js');
 const DIR = path.resolve(__dirname, '..', '..', '..', 'scripts', 'qa', 'discovery');
 // eslint-disable-next-line @typescript-eslint/no-var-requires
@@ -57,7 +74,51 @@ test.afterAll(async () => { await br.close(); await srv.close(); });
  * Bản đầu của spec này mất 4,1 phút, gần hết là thời gian chờ; một spec hạ tầng chậm thế thì người ta thôi
  * chạy nó trước khi commit, và lúc đó nó không gác gì nữa.
  */
-const bo = (o: Record<string, unknown> = {}) => cr.boApp(br, { baseUrl: srv.url, coCo: true, doTre: 0, ...o });
+const boMotLan = (o: Record<string, unknown> = {}) => cr.boApp(br, { baseUrl: srv.url, coCo: true, doTre: 0, ...o });
+
+/*
+ * ĐO LẠI KHI PHÉP ĐO KHÔNG CHẠY ĐƯỢC — và CHỈ khi đó (SỬA 01/11/2026).
+ *
+ * Chuyện đã đo, 01/11/2026, dưới tranh chấp tài nguyên (10 tiến trình quay CPU + cả bó spec):
+ *   · `page.goto` tới trang đầu hết hạn ở 15s, trong khi `http.get` thuần tới CÙNG URL đáp 6–48ms
+ *     (36 mẫu, 0 lỗi) ⇒ server khoẻ, app khoẻ, nghẽn nằm trong đường ống của browser.
+ *   · Page KHÔNG chết: goto lượt hai trên CÙNG page qua sau 11,4s; page mới qua sau 27ms; browser mới
+ *     20ms. Tức đây là một cú treo NHẤT THỜI của lượt điều hướng đầu trên một context mới.
+ *   · Không phải trạng thái tích tụ: lượt bò thứ 5 và 6 xanh lại sau 3 lượt liền đỏ.
+ *
+ * Vì sao phải đo lại chứ không để đỏ: khi lượt bò không chạy được, nó trả về 0 màn, và phép kiểm tính
+ * tất định đọc "lượt a có 7 màn, lượt b có 0 màn" rồi KẾT TỘI CRAWLER mất tất định. Đó là một lời buộc
+ * tội sai cho một phép đo chưa từng chạy — đúng lớp lỗi "phép đo không phân biệt được".
+ *
+ * Vì sao đây KHÔNG phải nới phép kiểm: chỉ bắt đúng mã lỗi `BO_DUOC_0_MAN`, tức lượt bò TỰ KHAI là nó
+ * không vào được app. Mọi lỗi khác ném nguyên. Phép so hai mảng route không đổi một chữ. Và hết trần mà
+ * vẫn không đo được thì ĐỎ, kèm lý do — "không đo được" KHÔNG thành xanh.
+ */
+const TRAN_DO_LAI = 3;
+const bo = async (o: Record<string, unknown> = {}) => {
+  const khong: string[] = [];
+  for (let lan = 1; lan <= TRAN_DO_LAI; lan++) {
+    try {
+      const r = await boMotLan(o);
+      /*
+       * NÓI RA số lượt điều hướng đã phải thử lại. Thiếu dòng này thì một lượt xanh KHÔNG phân biệt được
+       * "môi trường khoẻ" với "môi trường treo mà bản vá đã hấp thụ" — và lúc đó một lượt xanh không
+       * chứng minh bản vá có tác dụng.
+       */
+      const n = (r as { crawl_completeness: { so_lan_thu_lai_dieu_huong: number } }).crawl_completeness.so_lan_thu_lai_dieu_huong;
+      if (n > 0) console.warn(`[discovery-crawl] ${n} lượt điều hướng phải thử lại (đã hấp thụ, lượt bò vẫn đủ màn).`);
+      return r;
+    } catch (e) {
+      const err = e as Error & { code?: string };
+      if (err.code !== 'BO_DUOC_0_MAN') throw err;
+      khong.push(`lần ${lan}: ${err.message.slice(0, 200)}`);
+      /* NÓI RA khi phải đo lại: một lượt chạy im lặng đo lại 3 lần trông y như một lượt chạy khoẻ. */
+      console.warn(`[discovery-crawl] lượt bò ${lan}/${TRAN_DO_LAI} KHÔNG vào được app — đo lại.`);
+    }
+  }
+  throw new Error(`KHÔNG ĐO ĐƯỢC tính tất định: ${TRAN_DO_LAI}/${TRAN_DO_LAI} lượt bò không vào được app. `
+    + `Đây KHÔNG phải bằng chứng crawler mất tất định, và cũng KHÔNG được coi là đạt.\n${khong.join('\n')}`);
+};
 
 /** Dùng lại MỘT lượt bò mặc định cho các test chỉ ĐỌC kết quả. Test đo tính tất định vẫn bò thật hai lượt. */
 let boMacDinh: Promise<Record<string, unknown>> | null = null;
@@ -257,6 +318,34 @@ test.describe('@infra độ đầy đủ lượt bò — lỗi ② đã sửa', 
   });
 });
 
+/*
+ * LỜI KHAI KÈM THEO khi hai lượt bò khác nhau — thiếu nó thì phép kiểm tất định vô dụng lúc nó đỏ.
+ *
+ * Bản đầu chỉ so hai mảng route, nên khi đỏ, tất cả người đọc có là "lượt sau thiếu 4 màn". Mà "thiếu
+ * màn" có HAI nguyên nhân khác nhau hoàn toàn: route KHÔNG BAO GIỜ được gom (lỗi ở `gomLink` trên trang
+ * cha), hay route gom được rồi mà KHÔNG thăm nổi (lỗi ở `goto`, captcha, trần mỗi trang). `crawl.js` đã
+ * tách sẵn hai chuyện đó vào `crawl_completeness`; chỉ là phép kiểm không in ra.
+ *
+ * Đo 01/11/2026: lượt đỏ ở `release:verify` mất đúng 4 route và tôi phải đoán. Hai giả thuyết đầu tôi đo
+ * đều SAI, và cả hai đều có thể bị loại trong 10 giây nếu con số này có sẵn trong thông báo lỗi.
+ */
+function loiKhai(ten: string, r: Record<string, any>): string {
+  const cc = r.crawl_completeness;
+  /*
+   * ĐỌC `chi_tiet_khong_toi_duoc`, KHÔNG đọc `khong_toi_duoc`. Bản đầu của chính hàm này đọc cái thứ hai
+   * rồi lọc theo `.length` — mà đó là map SỐ ĐẾM, nên `.length` luôn `undefined` và máy đo in ra "không
+   * route nào bị bỏ" cho một lượt bò mất trắng 7 màn. Một máy đo nói sai thì tệ hơn không có máy đo.
+   */
+  const ct = cc.chi_tiet_khong_toi_duoc as Record<string, unknown[]>;
+  const kt = Object.entries(ct)
+    .filter(([, v]) => Array.isArray(v) && v.length)
+    .map(([k, v]) => `${k}=${v.length} ${JSON.stringify(v).slice(0, 300)}`);
+  return `[${ten}] gom ${cc.route_phat_hien} route (${cc.url_tho_phat_hien} url thô), thăm được `
+    + `${cc.route_toi_duoc}, màn ${(r.screens as Man[]).length}`
+    + (kt.length ? ` — KHÔNG TỚI: ${kt.join(' · ')}` : ' — không route nào bị bỏ')
+    + ` · tường lửa ${JSON.stringify(r.tuong_lua)}`;
+}
+
 test.describe('@infra bò TẤT ĐỊNH, và không chạm dữ liệu', () => {
   test('hai lượt cùng cấu hình ⇒ CÙNG danh sách màn, CÙNG thứ tự', async () => {
     /*
@@ -265,14 +354,101 @@ test.describe('@infra bò TẤT ĐỊNH, và không chạm dữ liệu', () => {
      */
     const a = await bo({ keoSnapshot: false });
     const b = await bo({ keoSnapshot: false });
-    expect((b.screens as Man[]).map((s) => s.route)).toEqual((a.screens as Man[]).map((s) => s.route));
-    expect(b.crawl_completeness.route_toi_duoc).toBe(a.crawl_completeness.route_toi_duoc);
+    const vi = `${loiKhai('lượt a', a)}\n${loiKhai('lượt b', b)}`;
+    expect((b.screens as Man[]).map((s) => s.route), vi).toEqual((a.screens as Man[]).map((s) => s.route));
+    expect(b.crawl_completeness.route_toi_duoc, vi).toBe(a.crawl_completeness.route_toi_duoc);
   });
 
   test('cắt vì hết ngân sách cũng phải TẤT ĐỊNH — cùng cấu hình, cắt cùng chỗ', async () => {
     const a = await bo({ maxTrang: 3, keoSnapshot: false });
     const b = await bo({ maxTrang: 3, keoSnapshot: false });
-    expect((b.screens as Man[]).map((s) => s.route)).toEqual((a.screens as Man[]).map((s) => s.route));
+    const vi = `${loiKhai('lượt a', a)}\n${loiKhai('lượt b', b)}`;
+    expect((b.screens as Man[]).map((s) => s.route), vi).toEqual((a.screens as Man[]).map((s) => s.route));
+  });
+
+  /*
+   * ĐỐI CHỨNG cho chốt "0 màn KHÔNG phải quan sát" và cho bước thử lại điều hướng (SỬA 01/11/2026).
+   *
+   * Vì sao cần máy chủ riêng chứ không dùng `srv`: hai phép kiểm này đòi một máy chủ CỐ Ý hỏng theo
+   * kịch bản — hai lượt đầu cắt kết nối, lượt ba trả trang. Không có nó thì không phân biệt được "thử
+   * lại có bắn" với "thử lại không bao giờ cần tới", và một bước thử lại chưa bao giờ bắn thì không
+   * chứng minh được gì.
+   */
+  function mayChuHong(soLanCat: number, than: string) {
+    let dem = 0;
+    const log: string[] = [];
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    const http = require('http');
+    const sv = http.createServer((rq: { url: string }, rs: Record<string, (...a: unknown[]) => void> & { socket: { destroy(): void } }) => {
+      log.push(rq.url);
+      if (dem++ < soLanCat) { rs.socket.destroy(); return; }
+      if (rq.url === '/mat') { rs.writeHead(404, { 'content-type': 'text/html' }); rs.end('<h1>404</h1>'); return; }
+      rs.writeHead(200, { 'content-type': 'text/html' });
+      rs.end(than);
+    });
+    return new Promise<{ url: string; log: string[]; close(): Promise<void> }>((res) => {
+      sv.listen(0, '127.0.0.1', () => {
+        const port = (sv.address() as { port: number }).port;
+        res({
+          url: `http://127.0.0.1:${port}`,
+          log,
+          close: () => new Promise<void>((r) => sv.close(() => r())),
+        });
+      });
+    });
+  }
+
+  test('KHÔNG vào được app ⇒ NÉM, KHÔNG trả về "0 màn, observed"', async () => {
+    /*
+     * Lý do chốt này tồn tại, đo 01/11/2026: dưới tranh chấp tài nguyên, `goto` tới trang đầu hết hạn ở
+     * 15s trong khi `http.get` thuần tới CÙNG URL đáp 6–48ms. Lượt bò khi đó trả `{screens: [], ti_le: 0,
+     * status: 'observed'}` — và `dimension_manifest` lấy `screens` làm MẪU SỐ, nên mẫu số 0 đi tiếp mà
+     * không ai chặn. Đúng lớp lỗi "0% lỗi trên 0 request".
+     */
+    const chet = await mayChuHong(0, '');
+    const cong = new URL(chet.url).port;
+    await chet.close();   // đóng ngay: cần một CỔNG CHẾT, và đây là cách lấy cổng chắc chắn không ai nghe
+
+    let loi: (Error & { code?: string }) | null = null;
+    try {
+      await cr.boApp(br, { baseUrl: `http://127.0.0.1:${cong}`, coCo: true, doTre: 0, keoSnapshot: false });
+    } catch (e) { loi = e as Error & { code?: string }; }
+    expect(loi, 'lượt bò không vào được app PHẢI ném, không được trả kết quả').not.toBeNull();
+    expect(loi!.code).toBe('BO_DUOC_0_MAN');
+    expect(loi!.message).toMatch(/phép đo KHÔNG CHẠY ĐƯỢC/);
+  });
+
+  test('`maxTrang: 0` vẫn trả về bình thường — xin bò 0 trang KHÁC không vào được app', async () => {
+    /* Ngoại lệ duy nhất của chốt trên. Thiếu phép kiểm này thì chốt kia dễ bị siết thành luôn-ném. */
+    const r = await bo({ maxTrang: 0, keoSnapshot: false });
+    expect((r.screens as Man[]).length).toBe(0);
+    expect(r.crawl_completeness.khong_toi_duoc.budget, 'và phần bị cắt phải được kê').toBeGreaterThan(0);
+    expect(r.crawl_completeness.khong_toi_duoc.error, 'KHÔNG có lỗi nào — đây là ngân sách, không phải sự cố').toBe(0);
+  });
+
+  test('điều hướng hỏng NHẤT THỜI ⇒ thử lại và đi tiếp; 404 thì KHÔNG thử lại', async () => {
+    const mc = await mayChuHong(2, '<html><body><a href="/mat">Mất</a><h1>Trang chủ</h1></body></html>');
+    try {
+      const r = await cr.boApp(br, { baseUrl: mc.url, coCo: true, doTre: 0, keoSnapshot: false });
+      /* ĐỐI CHỨNG DƯƠNG: thử lại PHẢI bắn — nếu 0 thì phép kiểm này không chứng minh gì. */
+      expect(r.crawl_completeness.so_lan_thu_lai_dieu_huong, 'hai lượt đầu bị cắt kết nối thì phải có thử lại')
+        .toBeGreaterThan(0);
+      expect((r.screens as Man[]).length, 'và lượt bò vẫn phải tới được trang chủ').toBeGreaterThan(0);
+      /*
+       * ĐỐI CHỨNG ÂM: `/mat` trả 404 — đó là câu trả lời THẬT của server, không phải sự cố nhất thời,
+       * nên nó phải được gọi ĐÚNG MỘT LẦN. Thử lại 4xx là cách êm ái nhất để biến một câu trả lời rõ
+       * ràng thành ba lần hỏi cùng một câu.
+       */
+      const soLanGoiMat = mc.log.filter((u) => u === '/mat').length;
+      expect(soLanGoiMat, '404 KHÔNG được thử lại').toBe(1);
+      /*
+       * ĐỐI CHỨNG cho bước DỰNG LẠI PAGE ở trang đầu. Đo được lúc một lượt `goto` đang treo: page mới
+       * qua sau 27ms, còn chờ trên page cũ mất 11,4s. Thiếu phép kiểm này thì bước dựng lại page có thể
+       * chết đi mà không ai biết, và lượt bò lại quay về chờ 15s mỗi lần.
+       */
+      const ct = r.crawl_completeness.chi_tiet_thu_lai as { page_moi?: boolean }[];
+      expect(ct.some((x) => x.page_moi === true), 'thử lại ở TRANG ĐẦU phải dựng page mới').toBe(true);
+    } finally { await mc.close(); }
   });
 
   test('sau CẢ lượt bò: 0 lượt ghi, dữ liệu fixture nguyên vẹn', async () => {
@@ -365,7 +541,7 @@ test.describe('@infra trần MỖI TRANG — trần tổng một mình không đ
    * có timeout nào, và trên app ASP.NET thì `moCacKhoi` bấm vào các nút gây POSTBACK — tức một request
    * ghi, bị chính tường lửa của ta abort, để lại trang ở trạng thái điều hướng dở.
    */
-  test('một trang chặn luồng JS ⇒ bỏ qua trang đó, lượt bò ĐI TIẾP', async () => {
+  test('trang vượt trần MỖI TRANG ⇒ vào `khong_toi_duoc.error`, KHÔNG thành một màn', async () => {
     /*
      * Làm chậm bằng `doTre` × số khối, KHÔNG bằng khối chặn JS trong trang. Đây là một lần sửa flaky
      * của chính test này, và lý do đầy đủ nằm ở `/trang-cham` trong fixture: hai bản trước chặn luồng
@@ -374,21 +550,48 @@ test.describe('@infra trần MỖI TRANG — trần tổng một mình không đ
      *
      * 4 khối × 500ms là 2 giây xử lý, đo bằng `page.waitForTimeout` phía điều khiển, trên trần 1 giây.
      */
+    /*
+     * TÊN CŨ LÀ "bỏ qua trang đó, lượt bò ĐI TIẾP", và nó KHAI QUÁ — phát hiện 01/11/2026 khi chốt
+     * `BO_DUOC_0_MAN` làm phép kiểm này đỏ.
+     *
+     * Lượt bò ở đây chỉ có ĐÚNG MỘT trang, nên không có chỗ nào để "đi tiếp" tới. Nặng hơn: `gomLink`
+     * chạy SAU trần mỗi trang, nên một trang hết giờ KHÔNG đóng góp link nào — tức từ một trang đầu hết
+     * giờ thì lượt bò không thể đi tiếp, dù mã có muốn. Nhánh "một trang hỏng không làm chết cả lượt"
+     * được gác thật ở phép kiểm `điều hướng hỏng NHẤT THỜI…` phía trên: ở đó `/` vào được và `/mat` trả
+     * 404, nên lượt bò vừa có trang hỏng vừa có màn thật.
+     *
+     * Việc còn lại của phép kiểm này — và nó có giá trị riêng — là: trang vượt trần phải vào
+     * `khong_toi_duoc.error` kèm lý do đọc được, và KHÔNG được tính là một màn đã bò.
+     */
     const cfg = fw.napCfg();
     cfg.gioi_han_luot_bo = { ...cfg.gioi_han_luot_bo, thoi_gian_moi_trang_giay: 1 };
-    const r = await cr.boApp(br, {
-      baseUrl: `${srv.url}/trang-cham?khoi=4`, coCo: true, cfg, doTre: 500, keoSnapshot: false, doSau: 0,
-    });
-    const loi = r.crawl_completeness.chi_tiet_khong_toi_duoc.error;
-    /* Thông điệp nêu lượt bò thấy GÌ: "0 > 0" một mình không nói được trang đó đã rơi vào đâu. */
-    const noiRa = `khong_toi_duoc=${JSON.stringify(r.crawl_completeness.chi_tiet_khong_toi_duoc)} · screens=${JSON.stringify(r.screens.map((s: { route: string }) => s.route))}`;
-    expect(loi.length, `trang chậm phải vào danh sách không tới được — ${noiRa}`).toBeGreaterThan(0);
-    expect(String(loi[0].vi_sao)).toMatch(/quá 1s cho một trang/);
-    expect(r.screens.length, 'và KHÔNG được tính là một màn đã bò').toBe(0);
+    let loi: (Error & { code?: string; chi_tiet?: { error: { vi_sao?: string }[] } }) | null = null;
+    try {
+      await cr.boApp(br, {
+        baseUrl: `${srv.url}/trang-cham?khoi=4`, coCo: true, cfg, doTre: 500, keoSnapshot: false, doSau: 0,
+      });
+    } catch (e) { loi = e as Error & { code?: string; chi_tiet?: { error: { vi_sao?: string }[] } }; }
+
+    /*
+     * NÉM, không trả về 0 màn: trang duy nhất của lượt bò đã hết giờ, nên lượt này KHÔNG đo được gì —
+     * và `screens: []` mà mang nhãn `observed` thì đi tiếp vào mẫu số của `dimension_manifest`.
+     */
+    expect(loi, 'lượt bò không còn màn nào PHẢI ném').not.toBeNull();
+    expect(loi!.code).toBe('BO_DUOC_0_MAN');
+    const ds = (loi!.chi_tiet || { error: [] }).error;
+    expect(ds.length, `trang chậm phải vào danh sách không tới được — ${JSON.stringify(loi!.chi_tiet)}`).toBeGreaterThan(0);
+    expect(String(ds[0].vi_sao)).toMatch(/quá 1s cho một trang/);
   });
 
-  test('một trang hỏng KHÔNG làm chết cả lượt — các trang còn lại vẫn là dữ liệu thật', async () => {
-    /* Đây là lý do dùng `continue` chứ không `throw`: 11 trang còn lại vẫn đáng giá. */
+  test('trần mỗi trang KHÔNG làm teo một lượt bò bình thường', async () => {
+    /*
+     * Tên cũ là "một trang hỏng KHÔNG làm chết cả lượt", và nó cũng khai quá: fixture không có trang nào
+     * vượt trần 2 giây, nên phép kiểm này chưa bao giờ có một trang hỏng để mà chứng minh. Nhánh ấy nay
+     * do phép kiểm `điều hướng hỏng NHẤT THỜI…` gác, với một trang 404 thật.
+     *
+     * Việc thật của nó: hạ trần mỗi trang xuống 2 giây KHÔNG được làm teo lượt bò bình thường — tức
+     * trần ấy không bắn oan.
+     */
     const cfg = fw.napCfg();
     cfg.gioi_han_luot_bo = { ...cfg.gioi_han_luot_bo, thoi_gian_moi_trang_giay: 2 };
     const r = await cr.boApp(br, { baseUrl: srv.url, coCo: true, cfg, doTre: 0, keoSnapshot: false });
