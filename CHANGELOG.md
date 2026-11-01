@@ -14,6 +14,59 @@
 > `.agent/**`, `tests/support/**` đều là **shared change** (xem `RULE_GLOBAL.md` §Shared Change Gate) —
 > ảnh hưởng mọi story đang chạy. Mỗi mục ghi **vấn đề → cách chữa**, không chỉ liệt kê tính năng.
 
+## v2.9.7 — 2026-11-01 — Ba con số được tin mà không ai hỏi chúng đếm trên bao nhiêu
+
+**Vấn đề → cách chữa**
+
+Cả ba mục dưới đây là cùng một lớp hỏng: một con số **đúng** được đọc thành một kết luận **rộng hơn**
+nó. Không máy nào đỏ, vì chẳng có gì sai — chỉ có mẫu số không được nói ra.
+
+- **`expected:check` in `✓ ĐẠT` trên 273/312 case mà không nói 273.** Đo 01/11/2026 ở CSDL-4008: bộ có
+  312 case, mốc băm chỉ chứa 273, cửa in `+ 39 case MỚI` rồi kết luận `✓ ĐẠT`. Câu đó đúng từng chữ —
+  không case nào **đổi** expected — nhưng 39 case kia không có băm nào để so, nên đổi `Kết quả mong đợi`
+  ở đúng 39 case đó là **vô hình**. Và mốc ấy không khai `chup_giua_task`, tức đang được đọc là *chụp ở
+  cửa chốt*, trong khi bộ case lớn thêm sau nó — hai điều không thể cùng đúng. Nay câu ĐẠT mang
+  `<đã gác>/<tổng>` ở **cả hai** đường `✓`, `--json` trả `so_case_co_moc` · `so_case_khong_moc` ·
+  `ty_le_duoc_gac`, lời khai cửa-chốt tự mâu thuẫn bị tố cáo, và dạng `expected:check:enforce` **CHẶN**
+  ở cửa publish — nơi bộ case đã chốt nên "case chưa có mốc" mới thật là lỗi. Cửa `done` giữ bản mặc
+  định để không chặn 6 task đang chạy ở giữa đường. *(Lượt vá đầu của tôi chỉ sửa một trong hai đường
+  `✓`, mà ca CSDL-4008 nổ ở đường còn lại — tức bản vá rỗng đúng với ca sinh ra nó. Nên mỗi đường nay
+  có một phép kiểm riêng.)*
+- **`audit:ci` in `moderate 12` rồi `✓ OK`, và con số đó không phân biệt được "đã rà" với "vừa xuất
+  hiện".** Phép đo ở đây là chính tôi: tôi báo với người dùng `8 advisory moderate (uuid, exceljs)` —
+  sai con số, sai tên gói, sai cả bản chất. `12` và `8` đều là số **GÓI** (cả cây / chỉ prod), còn số
+  advisory là **1**: `minimatch` GHSA-g3hv-75wg-m249, tán ra qua `eslint` (devDep) và `exceljs` (prod).
+  Tôi đọc con số đó từ trí nhớ vì bản thân nó không chở theo gì để đối chiếu. Nay cửa giải advisory theo
+  mã GHSA, in `N gói bị ảnh hưởng ⇐ M advisory gốc`, và đòi mỗi advisory dưới ngưỡng có một dòng ở
+  `.agent/config/audit_allow.json` kèm **phép đo** và **hạn dùng** — chưa khai thì CHẶN (không vì nó
+  nguy hiểm, mà vì chưa ai xem), hết hạn thì CHẶN. **Đã thử vá thật và đo:** `overrides.minimatch=^11`
+  đưa audit về 0 vuln nhưng làm `require('glob').sync` **NÉM** `Cannot read properties of undefined
+  (reading 'charAt')` — glob@7 nằm trong cây prod, nên override làm xanh con số bằng cách làm **vỡ**
+  thư viện. Đã trả lại. Phép thử đó đồng thời là đối chứng cho tính không-với-tới: dưới minimatch@11
+  `glob.sync` vỡ còn `exceljs` ghi+đọc .xlsx **vẫn chạy**, nên đường exceljs của kit không chạm
+  minimatch. *(Bản đầu của chính máy này in "tán ra 1 gói" cho advisory đang ảnh hưởng 8 — nó chỉ đếm
+  gói có `via` dạng object, bỏ cả chuỗi `via` dạng chuỗi. Lớp hỏng mà máy này ra đời để chữa, tái diễn
+  ngay trong máy, và nay có phép kiểm riêng.)*
+- **`workers` cục bộ lấy `cores/2`, nên máy nhiều lõi hơn KHÔNG an toàn hơn.** Mỗi worker mở một
+  browser, và một `chrome-headless-shell` chiếm **3–4 tiến trình** (đo: 0 → 3 sau launch, giữ 3–4 qua 8
+  lượt bò, về 0 sau khi đóng). 12 lõi ⇒ 6 worker ⇒ ~24 tiến trình; 32 lõi ⇒ 16 worker ⇒ ~64. Trong khi
+  mọi trần của `discovery-crawl` là số **tuyệt đối**: 250ms/400ms mỗi khối · 8s mỗi trang · 15s mỗi
+  `page.goto` · 3 phút mỗi file. Đúng cú treo `page.goto` của v2.9.6 sinh ra ở vùng đó. Nay trần **6**,
+  và cơ sở của con số là phép đo chứ không phải ước lượng: đó là cấu hình `full:suite` đã chạy
+  **2384 xanh · 0 đỏ** nhiều lượt, kể cả những lượt có cú treo và nó được hấp thụ. Trên 6 là vùng
+  **chưa đo** — không có máy nhiều lõi hơn để đo, nên trần này nói *chưa biết*, không nói *đã biết là
+  tệ*. Vượt trần có chủ đích bằng `PW_WORKERS`. Trên máy 12 lõi hành vi **không đổi** (vẫn 6), nên phép
+  kiểm phải giả lập số lõi trong tiến trình con — đọc `workers` trên máy đang chạy thì không phân biệt
+  được hai nhánh.
+- **Và chính số phiên bản cũng là một bản sao viết tay không ai gác.** Lộ ra ngay trong đợt này: thư
+  viện thuật ngữ ghi `Phiên bản kit: 2.9.6` trong khi `package.json` đã là 2.9.7. `library:drift` không
+  bắt được vì nó so `index.html` với `src/` — tức so hai bản sao **với nhau**, cả hai cùng sai thì vẫn
+  xanh. `version:check` nay có phép kiểm ⑨: mọi bề mặt trạng-thái-hiện-tại khai `Phiên bản kit: X.Y.Z`
+  phải khớp `package.json`, tài liệu lịch sử (CHANGELOG, `docs/v…`) được bỏ qua vì số trong đó đúng ở
+  thời điểm ghi. *(⑨ đỏ ngay lượt đầu vì CHÍNH CÂU CHÚ THÍCH của nó — chú thích dẫn `2.9.6` làm ví dụ
+  và cửa đọc ví dụ thành lời khai. Đúng bài học của `gate:policy` ở v2.9.6, nên ⑨ dùng lại `boChuThich`
+  thay vì viết lại, và có một cặp phép kiểm phân biệt "bỏ đúng chú thích" với "bỏ hết".)*
+
 ## v2.9.6 — 2026-11-01 — Skill tự nạp được, và bốn cửa tắt cùng lúc khi gọi FAIL bằng đúng tên chuẩn
 
 **Vấn đề → cách chữa**

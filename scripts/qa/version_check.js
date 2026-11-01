@@ -28,6 +28,8 @@ const path = require('path');
 const { execFileSync } = require('child_process');
 
 const REPO = path.resolve(__dirname, '..', '..');
+/* `boChuThich` dùng lại từ `recon_passive.js` — xem lý do ở phép kiểm ⑨. */
+const { boChuThich } = require('./recon_passive.js');
 const SEMVER = /^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-[0-9A-Za-z-.]+)?$/;
 
 /** Chạy git; KHÔNG có `.git` (hoặc không có git) thì trả null thay vì ném. */
@@ -244,6 +246,46 @@ function main() {
       else console.log(`[version] ⑦ ${soCho} bản sao viết tay của số máy, nguồn \`GATES.md\` = ${tongGate}`);
     }
   }
+
+  /*
+   * ⑨ BẢN SAO VIẾT TAY CỦA CHÍNH SỐ PHIÊN BẢN (thêm 01/11/2026).
+   *
+   * ⑦ gác số MÁY viết tay. Nhưng số PHIÊN BẢN cũng có bản sao viết tay, và nó vừa trôi: thư viện thuật
+   * ngữ ghi `Phiên bản kit: 2.9.6` trong khi `package.json` đã là 2.9.7. `library:drift` không bắt được
+   * vì nó so `index.html` với `src/`, tức so hai bản sao VỚI NHAU — cả hai cùng sai thì nó vẫn xanh.
+   * Đúng lớp hỏng mà đợt này đang chữa: một con số được tin mà không ai hỏi nó lấy từ đâu.
+   */
+  const dsVer = (() => {
+    const tuGit = (git(['ls-files']) || '').split('\n').map((x) => x.trim()).filter(Boolean);
+    return tuGit.filter((f) => /\.(md|html|js)$/.test(f));
+  })();
+  let soChoVer = 0;
+  for (const f of dsVer) {
+    const duong = f.split(path.sep).join('/');
+    if (duong === 'CHANGELOG.md' || /^docs\/v\d+\.\d+(\.\d+)?\//.test(duong)) continue;
+    let noi;
+    try { noi = fs.readFileSync(path.join(REPO, f), 'utf8'); } catch (e) { continue; }
+    /*
+     * BỎ CHÚ THÍCH TRƯỚC KHI TÌM, ở file mã. Lượt đầu của phép kiểm này đỏ vì chính CÂU CHÚ THÍCH
+     * ngay trên đây — nó dẫn `Phiên bản kit: 2.9.6` làm ví dụ, và cửa đọc ví dụ đó thành một bản sao
+     * thật. Cùng bài học với `gate:policy` ở v2.9.6: cửa ấy đếm tên skill nằm trong chú thích mã, và
+     * một câu tôi viết đã TẮT đối chứng dương của chính nó. Nên dùng lại `boChuThich`, không viết lại.
+     */
+    if (/\.js$/.test(duong)) noi = boChuThich(noi);
+    /* Chỉ bắt dạng KHAI RÕ "phiên bản kit là X", không quét mọi chuỗi trông như semver. */
+    const re = /Phiên bản kit:\s*(?:\*\*|<b>)?\s*(\d+\.\d+\.\d+)/g;
+    let m = re.exec(noi);
+    while (m) {
+      soChoVer += 1;
+      if (version && m[1] !== version) {
+        problems.push(`${duong} khai \`Phiên bản kit: ${m[1]}\` nhưng \`package.json\` là \`${version}\`. `
+          + 'Một bản sao viết tay của số phiên bản mà không ai gác thì nó trôi, và người đọc tin con số cũ.');
+      }
+      m = re.exec(noi);
+    }
+  }
+  if (!soChoVer) warnings.push('không bề mặt nào khai `Phiên bản kit: X.Y.Z` ⇒ phép kiểm ⑨ CHƯA GÁC GÌ ở lượt này (không phải đạt).');
+  else console.log(`[version] ⑨ ${soChoVer} bản sao viết tay của số phiên bản, nguồn \`package.json\` = ${version}`);
 
   console.log(`[version] ${version || '(chưa có)'} · ${problems.length} CHẶN · ${warnings.length} cảnh báo`);
   if (warnings.length) { console.log('\n[version] ⚠ Cảnh báo:'); warnings.forEach((w) => console.log(`  ~ ${w}`)); }

@@ -1,0 +1,32 @@
+{
+  "_la_gi": "SỔ KHAI ADVISORY ĐÃ NHẬN. Mỗi advisory trên prod deps mà kit CHỌN SỐNG CHUNG phải có một dòng ở đây, khoá theo mã GHSA, kèm phép đo và HẠN DÙNG.",
+  "_vi_sao_can": [
+    "`audit:ci` chặn từ mức `high`. Mọi thứ dưới ngưỡng chỉ hiện thành một CON SỐ, và con số đó không mang",
+    "thông tin: `moderate 12` không nói được 12 cái đó là advisory đã rà hay có cái mới vừa xuất hiện. Nên",
+    "một advisory mới chui vào dưới ngưỡng là vô hình.",
+    "",
+    "Đo 01/11/2026: tôi đã báo với người dùng `8 advisory moderate (uuid, exceljs)` — SAI cả con số (12),",
+    "sai cả tên gói (không có `uuid` nào), và sai cả bản chất (12 gói là TÁN của ĐÚNG MỘT advisory). Tôi đọc",
+    "con số đó từ trí nhớ vì bản thân con số không chở theo gì để đối chiếu. Đó là lý do sổ này tồn tại.",
+    "",
+    "HẠN DÙNG là phần không được bỏ. Một rủi ro đã nhận mà không có hạn thì không bao giờ được rà lại: nó",
+    "chuyển từ 'đã cân nhắc' thành 'đã quên' mà không có dấu hiệu nào. Hết hạn thì cửa CHẶN, buộc rà lại."
+  ],
+  "_luat": [
+    "① advisory ≥ mức chặn (`--level`, mặc định `high`) ⇒ CHẶN, sổ này KHÔNG miễn trừ được.",
+    "② advisory dưới mức chặn mà KHÔNG có dòng ở đây ⇒ CHẶN. Không phải vì nó nguy hiểm, mà vì chưa ai xem.",
+    "③ dòng đã khai mà `het_han` đã qua ⇒ CHẶN, phải rà lại rồi gia hạn hoặc vá.",
+    "④ `vi_sao` phải chứa PHÉP ĐO, không phải cảm nhận. 'Rủi ro thấp' không phải một phép đo."
+  ],
+  "khai": [
+    {
+      "ghsa": "GHSA-g3hv-75wg-m249",
+      "goi": "minimatch",
+      "muc": "moderate",
+      "do_luc": "2026-11-01",
+      "het_han": "2027-02-01",
+      "vi_sao": "ĐÚNG MỘT advisory này sinh ra 12 dòng `npm audit` trên CẢ cây, và 8 dòng khi lọc `--omit=dev` — hai con số đó đều là số GÓI, không phải số advisory. (Chính chỗ này tôi đã nói sai với người dùng: `8` là số gói prod, `12` là số gói cả cây, còn số advisory là 1.) Các gói còn lại chỉ là tán của nó qua `eslint` (devDep) và `exceljs` (prod dep). Đường prod là `exceljs@4.4.0 → archiver@5.3.2 → glob@7.2.3 → minimatch@3.1.5`, cộng `readdir-glob@1.1.3 → minimatch@5.1.9`. ĐÃ THỬ VÁ VÀ ĐO: `overrides.minimatch=^11.0.1` làm `npm audit` về 0 vuln, nhưng `require('glob').sync('scripts/qa/*.js')` NÉM `Cannot read properties of undefined (reading 'charAt')` — glob@7 gọi minimatch bằng API cũ, và glob@7 nằm trong cây prod. Tức override làm xanh con số bằng cách làm VỠ thư viện, đúng thứ non-negotiable §6 cấm. Đã trả lại (`git checkout` + `npm ci`), nghiệm thu `glob.sync` trả 125 file. KHẢ NĂNG VỚI TỚI: phép thử đó đồng thời là đối chứng cho tính không-với-tới — dưới minimatch@11, `glob.sync` VỠ còn `exceljs` ghi+đọc .xlsx VẪN CHẠY (ghi rồi đọc lại, ô A2/B2 đúng), nên đường exceljs của kit không chạm minimatch. Kit cũng không `require('glob')` hay `require('minimatch')` ở bất kỳ đâu trong `scripts/` · `tests/support/` · `.agent/`. Và advisory này là DoS cần một MẪU GLOB thù địch, trong khi mọi mẫu glob ở đây là hằng trong source của kit, không nhận từ bên ngoài.",
+      "ra_lai_khi": "exceljs phát hành bản nâng `archiver` lên dòng có glob ≥ 9 (glob 9+ dùng minimatch 7+), hoặc minimatch ra bản vá cho dòng 3.x/5.x."
+    }
+  ]
+}

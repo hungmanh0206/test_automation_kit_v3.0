@@ -203,3 +203,63 @@ test.describe('@infra version:check ⑦ — chạy được trong gói (không `
     fs.rmSync(d, { recursive: true, force: true });
   });
 });
+
+/*
+ * ⑨ BẢN SAO VIẾT TAY CỦA SỐ PHIÊN BẢN (v2.9.7).
+ *
+ * ⑦ gác số MÁY viết tay. Nhưng số PHIÊN BẢN cũng có bản sao viết tay, và nó vừa trôi thật: thư viện
+ * thuật ngữ ghi `Phiên bản kit: 2.9.6` trong khi `package.json` đã là 2.9.7. `library:drift` không bắt
+ * được vì nó so `index.html` với `src/` — tức so hai bản sao VỚI NHAU, cả hai cùng sai thì vẫn xanh.
+ *
+ * Và phép kiểm này đỏ ngay lượt đầu vì CHÍNH CÂU CHÚ THÍCH của nó: chú thích dẫn `Phiên bản kit: 2.9.6`
+ * làm ví dụ, cửa đọc ví dụ thành một bản sao thật. Cùng bài học với `gate:policy` ở v2.9.6 — nên ⑨ bỏ
+ * chú thích trước khi tìm, bằng `boChuThich` đã có, và dưới đây có một phép kiểm riêng cho chuyện đó.
+ */
+test.describe('@infra version:check ⑨ — số phiên bản viết tay phải khớp `package.json`', () => {
+  test('ĐỐI CHỨNG DƯƠNG: bề mặt khai phiên bản CŨ ⇒ CHẶN, nêu đích danh file', () => {
+    const f = path.join(REPO, 'docs/library/src/shell.html');
+    voi(f, (s) => s.replace(/Phiên bản kit: <b>[\d.]+<\/b>/, 'Phiên bản kit: <b>1.0.0</b>'), (r) => {
+      expect(r.code, 'lệch phiên bản phải chặn').toBe(1);
+      expect(r.out).toContain('docs/library/src/shell.html');
+      expect(r.out).toContain('1.0.0');
+    });
+  });
+
+  test('ĐỐI CHỨNG ÂM: khớp `package.json` ⇒ ĐẠT, và nói ra đếm được mấy bản sao', () => {
+    const r = chay();
+    expect(r.code, 'repo đang khớp').toBe(0);
+    expect(r.out).toMatch(/⑨ \d+ bản sao viết tay của số phiên bản/);
+    expect(r.out, 'phải nói nguồn là package.json').toContain('nguồn `package.json`');
+  });
+
+  test('CHÚ THÍCH trong mã KHÔNG được tính thành một bản sao', () => {
+    /*
+     * Lượt đầu của ⑨ đỏ vì chú thích của chính nó. Nếu phép kiểm này mất, câu chú thích sau sẽ lại tắt
+     * cửa — hoặc tệ hơn, ai đó sẽ nới `vi_sao` để cho qua.
+     */
+    const f = path.join(REPO, 'scripts/qa/case_paths.js');
+    voi(f, (s) => `/* ví dụ trong chú thích: Phiên bản kit: 0.0.1 — KHÔNG phải một bản khai thật */\n${s}`, (r) => {
+      expect(r.code, 'chú thích chỉ là ví dụ, không phải lời khai').toBe(0);
+      expect(r.out).not.toContain('0.0.1');
+    });
+  });
+
+  test('ĐỐI CHỨNG: cùng chuỗi đó nằm trong MÃ THẬT thì VẪN bị bắt', () => {
+    /*
+     * Cặp với phép trên. Bỏ chú thích mà bỏ luôn cả mã thật thì ⑨ thành đồ trang trí, và hai phép kiểm
+     * này là cách duy nhất phân biệt "bỏ đúng chú thích" với "bỏ hết".
+     */
+    const f = path.join(REPO, 'scripts/qa/case_paths.js');
+    voi(f, (s) => `const _khai = 'Phiên bản kit: 0.0.1';\n${s}`, (r) => {
+      expect(r.code, 'chuỗi trong mã thật là một lời khai').toBe(1);
+      expect(r.out).toContain('0.0.1');
+    });
+  });
+
+  test('tài liệu LỊCH SỬ được bỏ qua — số trong đó đúng ở thời điểm ghi', () => {
+    expect(fs.existsSync(path.join(REPO, 'CHANGELOG.md'))).toBe(true);
+    voi(CL, (s) => `Phiên bản kit: **0.0.1**\n${s}`, (r) => {
+      expect(r.code, 'CHANGELOG là sổ lịch sử, không phải bề mặt trạng-thái-hiện-tại').toBe(0);
+    });
+  });
+});
