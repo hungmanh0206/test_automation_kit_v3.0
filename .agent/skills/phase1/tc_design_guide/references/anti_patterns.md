@@ -89,7 +89,9 @@ hỏi chưa trả lời.
 Case đỏ, nhìn lại thấy app trả giá trị khác, bèn sửa cột kỳ vọng cho khớp. Đây là cách nhanh nhất biến
 một bug thành một tính năng đã được phê duyệt.
 
-**Máy:** `npm run expected:check` — ghi sổ mọi thay đổi expected, và đòi lý do.
+**Máy:** `npm run expected:check` — ghi sổ mọi thay đổi expected, và đòi lý do. **Phải chụp mốc trước**
+(`--snapshot`) ở thời điểm bộ case được CHỐT; chưa chụp thì cửa trả `CHƯA ĐƯỢC GÁC` (exit 2), và đó
+KHÔNG phải "đạt". Đo 30/10/2026: 1/5 task có mốc.
 
 ---
 

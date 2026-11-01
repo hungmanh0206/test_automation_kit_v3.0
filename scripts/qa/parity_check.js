@@ -94,6 +94,145 @@ function main() {
   // ③ ba khối phải có mặt.
   for (const k of KHOI) if (!k.re.test(src)) sai.push(`thiếu khối **${k.ten}**`);
 
+  /*
+   * ④ SỐ LIỆU VỀ A PHẢI ĐỌC ĐƯỢC TỪ BẢN A (v2.9.6 N4), không gõ tay.
+   *
+   * Số về A là số của MỘT BẢN GIẢI NÉN CỤ THỂ. Gõ tay thì không ai kiểm lại được, và nó trôi im lặng y
+   * như mọi bảng viết tay khác của kit — đợt này vừa bắt được hai câu sai về A đúng kiểu đó.
+   *
+   * KHÔNG CÓ BẢN A ⇒ IN RÕ "không đo lại được" RỒI BỎ QUA. Bản A là plugin của bên khác, không thuộc
+   * repo, nên máy nào cũng đỏ vì thiếu nó là đỏ oan. Nhưng "bỏ qua" phải NÓI RA — im lặng thì người đọc
+   * tưởng đã đối soát.
+   */
+  try {
+    /*
+     * `--a-source <file>` để phép kiểm trỏ vào BẢN SAO TẠM, không phải sửa file của repo.
+     *
+     * Bản trước không có cờ này, nên `parity-check.spec.ts` phải sửa-rồi-trả-lại
+     * `.agent/config/a_parity_source.json` thật. Khi Playwright chạy song song, một spec khác đọc
+     * file ĐANG bị sửa ⇒ khối ④ báo "số liệu A LỆCH" ⇒ đối chứng ÂM của
+     * `parity-plan-items.spec.ts` đỏ oan. Đã xảy ra hai lần, mỗi lần ở một ca kiểm khác nhau, và
+     * cả hai lần đều XANH khi chạy riêng — dấu hiệu kinh điển của trạng thái dùng chung.
+     */
+    const cfgA = JSON.parse(fs.readFileSync(
+      path.resolve(doiSo('a-source') || path.join(REPO, '.agent/config/a_parity_source.json')), 'utf8'));
+    const gocA = (cfgA.duong_dan || []).find((d) => fs.existsSync(d));
+    if (!gocA) {
+      console.log(`\n[parity] ⓘ KHÔNG đo lại được số liệu về A — không đường dẫn nào trong`);
+      console.log('[parity]   `.agent/config/a_parity_source.json` tồn tại trên máy này. Phép kiểm ④ BỎ QUA,');
+      console.log('[parity]   và bỏ qua KHÔNG đồng nghĩa với đạt.');
+    } else {
+      const demFile = (thuMuc, duoi) => {
+        try { return fs.readdirSync(path.join(gocA, thuMuc)).filter((f) => f.endsWith(duoi)).length; } catch { return -1; }
+      };
+      const demThuMucCoSkill = (thuMuc) => {
+        try {
+          return fs.readdirSync(path.join(gocA, thuMuc), { withFileTypes: true })
+            .filter((e) => e.isDirectory() && fs.existsSync(path.join(gocA, thuMuc, e.name, 'SKILL.md'))).length;
+        } catch { return -1; }
+      };
+      const lech = [];
+      for (const m of (cfgA.so_do || [])) {
+        const that = m.dem === 'so_thu_muc_co_SKILL_md' ? demThuMucCoSkill(m.trong) : demFile(m.trong, '.md');
+        if (that < 0) { lech.push(`${m.nhan}: không đọc được \`${m.trong}\` trong bản A`); continue; }
+        if (that !== m.da_ghi) lech.push(`${m.nhan}: config ghi ${m.da_ghi}, bản A thật có ${that}`);
+        /* Và con số đó phải có mặt ĐÚNG trong bảng "Hai bề mặt" của tài liệu. */
+        const dongBang = dong.find((l) => l.startsWith(`| ${m.nhan} |`));
+        if (dongBang && !new RegExp(`\\b${that}\\b`).test(dongBang)) {
+          lech.push(`${m.nhan}: bảng "Hai bề mặt" không mang số ${that} — ${dongBang.trim().slice(0, 70)}`);
+        }
+      }
+      console.log(`\n[parity] số liệu về A đọc từ ${path.basename(gocA)} · ${(cfgA.so_do || []).length} mục đối soát`);
+      if (lech.length) sai.push(...lech.map((x) => `số liệu A LỆCH — ${x}`));
+    }
+  } catch (e) {
+    sai.push(`không đọc được \`.agent/config/a_parity_source.json\`: ${e.message}`);
+  }
+
+  /*
+   * ⑤ MỘT ✅ KHÔNG ĐƯỢC DÁN KHI MỤC CON CHƯA XONG (v2.9.6 N2.4).
+   *
+   * Bảng chấm theo §, mà một § có thể gồm nhiều việc. v2.9.5 dán ✅ cho §7 khi nó chỉ có skill
+   * `run_report_reader` + view `trace:matrix --pm`; phần LÕI của `test-report-analyzer` bên A (gom theo
+   * nguyên nhân, phân loại tầng, chiều test mồ côi) thì chưa có. Dòng ✅ ấy không sai từng chữ, nhưng nó
+   * làm người đọc tin cả § đã xong — và không máy nào bắt được, vì máy chỉ đọc KÝ HIỆU.
+   *
+   * `docs/v2.9.6/plan_items.json` khai mục con, và mỗi mục con bắt buộc có NEO MÁY PHÂN GIẢI ĐƯỢC
+   * (`script` · `spec` + số phép kiểm tối thiểu · `nguon` + ký hiệu phải có trong file). Không có neo thì
+   * file ấy chỉ là một lớp tự khai nữa, đúng thứ kit cấm.
+   *
+   * Mục `nguoi` (chỉ người kiểm được) buộc § phải là ⚠️ — KHÔNG BAO GIỜ ✅. Đó là chỗ luật "mọi mẫu lấy
+   * từ A phải có máy, hoặc phải khai rõ CHƯA CÓ MÁY" được thi hành bằng máy thay vì bằng thiện chí.
+   *
+   * VÀ CHIỀU NGƯỢC: mọi mục con đã phân giải mà § vẫn ⚠️ thì cửa NHẮC nâng lên. Thiếu chiều này thì ⚠️
+   * thành chỗ trú ẩn vĩnh viễn — hạ một dòng xuống ⚠️ là cách rẻ nhất để hết đỏ mà không làm gì.
+   */
+  /* `--plan <file>` để spec kiểm được mọi nhánh mà KHÔNG chạm bản kế hoạch thật. */
+  const KE_HOACH = path.resolve(doiSo('plan') || path.join(REPO, 'docs/v2.9.6/plan_items.json'));
+  if (!fs.existsSync(KE_HOACH)) {
+    console.log('\n[parity] ⓘ không có `docs/v2.9.6/plan_items.json` ⇒ khối ⑤ BỎ QUA (không phải đạt).');
+  } else {
+    let kh;
+    try { kh = JSON.parse(fs.readFileSync(KE_HOACH, 'utf8')); } catch (e) {
+      sai.push(`\`plan_items.json\` không đọc được: ${e.message}`);
+      kh = null;
+    }
+    if (kh && !(kh.muc || []).length) {
+      sai.push('`plan_items.json` có 0 mục ⇒ khối ⑤ rỗng; file rỗng KHÔNG đồng nghĩa với đạt.');
+    }
+    for (const m of ((kh && kh.muc) || [])) {
+      const chuaXong = [];
+      let coMucNguoi = false;
+      for (const c of (m.con || [])) {
+        const neo = c.neo || {};
+        if (neo.loai === 'nguoi') {
+          coMucNguoi = true;
+          if (!String(neo.vi_sao || '').trim()) {
+            sai.push(`${m.section}/${c.ma}: neo \`nguoi\` mà KHÔNG ghi \`vi_sao\` — "chỉ người làm được" phải nói được vì sao máy không làm được`);
+          }
+          continue;
+        }
+        if (neo.loai === 'script') {
+          if (!pkg.scripts[neo.ten]) chuaXong.push(`${c.ma}: npm script \`${neo.ten}\` không tồn tại`);
+          continue;
+        }
+        if (neo.loai === 'spec') {
+          const p = path.join(REPO, String(neo.duong || ''));
+          if (!fs.existsSync(p)) { chuaXong.push(`${c.ma}: thiếu spec \`${neo.duong}\``); continue; }
+          const n = (fs.readFileSync(p, 'utf8').match(/^\s*test\(/gm) || []).length;
+          const min = Number(neo.toiThieu || 1);
+          if (n < min) chuaXong.push(`${c.ma}: \`${neo.duong}\` chỉ có ${n} phép kiểm, khai tối thiểu ${min}`);
+          continue;
+        }
+        if (neo.loai === 'nguon') {
+          const p = path.join(REPO, String(neo.duong || ''));
+          if (!fs.existsSync(p)) { chuaXong.push(`${c.ma}: thiếu file \`${neo.duong}\``); continue; }
+          if (!fs.readFileSync(p, 'utf8').includes(String(neo.ky_hieu || ''))) {
+            chuaXong.push(`${c.ma}: \`${neo.duong}\` KHÔNG chứa \`${neo.ky_hieu}\` ⇒ việc chưa vào mã`);
+          }
+          continue;
+        }
+        sai.push(`${m.section}/${c.ma}: neo loại \`${neo.loai}\` không hiểu được — dùng script · spec · nguon · nguoi`);
+      }
+
+      const dongSec = nghiemThu.filter((r) => r.o[0] === m.section);
+      if (!dongSec.length) {
+        sai.push(`${m.section}: \`plan_items.json\` khai mục con nhưng bảng nghiệm thu KHÔNG có dòng nào cho § này`);
+        continue;
+      }
+      const coTick = dongSec.some((r) => r.tt === '✅');
+      if (chuaXong.length && coTick) {
+        sai.push(`${m.section} đang dán ✅ nhưng ${chuaXong.length} mục con CHƯA XONG: ${chuaXong.join(' · ')}`);
+      } else if (coMucNguoi && coTick) {
+        sai.push(`${m.section} đang dán ✅ nhưng có mục con chỉ NGƯỜI kiểm được ⇒ phải là ⚠️, không phải ✅`);
+      } else if (!chuaXong.length && !coMucNguoi && dongSec.every((r) => r.tt === '⚠️')) {
+        console.log(`\n[parity] ⓘ ${m.section}: mọi mục con đã phân giải mà dòng vẫn ⚠️ — nâng lên ✅ hoặc nói rõ còn thiếu gì.`);
+      }
+      console.log(`[parity] ⑤ ${m.section}: ${(m.con || []).length} mục con · ${chuaXong.length} chưa xong`
+        + `${coMucNguoi ? ' · có mục chỉ người kiểm được ⇒ § phải ⚠️' : ''}`);
+    }
+  }
+
   const dem = { '✅': 0, '⛔': 0, '⚠️': 0 };
   for (const r of nghiemThu) dem[r.tt] += 1;
 

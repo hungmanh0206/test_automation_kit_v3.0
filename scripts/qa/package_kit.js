@@ -148,6 +148,14 @@ const KEEP_FILES = [
   '.agent/config/retention.json',
   '.agent/config/library-drift.allow.json',
   /*
+   * BỔ SUNG 30/10/2026 (v2.9.6 N4) — lại `config-presence.spec.ts` bắt được, lần thứ hai cùng một kiểu.
+   *
+   * `parity_check.js` đọc file này để lấy số liệu về bản A thay vì gõ tay. Thiếu nó trong gói thì
+   * `parity:check` ở máy người nhận rơi vào nhánh "KHÔNG đo lại được số liệu về A" — tức cửa vẫn XANH
+   * nhưng đã thôi đối soát, đúng kiểu tắt im lặng mà danh sách này sinh ra để chặn.
+   */
+  '.agent/config/a_parity_source.json',
+  /*
    * BỔ SUNG 13/10/2026 (v2.8.0) — `config-presence.spec.ts` bắt được, không phải tôi tự nhớ ra.
    *
    * `step_catalog.schema.json` là hình dạng mà `steps:catalog` gác; `step_phrasing.json` là MỘT NGUỒN

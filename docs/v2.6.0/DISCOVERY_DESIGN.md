@@ -114,11 +114,28 @@ mục (G1.6) thu hẹp vì đo ra 0 file swagger — đừng lặp lại việc 
   "doc_coverage": [{ "vung": "…", "o": "documented_present|undocumented_present|documented_missing",
                      "muc_phu": "day_du|mot_phan|trang|nghi_loi_thoi", "nguon": "…" }],
   "crawl_completeness": { "route_toi_duoc": 42, "route_phat_hien": 57,
+                          "so_lan_thu_lai_dieu_huong": 0,
                           "khong_toi_duoc": { "needs_account": 8, "captcha": 3, "error": 1,
                                               "budget": 3, "firewall": 0 } },
   "status": "observed"
 }
 ```
+
+**Lượt bò tới 0 màn KHÔNG sinh bản ghi** (01/11/2026). `boApp` ném `BO_DUOC_0_MAN`, và lệnh `discover`
+thoát mã 2, tức "không phán được". Lý do: `screens` là MẪU SỐ của `dimension_manifest` và
+`scope_anchor`, nên một mẫu số bằng 0 đi tiếp sẽ làm mọi tỉ lệ phủ về sau thành 0/0 mà vẫn mang nhãn
+`observed`. Ngoại lệ duy nhất là `--max-trang 0`, vì đó là người gọi cố ý xin bò 0 trang.
+
+**Dấu vân tay GỘP qua các lượt mở khối** (01/11/2026). Lượt bò đọc dấu vân tay trước khi mở khối, sau
+mỗi lượt mở, và ở cuối, rồi hợp lại; `so_lan_doc_van_tay` nói đã đọc mấy lượt, trần 8 lượt mỗi trang. Lý
+do: bấm tab sau **ẩn** tabpanel trước, nên đọc một lần ở cuối chỉ thấy tab được bấm cuối cùng — đo được
+`/truong/:id` mất hẳn `data_table` vì chính cú bấm của crawler. Hợp là phép **cộng**, nên một lượt đọc
+sớm không thể làm sai: nó chỉ thêm thứ đã thật sự có trên màn.
+
+**Điều hướng hỏng nhất thời được thử lại tối đa 3 lần**, và chỉ với lỗi hết hạn hoặc không nối được.
+Mã 4xx/5xx KHÔNG thử lại: đó là câu trả lời thật của server. Số lượt phải thử lại công khai ở
+`so_lan_thu_lai_dieu_huong` — một lượt bò thử lại nhiều lần vẫn ra đủ màn, nhưng nó đang nói rằng môi
+trường đo không ổn định.
 
 **Mọi bản ghi mang `status: "observed"`.** Không bản ghi nào của discovery được là oracle. Muốn thành
 oracle thì qua Ambiguity Gate hoặc có người xác nhận, rồi mới vào `knowledge/domain` / `knowledge/system`

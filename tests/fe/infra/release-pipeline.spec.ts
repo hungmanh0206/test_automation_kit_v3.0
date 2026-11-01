@@ -334,3 +334,76 @@ test.describe('@infra phát hành kit — script chạy được từ ZIP (khôn
     expect(sGl, 'QUICKSTART khai sai số spec phía GitLab').toBe(specGh - nSpecStrip);
   });
 });
+
+/*
+ * Spec LỚP GENERIC không được đọc file LỚP PROJECT ở mức module.
+ *
+ * LỖ ĐÃ ĐO RA, và nó làm mù cả một bước nghiệm thu. `tests/fe/support/opsLogin.ts` thuộc lớp PROJECT nên
+ * `package_kit.js` cố ý KHÔNG đóng gói (luật `DENY` loại `tests/fe/{auth,support,order,transaction}/`).
+ * Nhưng `tests/fe/infra/ops-login-combobox.spec.ts` — lớp GENERIC, CÓ đóng gói — lại đọc file ấy ở một
+ * dòng `const` mức module.
+ *
+ * Playwright `--list` CHẠY thân module khi thu thập test, nên trong gói nó ném `ENOENT` và
+ * `release:verify` báo **0 test cho cả suite**: một file làm mù cả bước. Đo 30/10/2026: 12/13 bước đạt,
+ * bước đỏ đúng là bước đó.
+ *
+ * Cách đúng: đọc TRONG test và `test.skip` kèm lý do khi thiếu lớp PROJECT — "không có file để đọc" khác
+ * hẳn "đã kiểm và đạt".
+ */
+test.describe('@infra ranh giới lớp — generic không phụ thuộc PROJECT ở mức module', () => {
+  /** Đúng danh sách `DENY` của `package_kit.js`: thứ KHÔNG vào gói. */
+  const LOP_PROJECT = /tests\/fe\/(auth|support|order|transaction)\//;
+  /* Chỉ lời gọi ĐỌC ĐĨA mới gây ENOENT. Một hằng đường dẫn, hay một chú thích, thì vô hại. */
+  const DOC_DIA = /\b(readFileSync|existsSync|readdirSync|statSync|createReadStream|readFile)\s*\(/;
+
+  /*
+   * SIẾT LUẬT SAU KHI NÓ BÁO OAN. Bản đầu chỉ hỏi "phần đầu file có nhắc đường dẫn lớp PROJECT không" —
+   * và nó bắt luôn hai thứ VÔ HẠI: một hằng `const NGUON = path.join(…)`, và chính khối CHÚ THÍCH giải
+   * thích lỗi này. Một luật báo oan là một luật bị tắt, nên phải hẹp: bỏ chú thích, rồi đòi CÙNG MỘT
+   * DÒNG có cả đường dẫn lớp PROJECT lẫn một lời gọi đọc đĩa.
+   */
+  function dongDocHong(dauFile: string): boolean {
+    const khongChuThich = dauFile
+      .replace(/\/\*[\s\S]*?\*\//g, (m) => m.replace(/[^\n]/g, ' '))
+      .replace(/(^|[^:])\/\/[^\n]*/g, (m) => m.replace(/[^\n]/g, ' '));
+    return khongChuThich.split('\n').some((d) => LOP_PROJECT.test(d) && DOC_DIA.test(d));
+  }
+
+  test('không spec `tests/fe/infra/**` nào đọc đường dẫn lớp PROJECT ở mức module', () => {
+    const d = path.join(REPO, 'tests/fe/infra');
+    const xau: string[] = [];
+    for (const f of fs.readdirSync(d).filter((x) => /\.spec\.ts$/.test(x))) {
+      const s = fs.readFileSync(path.join(d, f), 'utf8');
+      /*
+       * "Mức module" = phần TRƯỚC khối test đầu tiên. Xấp xỉ, và cố ý xấp xỉ: nó đúng với hình dạng của
+       * ca đã xảy ra (một dòng `const` ở đầu file), và luật hẹp thì không báo oan.
+       */
+      const i = s.search(/\btest(\.describe)?\s*\(/);
+      const dauFile = i < 0 ? s : s.slice(0, i);
+      if (dongDocHong(dauFile)) xau.push(f);
+    }
+    expect(xau, 'đọc lớp PROJECT ở mức module ⇒ `playwright --list` trong GÓI ném ENOENT và báo 0 test '
+      + `cho CẢ suite. Chuyển vào trong test + \`test.skip\` khi thiếu: ${xau.join(', ')}`).toEqual([]);
+  });
+
+  test('ĐỐI CHỨNG DƯƠNG: mẫu bắt được đúng hình dạng đã gây sự cố', () => {
+    /* Không có ca này thì phép kiểm trên có thể xanh vì mẫu sai, chứ không vì cây sạch. */
+    const hong = "import * as fs from 'fs';\n"
+      + "const SRC = fs.readFileSync(path.join(REPO, 'tests/fe/support/opsLogin.ts'), 'utf8');\n"
+      + "test('x', () => { expect(SRC).toBeTruthy(); });\n";
+    const i = hong.search(/\btest(\.describe)?\s*\(/);
+    expect(dongDocHong(hong.slice(0, i)), 'mẫu phải bắt được bản đã gây sự cố').toBe(true);
+
+    /* Và chiều ngược: cùng câu đọc ấy nhưng ĐẶT TRONG test thì KHÔNG bị bắt. */
+    const dung = "import * as fs from 'fs';\n"
+      + "test('x', () => { const SRC = fs.readFileSync('tests/fe/support/opsLogin.ts', 'utf8'); });\n";
+    const j = dung.search(/\btest(\.describe)?\s*\(/);
+    expect(dongDocHong(dung.slice(0, j)), 'đọc trong test là cách ĐÚNG, không được bắt').toBe(false);
+
+    /* Hai chiều nữa, cả hai VÔ HẠI nên KHÔNG được bắt: một hằng đường dẫn, và một chú thích. */
+    expect(dongDocHong("const NGUON = path.join(REPO, 'tests/fe/support/opsLogin.ts');\n"),
+      'một hằng đường dẫn không đọc đĩa, không được bắt').toBe(false);
+    expect(dongDocHong("/* opsLogin.ts nằm ở tests/fe/support/ và readFileSync nó là sai */\n"),
+      'chú thích không đọc đĩa, không được bắt').toBe(false);
+  });
+});

@@ -20,6 +20,7 @@ Một lượt chạy để lại hàng trăm tệp. Đọc sai thứ tự thì t
 |---|---|---|---|
 | 1 | `npm run results:summary` | case nào đỏ · TC ID · lỗi rút gọn · đường dẫn ảnh | vì sao đỏ |
 | 2 | `npm run run:analysis` | lượt này có ĐỦ MẪU SỐ để phán chưa (dải `BLOCKED`, nợ `SKIP`) | từng case |
+| 2b | `npm run run:analysis --nhom` | chỗ nào đáng soi TRƯỚC (case đỏ gom theo tầng ‖ câu lỗi) | nguyên nhân — xem cảnh báo dưới |
 | 3 | `reports/execution-summary.md` | bức tranh lượt chạy do người viết | thứ người viết không nhìn thấy |
 | 4 | **ẢNH** ở `test-results/artifacts/` hoặc `evidence/<TC_ID>/` | app THẬT sự hiện gì ở bước quyết định | giá trị đã LƯU |
 | 5 | `npm run trace:matrix` | module nào đang hổng, chỗ hổng to nhất ở đâu | thứ bộ case chưa viết |
@@ -39,6 +40,39 @@ là đổ rác điều khiển terminal vào context rồi vẫn phải đọc l
 4. **"App sai hay phép đo sai?"** → **ẢNH trước, code sau.** Đây là chỗ sai nhiều nhất: một bộ đo lệch
    sinh ra `product_bug` giả, và đã có phiên 7 lần liên tiếp như vậy. Nhìn ảnh bước quyết định trước khi
    gán tầng `product_bug`.
+
+## Tầng lỗi: đọc nó là đọc VIỆC TIẾP THEO, không phải đọc nhãn
+
+`failureLayer` quyết định case đỏ đi đâu. Taxonomy khai **8 tầng**; cột giữa là số đo thật trên **536 ca
+đỏ/chặn** của repo (30/10/2026), và nó nói nhiều hơn cái nhãn.
+
+| Tầng | Đo được | Đi Backlog? | Việc tiếp theo |
+|---|---|---|---|
+| `product_bug` | **216** | CÓ — đòi bug claim + `reruns ≥ 2` | nhìn ẢNH bước quyết định TRƯỚC khi tin |
+| `api_bug` | **0** | CÓ — như trên | — |
+| `doc_outdated` | **39** | không | sửa đặc tả, không log bug; app đang đúng |
+| `setup_failure` | **1** | không | dựng tiền đề; **không** log Backlog, **không** tính vào pass rate |
+| `script_error` | **0** | không | sửa spec |
+| `infra` · `flaky` · `dependency` | **0** | không | chạy lại / chờ phụ thuộc |
+| *(không khai)* | **274** | — | **đúng luật**: cả 274 đều là `BLOCKED`/`BLOCKED_SETUP`, vốn không cần tầng |
+
+**Ba chỗ bảng này nói điều mà cái nhãn không nói:**
+
+1. **`script_error` = 0 là con số ĐÁNG NGỜ NHẤT ở đây.** Spec có hỏng, và đã hỏng nhiều: một phiên sinh
+   **7 `product_bug` giả liên tiếp** vì bộ đo lệch. Không ca nào mang tầng `script_error` nghĩa là những
+   lần ấy đã được chấm thành tầng khác. Và số đo chỉ ra chấm thành gì: **216/262 = 82% ca FAIL mang
+   `product_bug`**. Thấy 0 thì đừng kết luận "script không hỏng"; kết luận là **phân tầng đang dồn về
+   `product_bug`** — tầng duy nhất kéo theo cửa, nên cũng là tầng đắt nhất khi chấm sai.
+2. **`be`/`fe` KHÔNG phải tầng.** Taxonomy nói `product_bug` *"PHẢI ghi rõ tầng FE hay BE theo quy tắc
+   beVsFe"* — FE/BE là chi tiết NẰM TRONG `product_bug`. Khai `be` làm case **tụt khỏi** cửa bug claim
+   (`blockingLayers` chỉ gồm `product_bug`, `api_bug`); 3 ca thật đã lọt đúng đường đó. `output_gate` nay
+   chặn mọi giá trị ngoài 8 tầng.
+3. **Chỉ 2/8 tầng kéo theo cửa.** Nên hạ tầng là hạ cả yêu cầu bằng chứng — hạ `product_bug` xuống
+   `script_error` để hết đỏ là gian lận, kể cả khi nghe hợp lý.
+
+> `npm run run:analysis --nhom` gom case đỏ theo `<tầng> ‖ <câu lỗi>`. **BÁO CÁO, không phải cửa**: đo
+> được nén chỉ **1,34×**, 11% ca nối được câu lỗi thật, và **6/9 nhóm mẫu gom sai**. Nhóm to KHÔNG tự
+> nghĩa là một nguyên nhân — nó thường là một CÂU KHUÔN MẪU chung.
 
 ## Ba con số dễ đọc sai nhất
 

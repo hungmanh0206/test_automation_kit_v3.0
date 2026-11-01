@@ -1,11 +1,114 @@
 # Changelog
 
-> Lịch sử thay đổi **kit dùng chung** (shared). Kit chưa dùng semver → ghi theo **ngày + nhóm chủ đề**,
-> nguồn là `git log main` (kèm commit hash để tra ngược).
+> Lịch sử thay đổi **kit dùng chung** (shared). Mỗi mục là một **đợt phát hành** `vX.Y.Z` kèm ngày và
+> nhóm chủ đề; nguồn là `git log main` (kèm commit hash để tra ngược). `npm run version:check` gác
+> việc mục đỉnh khớp `package.json` và thứ tự giảm dần.
+>
+> *(Câu cũ ở đây phủ nhận việc kit đánh số theo semver. Đo 30/10/2026: 23/23 mục đều mang
+> `## vX.Y.Z`, nên câu ấy đã lạc hậu từ lâu và dạy người đọc sai về cách file này được ghi.
+> `version:check` nay chặn nó — và chặn bằng phép so CHỮ, nên chính ghi chú này cũng phải tránh
+> viết lại nguyên văn câu bị cấm. Đó là lần thứ ba trong một phiên văn của tôi làm nổ phép kiểm
+> của tôi.)*
 >
 > Vì sao cần file này: mọi thay đổi ở `playwright.config.js`, `package.json`, `scripts/**`, `prompt_templates/**`,
 > `.agent/**`, `tests/support/**` đều là **shared change** (xem `RULE_GLOBAL.md` §Shared Change Gate) —
 > ảnh hưởng mọi story đang chạy. Mỗi mục ghi **vấn đề → cách chữa**, không chỉ liệt kê tính năng.
+
+## v2.9.6 — 2026-11-01 — Skill tự nạp được, và bốn cửa tắt cùng lúc khi gọi FAIL bằng đúng tên chuẩn
+
+**Vấn đề → cách chữa**
+
+- **28 skill của kit không auto-load, nên agent chỉ mở khi tự nghĩ ra.** Sinh 28 shim
+  `.claude/skills/<tên>/SKILL.md` trỏ về bản gốc; `skills:index:check` gác cả ba chiều **thiếu · lệch ·
+  thừa**. Đo được: harness **nạp** shim (`Skill(run_report_reader)` chạy; tên bịa ra `Unknown skill`)
+  nhưng **không quảng bá** 28 tên vào ngữ cảnh. **Nạp được ≠ biết có mà gọi**, nên dòng liệt kê tên
+  trong hook **giữ lại** — không tiết kiệm được ~232 token/phiên như dự tính ban đầu.
+- **`run_report_reader` sinh ở v2.9.5 rồi sống mồ côi.** `gate:policy` nâng skill mồ côi từ cảnh báo
+  lên **CHẶN**. Và phát hiện kèm theo: cửa ấy đếm cả tên skill nằm trong **chú thích mã**, nên một câu
+  tôi viết trong `run_analysis.js` đã **tắt đối chứng dương của chính cửa** — nay bỏ chú thích trước khi
+  tìm, dùng lại `boChuThich` của `recon_passive.js`.
+- **Gọi `finish('FAIL', …)` — ĐÚNG TÊN CHUẨN của taxonomy — làm bốn cửa tắt cùng lúc.** `FAIL` là tên
+  chuẩn, `FAILED` chỉ là đồng nghĩa, mà `evidence_recorder` ghim nguyên văn `'FAILED'` ở bảy chỗ. Hệ quả:
+  `failureLayer` bị xoá trắng · phép kiểm bắt buộc khai tầng không nổ · phép kiểm giá trị tầng không chạy
+  · `reruns` không đếm · `bug_claim` không thấy case nào để đòi claim. Nay chuẩn hoá qua `synonyms` cho
+  mọi quyết định nội bộ, giữ nguyên chữ ghi ra sổ.
+- **`output_gate` chỉ kiểm CÓ tầng, không kiểm tầng CÓ THẬT.** Ba ca thật khai `be`/`fe` — hai giá trị
+  ngoài 8 tầng taxonomy — nên đi qua cửa đòi bug claim (`blockingLayers` chỉ gồm `product_bug`,
+  `api_bug`). Nay chặn mọi giá trị ngoài danh mục, ở **cả** lúc ghi và lúc đọc sổ.
+- **Lượt bò khám phá tới 0 màn vẫn tự khai `status: "observed"`.** Lôi ra từ một phép kiểm chập chờn có
+  sẵn trong `discovery-crawl.spec.ts`. Nguyên nhân thật: dưới tranh chấp tài nguyên, `page.goto` tới
+  trang đầu hết hạn ở 15s, trong khi `http.get` thuần tới **cùng URL** đáp **6–48ms** (36 mẫu, 0 lỗi) —
+  server khoẻ, nghẽn nằm trong đường ống của browser. Lượt bò khi đó trả `screens: []`, mà `screens` là
+  **mẫu số** của `dimension_manifest` và `scope_anchor`. Nay `boApp` **ném** `BO_DUOC_0_MAN` và lệnh
+  `discover` thoát **mã 2** (*không phán được*); ngoại lệ duy nhất là `--max-trang 0`.
+- **Điều hướng hỏng nhất thời làm teo mẫu số, và ở trang đầu thì mất cả lượt bò.** Nay thử lại tối đa
+  **3 lần**, chỉ với hết hạn hoặc không nối được — **4xx/5xx giữ nguyên**, vì đó là câu trả lời thật của
+  server. Ở **trang đầu** thì **dựng lại page** thay vì chờ: đo được lúc một lượt `goto` đang treo, page
+  mới qua sau **27ms** còn chờ trên page cũ mất **11.359ms**. Bằng chứng ngược, đo sau đó: dưới tranh
+  chấp của cả bó (`full:suite` 6 worker) thì **cả 3 lần thử, gồm 2 lần dựng page mới, đều hết hạn** —
+  nên bước này làm lượt bò bền hơn chứ **không chữa** được cú treo. Số lượt phải thử lại công khai ở
+  `so_lan_thu_lai_dieu_huong`.
+- **Crawler TỰ PHÁ dấu vân tay của chính nó, và đó là lỗi tất định thật.** `moCacKhoi` bấm
+  `[role="tab"]`, mà bấm tab sau thì ẩn tabpanel trước; bản cũ đọc dấu vân tay **đúng một lần ở cuối**
+  nên chỉ thấy tab được bấm cuối cùng. Đo trên fixture, hai nhánh khác nhau đúng một điều là tab có được
+  bấm hay không: chữ ký `/truong/:id` ra `[[],["tab"],[]]` so với `[[],["data_table","tab"],[]]` — tức
+  `data_table` **biến mất** vì chính cú bấm của crawler. Hai hậu quả: thứ tự tab bấm được phụ thuộc trần
+  250ms/400ms/8s nên dưới tải cùng một route sinh **hai** danh tính (đo được một lượt bò ra 8 màn trong
+  khi 9 lượt khác ra 7 — đúng thứ phép kiểm *"bò TẤT ĐỊNH"* ra đời để bắt), và `components`/`so_field` là
+  **mẫu số** cho chiều Validation nên một màn có bảng mà báo "không có data_table" làm mọi tỉ lệ phủ về
+  sau sai theo. Nay dấu vân tay **gộp** qua các lượt mở (trần 8 lượt đọc mỗi trang, công khai ở
+  `so_lan_doc_van_tay`); chi phí đo được **+10…45%** cho một lượt bò.
+- **`--storage-state-roles` chỉ bị kiểm khuôn SAU cả lượt bò.** Khai sai một dấu bằng thì lệnh
+  `discover` vẫn bò hết app — trần 20 phút — rồi mới từ chối. Nay kiểm **trước khi mở browser**; thông
+  điệp và mã thoát giữ nguyên, chỉ đổi thời điểm.
+- **Hai ô báo cáo không có khả năng báo cáo** trong cùng hàm đó: `firewall: bienBan.chan.length ? 0 : 0`
+  (ternary chết) và `const apiRec = o.apiRec` chụp một lần (nên bộ theo dõi API nghe trên page đã đóng
+  sau khi dựng lại page). Bản vá **đầu** của tôi cho ô thứ nhất đếm **sai vế** — số request ghi bị chặn,
+  không phải số route không tới được — đúng khuyết điểm ② mà chính hàm ấy ra đời để chữa.
+- **`run:analysis --nhom`** gom case đỏ theo `<tầng> ‖ <câu lỗi>`. **Giữ ở mức BÁO CÁO**: đo được nén chỉ
+  **1,34×**, **11%** ca nối được câu lỗi thật, **6/9** nhóm mẫu gom sai. Bản in tự khai cả bốn giới hạn
+  mỗi lượt chạy, kèm câu *"KHÔNG cửa nào được chặn dựa trên bản gom này"*.
+- **Một "giới hạn dữ liệu" hoá ra là lỗi nối của tôi.** Tôi đã ghi *"7% ca nối được, vì dữ liệu không
+  có"* vào tài liệu. Nhưng **77%** dòng lỗi *có* mã TC — hai số chênh 10 lần. Nguyên nhân: tiêu đề spec
+  dùng mã **trần** (`TC_021`), sổ dùng mã **đủ** (`CSDL_NHANSU_TC_021`). Vá bằng khớp hậu tố **khi và
+  chỉ khi hậu tố duy nhất trong sổ** (0 nhập nhằng trên 536 ca).
+- **`trace:matrix` thiếu chiều ngược.** Thêm mục *test đã chạy mà không TC nào nhận*, **phân ba loại** vì
+  đếm trần thì chôn ca đáng lo dưới đống đúng-thiết-kế. Bắt được **9 ca mở rộng mang PASS/FAIL mà không
+  có neo oracle** (5 trong đó `FAILED`) + **2 ca probe mang verdict**; 6 ca mở rộng CÓ neo nên không rỗng
+  chiều nào.
+- **Một ✅ trong bảng nghiệm thu có thể che mục con chưa xong.** `parity:check` khối ⑤ đọc
+  `docs/v2.9.6/plan_items.json`, nơi mỗi mục con **bắt buộc có neo máy phân giải được** (`script` ·
+  `spec` + số phép kiểm tối thiểu · `nguon` + ký hiệu · `nguoi` ⇒ buộc ⚠️ và phải ghi `vi_sao`). Có cả
+  **chiều ngược**: mọi mục con đã xong mà § vẫn ⚠️ thì cửa nhắc nâng lên, để ⚠️ không thành chỗ trú ẩn.
+- **Hai câu sai về bản A** (`rbt-manual-testing` "luôn-nạp", `tc_reviewer` 8 tiêu chí) đã sửa, và số về A
+  nay **máy đọc** từ `.agent/config/a_parity_source.json` chứ không gõ tay.
+- **Một agent của kit chưa bao giờ nạp được, suốt 20 ngày, và không cửa nào thấy.**
+  `.claude/agents/case-debugger.md` vào repo từ 10–11/10 mà harness không đăng ký. Nguyên nhân: ô
+  `description` chứa `: ` **không bọc nháy** ⇒ **vỡ YAML** ⇒ harness **bỏ qua file im lặng** (không log,
+  không cảnh báo). Tôi đoán sai suốt ba phiên vì so ba file **bằng mắt** và thấy khác biệt là thiếu dòng
+  `model:` — mà `model:` là **tuỳ chọn**. Thứ lôi ra sự thật là một **parser**, không phải một vòng so
+  sánh nữa. Quét toàn bộ: **5/75** file frontmatter vỡ cùng kiểu (1 agent + 2 skill nguồn + 2 shim). Vá
+  xong thì agent vào sổ đăng ký **ngay trong cùng phiên** — harness nạp lại khi nội dung đổi, không cần
+  khởi động lại. Thêm `npm run frontmatter:check` (trong bó `predeploy`), gác đúng các điều kiện tài liệu
+  đã nêu; cửa cũ vẫn khai *"frontmatter hợp lệ"* vì nó kiểm bằng **regex**, không parse.
+- **Vỡ YAML giết agent nhưng KHÔNG giết skill — nó chỉ làm skill mất quảng bá.** Trước khi vá,
+  `Skill(automation_reviewer)` vẫn nạp được mà skill ấy không nằm trong danh sách khả dụng; vá xong thì
+  harness thông báo nó. Skill nhận diện theo **tên thư mục**, agent theo `name` trong frontmatter. Đây là
+  lớp hỏng **im lặng hơn** cả trường hợp agent: vẫn dùng được nếu **biết tên**, chỉ là không ai được
+  giới thiệu.
+- **`package.json` tụt lại ở `2.9.4`** trong khi CHANGELOG đỉnh là `v2.9.5` — lệch hai bước mà không máy
+  nào kêu. Thêm `npm run version:check`: mục đỉnh khớp `package.json` · CHANGELOG giảm dần · số máy gác
+  viết tay khớp bản máy sinh. Tài liệu **lịch sử** (CHANGELOG, `docs/v…`) cố ý được bỏ qua ở phép kiểm
+  cuối, vì số máy trong đó đúng ở thời điểm ghi.
+
+  **Dãy tag đi từ `v2.9.4` sang `v2.9.6`, và chỗ trống ở `v2.9.5` là dấu chân của đúng lỗi này.** Mọi
+  tag đang có đều thoả `git show <tag>:package.json == <tag>` (đo 5/5 từ `v2.9.0` tới `v2.9.4`), và
+  `version:check` **CHẶN** khi tag lệch version. Trên `main`, `package.json` giữ `2.9.4` ở **cả
+  57/57 commit** trong `v2.9.4..main` — đếm từng commit, 0 commit mang version khác — nên không có commit
+  nào mà một tag `v2.9.5` chỉ vào mà không nói sai. Vá
+  ngược bằng cách tag một commit ghi `2.9.4` thành `v2.9.5` chỉ là chuyển lời khai sai từ CHANGELOG sang
+  dãy tag, nơi khó thấy hơn. Chỗ trống này **để lại**; `git diff v2.9.4..v2.9.6` là khoảng tra ngược
+  đúng cho cả hai vòng.
 
 ## v2.9.5 — 2026-10-29 — Vượt A ở mọi chỗ A còn hơn, và mỗi chỗ phải có máy đứng sau
 

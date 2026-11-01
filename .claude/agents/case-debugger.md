@@ -1,6 +1,6 @@
 ---
 name: case-debugger
-description: Gỡ MỘT case đỏ: đọc log và ảnh FAIL, soi DOM, sửa spec hoặc locator, chạy lại đúng case đó. Dùng khi một case đã đỏ và cần tìm nguyên nhân. KHÔNG dùng khi chưa chạy lần nào, khi cần chấm verdict cuối, hoặc khi cần log bug.
+description: "Gỡ MỘT case đỏ: đọc log và ảnh FAIL, soi DOM, sửa spec hoặc locator, chạy lại đúng case đó. Dùng khi một case đã đỏ và cần tìm nguyên nhân. KHÔNG dùng khi chưa chạy lần nào, khi cần chấm verdict cuối, hoặc khi cần log bug."
 tools: Bash, Read, Edit, Grep, Glob
 ---
 

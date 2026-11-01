@@ -7,8 +7,10 @@
  * cho thấy §6 có ba vế, và chỉ hai vế có máy:
  *   · "xoá hoặc nới assertion"  → `auto:review` rule `no-assert` (P0) và `vacuous-url`/`vacuous-count`;
  *   · "hardcode data task-specific" → `package:kit` cảnh báo ở cửa phát hành;
- *   · "ĐỔI EXPECTED ĐỂ PASS"    → KHÔNG MÁY NÀO. Sửa cột `Kết quả mong đợi` rồi chạy lại thì case xanh,
- *     và không gì báo. Đây là cách gian lận RẺ NHẤT trong cả kit: một ô, không cần sửa code.
+ *   · "ĐỔI EXPECTED ĐỂ PASS"    → CHƯA CÓ MÁY **tính tới 11/10/2026**. Sửa cột `Kết quả mong đợi` rồi
+ *     chạy lại thì case xanh, và không gì báo. Đây là cách gian lận RẺ NHẤT trong cả kit: một ô, không
+ *     cần sửa code. (Vế này CHÍNH LÀ lỗ mà file này lấp từ 12/10/2026 — viết ở thời hiện tại thì nó bị
+ *     đọc như trạng thái hôm nay, và `rule:consistency` mệnh đề `EXPECTED-CO-MAY` chặn đúng cách đọc đó.)
  *
  * `git diff` KHÔNG dùng được ở đây. Testcase của task nằm trong `outputs/**`, mà cây đó bị gitignore
  * (CLAUDE.md §5: output của dự án không vào repo kit). Nên không có bản commit nào để so.
@@ -36,6 +38,28 @@ const rc = require(path.join(REPO, 'scripts', 'utils', 'runtime_config'));
 const canonical = require(path.join(REPO, 'scripts', 'lib', 'testcase'));
 
 const SNAPSHOT = process.argv.includes('--snapshot');
+/*
+ * `--giua-task "<lý do>"` — MỐC CHỤP GIỮA TASK, và nó phải TỰ KHAI điều đó.
+ *
+ * Mốc chỉ đáng tin khi chụp lúc bộ case được CHỐT. Chụp giữa task thì mốc mang luôn mọi thay đổi đã xảy
+ * ra trước đó, nên nó KHÔNG chứng minh được expected hiện tại là bản gốc — nó chỉ gác TỪ THỜI ĐIỂM ĐÓ
+ * TRỞ ĐI. Chụp giữa task vẫn tốt hơn không chụp (4/5 task đang ở trạng thái CHƯA ĐƯỢC GÁC vĩnh viễn),
+ * nhưng chỉ khi không ai đọc nó thành "chưa từng có expected nào bị sửa".
+ *
+ * Nên cờ này ĐÒI lý do, ghi lý do vào chính mốc, và mọi lượt so về sau đều in lại cảnh báo. Không có cờ
+ * thì mốc được coi là chụp ở cửa chốt — và đó là lời khai của người chụp.
+ */
+const GIUA_TASK = (() => {
+  const i = process.argv.indexOf('--giua-task');
+  if (i < 0) return null;
+  const v = process.argv[i + 1];
+  if (!v || v.startsWith('--')) {
+    console.error('[expected] `--giua-task` PHẢI kèm lý do: --giua-task "vì sao chụp giữa task".');
+    console.error('           Một mốc chụp giữa task mà không nói vì sao thì về sau không ai biết nó tin được tới đâu.');
+    process.exit(2);
+  }
+  return v;
+})();
 const JSON_OUT = process.argv.includes('--json');
 const val = (name, def) => {
   const i = process.argv.indexOf(`--${name}`);
@@ -166,11 +190,23 @@ async function main() {
       _chup_lai_khi_nao: 'Sau khi đã RÀ và khai lý do cho mọi thay đổi. Chụp để che một thay đổi chưa khai là đúng thứ gate này gác.',
       task: taskKey,
       chup_luc: new Date().toISOString(),
+      ...(GIUA_TASK ? {
+        chup_giua_task: {
+          ly_do: GIUA_TASK,
+          _nghia: 'Mốc này KHÔNG chụp ở cửa chốt. Nó gác TỪ THỜI ĐIỂM NÀY TRỞ ĐI, và KHÔNG chứng minh '
+            + 'expected hiện tại là bản gốc. Đọc nó thành "chưa từng có expected nào bị sửa" là sai.',
+        },
+      } : {}),
       so_case: cases.size,
       nguon,
       expected: bang,
     }, null, 2)}\n`, 'utf8');
     console.log(`[expected] đã chụp mốc ${cases.size} case → ${path.relative(REPO, MOC)}`);
+    if (GIUA_TASK) {
+      console.log('[expected] ⚠ MỐC CHỤP GIỮA TASK — nó gác TỪ ĐÂY TRỞ ĐI, và KHÔNG chứng minh expected');
+      console.log('[expected]   hiện tại là bản gốc. Lý do đã ghi vào mốc:');
+      console.log(`[expected]   "${GIUA_TASK}"`);
+    }
     return;
   }
 
@@ -204,6 +240,15 @@ async function main() {
   if (JSON_OUT) { console.log(JSON.stringify(ra, null, 2)); process.exit(chuaKhai.length || khaiRong.length ? 1 : 0); }
 
   console.log(`[expected] task ${taskKey} · ${cases.size} case · mốc chụp ${String(cu.chup_luc).slice(0, 19)}`);
+  /*
+   * IN LẠI MỖI LƯỢT, không chỉ lúc chụp. Một cảnh báo chỉ hiện ở lượt chụp thì người đọc báo cáo ba
+   * tuần sau không bao giờ thấy nó — và lúc đó mốc lại được đọc như mốc chốt.
+   */
+  if (cu.chup_giua_task) {
+    console.log('           ⚠ MỐC NÀY CHỤP GIỮA TASK, không ở cửa chốt. Nó gác TỪ thời điểm chụp TRỞ ĐI,');
+    console.log('             và KHÔNG chứng minh expected trước đó là bản gốc.');
+    console.log(`             Lý do khi chụp: "${String(cu.chup_giua_task.ly_do || '').slice(0, 110)}"`);
+  }
   if (kq.them.length) console.log(`           + ${kq.them.length} case MỚI (chưa có trong mốc): ${kq.them.slice(0, 6).join(', ')}${kq.them.length > 6 ? ' …' : ''}`);
   if (kq.mat.length) console.log(`           - ${kq.mat.length} case BIẾN MẤT khỏi bộ: ${kq.mat.slice(0, 6).join(', ')}${kq.mat.length > 6 ? ' …' : ''}`);
   if (daKhai.length) {

@@ -67,6 +67,74 @@ function chuKyCauTruc(dvt) {
   return JSON.stringify([nhan, comp, header]);
 }
 
+/*
+ * GỘP NHIỀU LƯỢT ĐỌC DẤU VÂN TAY THÀNH MỘT — và đây là một lỗi THẬT, đo được 01/11/2026.
+ *
+ * `moCacKhoi` bấm `[role="tab"]`, mà trên mọi app dùng tab thì bấm tab sau ẨN tabpanel trước. Bản trước
+ * đọc dấu vân tay ĐÚNG MỘT LẦN, ở cuối, nên nó chỉ thấy nội dung của tab được bấm CUỐI CÙNG.
+ *
+ * Đo trên fixture, hai nhánh khác nhau đúng một điều là tab có được bấm hay không:
+ *   · bấm tab      ⇒ chữ ký `/truong/:id` = [[],["tab"],[]]
+ *   · không bấm tab ⇒ chữ ký `/truong/:id` = [[],["data_table","tab"],[]]
+ * Tức lượt bò TỰ PHÁ thứ nó đang đo: `data_table` biến mất vì chính cú bấm của crawler.
+ *
+ * Hai hậu quả, và cái thứ hai nặng hơn:
+ *   ① MẤT TẤT ĐỊNH. Thứ tự và số tab bấm được phụ thuộc trần 250ms/400ms/8s của `moCacKhoi`, nên dưới
+ *      tải, cùng một route sinh ra HAI danh tính khác nhau — đo được một lượt bò ra 8 màn trong khi 9
+ *      lượt khác ra 7. Đó đúng là thứ phép kiểm "bò TẤT ĐỊNH" ra đời để bắt, và kit tự nhận đây là điểm
+ *      số 1 vượt kit A.
+ *   ② ĐẾM THIẾU MẪU SỐ. `so_field` và `components` của màn là mẫu số cho chiều Validation. Một màn có
+ *      bảng mà báo "không có data_table" thì mọi tỉ lệ phủ về sau tính trên mẫu số thiếu.
+ *
+ * Nên: đọc dấu vân tay TRƯỚC khi mở (bản nguyên trạng), sau MỖI lượt mở, và ở cuối — rồi HỢP chúng lại.
+ * Hợp là phép cộng, nên một lượt đọc sớm không thể làm sai: nó chỉ thêm thứ đã thật sự có trên màn.
+ *
+ * `thu_tu_focus` KHÔNG hợp được (nó là một THỨ TỰ, không phải một tập) nên lấy bản nguyên trạng.
+ */
+function gopDauVanTay(ds) {
+  const co = ds.filter(Boolean);
+  if (co.length <= 1) return co[0] || null;
+  const dau = co[0];
+  const khoaField = (f) => [f.nhan, f.ten_truong, f.code_loai].map((x) => String(x || '')).join('\u0000');
+  const fields = [];
+  const daCo = new Set();
+  for (const d of co) {
+    for (const f of d.fields || []) {
+      const k = khoaField(f);
+      if (daCo.has(k)) continue;
+      daCo.add(k);
+      fields.push(f);
+    }
+  }
+  const comp = [...new Set(co.flatMap((d) => d.components || []))].sort();
+  const chuaMap = [...new Set(co.flatMap((d) => d.component_chua_map || []))].sort();
+  /* Bảng hợp theo DẤU VÂN TAY HEADER: cùng bộ header thì là cùng bảng, dù đọc ở hai lượt khác nhau. */
+  let snap = dau.snapshot;
+  if (snap) {
+    const bang = [];
+    const daBang = new Set();
+    for (const d of co) {
+      for (const t of ((d.snapshot || {}).tables) || []) {
+        const k = JSON.stringify(t.headers || []);
+        if (daBang.has(k)) continue;
+        daBang.add(k);
+        bang.push(t);
+      }
+    }
+    snap = { ...snap, tables: bang };
+  }
+  return {
+    ...dau,
+    fields,
+    so_field: fields.length,
+    components: comp,
+    component_chua_map: chuaMap,
+    loai_field_quan_sat: [...new Set(fields.map((f) => f.code_loai))].sort(),
+    snapshot: snap,
+    so_lan_doc_van_tay: co.length,
+  };
+}
+
 function danhTinh(route, chuKy) {
   return `${route}\u0000${chuKy}`;
 }
@@ -117,7 +185,7 @@ async function choLangMang(page, { langMs = 250, tranMs = 2500 } = {}) {
   }
 }
 
-async function moCacKhoi(page, bienBan, cfg, doTre) {
+async function moCacKhoi(page, bienBan, cfg, doTre, sauKhiMo) {
   const moDuoc = [];
   /*
    * CHỈ bấm thứ để MỞ RA. `details > summary`, `[aria-expanded=false]`, `[role=tab]` — ba thứ này không
@@ -152,6 +220,11 @@ async function moCacKhoi(page, bienBan, cfg, doTre) {
         await el.click({ timeout: 400, noWaitAfter: true });
         moDuoc.push(nhan.trim());
         hongLienTiep = 0;
+        /*
+         * ĐỌC NGAY SAU MỖI LƯỢT MỞ. Lý do đầy đủ ở `gopDauVanTay`: mở khối sau có thể ẨN khối trước
+         * (tab là ca kinh điển), nên một lượt đọc duy nhất ở cuối chỉ thấy khối mở CUỐI CÙNG.
+         */
+        if (sauKhiMo) await sauKhiMo();
       } catch (e) { hongLienTiep += 1; }
       if (doTre > 0) await page.waitForTimeout(doTre);
     }
@@ -270,7 +343,8 @@ async function gomLink(page, origin, cfg) {
 async function boApp(browser, o) {
   const cfg = o.cfg || fw.napCfg();
   const gh = cfg.gioi_han_luot_bo;
-  // `== null` chứ không `||`: `maxTrang: 0` là một yêu cầu hợp lệ (dùng để đo nhánh "bò được 0 màn").
+  // `== null` chứ không `||`: `maxTrang: 0` là một yêu cầu hợp lệ (dùng để đo nhánh "bò được 0 màn") —
+  // và là ngoại lệ duy nhất được phép trả về 0 màn mà không bị coi là phép đo hỏng, xem cuối hàm.
   const maxTrang = o.maxTrang == null ? gh.so_trang_toi_da : o.maxTrang;
   const doSau = o.doSau == null ? gh.do_sau_toi_da : o.doSau;
   const hanPhut = gh.thoi_gian_toi_da_phut || 20;
@@ -297,14 +371,23 @@ async function boApp(browser, o) {
    * đi tiếp. Và kit KHÔNG tự đăng nhập ở đây — QEMIS có captcha mỗi lượt, nên session phải được nạp sẵn
    * từ ngoài. `context.newPage()` và `browser.newPage()` cùng chữ ký nên chỗ gọi không đổi gì khác.
    */
-  const page = await (o.context || browser).newPage();
-  const bienBan = await fw.install(page, { cfg, domainChoPhep: [new URL(o.baseUrl).host] });
+  /* `let` chứ không `const`: trang ĐẦU có thể phải dựng lại page — xem `diToi` bên dưới. */
+  let page = await (o.context || browser).newPage();
+  let bienBan = await fw.install(page, { cfg, domainChoPhep: [new URL(o.baseUrl).host] });
   /*
    * Bộ theo dõi API gắn vào CÙNG `page`, trước lần `goto` đầu tiên. Nó chỉ NGHE `response`, không gửi gì.
    * Crawler có nhiệm vụ gọi `datRoute()` trước mỗi lần điều hướng — không có bước đó thì danh mục vẫn
    * đúng về endpoint nhưng mất cột `goi_tu`, mà `goi_tu` chính là thứ suy ra `shared_surface`.
    */
-  const apiRec = o.apiRec || null;
+  /*
+   * ĐỌC `o.apiRec` THEO TỪNG LƯỢT, không chụp một lần.
+   *
+   * `discover.js` bọc `newPage` để gắn bộ theo dõi API cho MỖI page mới, rồi truyền vào đây bằng một
+   * getter (`get apiRec() { return rec; }`). Bản trước chụp giá trị đó một lần ở đây, nên khi `diToi`
+   * dựng lại page ở trang đầu, biến này vẫn trỏ vào bộ theo dõi CŨ — một bộ đang nghe trên page đã
+   * đóng. Hậu quả sẽ là `api_inventory` rỗng mà không ai thấy lỗi gì: đúng kiểu hỏng im lặng.
+   */
+  const layApiRec = () => o.apiRec || null;
 
   const hangDoi = [{ url: o.baseUrl, sau: 0 }];   // mục có `lanCan: true` là trang NGOÀI phạm vi, thăm rồi dừng
   const daThay = new Set([o.baseUrl]);
@@ -315,20 +398,85 @@ async function boApp(browser, o) {
   const screens = [];
   const khongToiDuoc = { needs_account: [], captcha: [], error: [], budget: [], firewall: [] };
   const batDau = Date.now();
+  const thuLai = [];   // mỗi lượt điều hướng phải thử lại: giữ để báo cáo, vì một con số 0 ở đây mới có nghĩa
+
+  /*
+   * ĐIỀU HƯỚNG CÓ THỬ LẠI — và chỉ thử lại khi lỗi là NHẤT THỜI.
+   *
+   * Đo 01/11/2026: dưới tranh chấp tài nguyên, `page.goto` tới trang đầu hết hạn ở 15s, trong khi CÙNG
+   * lúc đó `http.get` thuần tới CÙNG URL đáp trong 6–48ms (36 mẫu, 0 lỗi). Tức server khoẻ, app khoẻ,
+   * nghẽn nằm trong đường ống của browser. Một lần hết hạn như vậy không nói gì về sản phẩm.
+   *
+   * Hậu quả khi KHÔNG thử lại, đo được: lượt bò trả về 0 màn, `route_toi_duoc: 0`, `ti_le: 0` — và vì
+   * trang đầu là nơi mọi link khác được gom, mất nó là mất TOÀN BỘ lượt bò. Với một trang giữa lượt thì
+   * nhẹ hơn nhưng cùng bản chất: mẫu số teo lại vì một sự cố nhất thời, rồi mọi tỉ lệ coverage về sau
+   * tính trên mẫu số teo đó.
+   *
+   * KHÔNG thử lại với 4xx/5xx: đó là câu trả lời THẬT của server, phải được ghi nguyên. Chỉ thử lại khi
+   * hết hạn hoặc không nối được — hai thứ không phải lời khai của app.
+   */
+  const RE_NHAT_THOI = /(Timeout|ERR_CONNECTION|ERR_NETWORK|ERR_EMPTY_RESPONSE|ERR_SOCKET|NS_ERROR|net::ERR_ABORTED)/i;
+  const LAN_TOI_DA = 3;
+
+  /*
+   * TRANG ĐẦU HỎNG thì DỰNG LẠI PAGE, không chờ trên page đang treo. Chọn thế vì đo được, 01/11/2026,
+   * ngay lúc một lượt `goto` đang treo:
+   *   · goto lượt hai trên CÙNG page : qua sau **11.359ms**
+   *   · page MỚI, cùng browser       : qua sau **27ms**
+   *   · browser mới                  : qua sau **20ms**
+   * Tức cú treo bám vào context đó, và trong lượt đo ấy, ra khỏi nó rẻ hơn chờ nó hết **420 lần**.
+   *
+   * NHƯNG KHÔNG BẢO ĐẢM, và đây là bằng chứng ngược, đo cùng ngày trong lượt `full:suite` 6 worker:
+   * cả **3 lần thử — gồm 2 lần dựng page mới — đều hết hạn 15s**. Dưới tranh chấp của cả bó, page mới
+   * cũng treo. Nên bước này làm lượt bò BỀN HƠN, chứ không chữa được cú treo; thứ gác phần còn lại là
+   * chốt `BO_DUOC_0_MAN` ở cuối hàm: không cứu được thì phải nói "không đo được", không được trả về một
+   * lượt bò 0 màn mang nhãn `observed`.
+   *
+   * CHỈ ở trang đầu, và chỉ khi chưa thu được gì: lúc đó `bienBan` còn rỗng nên dựng lại không mất lời
+   * khai nào của tường lửa. Giữa lượt bò thì KHÔNG dựng lại — `bienBan` đang giữ sổ request đã chặn, và
+   * một hàng rào an toàn mất sổ thì tệ hơn một trang bị bỏ.
+   *
+   * `setTimeout` thuần thay cho `page.waitForTimeout`: bản trước chờ trên chính page vừa hỏng, nên khi
+   * page đã đóng, bước nghỉ ném "Target page, context or browser has been closed" — một thông điệp nói
+   * sai chỗ hỏng.
+   */
+  const nghi = (ms) => new Promise((r) => setTimeout(r, ms));
+  async function diToi(url, { laTrangDau = false } = {}) {
+    let loiCuoi = null;
+    for (let lan = 1; lan <= LAN_TOI_DA; lan++) {
+      try {
+        return { resp: await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 15000 }) };
+      } catch (e) {
+        loiCuoi = e;
+        if (!RE_NHAT_THOI.test(String(e.message)) || lan === LAN_TOI_DA) break;
+        let dungPageMoi = false;
+        if (laTrangDau) {
+          try {
+            await page.close();
+            page = await (o.context || browser).newPage();
+            bienBan = await fw.install(page, { cfg, domainChoPhep: [new URL(o.baseUrl).host] });
+            dungPageMoi = true;
+          } catch (e2) { /* dựng lại không được thì cứ thử tiếp trên page cũ — vẫn hơn là bỏ lượt bò */ }
+        }
+        thuLai.push({ url, lan, page_moi: dungPageMoi, vi_sao: String(e.message).split('\n')[0].slice(0, 120) });
+        await nghi(dungPageMoi ? 100 : 500 * lan);
+      }
+    }
+    return { loi: String(loiCuoi && loiCuoi.message).slice(0, 120) };
+  }
 
   while (hangDoi.length) {
     if (screens.length >= maxTrang) { khongToiDuoc.budget.push(...hangDoi.map((h) => h.url)); break; }
     if ((Date.now() - batDau) / 60000 > hanPhut) { khongToiDuoc.budget.push(...hangDoi.map((h) => h.url)); break; }
 
     const { url, sau, lanCan: laLanCan } = hangDoi.shift();
+    const apiRec = layApiRec();
     if (apiRec) apiRec.datRoute(chuanHoaRoute(url));
-    let resp = null;
-    try {
-      resp = await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 15000 });
-    } catch (e) {
-      khongToiDuoc.error.push({ url, vi_sao: String(e.message).slice(0, 120) });
-      continue;
-    }
+    /* "Trang đầu" = chưa thu được màn nào, không phải "vòng lặp thứ nhất": một trang đầu 404 rồi tới
+     * trang thứ hai vẫn là lúc `bienBan` còn rỗng, nên dựng lại page vẫn an toàn. */
+    const dh = await diToi(url, { laTrangDau: routeDaTham.size === 0 });
+    if (dh.loi) { khongToiDuoc.error.push({ url, vi_sao: dh.loi }); continue; }
+    const resp = dh.resp;
     const code = resp ? resp.status() : 0;
     if (code === 401 || code === 403) { khongToiDuoc.needs_account.push({ url, status: code }); continue; }
     if (code >= 400) { khongToiDuoc.error.push({ url, status: code }); continue; }
@@ -355,14 +503,42 @@ async function boApp(browser, o) {
     const tranTrang = (gh.thoi_gian_moi_trang_giay || 90) * 1000;
     const hetGio = Symbol('het-gio');
     const xuLyTrang = (async () => {
-      const moDuoc = await moCacKhoi(page, bienBan, cfg, doTre);
+      /*
+       * ĐỌC BẢN NGUYÊN TRẠNG TRƯỚC KHI MỞ KHỐI, và KHÔNG chờ mạng lặng trước lượt đọc này.
+       *
+       * Không chờ vì phép hợp là phép CỘNG: lượt đọc sớm chỉ thêm thứ đang có trên màn, không bỏ được
+       * thứ gì. Chờ thêm một `choLangMang` nữa ở đây sẽ cộng tới 2,5 giây cho MỖI url, tức gần 90 giây
+       * cho 35 url của fixture — trả giá đó để đổi lấy một thông tin mà lượt đọc cuối đã có.
+       */
+      const dsVanTay = [];
+      /*
+       * TRẦN SỐ LƯỢT ĐỌC. `moCacKhoi` mở tối đa 12 phần tử × 3 selector, nên không chặn thì một màn
+       * nhiều accordion phải trả giá hàng chục lượt đọc. Đo trên fixture 35 url: bản gộp làm một lượt bò
+       * đi từ 19s lên 21–28s, tức +10…45%; trần này giữ phần đuôi không nở thêm.
+       *
+       * Hết trần KHÔNG phải im lặng: `so_lan_doc_van_tay` trong kết quả nói đã đọc mấy lượt, và trần đặt
+       * ở 8 nên nó khác rõ với một màn thật sự chỉ có vài khối.
+       */
+      const TRAN_DOC = 8;
+      const docMot = async () => {
+        if (dsVanTay.length >= TRAN_DOC) return;
+        try { dsVanTay.push(await fp.docDauVanTay(page, { route: chuanHoaRoute(url), keoSnapshot: o.keoSnapshot !== false })); }
+        catch (e) { /* một lượt đọc hỏng KHÔNG được làm chết cả trang: các lượt còn lại vẫn là dữ liệu thật */ }
+      };
+      await docMot();
+      const moDuoc = await moCacKhoi(page, bienBan, cfg, doTre, docMot);
       /*
        * Chờ TRƯỚC khi đọc dấu vân tay và trước khi đi trang kế: `api_inventory` gắn bộ theo dõi vào
        * page, nên request về muộn hơn chỗ này sẽ bị bỏ hoặc được tính tuỳ lịch chạy.
        */
       await choLangMang(page, { langMs: o.langMs == null ? 250 : o.langMs, tranMs: o.tranLangMs == null ? 2500 : o.tranLangMs });
       const route = chuanHoaRoute(url);
-      const dvt = await fp.docDauVanTay(page, { route, keoSnapshot: o.keoSnapshot !== false });
+      /* Lượt đọc CUỐI luôn chạy, kể cả khi đã hết trần: trạng thái cuối của màn là trạng thái mà ảnh
+       * chụp và `so_ban_ghi_da_xem` nói tới, nên nó không được thiếu khỏi phép hợp. */
+      if (dsVanTay.length >= TRAN_DOC) dsVanTay.pop();
+      await docMot();
+      const dvt = gopDauVanTay(dsVanTay);
+      if (!dvt) throw new Error('không đọc được dấu vân tay nào của trang này');
       return { moDuoc, route, dvt };
     })();
     /*
@@ -465,6 +641,36 @@ async function boApp(browser, o) {
    */
   const soPhatHien = routePhatHien.size;
   const soToiDuoc = routeDaTham.size;
+  /*
+   * LƯỢT BÒ TỚI 0 MÀN KHÔNG PHẢI MỘT QUAN SÁT — nó là một phép đo KHÔNG CHẠY ĐƯỢC, và hai thứ đó phải
+   * ra hai kết quả khác nhau.
+   *
+   * Bản trước trả về `{screens: [], ti_le: 0, status: 'observed'}`. Người đọc kế tiếp không phải người
+   * mà là `dimension_manifest` và `scope_anchor`: chúng lấy `screens` làm MẪU SỐ. Mẫu số 0 thì mọi tỉ lệ
+   * phủ về sau là 0/0, và lượt bò vẫn tự khai `observed` — đúng lớp lỗi "0% lỗi trên 0 request" mà kit
+   * đã bị cắn ở lượt k6: một con số tính trên không có gì, trông như một con số.
+   *
+   * Đo 01/11/2026: dưới tranh chấp, trang đầu hết hạn ở 15s (server khoẻ, http thuần 6–48ms) và lượt bò
+   * trả về 0 màn, `status: 'observed'`. Phép kiểm tính tất định đọc kết quả đó rồi kết tội CRAWLER mất
+   * tất định — một lời buộc tội SAI cho một phép đo chưa từng chạy.
+   *
+   * NÉM, không trả về. Lượt bò đã thử lại tới 3 lần mỗi trang trước khi tới đây, nên đây không phải lỗi
+   * nhất thời: nó là "không vào được app", và câu trả lời đúng cho câu đó là dừng lại, không phải báo cáo.
+   */
+  /*
+   * NGOẠI LỆ DUY NHẤT: `maxTrang: 0`. Đó là người gọi CỐ Ý xin một lượt bò 0 trang (nhánh đo ngân sách),
+   * nên 0 màn ở đây là câu trả lời đúng chứ không phải phép đo hỏng. Phân biệt được vì ngân sách 0 ghi
+   * toàn bộ hàng đợi vào `khong_toi_duoc.budget`, không ghi gì vào `error`.
+   */
+  if (soToiDuoc === 0 && maxTrang !== 0) {
+    const ct = JSON.stringify(khongToiDuoc).slice(0, 400);
+    const e = new Error(`[crawl] KHÔNG BÒ ĐƯỢC MÀN NÀO từ ${o.baseUrl} — đây là phép đo KHÔNG CHẠY ĐƯỢC, `
+      + `không phải "app có 0 màn". Đã thử lại ${thuLai.length} lượt điều hướng `
+      + `(trần ${LAN_TOI_DA} lần/lượt). Chi tiết: ${ct}`);
+    e.code = 'BO_DUOC_0_MAN';
+    e.chi_tiet = khongToiDuoc;
+    throw e;
+  }
   return {
     target: { host: kt.host, is_nonprod_confirmed: true },
     /*
@@ -486,9 +692,29 @@ async function boApp(browser, o) {
         captcha: khongToiDuoc.captcha.length,
         error: khongToiDuoc.error.length,
         budget: khongToiDuoc.budget.length,
-        firewall: bienBan.chan.length ? 0 : 0,
+        /*
+         * SỬA 01/11/2026. Dòng này từng là `bienBan.chan.length ? 0 : 0` — một ternary CHẾT, luôn trả 0
+         * bất kể gì: một ô báo cáo KHÔNG CÓ KHẢ NĂNG báo cáo.
+         *
+         * Bản vá ĐẦU của tôi đặt `bienBan.chan.length`, và nó SAI VẾ: cả khối này đếm ROUTE KHÔNG TỚI
+         * ĐƯỢC, còn `chan` đếm REQUEST GHI BỊ CHẶN — hai đơn vị khác nhau, và số request ghi bị chặn đã
+         * có chỗ riêng ở `tuong_lua.request_ghi_bi_chan`. Đúng khuyết điểm ② mà chính hàm này ra đời để
+         * chữa: tử số đếm màn, mẫu số đếm URL thô.
+         *
+         * Giá trị đúng là `khongToiDuoc.firewall.length`. Nó bằng 0 hôm nay, nhưng là một số 0 THẬT:
+         * hiện KHÔNG nhánh nào ghi vào giỏ đó, vì tường lửa chặn request chứ chưa bao giờ làm một route
+         * không tới được. Ngày có nhánh như vậy thì ô này báo, còn ternary cũ thì không.
+         */
+        firewall: khongToiDuoc.firewall.length,
       },
       chi_tiet_khong_toi_duoc: khongToiDuoc,
+      /*
+       * SỐ LẦN PHẢI THỬ LẠI điều hướng. Công khai chứ không im lặng: một lượt bò thử lại 40 lần vẫn ra
+       * kết quả "đủ màn", nhưng nó đang nói rằng môi trường đo không ổn định — và người đọc phải biết
+       * điều đó trước khi lấy lượt bò này làm mẫu số.
+       */
+      so_lan_thu_lai_dieu_huong: thuLai.length,
+      chi_tiet_thu_lai: thuLai.slice(0, 20),
       /*
        * Link CỐ Ý KHÔNG đi theo. Ghi ra chứ không im lặng: người đọc phải biết lượt bò đã tránh những
        * đường nào, nếu không thì "không thấy màn Đăng xuất" trông như một thiếu sót của lượt bò.
@@ -516,4 +742,4 @@ async function boApp(browser, o) {
   };
 }
 
-module.exports = { boApp, chuanHoaRoute, choLangMang, danhTinh, chuKyCauTruc, oCanChe, gomLink };
+module.exports = { boApp, chuanHoaRoute, choLangMang, danhTinh, chuKyCauTruc, gopDauVanTay, oCanChe, gomLink };

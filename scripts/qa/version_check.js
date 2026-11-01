@@ -120,6 +120,131 @@ function main() {
     console.log('[version] không có `.git` (chạy từ gói phát hành) — bỏ qua kiểm shared change');
   }
 
+
+  /*
+   * 5) CHANGELOG: MỤC ĐỈNH phải là bản hiện tại, và thứ tự phải GIẢM DẦN (v2.9.6 N6).
+   *
+   * Phép kiểm 3) chỉ đòi "có mục cho version này" ở BẤT KỲ đâu trong file. Nó không bắt được ca đã xảy
+   * ra thật: đo 30/10/2026, `package.json` ghi 2.9.4 trong khi CHANGELOG đỉnh là v2.9.5 và nhánh đang
+   * làm là v2.9.6 — lệch hai bước, mục cho 2.9.4 vẫn tồn tại nên 3) vẫn xanh. Phiên bản lệch không làm
+   * lượt chạy nào đỏ, nên nó trôi im lặng; đó đúng là lý do phải có máy.
+   *
+   * Thứ tự giảm dần là tiền đề của chữ "đỉnh": chèn một mục vào giữa thì "đỉnh" không còn là bản mới
+   * nhất, và lúc đó phép kiểm trên đang so với một dòng ngẫu nhiên.
+   */
+  const clForNew = fs.existsSync(clPath) ? fs.readFileSync(clPath, 'utf8') : '';
+  const mucVer = [...clForNew.matchAll(/^##\s+v(\d+\.\d+\.\d+)\b/gm)].map((m) => m[1]);
+  if (clForNew && !mucVer.length) {
+    problems.push('CHANGELOG.md không có mục nào dạng `## vX.Y.Z` — không có gì để đối chiếu, và "không phán được" KHÔNG thành đạt.');
+  } else if (mucVer.length && version && mucVer[0] !== version) {
+    problems.push(`CHANGELOG đỉnh là **v${mucVer[0]}** mà package.json ghi **${version}** — một trong hai chưa cập nhật. Mục cho ${version} có thể vẫn tồn tại ở giữa file, nên phép kiểm "có mục" KHÔNG bắt được ca này.`);
+  }
+  const soSanhVer = (a, b) => {
+    const x = a.split('.').map(Number); const y = b.split('.').map(Number);
+    for (let i = 0; i < 3; i += 1) if (x[i] !== y[i]) return x[i] - y[i];
+    return 0;
+  };
+  for (let i = 1; i < mucVer.length; i += 1) {
+    if (soSanhVer(mucVer[i - 1], mucVer[i]) <= 0) {
+      problems.push(`CHANGELOG KHÔNG giảm dần: \`v${mucVer[i - 1]}\` đứng trên \`v${mucVer[i]}\` — "mục đỉnh" chỉ có nghĩa khi thứ tự đúng.`);
+      break;
+    }
+  }
+
+  /*
+   * 6) Phần mở đầu CHANGELOG không được khai NGƯỢC với cách nó đang được ghi.
+   *
+   * Câu cũ ở đó phủ nhận việc kit đánh số theo semver, trong khi 23/23 mục đều mang `## vX.Y.Z` và chính
+   * file này đã chốt quy ước semver từ lâu. Một câu dẫn nhập sai dạy người đọc sai về cách đọc cả file.
+   *
+   * Phép so là so CHỮ, nên nó cũng chặn một ghi chú viết lại nguyên văn câu bị cấm — và đã chặn đúng
+   * thế một lần khi tôi viết ghi chú giải thích. Giữ phép so thô có chủ ý: phân biệt "khai" với "trích"
+   * bằng máy thì mong manh hơn là chỉ cần diễn đạt lại.
+   */
+  if (clForNew) {
+    const moDau = clForNew.slice(0, clForNew.indexOf('## v') >= 0 ? clForNew.indexOf('## v') : 800);
+    if (/ch[ưu]a d[ùu]ng semver|kh[ôo]ng d[ùu]ng semver/i.test(moDau)) {
+      problems.push(`phần mở đầu CHANGELOG phủ nhận việc dùng semver, nhưng ${mucVer.length}/${mucVer.length} mục đều mang \`## vX.Y.Z\` — câu đó dạy người đọc sai về cách file này được ghi.`);
+    }
+  }
+
+  /*
+   * 7) SỐ MÁY GÁC VIẾT TAY phải khớp bản MÁY SINH.
+   *
+   * `GATES.md` do `gates:index` sinh nên nó là nguồn. Đo 30/10/2026: số máy xuất hiện ở 4 chỗ, trong đó
+   * `README.md` và `docs/v2.9.5/A_PARITY.md` là bản sao VIẾT TAY — và bản sao viết tay của một con số do
+   * máy đếm là một chỗ trôi được.
+   *
+   * BỎ TÀI LIỆU LỊCH SỬ, và đây là chỗ bản đầu của tôi sai theo chiều PHÁ HOẠI: lượt chạy đầu nó bắt 4
+   * "chỗ lệch" ở `CHANGELOG.md` (132 · 80 · 16 máy) và `docs/v2.9.2/PLAN.md` (134 máy). Những con số ấy
+   * ĐÚNG Ở THỜI ĐIỂM GHI; bắt chúng khớp số hôm nay là đòi viết lại lịch sử, và làm theo thì mất hẳn
+   * khả năng tra ngược kit đã lớn thế nào. Ranh giới mechanical, không cần danh sách miễn trừ viết tay:
+   * tài liệu TRẠNG THÁI HIỆN TẠI là .md không phải `CHANGELOG.md` và không nằm dưới thư mục `docs/v…`.
+   *
+   * ĐÁNH ĐỔI nói rõ: `docs/v2.9.5/A_PARITY.md` cũng bị bỏ qua dù là bảng nghiệm thu đang sống. Số máy ở
+   * đó không được cửa này gác — bù lại nó có `parity:check` riêng. Có chủ ý, không phải sót.
+   */
+  const gatesPath = path.join(REPO, '.agent/config/GATES.md');
+  if (!fs.existsSync(gatesPath)) {
+    warnings.push('thiếu `.agent/config/GATES.md` ⇒ không đối chiếu được số máy gác viết tay (KHÔNG phải đạt).');
+  } else {
+    const mTong = fs.readFileSync(gatesPath, 'utf8').match(/Tổng \*\*(\d+)\*\* máy/);
+    if (!mTong) {
+      warnings.push('`GATES.md` không có dòng `Tổng **N** máy` để lấy làm nguồn ⇒ phép kiểm ⑦ KHÔNG phán được.');
+    } else {
+      const tongGate = Number(mTong[1]);
+      /*
+       * KHÔNG CÓ `.git` THÌ ĐỌC ĐĨA, ĐỪNG IM LẶNG.
+       *
+       * Bản trước chỉ hỏi `git ls-files`, nên trong GÓI PHÁT HÀNH (không có `.git`) nó quét **0 file**
+       * rồi bỏ qua phép kiểm ⑦. Mà ⑦ ở đó vẫn có nghĩa: gói mang cả `README.md` lẫn `GATES.md`, và hai
+       * con số ấy phải khớp ở tay người nhận y như ở repo.
+       *
+       * Đo 30/10/2026: đúng chỗ này làm `release:verify` đỏ 2 ca cuối — hai ca của chính spec tôi viết,
+       * vì chúng khẳng định hành vi khi CÓ git mà không khai điều kiện ấy. `gate_index.js` đã có nhánh
+       * đọc đĩa từ trước; đây là cùng một bài học, lặp lại ở một cửa khác.
+       */
+      const dsMd = (() => {
+        const tuGit = (git(['ls-files', '*.md']) || '').split('\n').map((x) => x.trim()).filter(Boolean);
+        if (tuGit.length) return tuGit;
+        const BO_QUA = /^(node_modules|dist|outputs|test-results|playwright-report|\.git)(\/|$)/;
+        const ra = [];
+        const di = (d, tien) => {
+          let es;
+          try { es = fs.readdirSync(d, { withFileTypes: true }); } catch (e) { return; }
+          for (const e of es) {
+            const rel = tien ? `${tien}/${e.name}` : e.name;
+            if (BO_QUA.test(rel)) continue;
+            if (e.isDirectory()) di(path.join(d, e.name), rel);
+            else if (e.name.endsWith('.md')) ra.push(rel);
+          }
+        };
+        di(REPO, '');
+        return ra;
+      })();
+      let soCho = 0;
+      for (const f of dsMd) {
+        const duong = f.replace(/\\/g, '/');
+        if (duong === 'CHANGELOG.md' || /^docs\/v\d+\.\d+(\.\d+)?\//.test(duong)) continue;
+        if (/^(\.agent\/config\/GATES\.md|docs\/RULE_COVERAGE\.md)$/.test(duong)) continue;
+        let noi;
+        try { noi = fs.readFileSync(path.join(REPO, f), 'utf8'); } catch (e) { continue; }
+        const dong = noi.split(/\r?\n/);
+        for (let i = 0; i < dong.length; i += 1) {
+          if (!/GATES\.md/.test(dong[i])) continue;
+          for (const m of dong[i].matchAll(/(\d{2,4})\s*(?:\*\*)?\s*(?:máy gác|máy kiểm|máy|gate)\b/gi)) {
+            soCho += 1;
+            if (Number(m[1]) !== tongGate) {
+              problems.push(`${duong}:${i + 1} ghi **${m[1]}** máy, \`GATES.md\` (máy sinh) đếm **${tongGate}** — chạy \`npm run gates:index\` rồi sửa dòng này.`);
+            }
+          }
+        }
+      }
+      if (!soCho) warnings.push('không .md trạng-thái-hiện-tại nào nhắc số máy kèm `GATES.md` ⇒ phép kiểm ⑦ CHƯA GÁC GÌ ở lượt này (không phải đạt).');
+      else console.log(`[version] ⑦ ${soCho} bản sao viết tay của số máy, nguồn \`GATES.md\` = ${tongGate}`);
+    }
+  }
+
   console.log(`[version] ${version || '(chưa có)'} · ${problems.length} CHẶN · ${warnings.length} cảnh báo`);
   if (warnings.length) { console.log('\n[version] ⚠ Cảnh báo:'); warnings.forEach((w) => console.log(`  ~ ${w}`)); }
   if (!problems.length) { console.log('\n[version] ✓ ĐẠT'); process.exit(0); }

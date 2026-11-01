@@ -46,6 +46,19 @@ const CUA = [
    * hành một gói dạy hai luật trái nhau thì người nhận làm theo cái nào cũng có cửa chặn họ.
    */
   { ten: 'rule:consistency', file: 'scripts/qa/rule_consistency.js', args: [] },
+  /*
+   * `version:check` vào đây (30/10/2026) vì nó cùng HỌ với ba cửa trên: canh "tài liệu khớp nguồn".
+   * Và nó phải chạy ở CÂY SẠCH TẠI HEAD đúng như chúng — một `package.json` đã sửa mà chưa commit thì
+   * khớp ở cây làm việc nhưng lệch ở bản phát hành. Đo 30/10/2026: `package.json` tụt lại ở 2.9.4
+   * trong khi CHANGELOG đỉnh là v2.9.5, lệch hai bước mà không cửa nào kêu.
+   */
+  { ten: 'version:check', file: 'scripts/qa/version_check.js', args: [] },
+  /*
+   * `frontmatter:check` vao day (30/10/2026) vi mot file dinh nghia vo frontmatter thi harness BO QUA
+   * no IM LANG — khong log, khong canh bao. Mot kit phat hanh kem mot agent khong bao gio nap duoc la
+   * kit hong voi nguoi nhan, va khong cua nao khac thay. Do duoc: 5/75 file dang o trang thai do.
+   */
+  { ten: 'frontmatter:check', file: 'scripts/qa/frontmatter_check.js', args: [] },
 ];
 
 function headSha() {

@@ -100,8 +100,30 @@ export async function ghi(page: Page, o: Locator, giaTri: string): Promise<void>
  */
 export async function ghiDuoc(page: Page, o: Locator): Promise<{ ghi_duoc: boolean; trang_thai: TrangThaiGhi; dau_hieu: string[] }> {
   const dh: string[] = [];
-  const dis = await o.getAttribute('disabled').catch(() => null);
-  const ro = await o.getAttribute('readonly').catch(() => null);
+  /*
+   * ĐỌC THUỘC TÍNH KHÔNG ĐƯỢC NUỐT LỖI — và đây là một lỗi thật, `release:verify` lôi ra.
+   *
+   * Bản trước viết `.catch(() => null)`, nên "KHÔNG ĐỌC ĐƯỢC" và "KHÔNG CÓ thuộc tính" ra cùng một kết
+   * quả. Dưới tải song song, lần đọc hết hạn rồi trả `null`, nên `dau_hieu` mất hẳn dấu `readonly` của
+   * một ô thật sự có `readonly`.
+   *
+   * Đo 31/10/2026: đúng chỗ này làm `buildout-hoso.spec.ts` đỏ ở `release:verify` nhưng xanh 30/30 ba
+   * lượt khi chạy riêng. Cùng lớp lỗi với "chờ hết hạn thành số đo": một phép đo không chạy được mà trả
+   * về giá trị trông như số đo thì nó nói sai, không phải nói thiếu.
+   *
+   * Nên: đọc không được thì NÉM. `dau_hieu` là lời khai của markup, được ghi lại chứ không dùng để kết
+   * luận — nhưng nó phải là lời khai THẬT, không phải khoảng trống do hết hạn.
+   */
+  const docThuocTinh = async (ten: string): Promise<string | null> => {
+    try {
+      return await o.getAttribute(ten, { timeout: CHO.oMs });
+    } catch (e) {
+      throw new WidgetError(`không đọc được thuộc tính \`${ten}\` của ô: ${(e as Error).message.split('\n')[0].slice(0, 90)}`
+        + ' — phép đo KHÔNG chạy được, và "không đọc được" KHÔNG đồng nghĩa với "không có thuộc tính".');
+    }
+  };
+  const dis = await docThuocTinh('disabled');
+  const ro = await docThuocTinh('readonly');
   if (dis !== null) dh.push('markup khai `disabled`');
   if (ro !== null) dh.push('markup khai `readonly`');
 

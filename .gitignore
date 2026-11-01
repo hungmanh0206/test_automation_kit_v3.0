@@ -219,6 +219,11 @@ dist/
 # ranh giới của từng việc. Để per-máy thì mỗi teammate tự tạo lại, và họ sẽ tạo khác nhau — cùng lý lẽ với
 # ngoại lệ `settings.json` ngay dưới.
 !.claude/agents/
+# NGOẠI LỆ 3: .claude/skills/ ĐƯỢC COMMIT — đây là shim SINH TỰ ĐỘNG để harness tự nạp 28 skill của kit
+# (bản gốc ở `.agent/skills/**`, nơi harness không dò tới). Để per-máy thì teammate clone về không có
+# skill nào tự nạp, và `skills:index:check` đỏ trên CI vì thư mục không tồn tại — đúng hai hậu quả đã
+# nêu cho `commands/`. Shim là CON TRỎ ≤ 5 dòng, không phải bản sao, nên nó không dựng nguồn thứ hai.
+!.claude/skills/
 # NGOẠI LỆ 2: .claude/settings.json ĐƯỢC COMMIT — nó đăng ký HOOK, mà hook là forcing function ở tầng
 # harness (chạy tự động, không phụ thuộc agent nhớ gọi). Để nó per-máy thì mỗi teammate phải tự bật, tức
 # lớp chặn mạnh nhất của kit lại là lớp DỄ KHÔNG CÓ NHẤT — đúng lỗi đã xảy ra: hook viết từ round-3 nhưng

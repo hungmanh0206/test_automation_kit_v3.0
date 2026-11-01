@@ -41,6 +41,22 @@ export function canRepoGit(repo: string, viec: string): void {
   test.skip(!laRepoGit(repo), `${viec} — cần cây git để đối chiếu, mà bản đóng gói cố ý không mang \`.git\`.`);
 }
 
+/**
+ * Bỏ qua khi một file LỚP PROJECT không có mặt — lý do thứ ba, thêm 30/10/2026.
+ *
+ * Khác hai lý do trên: đây không phải thiếu `.git`, cũng không phải biên bản của repo. `package_kit.js`
+ * cố ý KHÔNG đóng gói lớp PROJECT (`tests/fe/{auth,support,order,transaction}/`) vì nó là dữ liệu của
+ * MỘT dự án. Spec lớp generic đọc nó thì trong gói không có gì để đọc.
+ *
+ * Đo 30/10/2026: `ops-login-combobox.spec.ts` đọc `tests/fe/support/opsLogin.ts` ở MỨC MODULE, nên
+ * `playwright --list` trong gói ném ENOENT và `release:verify` báo **0 test cho CẢ suite** — một file
+ * làm mù cả bước nghiệm thu.
+ */
+export function canLopProject(repo: string, rel: string, viec: string): void {
+  test.skip(!fs.existsSync(path.join(repo, rel)),
+    `${viec} — cần \`${rel}\`, là file LỚP PROJECT của một dự án và cố ý không đi theo gói.`);
+}
+
 /** Bỏ qua khi một tài liệu của repo không có mặt (gói không mang `docs/` ngoài ảnh USER_GUIDE). */
 export function canTaiLieu(repo: string, rel: string, viec: string): void {
   test.skip(!fs.existsSync(path.join(repo, rel)), `${viec} — cần \`${rel}\`, là biên bản của repo và không đi theo gói.`);

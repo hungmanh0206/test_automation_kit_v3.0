@@ -1,9 +1,29 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import { test, expect } from '@playwright/test';
+import { canLopProject } from './_trong_repo';
 
 const REPO = path.resolve(__dirname, '../../..');
-const SRC = fs.readFileSync(path.join(REPO, 'tests/fe/support/opsLogin.ts'), 'utf8');
+const NGUON = path.join(REPO, 'tests/fe/support/opsLogin.ts');
+
+/*
+ * ĐỌC TRONG TEST, KHÔNG ĐỌC Ở MỨC MODULE — và đây là một lỗ đã ĐO RA ở `release:verify`.
+ *
+ * `opsLogin.ts` nằm ở `tests/fe/support/`, tức **lớp PROJECT**, và `package_kit.js` cố ý KHÔNG đóng gói
+ * lớp đó (luật `DENY` loại `tests/fe/{auth,support,order,transaction}/`). Nhưng file spec này nằm ở
+ * `tests/fe/infra/` — lớp GENERIC, có đóng gói.
+ *
+ * Bản trước đọc file ở dòng `const` mức module. Playwright `--list` CHẠY thân module khi thu thập test,
+ * nên trong gói nó ném `ENOENT` và `release:verify` báo **0 test** cho cả suite — một file làm mù cả
+ * bước nghiệm thu. Đo 30/10/2026: `release:verify` 12/13 bước đạt, bước đỏ đúng là bước này.
+ *
+ * Nay đọc trong test và KHAI SKIP khi thiếu lớp PROJECT. Skip phải NÓI RA: "không có file để đọc" khác
+ * hẳn "đã kiểm và đạt", và một spec generic im lặng chấm xanh khi thiếu nguồn là đúng thứ kit cấm.
+ */
+function docNguon(): string {
+  canLopProject(REPO, 'tests/fe/support/opsLogin.ts', 'đối chiếu mã nguồn helper đăng nhập QEMIS');
+  return fs.readFileSync(NGUON, 'utf8');
+}
 
 /*
  * Khoá hai bản vá ngày 01/10/2026 của `opsLogin.ts`. Cả hai đều sửa một lớp hỏng ÂM THẦM — không ném
@@ -15,6 +35,7 @@ const SRC = fs.readFileSync(path.join(REPO, 'tests/fe/support/opsLogin.ts'), 'ut
  */
 test.describe('@infra opsLogin — chống chọn nhầm đơn vị và nhầm cấp', () => {
   test('chonComboBox phải NGHIỆM THU rồi THỬ LẠI, không tin một cú bấm', () => {
+    const SRC = docNguon();
     const i = SRC.indexOf('async function chonComboBox');
     expect(i, 'không tìm thấy chonComboBox').toBeGreaterThan(0);
     const than = SRC.slice(i, SRC.indexOf('\n}', i));
@@ -44,6 +65,7 @@ test.describe('@infra opsLogin — chống chọn nhầm đơn vị và nhầm c
   });
 
   test('khoá phiên phải gồm CẤP HỌC, không chỉ user và trường', () => {
+    const SRC = docNguon();
     const m = SRC.match(/const key = `([^`]+)`/);
     expect(m, 'không tìm thấy khoá phiên').toBeTruthy();
     const key = m![1];
@@ -54,6 +76,7 @@ test.describe('@infra opsLogin — chống chọn nhầm đơn vị và nhầm c
   });
 
   test('vẫn KHÔNG đoán captcha — phải chờ người, không tự điền', () => {
+    const SRC = docNguon();
     expect(SRC, 'helper không được tự sinh/đoán mã captcha').not.toMatch(/captcha\s*=\s*['"][A-Z0-9]{4,}['"]/i);
     expect(SRC, 'phải ghi ảnh captcha ra đĩa rồi CHỜ đáp án').toContain('CAPTCHA_ANSWER');
   });

@@ -66,7 +66,7 @@ trong một lượt. Nó gọi đúng script gốc rồi gom kết quả, không
    lưng chưa · ③ phân bố kỹ thuật (gọi lại `dim:coverage`, không đếm lần hai).
    CHẶN khi một rule **chỉ có case dương** (chỗ bug sống là đường phải bị chặn), khi case **không khai
    dương/âm/biên** (không rõ rule được chứng minh bằng đường nào), hoặc khi case `[Display]` khẳng định
-   nhãn/thứ tự/mặc định mà không trỏ `ui_catalog` lẫn lần đọc DOM.
+   nhãn, thứ tự, hoặc giá trị mặc định mà không trỏ `ui_catalog` lẫn lần đọc DOM.
    Bảng là **bản sinh**: sửa tay thì `npm run phase1:tables:check` bắt được.
 6d. **Chiều ngược (spec → case):** `TASK_ENV=... npm run spec:gap` — thứ tài liệu NÊU mà bộ case chưa phủ.
    Cả 3 lệnh chỉ đọc artefact local, không gọi mạng, nên chạy được cả khi offline.

@@ -3,6 +3,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { spawnSync } from 'child_process';
 import { gateEnv } from './_gate_env';
+import { canRepoGit } from './_trong_repo';
 
 /*
  * `gate_codes.json` (v2.7.0 §A5) — MÃ LỖI PHẢI NÓI ĐƯỢC CÁCH SỬA.
@@ -87,6 +88,15 @@ test.describe('@infra gate_codes — mỗi mã đủ bốn trường', () => {
 });
 
 test.describe('@infra gates:index --check — CÓ RĂNG với mã thiếu hướng dẫn', () => {
+  /*
+   * `gate_index.js` lấy tập file qua `git ls-files` và có nhánh đọc đĩa khi không có `.git`; bản in của
+   * `--check` khác giữa hai nhánh, nên ba ca dưới — vốn khẳng định NGUYÊN VĂN thông điệp — đỏ oan trong
+   * gói. Đo 30/10/2026: 3 ca đỏ ở `release:verify`. Dùng `canRepoGit` của `_trong_repo.ts`.
+   */
+  test.beforeEach(() => {
+    canRepoGit(REPO, 'đối chiếu thông điệp của `gates:index --check` theo tập file git track');
+  });
+
   function chayCheck() {
     return spawnSync(process.execPath, [path.join(REPO, 'scripts/qa/gate_index.js'), '--check'],
       { cwd: REPO, encoding: 'utf8', env: gateEnv() });

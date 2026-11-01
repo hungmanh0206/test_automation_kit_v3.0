@@ -1,0 +1,70 @@
+{
+  "_note": [
+    "KHAI MỤC CON CỦA TỪNG § TRONG BẢNG NGHIỆM THU, để một ✅ không được dán khi mục con chưa xong.",
+    "",
+    "Vì sao cần: bảng nghiệm thu chấm theo §, mà một § có thể gồm nhiều việc. v2.9.5 dán ✅ cho §7 khi",
+    "nó chỉ có skill `run_report_reader` + view `trace:matrix --pm` — còn phần LÕI của",
+    "`test-report-analyzer` bên A (gom theo nguyên nhân, phân loại tầng, chiều test mồ côi) thì chưa có.",
+    "Dòng ✅ đó không sai từng chữ, nhưng nó làm người đọc tin cả § đã xong.",
+    "",
+    "FILE NÀY KHÔNG ĐƯỢC LÀ MỘT LỚP TỰ KHAI NỮA. Mỗi mục con bắt buộc có `neo` mà máy phân giải được:",
+    "  · `script` — npm script phải tồn tại trong package.json;",
+    "  · `spec`   — file spec phải tồn tại, và có ít nhất `toiThieu` phép kiểm `test(`;",
+    "  · `nguon`  — file nguồn phải tồn tại và chứa `ky_hieu` (tên hàm/hằng), tức việc đã vào mã;",
+    "  · `nguoi`  — CHỈ người kiểm được. Mục loại này buộc § phải là ⚠️, không bao giờ ✅, và phải",
+    "               ghi `vi_sao` nói rõ vì sao máy không làm được.",
+    "",
+    "`parity:check` khối ⑤ đọc file này. Mục con nào không phân giải được ⇒ § phải là ⚠️; mọi mục con",
+    "phân giải được mà § vẫn ⚠️ ⇒ cửa NHẮC nâng lên, để ⚠️ không thành chỗ trú ẩn vĩnh viễn."
+  ],
+  "muc": [
+    {
+      "section": "§7",
+      "ten": "test-report-analyzer + test-summary-reporter của A",
+      "con": [
+        {
+          "ma": "N2.1",
+          "viec": "`run:analysis --nhom` gom case đỏ theo nguyên nhân gốc",
+          "neo": { "loai": "spec", "duong": "tests/fe/infra/run-analysis-nhom.spec.ts", "toiThieu": 8 }
+        },
+        {
+          "ma": "N2.2a",
+          "viec": "bảng tầng lỗi trong `run_report_reader`, neo bằng số đo thật",
+          "neo": { "loai": "nguon", "duong": ".agent/skills/shared/run_report_reader/SKILL.md", "ky_hieu": "Tầng lỗi: đọc nó là đọc VIỆC TIẾP THEO" }
+        },
+        {
+          "ma": "N2.2b",
+          "viec": "verdict viết bằng tên CHUẨN (`FAIL`) không làm tắt bốn cửa",
+          "neo": { "loai": "spec", "duong": "tests/fe/infra/verdict-dong-nghia.spec.ts", "toiThieu": 8 }
+        },
+        {
+          "ma": "N2.3",
+          "viec": "chiều ngược của `trace:matrix` — test đã chạy mà không TC nào nhận",
+          "neo": { "loai": "spec", "duong": "tests/fe/infra/trace-test-mocoi.spec.ts", "toiThieu": 7 }
+        },
+        {
+          "ma": "N2.4",
+          "viec": "`parity:check` đối soát ✅ với mục con đã khai ở file này",
+          "neo": { "loai": "spec", "duong": "tests/fe/infra/parity-plan-items.spec.ts", "toiThieu": 6 }
+        },
+        {
+          "ma": "N2.4b",
+          "viec": "khối ⑤ chặn được cả chiều `nguoi` và chiều ⚠️-trú-ẩn",
+          "neo": { "loai": "nguon", "duong": "scripts/qa/parity_check.js", "ky_hieu": "có mục con chỉ NGƯỜI kiểm được" }
+        }
+      ]
+    }
+  ],
+  "_chua_gac_du_lieu_that": [
+    "NHÁNH `nguoi` CHỈ CÓ ĐỐI CHỨNG TỔNG HỢP, nói ra để khỏi ai tưởng nó đã gác ca thật.",
+    "",
+    "Sau khi N2.1–N2.4 xong và đều có neo máy, §7 KHÔNG còn mục con nào loại `nguoi`, nên nhánh đó nổ 0",
+    "lượt trên dữ liệu thật. Nó có đối chứng dương ở `tests/fe/infra/parity-plan-items.spec.ts` chứng minh",
+    "nổ được; chưa có số đo về độ chính xác khi gặp ca thật.",
+    "",
+    "Việc còn lại KHÔNG phải mục con của §7 mà là một quyết định của người dùng, nên nó nằm ở khối",
+    "CHƯA CÓ MÁY của `docs/v2.9.5/A_PARITY.md`: nối phép kiểm test-mồ-côi vào một cửa chặn. Bật chặn sẽ",
+    "chặn 11 ca trên task ĐANG CHẠY THẬT (9 ca mở rộng không neo oracle + 2 ca probe mang verdict, đo",
+    "30/10/2026) — dữ liệu của họ, nên máy không được tự chốt thay."
+  ]
+}

@@ -17,11 +17,20 @@
 | lệnh điểm vào | 32 command | 13 lệnh `/` + 16 workflow |
 | skill | 18 | 28 |
 | file luật | 6 | `RULE_GLOBAL.md` + `.agent/rules/**` + `CLAUDE.md` auto-load |
-| máy kiểm | 2 script Python (đọc/xuất testcase) | **150** máy trong `.agent/config/GATES.md` |
-| skill dài nhất | `rbt-manual-testing` **936 dòng** (~16,2k token, luôn-nạp) | trần **2.500 token** mỗi `SKILL.md`, phần dày ở `references/` |
+| máy kiểm | 2 script Python (đọc/xuất testcase) | **151** máy trong `.agent/config/GATES.md` |
+| skill dài nhất | `rbt-manual-testing` **937 dòng · 18.229 token KHI ĐƯỢC GỌI** | `tc_design_guide` **1.805 token** khi được gọi, `references/` **8.666 token** mở theo nhu cầu |
 
-Con số cuối là khác biệt về HÌNH DẠNG, không phải về lượng: A nhồi hướng dẫn vào phần luôn-nạp, nên càng
-dày thì càng ít lượt thật sự đọc hết. B tách, và có hai máy ép chuyện đó (`skills:lint`, `prompt:budget`).
+**Đính chính (30/10/2026) — bản trước ghi "luôn-nạp", và đó là SAI.** Skill không nạp cả thân vào mọi
+phiên: chỉ `description` luôn ở trong ngữ cảnh, thân nạp **khi skill được gọi**. Đo lại:
+
+| | luôn nạp | nạp khi gọi |
+|---|---|---|
+| A · `rbt-manual-testing` | description **190 token** | cả file **18.229 token**, một lần, không chia nhỏ |
+| B · `tc_design_guide` | description | `SKILL.md` **1.805 token**, `references/` **8.666 token** chỉ mở phần cần |
+
+Khác biệt thật nằm ở **hình dạng lúc dùng**, không phải ở chỗ "luôn nạp": gọi skill của A là nhận trọn
+18,2k token; gọi skill của B là nhận 1,8k rồi tự quyết mở thêm gì. Và B có hai máy ép giữ hình dạng đó
+(`skills:lint` trần 2.500 token/`SKILL.md`, `prompt:budget` cho phần nạp mỗi phiên).
 
 ---
 
@@ -39,8 +48,8 @@ dày thì càng ít lượt thật sự đọc hết. B tách, và có hai máy 
 | §5 | A có `automation-code-reviewer` chấm rubric 6 nhóm | Skill `automation_reviewer` + **2 trong 3** luật `auto:review` mới. Luật thứ ba (`assert-before-act-only`) bị loại vì đo được là **tập con tuyệt đối 18/18** của luật kia | `npm run auto:review:enforce` | ✅ |
 | §5 | — | `no-assert-after-act` để **cảnh báo**, không chặn: dương tính giả soi tay **2/5 = 40%**, trên ngưỡng 20% đặt trước | `tests/fe/infra/automation-review.spec.ts` | ✅ |
 | §6 | `test-data-generator` của A có Data Chain Pattern + 4 lớp field | Thêm đúng bốn lớp (chiều · đỡ · tham chiếu · tính được) và mục chuỗi dữ liệu. `data:chain:check` gác bốn đường hỏng của chuỗi, và **lượt chạy đầu bắt được một lỗi thật** ở bộ CSDL-9004 | `npm run data:chain:check` | ✅ |
-| §7 | `test-report-analyzer` + `test-summary-reporter` của A | Skill `run_report_reader` (6 bước, mỗi bước ghi rõ nó KHÔNG trả lời được gì) + view `trace:matrix --pm` gộp theo module | `npm run trace:matrix` · `npm run run:analysis:enforce` | ✅ |
-| §7 | — | Sổ phiên chạy tay thêm `Đơn vị / cấp học` và mục `## Không phán được` | `npm run manual:check:enforce` | ✅ |
+| §7 | `test-report-analyzer` + `test-summary-reporter` của A | Skill `run_report_reader` (6 bước, mỗi bước ghi rõ nó KHÔNG trả lời được gì) + **bảng 8 tầng lỗi neo bằng số đo thật** (`script_error` = 0 ca là chỗ đáng ngờ nhất: 216/262 = 82% ca FAIL dồn về `product_bug`) + `run:analysis --nhom` gom theo `<tầng> ‖ <câu lỗi>` — **giữ ở mức BÁO CÁO**, vì đo được nén chỉ 1,34×, 11% ca nối được câu lỗi thật và 6/9 nhóm mẫu gom sai + **chiều NGƯỢC của `trace:matrix`**: test đã chạy mà không TC nào nhận, phân ba loại, bắt được 9 ca mở rộng mang verdict mà không có neo oracle | `npm run trace:matrix` · `npm run run:analysis:enforce` · `tests/fe/infra/run-analysis-nhom.spec.ts` · `tests/fe/infra/trace-test-mocoi.spec.ts` · `tests/fe/infra/verdict-dong-nghia.spec.ts` | ✅ |
+| §7b | — | Sổ phiên chạy tay thêm `Đơn vị / cấp học` và mục `## Không phán được` | `npm run manual:check:enforce` | ✅ |
 
 ## Chỗ cố ý KHÔNG port
 
@@ -49,7 +58,7 @@ dày thì càng ít lượt thật sự đọc hết. B tách, và có hai máy 
 | `fetch_jira_requirements`, `import_test_results_xray`, `jira-integration` | Kit đã **bỏ Jira/Confluence/AIO** có chủ đích, và có cửa giữ ranh giới đó. Thêm lại là đi ngược một quyết định đã chốt |
 | Mode routing `QUICK` / `FULL` / `CHECKLIST` trong một skill | Đó là tật **gộp** của A: một skill ba chế độ thì mô tả không nói được dùng khi nào. B tách theo việc, và `skills:route` đo được là tách bạch |
 | `generate_automation_framework` (scaffold Playwright/Selenium/Appium) | B chỉ dùng Playwright, và luật nói thẳng "không sinh framework ngoài Playwright". Scaffold ba framework là ba đường chưa từng chạy |
-| "AI Self-Quality Gate 9 tiêu chí" | B đã có `tc_reviewer` rubric 8 tiêu chí **có máy chấm**, trong đó 6 tiêu chí máy chấm đủ và 2 tiêu chí gắn cờ `AI`. Port thêm một bảng tự chấm là thêm một lớp tự khai |
+| "AI Self-Quality Gate 9 tiêu chí" | B đã có `tc_reviewer` rubric **9 tiêu chí** có máy chấm — **máy chấm 7, người chấm 2** (đo lại 30/10/2026 trên chính `tc_reviewer/SKILL.md`; bản trước ghi 8/6, sai cả hai số). Port thêm một bảng tự chấm là thêm một lớp tự khai |
 | `REST Assured` / `Appium` cho API và mobile | Ngoài phạm vi đang chạy. Khai một framework không có lượt chạy nào là khai năng lực không kiểm chứng được |
 
 ## Chỗ ĐÃ LÀM nhưng CHƯA CÓ MÁY — nói thẳng
@@ -61,6 +70,8 @@ dày thì càng ít lượt thật sự đọc hết. B tách, và có hai máy 
 | "Đổi expected để pass" (`CLAUDE.md` §6) | **Không dựng được bằng `git diff` — điều kiện tiên quyết không tồn tại.** Đo 29/10/2026: **0** file testcase được track, `outputs/*` gitignore (`.gitignore:233`), **0** commit từng đụng `test-cases/*.md`. Ba nguồn so sánh khác cũng trống: `backups/` có **1** file trên toàn bộ task, mirror `from-sheet/*.xlsx` có **0** file, `tc-history.jsonl` có lịch sử verdict nhưng **không có ô expected**. Chi tiết ở ghi chú bên dưới |
 | "Hardcode data task-specific vào template chung" | `package:kit` chỉ cảnh báo ở cửa phát hành, không bắt lúc đang sửa template. Luật quét mã task đã thử rồi bỏ: nó khớp cả `ISO-8601`/`RFC-2119` |
 | Case phụ thuộc case khác mà **không khai** | `data:chain` chỉ thấy chuỗi đã KHAI trong ô `Tiền điều kiện`. Chỗ không khai nằm ở phần chấm tay của `automation_reviewer` |
+| Nối phép kiểm **test mồ côi** vào một cửa CHẶN | `trace:matrix` nay in ra, và đã đo hai chiều (bắt 9 ca mở rộng không neo oracle + 2 ca probe mang verdict; 6 ca mở rộng CÓ neo nên không rỗng chiều nào). Nhưng bật chặn là chặn **11 ca trên task đang chạy thật** — dữ liệu của người dùng, nên chỗ nối (`self-review:enforce` là chỗ hợp lý nhất, vì nó chặn PHÁT HÀNH chứ không chặn lượt chạy) do họ chốt, máy không tự quyết thay |
+| Rà **luật phát biểu hai kiểu** một cách tự động | `rule:consistency` gác được mệnh đề ĐÃ KHAI (nay 2 mệnh đề), nhưng chiều PHÁT HIỆN luật mới bị phát biểu hai kiểu thì chưa có máy. Đã thử dò theo con số lệch: **13 hit · 13 dương tính giả**. Hai lý do đều là giới hạn thật — số SỰ CỐ bị đọc thành số LUẬT (`45 verdict của lượt GDTX`), và cùng hình dạng nhưng KHÁC ARTIFACT (`docs/course/**` dạy dựng `phan-quyet.json` với 7 status + 7 tầng, đúng cho khoá học dù kit có 10 + 8). Phép dò không phân biệt được "cùng khái niệm" với "khác artifact cùng hình dạng" — mà đó đúng là việc nó phải làm được |
 | `presence-only` bắt đúng ở quy mô nào | Luật nổ **0 lượt** trên 2.873 test, đo hai lần. Có đối chứng dương chứng minh nó nổ được, nhưng chưa có số đo về độ chính xác khi có ca thật |
 
 ### Ghi chú: vì sao "đổi expected để pass" là đường cụt, không phải việc còn bỏ ngỏ

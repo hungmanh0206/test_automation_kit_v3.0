@@ -823,6 +823,58 @@ function readAllTcFiles(taskOutputDir) {
   return out;
 }
 
+
+/*
+ * TEST ĐÃ CHẠY MÀ KHÔNG TC NÀO NHẬN — chặn ở cửa FINALIZE (v2.9.6, nối theo quyết định của người dùng).
+ *
+ * VÌ SAO Ở ĐÂY, KHÔNG Ở `output_gate`. Phép kiểm này đo được hai chiều và bắt ca thật, nhưng bật nó ở
+ * cửa push sẽ chặn giữa lượt execute — trong khi việc phải làm (hạ verdict mở rộng về `OBSERVATION`,
+ * hoặc nêu `oracle_ref`) là việc của lúc CHỐT, không phải lúc đang đo. `self:review --enforce` chạy
+ * TRƯỚC finalize/publish, nên nó chặn đúng thời điểm: không cho PHÁT HÀNH một bộ kết quả có verdict
+ * không neo được, mà không làm đứng lượt chạy nào.
+ *
+ * SỐ ĐO 30/10/2026 (5 task): 11 ca là lỗi thật — 9 ca mở rộng mang PASS/FAIL mà KHÔNG có neo oracle
+ * (7 ở CSDL-9004, 2 ở CSDL-4008; 5 trong đó FAILED) + 2 ca probe mang verdict PASSED. Và 6 ca mở rộng
+ * CÓ neo, nên phép kiểm neo không rỗng ở cả hai chiều.
+ *
+ * CHỈ HAI LOẠI ĐẦU LÀ CHẶN. Ca "mạo danh mã canonical" để CẢNH BÁO: nó đo được 0 ca trên dữ liệu thật
+ * nên chỉ có đối chứng tổng hợp, và một loại chưa gác dòng dữ liệu thật nào thì chưa đủ căn cứ để chặn.
+ */
+if (taskDir && fs.existsSync(taskDir)) {
+  const trace = require(path.resolve(__dirname, 'traceability_matrix'));
+  const problems = []; const warnings = [];
+  let note = '';
+
+  const tcs = trace.parseTestcases(path.join(taskDir, 'test-cases'));
+  const r = trace.testMoCoi(taskDir, tcs);
+
+  if (!r.doDuoc) {
+    /*
+     * KHÔNG PHÁN ĐƯỢC ≠ ĐẠT, nhưng cũng KHÔNG chặn: thiếu sổ verdict hoặc chưa có bộ case canonical là
+     * trạng thái bình thường của một task chưa execute. Nói ra để không ai đọc im lặng thành sạch.
+     */
+    warnings.push(`test mồ côi: KHÔNG phán được — ${r.vi_sao}. Đây không phải "sạch".`);
+    note = 'chưa đối chiếu được';
+  } else {
+    for (const x of r.ds) {
+      if (/mở rộng KHÔNG có neo oracle/.test(x.loai)) {
+        problems.push(`${x.id} (${x.status}): ca MỞ RỘNG mang verdict mà KHÔNG có neo oracle. `
+          + 'CLAUDE.md §3: không có `oracle_ref` (`BR-`/`SM-`/`UI-`…) thì là `OBSERVATION`, KHÔNG phải verdict. '
+          + 'Nhất quán KHÔNG phải bằng chứng của đúng.');
+      } else if (/probe\/recon mang verdict/.test(x.loai)) {
+        problems.push(`${x.id} (${x.status}): probe/recon KHÔNG được mang verdict — nó là bước khám phá, không phán gì.`);
+      } else {
+        warnings.push(`${x.id} (${x.status}): ${x.loai} — ${x.viec}`);
+      }
+    }
+    note = `${r.soMoCoi}/${r.soGhi} tcId không có dòng canonical · ${r.dem.coNeo} ca mở rộng CÓ neo`;
+  }
+
+  results.push(engine.toResult('test đã chạy mà không TC nào nhận', {
+    problems, warnings, note, severity: engine.SEVERITY.P0,
+  }));
+}
+
 // ---- Gộp + in qua GateEngine ----
 const agg = engine.aggregate(results);
 console.log(engine.format(agg, { title: `SELF-REVIEW (G9) — lượt 2 trước finalize${TASK ? ` · task ${TASK}` : ''}` }));

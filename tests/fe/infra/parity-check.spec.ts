@@ -16,6 +16,7 @@ import os from 'os';
 import path from 'path';
 import { spawnSync } from 'child_process';
 import { gateEnv } from './_gate_env';
+import { canTaiLieu } from './_trong_repo';
 
 const REPO = path.resolve(__dirname, '..', '..', '..');
 const GATE = path.join(REPO, 'scripts/qa/parity_check.js');
@@ -35,6 +36,16 @@ function bangTam(bien: (s: string) => string) {
 }
 
 test.describe('@infra parity:check', () => {
+  /*
+   * Spec này CHẠY CẢ TRONG GÓI PHÁT HÀNH, mà `A_PARITY.md` là biên bản nội bộ của repo và cố ý không
+   * đóng gói. Đo 30/10/2026: đúng chỗ này làm `release:verify` đỏ 25 ca, và `release:verify` CÓ trong CI.
+   * Dùng `canTaiLieu` của `_trong_repo.ts` — kit đã có một cách diễn đạt điều kiện này từ v2.4.1, nên
+   * không viết cách thứ hai.
+   */
+  test.beforeEach(() => {
+    canTaiLieu(REPO, 'docs/v2.9.5/A_PARITY.md', 'đối chiếu bảng nghiệm thu A_PARITY');
+  });
+
   test('bảng THẬT đạt, và in ra đủ ba con số', () => {
     const r = chay();
     expect(r.code, r.out).toBe(0);
@@ -118,6 +129,81 @@ test.describe('@infra parity:check', () => {
     expect(r.code, r.out).toBe(2);
     expect(r.out).toMatch(/KHÔNG đồng nghĩa với "đạt"/);
     fs.rmSync(t.d, { recursive: true, force: true });
+  });
+
+  test('số liệu về A đọc từ BẢN A, không gõ tay (v2.9.6 N4)', () => {
+    /*
+     * Số về A là số của MỘT BẢN GIẢI NÉN CỤ THỂ. Gõ tay thì không ai kiểm lại được — và đợt này đã bắt
+     * được hai câu sai về A đúng kiểu đó (`rbt-manual-testing` "luôn-nạp", `tc_reviewer` 8 tiêu chí).
+     */
+    const r = chay();
+    expect(r.code, r.out).toBe(0);
+    expect(r.out, 'phải nói rõ đã đối soát với bản A, hoặc nói rõ không đo lại được')
+      .toMatch(/số liệu về A đọc từ|KHÔNG đo lại được số liệu về A/);
+  });
+
+  /*
+   * KHÔNG SỬA FILE DÙNG CHUNG CỦA REPO — trỏ vào BẢN SAO TẠM qua `--a-source`.
+   *
+   * Hai ca dưới đây trước kia sửa-rồi-trả-lại `.agent/config/a_parity_source.json` thật. Khi Playwright
+   * chạy song song, một spec khác đọc file ĐANG bị sửa ⇒ khối ④ báo "số liệu A LỆCH" ⇒ đối chứng ÂM của
+   * `parity-plan-items.spec.ts` đỏ OAN. Đã xảy ra HAI lần, mỗi lần ở một ca kiểm khác nhau, và cả hai
+   * lần đều XANH khi chạy riêng — dấu hiệu kinh điển của trạng thái dùng chung.
+   *
+   * Lần đầu tôi đoán sai nguyên nhân (nghĩ do một `expect` gọi gate hai lượt) và chữa đúng một lỗi khác.
+   * Nó đỏ lại ở ca khác mới lộ ra gốc. Bài học: "xanh khi chạy riêng, đỏ khi chạy chung" thì đi tìm
+   * TRẠNG THÁI DÙNG CHUNG trước, đừng chữa cái gần nhất.
+   */
+  function nguonA(bien: (j: any) => void) {
+    const d = fs.mkdtempSync(path.join(os.tmpdir(), 'asrc-'));
+    const j = JSON.parse(fs.readFileSync(path.join(REPO, '.agent/config/a_parity_source.json'), 'utf8'));
+    bien(j);
+    const f = path.join(d, 'a_parity_source.json');
+    fs.writeFileSync(f, JSON.stringify(j, null, 2), 'utf8');
+    return { d, f };
+  }
+
+  test('ĐỐI CHỨNG DƯƠNG: khai sai một số về A ⇒ CHẶN, và nói cả hai con số', () => {
+    const t = nguonA((j) => {
+      const i = j.so_do.findIndex((m: { nhan: string }) => m.nhan === 'skill');
+      j.so_do[i].da_ghi = Number(j.so_do[i].da_ghi) + 2;
+    });
+    try {
+      const r = chay(['--a-source', t.f]);
+      /* Không có bản A trên máy này thì phép kiểm bỏ qua — lúc đó ca này vô nghĩa, nên khai SKIP. */
+      if (/KHÔNG đo lại được/.test(r.out)) { test.skip(true, 'máy này không có bản A để đối soát'); return; }
+      expect(r.code, r.out).toBe(1);
+      expect(r.out).toMatch(/số liệu A LỆCH/);
+      expect(r.out, 'phải in CẢ hai số, không chỉ nói "sai"').toMatch(/config ghi \d+, bản A thật có \d+/);
+    } finally {
+      fs.rmSync(t.d, { recursive: true, force: true });
+    }
+  });
+
+  test('ĐỐI CHỨNG ÂM: không có bản A ⇒ BỎ QUA và NÓI RA, không đỏ oan', () => {
+    /*
+     * Bản A là plugin của bên khác, không thuộc repo. Máy nào cũng đỏ vì thiếu nó là đỏ oan. Nhưng bỏ
+     * qua mà im lặng thì người đọc tưởng đã đối soát — nên nó phải IN RA.
+     */
+    const t = nguonA((j) => { j.duong_dan = ['C:/duong-dan-khong-he-ton-tai-cho-phep-kiem']; });
+    try {
+      const r = chay(['--a-source', t.f]);
+      expect(r.code, 'thiếu bản A KHÔNG được làm đỏ').toBe(0);
+      expect(r.out).toMatch(/KHÔNG đo lại được số liệu về A/);
+      expect(r.out, 'phải nói rõ bỏ qua ≠ đạt').toMatch(/bỏ qua KHÔNG đồng nghĩa với đạt/);
+    } finally {
+      fs.rmSync(t.d, { recursive: true, force: true });
+    }
+  });
+
+  test('KHÔNG ca kiểm nào trong file này còn ghi vào file của repo', () => {
+    /*
+     * Khoá lại bài học. Sửa-rồi-trả-lại nghe an toàn vì có `finally`, nhưng nó an toàn chỉ khi KHÔNG
+     * có gì chạy song song — và ở đây thì có.
+     */
+    const src = fs.readFileSync(__filename.replace(/\.js$/, '.ts'), 'utf8');
+    const ghiVaoRepo = src.match(/writeFileSync\(\s*(?:F|path\.join\(REPO)/g) || [];
+    expect(ghiVaoRepo, 'mọi phép ghi phải vào thư mục tạm, không vào repo').toEqual([]);
   });
 
   test('gate TỰ NÓI giới hạn: đọc ký hiệu và tên máy, không đọc nghĩa', () => {

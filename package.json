@@ -1,6 +1,6 @@
 {
   "name": "test-automation-kit",
-  "version": "2.9.4",
+  "version": "2.9.6",
   "private": true,
   "engines": {
     "node": ">=22"
@@ -157,6 +157,7 @@
     "merge:execution-status": "node scripts/convert_excel/merge_execution_status.js",
     "self-review:enforce": "node scripts/qa/self_review.js --enforce",
     "bugs:checklist": "node scripts/qa/bugs_checklist.js",
+    "frontmatter:check": "node scripts/qa/frontmatter_check.js",
     "version:check": "node scripts/qa/version_check.js",
     "package:kit": "node scripts/qa/package_kit.js",
     "predeploy": "node scripts/qa/predeploy_gate.js",

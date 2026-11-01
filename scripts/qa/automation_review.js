@@ -28,9 +28,12 @@
  * của §6 — một test không có khẳng định nào thì luôn xanh kể cả khi sản phẩm sai. Một bảng đo cũ không
  * ghi rõ là bản cũ sẽ bị đọc như trạng thái hiện tại.
  *
- * PHẦN CỦA §6 VẪN CHƯA CÓ MÁY, nói thẳng để không ai tưởng §6 đã kín:
- *   · "đổi expected để pass" — không máy nào so expected với bản trước, nên sửa expected rồi chạy lại
- *     thì không gì báo. Muốn gác thì phải so với bản đã commit, tức một gate dựa trên git diff.
+ * PHẦN CỦA §6 CHỈ CÓ MÁY MỘT NỬA, nói thẳng để không ai tưởng §6 đã kín:
+ *   · "đổi expected để pass" — CÓ máy từ 12/10/2026: `expected:check` (`scripts/qa/expected_ledger.js`).
+ *     Nó so với SNAPSHOT của chính nó, KHÔNG so với git, và một gate dựa trên git diff thì KHÔNG DỰNG
+ *     ĐƯỢC: 0 file testcase được git track vì `outputs/*` gitignore. Phần người làm là chụp mốc ĐÚNG LÚC
+ *     (lúc bộ case được chốt); đo 30/10/2026 thì 1/5 task có mốc, nên 4 task còn lại cửa đang ở trạng
+ *     thái CHƯA ĐƯỢC GÁC (exit 2) — không phải "đạt".
  *   · "hardcode data task-specific vào template chung" — `package:kit` có cảnh báo khi gói mang tên
  *     bảng hoặc host của dự án, nhưng đó là cửa phát hành, không phải lúc đang sửa template.
  *

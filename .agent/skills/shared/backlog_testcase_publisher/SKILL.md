@@ -1,6 +1,6 @@
 ---
 name: backlog_testcase_publisher
-description: Publish testcase từ bản xuất Excel lên **Google Sheet** sau Phase 1 (qua Drive MCP: search_files/create_file/update_file).
+description: "Publish testcase từ bản xuất Excel lên **Google Sheet** sau Phase 1 (qua Drive MCP: search_files/create_file/update_file)."
 ---
 
 # Testcase Publisher (Google Sheet)
