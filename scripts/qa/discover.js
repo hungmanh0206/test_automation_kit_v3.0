@@ -215,6 +215,31 @@ async function main() {
   const OUT = path.resolve(arg('out', path.join(rc.REPO_ROOT, 'knowledge', 'system', 'discovery', bid)));
   fs.mkdirSync(OUT, { recursive: true });
 
+  /*
+   * KIỂM ĐỐI SỐ TRƯỚC KHI MỞ BROWSER — và đây là một lỗi thật, không phải dọn dẹp cho đẹp.
+   *
+   * `--storage-state-roles` được kiểm khuôn ở MÃI CUỐI hàm, sau cả lượt bò. Hậu quả trên UAT: khai sai
+   * một dấu bằng thì lệnh vẫn bò hết app — trần là 20 phút — rồi mới nói "sai khuôn". Người chạy mất
+   * lượt bò đó, và trên môi trường dùng chung thì mất cả lượt tải lên UAT.
+   *
+   * Phát hiện 01/11/2026 qua hai phép kiểm chập chờn: chúng khai "sai khuôn ⇒ từ chối" nhưng thực ra
+   * phải chờ lượt bò XONG mới tới được chỗ từ chối, nên khi lượt bò hỏng vì môi trường thì chúng đỏ với
+   * một thông điệp hoàn toàn khác. Một phép kiểm đối số lẽ ra không phụ thuộc gì vào việc bò được hay
+   * không.
+   *
+   * Thông điệp và mã thoát giữ NGUYÊN — chỉ đổi THỜI ĐIỂM kiểm.
+   */
+  const khaiVaiSom = arg('storage-state-roles', '');
+  const vaiTroDaKiem = [];
+  for (const cap of khaiVaiSom.split(',').map((x) => x.trim()).filter(Boolean)) {
+    const [ten, tep] = cap.split('=').map((x) => (x || '').trim());
+    if (!ten || !tep) { console.error(`[discover] ✗ --storage-state-roles sai khuôn ở "${cap}" — đúng khuôn: ten=duong/dan.json`); process.exit(2); }
+    let st;
+    try { st = docStorageState(tep); } catch (e) { console.error(`[discover] ✗ vai trò "${ten}": không đọc được ${tep}: ${e.message}`); process.exit(2); }
+    if (!((st || {}).cookies || []).length) { console.error(`[discover] ✗ vai trò "${ten}": ${tep} KHÔNG có cookie nào — một context rỗng sẽ làm mọi ô của vai trò này thành "bị chặn" một cách sai.`); process.exit(2); }
+    vaiTroDaKiem.push({ ten, tep, st });
+  }
+
   const { chromium } = require('playwright');
   const browser = await chromium.launch();
   /*
@@ -301,14 +326,10 @@ async function main() {
   if (khaiVai || vaiKhongCo.length) {
     const browser2 = await chromium.launch();
     try {
+      /* Khuôn và cookie đã kiểm xong TRƯỚC lượt bò; ở đây chỉ còn việc dựng context. */
       const vaiTro = [];
-      for (const cap of khaiVai.split(',').map((x) => x.trim()).filter(Boolean)) {
-        const [ten, tep] = cap.split('=').map((x) => (x || '').trim());
-        if (!ten || !tep) { console.error(`[discover] ✗ --storage-state-roles sai khuôn ở "${cap}" — đúng khuôn: ten=duong/dan.json`); process.exit(2); }
-        let st;
-        try { st = docStorageState(tep); } catch (e) { console.error(`[discover] ✗ vai trò "${ten}": không đọc được ${tep}: ${e.message}`); process.exit(2); }
-        if (!((st || {}).cookies || []).length) { console.error(`[discover] ✗ vai trò "${ten}": ${tep} KHÔNG có cookie nào — một context rỗng sẽ làm mọi ô của vai trò này thành "bị chặn" một cách sai.`); process.exit(2); }
-        vaiTro.push({ ten, nguon: path.basename(tep), context: await browser2.newContext({ storageState: st }) });
+      for (const v of vaiTroDaKiem) {
+        vaiTro.push({ ten: v.ten, nguon: path.basename(v.tep), context: await browser2.newContext({ storageState: v.st }) });
       }
       if (vaiTro.length) {
         rolesOut = await rl.lapMaTran(browser2, {

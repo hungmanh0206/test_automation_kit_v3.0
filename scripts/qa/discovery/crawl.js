@@ -351,7 +351,13 @@ async function boApp(browser, o) {
    *   · goto lượt hai trên CÙNG page : qua sau **11.359ms**
    *   · page MỚI, cùng browser       : qua sau **27ms**
    *   · browser mới                  : qua sau **20ms**
-   * Tức cú treo bám vào context đó, và cách ra khỏi nó rẻ hơn cách chờ nó hết **420 lần**.
+   * Tức cú treo bám vào context đó, và trong lượt đo ấy, ra khỏi nó rẻ hơn chờ nó hết **420 lần**.
+   *
+   * NHƯNG KHÔNG BẢO ĐẢM, và đây là bằng chứng ngược, đo cùng ngày trong lượt `full:suite` 6 worker:
+   * cả **3 lần thử — gồm 2 lần dựng page mới — đều hết hạn 15s**. Dưới tranh chấp của cả bó, page mới
+   * cũng treo. Nên bước này làm lượt bò BỀN HƠN, chứ không chữa được cú treo; thứ gác phần còn lại là
+   * chốt `BO_DUOC_0_MAN` ở cuối hàm: không cứu được thì phải nói "không đo được", không được trả về một
+   * lượt bò 0 màn mang nhãn `observed`.
    *
    * CHỈ ở trang đầu, và chỉ khi chưa thu được gì: lúc đó `bienBan` còn rỗng nên dựng lại không mất lời
    * khai nào của tường lửa. Giữa lượt bò thì KHÔNG dựng lại — `bienBan` đang giữ sổ request đã chặn, và

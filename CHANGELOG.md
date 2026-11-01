@@ -44,8 +44,13 @@
 - **Điều hướng hỏng nhất thời làm teo mẫu số, và ở trang đầu thì mất cả lượt bò.** Nay thử lại tối đa
   **3 lần**, chỉ với hết hạn hoặc không nối được — **4xx/5xx giữ nguyên**, vì đó là câu trả lời thật của
   server. Ở **trang đầu** thì **dựng lại page** thay vì chờ: đo được lúc một lượt `goto` đang treo, page
-  mới qua sau **27ms** còn chờ trên page cũ mất **11.359ms**. Số lượt phải thử lại công khai ở
+  mới qua sau **27ms** còn chờ trên page cũ mất **11.359ms**. Bằng chứng ngược, đo sau đó: dưới tranh
+  chấp của cả bó (`full:suite` 6 worker) thì **cả 3 lần thử, gồm 2 lần dựng page mới, đều hết hạn** —
+  nên bước này làm lượt bò bền hơn chứ **không chữa** được cú treo. Số lượt phải thử lại công khai ở
   `so_lan_thu_lai_dieu_huong`.
+- **`--storage-state-roles` chỉ bị kiểm khuôn SAU cả lượt bò.** Khai sai một dấu bằng thì lệnh
+  `discover` vẫn bò hết app — trần 20 phút — rồi mới từ chối. Nay kiểm **trước khi mở browser**; thông
+  điệp và mã thoát giữ nguyên, chỉ đổi thời điểm.
 - **Hai ô báo cáo không có khả năng báo cáo** trong cùng hàm đó: `firewall: bienBan.chan.length ? 0 : 0`
   (ternary chết) và `const apiRec = o.apiRec` chụp một lần (nên bộ theo dõi API nghe trên page đã đóng
   sau khi dựng lại page). Bản vá **đầu** của tôi cho ô thứ nhất đếm **sai vế** — số request ghi bị chặn,

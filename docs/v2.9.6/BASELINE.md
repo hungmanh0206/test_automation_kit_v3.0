@@ -645,7 +645,14 @@ hai chết ở `page.goto` **đầu tiên** nên ra **0 màn**.
 | Tải CPU thuần là đủ để tái hiện | 10 rồi 21 tiến trình quay CPU: **0/10 lượt** tái hiện bằng probe node | **không đủ** |
 | Page chết hẳn | `goto` lượt hai **cùng page: 11.359ms**; page mới **27ms**; browser mới **20ms** | **treo nhất thời** |
 
-Hai hàng cuối là chỗ bẻ được bài: cú treo bám vào context đó, và **ra khỏi nó rẻ hơn chờ nó hết 420 lần**.
+Hai hàng cuối là chỗ bẻ được bài: cú treo bám vào context đó, và trong lượt đo ấy, **ra khỏi nó rẻ hơn
+chờ nó hết 420 lần**.
+
+**Bằng chứng ngược, đo sau đó:** trong lượt `full:suite` 6 worker, cả **3 lần thử — gồm 2 lần dựng page
+mới — đều hết hạn 15s**. Dưới tranh chấp của cả bó thì page mới cũng treo. Nên dựng lại page làm lượt bò
+**bền hơn**, chứ **không chữa** được cú treo; phần còn lại do chốt `BO_DUOC_0_MAN` gác. Và vì vậy ba lượt
+xanh dưới tải 11 tiến trình ở dưới **không** chứng minh cú treo đã bị hấp thụ — chúng chỉ nói cú treo
+không xảy ra trong ba lượt đó.
 
 ### Ba lỗi thật, đều ở `crawl.js`
 
@@ -669,6 +676,14 @@ hết giờ thì lượt bò **không thể** đi tiếp. Vậy mà hai phép ki
 trang hỏng KHÔNG làm chết cả lượt"* đều chạy trên lượt bò **không có trang hỏng nào** hoặc **chỉ có một
 trang**. Nay cả hai mang tên đúng việc chúng làm, và nhánh "đi tiếp" do một phép kiểm mới gác — ở đó `/`
 vào được và `/mat` trả 404 thật.
+
+### Lỗi thứ tư, lộ ra ở `full:suite`
+
+`--storage-state-roles` được kiểm khuôn ở **mãi cuối** `discover.js`, **sau cả lượt bò**. Khai sai một
+dấu bằng thì lệnh vẫn bò hết app — trần 20 phút — rồi mới nói *"sai khuôn"*. Hai phép kiểm khai
+*"sai khuôn ⇒ từ chối"* thực ra phải chờ lượt bò xong mới tới được chỗ từ chối, nên khi lượt bò hỏng vì
+môi trường thì chúng đỏ với một thông điệp hoàn toàn khác. Nay kiểm **trước khi mở browser**; thông điệp
+và mã thoát giữ nguyên, chỉ đổi thời điểm. `discovery-roles.spec.ts`: **21 xanh**, cả spec còn 22,6 giây.
 
 ### Số đo cuối
 
