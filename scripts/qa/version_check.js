@@ -28,8 +28,52 @@ const path = require('path');
 const { execFileSync } = require('child_process');
 
 const REPO = path.resolve(__dirname, '..', '..');
-/* `boChuThich` dùng lại từ `recon_passive.js` — xem lý do ở phép kiểm ⑨. */
-const { boChuThich } = require('./recon_passive.js');
+/*
+ * `boChuThich` — BẢN SAO CÓ CHỦ Ý, và đây là lý do, vì mặc định của kit là DÙNG LẠI chứ không chép.
+ *
+ * `recon_passive.js` đã có hàm này, và v2.9.6 đã chốt "dùng lại, không viết lại" cho `gate:policy`.
+ * Nhưng `version_check.js` mang một hợp đồng khác: nó phải chạy được trong cây ĐÃ LƯỢC BỚT, và phép
+ * kiểm `⑦ chạy được trong gói` dựng cây chỉ có ĐÚNG MỘT file là `scripts/qa/version_check.js`. Lượt
+ * đầu của tôi `require('./recon_passive.js')` ⇒ cửa **chết hẳn** (`Cannot find module`) trong cây đó.
+ * Đó là lần thứ năm trong phiên này cùng một họ lỗi: chạy ở repo, chết trong gói.
+ *
+ * Nên bản sao ở đây là có chủ ý. Để nó không âm thầm trôi khỏi bản gốc, `version-changelog.spec.ts` có
+ * một phép kiểm đòi hai bản cho CÙNG kết quả trên cùng bộ mẫu — chép mà không có máy so thì mới là nợ.
+ */
+function boChuThich(s) {
+  return s
+    .replace(/\/\*[\s\S]*?\*\//g, (m) => m.replace(/[^\n]/g, ' '))
+    .replace(/(^|[^:])\/\/[^\n]*/g, (m) => m.replace(/[^\n]/g, ' '));
+}
+
+/*
+ * LIỆT KÊ FILE: hỏi `git ls-files` trước, KHÔNG CÓ `.git` THÌ ĐỌC ĐĨA — đừng im lặng.
+ *
+ * Gộp ở đây vì ⑦ và ⑨ cần cùng một hành vi, và lượt đầu của ⑨ chỉ hỏi git: trong gói phát hành (không
+ * `.git`) nó quét **0 file** rồi tự khai "CHƯA GÁC GÌ". Một phép kiểm không chạy mà báo như đã chạy thì
+ * nó nói sai, không phải nói thiếu. Bài học này đã có ở `gate_index.js`, rồi lặp ở ⑦ (30/10), rồi lặp
+ * lần nữa ở ⑨ (01/11) — nên nay nó chỉ còn MỘT chỗ để sai.
+ */
+const BO_QUA_THU_MUC = /^(node_modules|dist|outputs|test-results|playwright-report|\.git)(\/|$)/;
+function lietKeFile(khopTen, mauGit) {
+  const tuGit = (git(['ls-files', ...(mauGit ? [mauGit] : [])]) || '')
+    .split('\n').map((x) => x.trim()).filter(Boolean)
+    .filter((f) => khopTen.test(f));
+  if (tuGit.length) return tuGit;
+  const ra = [];
+  const di = (d, tien) => {
+    let es;
+    try { es = fs.readdirSync(d, { withFileTypes: true }); } catch (e) { return; }
+    for (const e of es) {
+      const rel = tien ? `${tien}/${e.name}` : e.name;
+      if (BO_QUA_THU_MUC.test(rel)) continue;
+      if (e.isDirectory()) di(path.join(d, e.name), rel);
+      else if (khopTen.test(e.name)) ra.push(rel);
+    }
+  };
+  di(REPO, '');
+  return ra;
+}
 const SEMVER = /^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-[0-9A-Za-z-.]+)?$/;
 
 /** Chạy git; KHÔNG có `.git` (hoặc không có git) thì trả null thay vì ném. */
@@ -206,24 +250,7 @@ function main() {
        * vì chúng khẳng định hành vi khi CÓ git mà không khai điều kiện ấy. `gate_index.js` đã có nhánh
        * đọc đĩa từ trước; đây là cùng một bài học, lặp lại ở một cửa khác.
        */
-      const dsMd = (() => {
-        const tuGit = (git(['ls-files', '*.md']) || '').split('\n').map((x) => x.trim()).filter(Boolean);
-        if (tuGit.length) return tuGit;
-        const BO_QUA = /^(node_modules|dist|outputs|test-results|playwright-report|\.git)(\/|$)/;
-        const ra = [];
-        const di = (d, tien) => {
-          let es;
-          try { es = fs.readdirSync(d, { withFileTypes: true }); } catch (e) { return; }
-          for (const e of es) {
-            const rel = tien ? `${tien}/${e.name}` : e.name;
-            if (BO_QUA.test(rel)) continue;
-            if (e.isDirectory()) di(path.join(d, e.name), rel);
-            else if (e.name.endsWith('.md')) ra.push(rel);
-          }
-        };
-        di(REPO, '');
-        return ra;
-      })();
+      const dsMd = lietKeFile(/\.md$/, '*.md');
       let soCho = 0;
       for (const f of dsMd) {
         const duong = f.replace(/\\/g, '/');
@@ -255,10 +282,7 @@ function main() {
    * vì nó so `index.html` với `src/`, tức so hai bản sao VỚI NHAU — cả hai cùng sai thì nó vẫn xanh.
    * Đúng lớp hỏng mà đợt này đang chữa: một con số được tin mà không ai hỏi nó lấy từ đâu.
    */
-  const dsVer = (() => {
-    const tuGit = (git(['ls-files']) || '').split('\n').map((x) => x.trim()).filter(Boolean);
-    return tuGit.filter((f) => /\.(md|html|js)$/.test(f));
-  })();
+  const dsVer = lietKeFile(/\.(md|html|js)$/);
   let soChoVer = 0;
   for (const f of dsVer) {
     const duong = f.split(path.sep).join('/');

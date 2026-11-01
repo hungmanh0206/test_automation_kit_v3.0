@@ -58,6 +58,27 @@ nó. Không máy nào đỏ, vì chẳng có gì sai — chỉ có mẫu số kh
   tệ*. Vượt trần có chủ đích bằng `PW_WORKERS`. Trên máy 12 lõi hành vi **không đổi** (vẫn 6), nên phép
   kiểm phải giả lập số lõi trong tiến trình con — đọc `workers` trên máy đang chạy thì không phân biệt
   được hai nhánh.
+- **Phép kiểm ngưỡng BLOCKED neo vào dữ liệu task SỐNG, và đó là lần thứ ba cùng một bài học.**
+  `run-analysis.spec.ts` khẳng định hai bộ dữ liệu **thật** (CSDL-9003, CSDL-9004) rơi vào hai dải khác
+  nhau. Bản đầu ghim `28.9%` rồi đỏ khi dữ liệu trôi còn `28.6%`; sửa 13/10/2026 đổi sang ghim **dải** —
+  thô hơn nên lâu mục hơn; đo 01/11/2026 thì **dải cũng trôi**: CSDL-9004 về `18.5%`, rơi vào đúng dải
+  của CSDL-9003, nên tiền đề hết hiệu lực và phép kiểm đỏ trong khi `run:analysis` vẫn chạy hoàn toàn
+  đúng. Ghim thô hơn chỉ làm bài học chậm lại — dải **cũng** là tính chất của dữ liệu đổi được, mà
+  `testcase-status.json` bị ghi lại mỗi lượt execute, mỗi lượt gộp, và cả khi ai đó chạy task từ IDE song
+  song (đo được đúng việc đó: tệp bị ghi lúc 19:38 kèm `qemis-captcha.png` lúc 19:39, trong lúc một lượt
+  đo của tôi đang chạy). Nay tính chất *"ngưỡng phân biệt được"* kiểm bằng **fixture**, cả **ba** dải
+  (`<5%` · `5–20%` · `>20%`); dữ liệu thật giữ phép kiểm riêng với vai trò đúng của nó — chứng minh
+  `run:analysis` **đọc nổi hình dạng thật** của tệp đó, và **không ghim** bộ đó đang ở dải nào.
+- **Sổ `full:suite` ghi `1 xanh · 6 đỏ` cho một lượt có `2404 passed`.** Lộ ra khi chính lượt nghiệm thu
+  của đợt này đỏ. `out.match` không có cờ `g` nên nó lấy lần khớp **đầu tiên** của `/(\d+)\s+passed/`, và
+  lần đầu nằm trong **mã nguồn của một spec được in kèm thông điệp lỗi** — câu chú thích ở đó có chuỗi
+  `"1 passed"`. Hệ quả nặng hơn con số: đoạn mã chỉ in ra **khi có ca đỏ**, nên sổ đúng ở mọi lượt xanh
+  và sai ở lượt đỏ — sai đúng lúc người ta cần đọc nó nhất. Nay phần đọc số tách ra hàm thuần `docKetQua`
+  (kiểm được bằng fixture thay vì phải chạy 16 phút), neo **đầu dòng**, lấy lần khớp **cuối**, và **đối
+  soát** `xanh + đỏ + bỏ qua + chập chờn` với `Running <N> tests`: lệch thì **KHÔNG ghi sổ**, vì một con
+  số không đối soát được thì không biết nó đếm trên bao nhiêu. Sổ nay mang thêm `so_chap_chon` và
+  `so_tong_khai`. *(Đây là lần thứ ba trong cùng đợt một cửa đọc phải CHỮ TRONG CHÚ THÍCH thay vì dữ
+  liệu: `gate:policy` ở v2.9.6, `version:check` ⑨ ở trên, rồi tới đây.)*
 - **Và chính số phiên bản cũng là một bản sao viết tay không ai gác.** Lộ ra ngay trong đợt này: thư
   viện thuật ngữ ghi `Phiên bản kit: 2.9.6` trong khi `package.json` đã là 2.9.7. `library:drift` không
   bắt được vì nó so `index.html` với `src/` — tức so hai bản sao **với nhau**, cả hai cùng sai thì vẫn

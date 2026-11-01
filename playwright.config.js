@@ -100,6 +100,35 @@ const testResultsDir = getTestResultsDir({ taskOutputDir, runId });
  */
 const CI = !!process.env.CI;
 
+/*
+ * TRẦN WORKERS CỤC BỘ — vì trần thời gian của test là TUYỆT ĐỐI, còn số worker thì KHÔNG.
+ *
+ * `workers` cục bộ trước đây là `undefined`, tức Playwright lấy mặc định `cores/2`. Nghe như tự thích
+ * nghi, nhưng nó biến mức đặt-quá-tải thành HÀM CỦA SỐ LÕI: mỗi worker mở một browser, và đo 01/11/2026
+ * thì một `chrome-headless-shell` chiếm 3–4 tiến trình (0 → 3 sau launch, giữ 3–4 qua 8 lượt bò, về 0
+ * sau khi đóng). 12 lõi ⇒ 6 worker ⇒ ~24 tiến trình; 32 lõi ⇒ 16 worker ⇒ ~64.
+ *
+ * Trong khi đó mọi trần của `discovery-crawl` là số TUYỆT ĐỐI: 250ms/400ms mỗi khối, 8s mỗi trang, 15s
+ * mỗi `page.goto`, 3 phút mỗi file. Nên máy nhiều lõi hơn KHÔNG an toàn hơn — nó đặt quá tải nặng hơn
+ * với cùng những trần đó. Cú treo `page.goto` của v2.9.6 sinh ra ở vùng này: Node không bị đói (nhịp
+ * setInterval ≤353ms suốt 15s treo) và server đáp 6–48ms (36 mẫu) — nghẽn nằm trong đường ống browser
+ * dưới tranh chấp CPU.
+ *
+ * TRẦN LÀ 6 — và một lượt viết trước của chú thích này viện cơ sở SAI, phải nói ra: nó bảo "6 là cấu
+ * hình `full:suite` đã chạy 2384 xanh". Không đúng. `full:suite` GHIM `--workers=2` có chủ đích
+ * (`full_suite_ledger.js`: workers mặc định ⇒ 46 đỏ trong gói; `--workers=1` ⇒ 30/30 xanh), nên 6 chưa
+ * bao giờ là cấu hình nghiệm thu.
+ *
+ * Cơ sở THẬT, đo 01/11/2026 trên làn `tests/fe/infra`, máy 12 lõi — xem `docs/v2.9.7/BASELINE.md`:
+ * 6 worker nhanh hơn 2 worker ~1,8× và KHÔNG sinh thêm ca đỏ nào. Nên 6 ở lại là mặc định vì nó ĐÁNG,
+ * còn trần tồn tại để chặn vùng TRÊN 6 — vùng chưa ai đo, vì không có máy nhiều lõi hơn để đo. Trần này
+ * nói "chưa biết", KHÔNG nói "đã biết là tệ".
+ *
+ * `PW_WORKERS` để vượt trần có chủ đích. Ai đo được mức cao hơn thì sửa con số này KÈM phép đo.
+ */
+const TRAN_WORKERS = 6;
+const WORKERS_CUC_BO = Math.max(1, Math.min(TRAN_WORKERS, Math.floor(require('os').cpus().length / 2)));
+
 module.exports = defineConfig({
   testDir: './tests',
   outputDir: `${testResultsDir}/artifacts`,
@@ -109,36 +138,8 @@ module.exports = defineConfig({
   // Local: 0 — người đang sửa test cần thấy fail ngay, không bị retry che.
   // Retry KHÔNG thay cho luật "rerun 2–3 lần trước khi log bug": đó là rerun có người đọc kết quả.
   retries: CI ? 2 : 0,
-  /*
-   * WORKERS CỤC BỘ CÓ TRẦN — vì trần thời gian của test là TUYỆT ĐỐI, còn số worker thì KHÔNG.
-   *
-   * CI 4 vCPU: cố định 2 worker cho kết quả ổn định.
-   *
-   * Cục bộ, `undefined` để Playwright lấy mặc định `cores/2`. Nghe như tự thích nghi, nhưng nó biến
-   * mức đặt-quá-tải thành hàm của số lõi: mỗi worker mở MỘT browser, và đo 01/11/2026 thì một
-   * `chrome-headless-shell` chiếm 3–4 tiến trình (0 → 3 sau launch, giữ 3–4 qua 8 lượt bò, về 0 sau khi
-   * đóng). Trên máy 12 lõi: 6 worker ⇒ ~24 tiến trình, tức gấp đôi số lõi. Trên máy 32 lõi: 16 worker
-   * ⇒ ~64 tiến trình.
-   *
-   * Trong khi đó mọi trần của `discovery-crawl` là con số TUYỆT ĐỐI: 250ms/400ms mỗi khối, 8s mỗi
-   * trang, 15s mỗi `page.goto`, 3 phút mỗi file. Nên máy nhiều lõi hơn KHÔNG an toàn hơn — nó đặt quá
-   * tải nặng hơn với cùng những trần đó. Đúng cú treo `page.goto` của v2.9.6 sinh ra ở đây: Node không
-   * bị đói (nhịp setInterval ≤353ms suốt 15s treo) và server đáp 6–48ms (36 mẫu) — nghẽn nằm trong
-   * đường ống browser dưới tranh chấp CPU.
-   *
-   * TRẦN LÀ 6, và cơ sở của con số đó là PHÉP ĐO, không phải một ước lượng: 6 worker trên máy 12 lõi là
-   * cấu hình mà `full:suite` đã chạy **2384 xanh · 0 đỏ** nhiều lượt, kể cả những lượt có cú treo và nó
-   * được hấp thụ (crawl thử lại, spec đo lại). Trên 6 là vùng CHƯA ĐO — tôi không có máy nhiều lõi hơn
-   * để đo, nên trần này nói "chưa biết", KHÔNG nói "đã biết là tệ".
-   *
-   * `PW_WORKERS` để vượt trần có chủ đích. Ai đo được mức cao hơn thì sửa con số này KÈM phép đo.
-   */
-  workers: (() => {
-    if (process.env.PW_WORKERS) return Number(process.env.PW_WORKERS);
-    if (CI) return 2;
-    const loi = require('os').cpus().length;
-    return Math.max(1, Math.min(6, Math.floor(loi / 2)));
-  })(),
+  /* `workers` cục bộ: xem `TRAN_WORKERS` ở đầu file — trần có CHẶN TRÊN vì trần thời gian là tuyệt đối. */
+  workers: CI ? 2 : Number(process.env.PW_WORKERS || WORKERS_CUC_BO),
   // Hạ tầng vỡ (hết creds, app sập) thì dừng sớm thay vì đốt 40 phút runner rồi mới báo.
   maxFailures: CI ? 20 : 0,
   /*

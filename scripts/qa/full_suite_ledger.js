@@ -128,6 +128,54 @@ function docSo() {
  *
  * Sổ KHÔNG được ghi khi typecheck đỏ: nói "cả bộ xanh" về một cây không biên dịch nổi là nói sai.
  */
+/*
+ * ĐỌC SỐ TỪ DÒNG TỔNG KẾT, KHÔNG TỪ BẤT KỲ CHỖ NÀO CÓ CHỮ `passed`.
+ *
+ * Đo 01/11/2026: lượt `full:suite` thật có 2404 xanh · 6 đỏ, mà sổ ghi **1 xanh · 6 đỏ**. Nguyên nhân:
+ * `out.match` KHÔNG có cờ `g` nên nó lấy lần khớp ĐẦU TIÊN, và lần đầu tiên nằm trong MÃ NGUỒN của một
+ * spec được in kèm thông điệp lỗi — câu chú thích ở đó có chuỗi `"1 passed"`.
+ *
+ * Hệ quả đáng sợ hơn con số: đoạn mã chỉ được in ra KHI CÓ CA ĐỎ. Nên sổ đúng ở mọi lượt xanh và sai ở
+ * lượt đỏ — tức nó sai đúng lúc người ta cần đọc nó nhất. Và đây là lần thứ ba trong cùng đợt phát hành
+ * một cửa đọc phải CHỮ TRONG CHÚ THÍCH thay vì dữ liệu: `gate:policy` (v2.9.6) đếm tên skill trong chú
+ * thích, `version:check` ⑨ đọc chú thích của chính nó, rồi tới đây.
+ *
+ * Nên: neo ĐẦU DÒNG (dòng tổng kết của Playwright luôn có dạng `  <N> passed (…)`), lấy lần khớp CUỐI
+ * (tổng kết in sau cùng), và ĐỐI SOÁT với `Running <N> tests`. Tổng không khớp thì KHÔNG ghi sổ: một con
+ * số không đối soát được thì không biết nó đếm trên bao nhiêu.
+ *
+ * Hàm THUẦN, và xuất ra, để kiểm được bằng fixture thay vì phải chạy cả bộ 16 phút mới biết nó đọc đúng.
+ */
+function docKetQua(out) {
+  const so = (re) => { const m = [...out.matchAll(re)]; return m.length ? Number(m[m.length - 1][1]) : 0; };
+  const xanh = so(/^\s*(\d+) passed\b/gm);
+  const do_ = so(/^\s*(\d+) failed\b/gm);
+  const boQua = so(/^\s*(\d+) skipped\b/gm);
+  const chapChon = so(/^\s*(\d+) flaky\b/gm);
+
+  if (!xanh && !do_) {
+    /* Không đọc được con số nào ⇒ phép đo HỎNG. Ghi sổ lúc này là ghi một con số bịa. */
+    return { loi: 'không đọc được kết quả từ output Playwright — phép đo hỏng, KHÔNG ghi sổ' };
+  }
+
+  const mTong = out.match(/Running (\d+) tests?/);
+  if (!mTong) {
+    return { loi: 'output không có dòng `Running <N> tests` ⇒ không có mẫu số để đối soát, KHÔNG ghi sổ' };
+  }
+  const tong = Number(mTong[1]);
+  const cong = xanh + do_ + boQua + chapChon;
+  if (cong !== tong) {
+    return {
+      loi: `số đọc được KHÔNG đối soát nổi: ${xanh} xanh + ${do_} đỏ + ${boQua} bỏ qua + ${chapChon} chập chờn `
+        + `= ${cong}, trong khi Playwright khai chạy ${tong} test. Lệch ${Math.abs(tong - cong)}. `
+        + 'KHÔNG ghi sổ — một con số không đối soát được thì không biết nó đếm trên bao nhiêu.',
+    };
+  }
+  return {
+    xanh, do_, boQua, chapChon, tong,
+  };
+}
+
 function kiemKieu() {
   const r = spawnSync('npm', ['run', 'typecheck'], {
     cwd: REPO, encoding: 'utf8', shell: process.platform === 'win32', maxBuffer: 1024 * 1024 * 32,
@@ -168,15 +216,12 @@ function chay({ im = false } = {}) {
     maxBuffer: 1024 * 1024 * 64,
   });
   const out = `${r.stdout || ''}${r.stderr || ''}`;
-  const so = (re) => { const m = out.match(re); return m ? Number(m[1]) : 0; };
-  const xanh = so(/(\d+)\s+passed/);
-  const do_ = so(/(\d+)\s+failed/);
-  const boQua = so(/(\d+)\s+skipped/);
-
-  if (!xanh && !do_) {
-    /* Không đọc được con số nào ⇒ phép đo HỎNG. Ghi sổ lúc này là ghi một con số bịa. */
-    return { loi: 'không đọc được kết quả từ output Playwright — phép đo hỏng, KHÔNG ghi sổ', out: out.slice(-600) };
-  }
+  /* Đọc + đối soát tách ra hàm thuần `docKetQua` — xem lý do ở ngay trên hàm đó. */
+  const kq = docKetQua(out);
+  if (kq.loi) return { loi: kq.loi, out: out.slice(-600) };
+  const {
+    xanh, do_, boQua, chapChon, tong,
+  } = kq;
 
   /*
    * Lấy vân tay LẠI sau khi chạy, và đòi nó GIỐNG lúc trước. Suite chạy mất nhiều phút; nếu ai đó sửa
@@ -220,6 +265,9 @@ function chay({ im = false } = {}) {
     so_xanh: xanh,
     so_do: do_,
     so_bo_qua: boQua,
+    so_chap_chon: chapChon,
+    /* Mẫu số ghi vào sổ, để lượt đọc sau đối soát được mà không phải tin bốn con số trên. */
+    so_tong_khai: Number((out.match(/Running (\d+) tests?/) || [0, 0])[1]),
     luc: new Date().toISOString(),
   };
   fs.mkdirSync(path.dirname(SO), { recursive: true });
@@ -297,4 +345,4 @@ function main() {
 
 if (require.main === module) main();
 
-module.exports = { chay, kiem, docSo, vanTayGoi, phamViChay, PHAM_VI, SO };
+module.exports = { chay, kiem, docSo, docKetQua, vanTayGoi, phamViChay, PHAM_VI, SO };

@@ -242,6 +242,12 @@ const KEEP_FILES = [
   '.agent/config/tc_review.json',
   '.agent/config/gitlab_strip.json',
   '.agent/config/deps_allow.json',
+  /*
+   * `audit_allow.json` — sổ advisory đã nhận (v2.9.7). Thiếu nó trong gói thì `audit:ci` ở tay người
+   * nhận CHẶN ngay lượt đầu với một advisory mà họ không có cách nào biết đã được rà: cửa đòi khai, mà
+   * sổ khai thì không có trong gói.
+   */
+  '.agent/config/audit_allow.json',
   '.agent/config/rule_parity.json',
   '.agent/config/auto_review.json',
   '.agent/config/run_analysis.json',

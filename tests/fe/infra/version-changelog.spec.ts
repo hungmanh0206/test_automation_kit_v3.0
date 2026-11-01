@@ -58,9 +58,15 @@ test.describe('@infra version:check — phiên bản và số đếm về CHÍNH
      * Dựng lại đúng ca đã xảy ra: chèn một mục phiên bản CAO HƠN lên đỉnh. Mục cho bản hiện tại vẫn còn
      * nguyên ở dưới, nên phép kiểm 3) của bản gốc vẫn xanh — chỉ ⑤ bắt được.
      */
-    voi(CL, (s) => s.replace('## v2.9.6', '## v9.9.9 — 2026-12-31 — mục giả cho phép kiểm\n\n## v2.9.6'), (r) => {
+    /*
+     * NEO VÀO `package.json`, KHÔNG GÕ SỐ. Bản đầu ghim cứng `2.9.6` ở cả mẫu thay thế lẫn mẫu khớp
+     * thông điệp, nên nó mục đúng vào lần tăng phiên bản kế tiếp — và đã mục thật ở 2.9.7: phép kiểm đỏ
+     * với thông điệp hoàn toàn sai chỗ ("không tìm thấy mẫu"), trong khi cửa vẫn đang chạy đúng.
+     */
+    const ver = JSON.parse(fs.readFileSync(PKG, 'utf8')).version as string;
+    voi(CL, (s) => s.replace(`## v${ver}`, `## v9.9.9 — 2026-12-31 — mục giả cho phép kiểm\n\n## v${ver}`), (r) => {
       expect(r.code, r.out).toBe(1);
-      expect(r.out).toMatch(/CHANGELOG đỉnh là \*\*v9\.9\.9\*\* mà package\.json ghi \*\*2\.9\.6\*\*/);
+      expect(r.out).toMatch(new RegExp(`CHANGELOG đỉnh là \\*\\*v9\\.9\\.9\\*\\* mà package\\.json ghi \\*\\*${ver.replace(/\./g, '\\.')}\\*\\*`));
       expect(r.out, 'phải nói rõ vì sao phép kiểm cũ không bắt được').toMatch(/phép kiểm "có mục" KHÔNG bắt được ca này/);
     });
   });
@@ -173,8 +179,15 @@ test.describe('@infra version:check ⑦ — chạy được trong gói (không `
       '# Changelog\n\n> Mỗi mục là một đợt phát hành.\n\n## v2.9.6 — 2026-10-30 — x\n\n- x\n', 'utf8');
     fs.writeFileSync(path.join(d, '.agent/config/GATES.md'),
       `# Gates\n\nTổng **${soMayTrongGates}** máy — 1 CHẶN.\n`, 'utf8');
+    /*
+     * README mang CẢ HAI bản sao viết tay: số máy (cho ⑦) và số phiên bản (cho ⑨). Thêm vế phiên bản
+     * 01/11/2026 — không phải để nới gì, mà vì cây mẫu thiếu nó thì ⑨ khai "CHƯA GÁC GÌ" một cách CHÍNH
+     * ĐÁNG, và câu khẳng định "không được khai chưa gác gì" ở dưới sẽ đỏ vì một lý do không phải lỗi.
+     * Thêm vào thì câu khẳng định đó giữ nguyên độ chặt và nay soi được cả ⑨ trong ngữ cảnh gói.
+     */
     fs.writeFileSync(path.join(d, 'README.md'),
-      `# Kit\n\nXem .agent/config/GATES.md (danh mục ${soMayTrongReadme} máy gác, tự sinh).\n`, 'utf8');
+      `# Kit\n\nXem .agent/config/GATES.md (danh mục ${soMayTrongReadme} máy gác, tự sinh).\n\n`
+      + 'Phiên bản kit: **2.9.6**.\n', 'utf8');
     return d;
   }
   const chayTrong = (d: string) => {
