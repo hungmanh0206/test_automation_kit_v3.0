@@ -48,6 +48,16 @@
   chấp của cả bó (`full:suite` 6 worker) thì **cả 3 lần thử, gồm 2 lần dựng page mới, đều hết hạn** —
   nên bước này làm lượt bò bền hơn chứ **không chữa** được cú treo. Số lượt phải thử lại công khai ở
   `so_lan_thu_lai_dieu_huong`.
+- **Crawler TỰ PHÁ dấu vân tay của chính nó, và đó là lỗi tất định thật.** `moCacKhoi` bấm
+  `[role="tab"]`, mà bấm tab sau thì ẩn tabpanel trước; bản cũ đọc dấu vân tay **đúng một lần ở cuối**
+  nên chỉ thấy tab được bấm cuối cùng. Đo trên fixture, hai nhánh khác nhau đúng một điều là tab có được
+  bấm hay không: chữ ký `/truong/:id` ra `[[],["tab"],[]]` so với `[[],["data_table","tab"],[]]` — tức
+  `data_table` **biến mất** vì chính cú bấm của crawler. Hai hậu quả: thứ tự tab bấm được phụ thuộc trần
+  250ms/400ms/8s nên dưới tải cùng một route sinh **hai** danh tính (đo được một lượt bò ra 8 màn trong
+  khi 9 lượt khác ra 7 — đúng thứ phép kiểm *"bò TẤT ĐỊNH"* ra đời để bắt), và `components`/`so_field` là
+  **mẫu số** cho chiều Validation nên một màn có bảng mà báo "không có data_table" làm mọi tỉ lệ phủ về
+  sau sai theo. Nay dấu vân tay **gộp** qua các lượt mở (trần 8 lượt đọc mỗi trang, công khai ở
+  `so_lan_doc_van_tay`); chi phí đo được **+10…45%** cho một lượt bò.
 - **`--storage-state-roles` chỉ bị kiểm khuôn SAU cả lượt bò.** Khai sai một dấu bằng thì lệnh
   `discover` vẫn bò hết app — trần 20 phút — rồi mới từ chối. Nay kiểm **trước khi mở browser**; thông
   điệp và mã thoát giữ nguyên, chỉ đổi thời điểm.

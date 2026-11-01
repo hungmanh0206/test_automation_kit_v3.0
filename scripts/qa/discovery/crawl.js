@@ -67,6 +67,74 @@ function chuKyCauTruc(dvt) {
   return JSON.stringify([nhan, comp, header]);
 }
 
+/*
+ * GỘP NHIỀU LƯỢT ĐỌC DẤU VÂN TAY THÀNH MỘT — và đây là một lỗi THẬT, đo được 01/11/2026.
+ *
+ * `moCacKhoi` bấm `[role="tab"]`, mà trên mọi app dùng tab thì bấm tab sau ẨN tabpanel trước. Bản trước
+ * đọc dấu vân tay ĐÚNG MỘT LẦN, ở cuối, nên nó chỉ thấy nội dung của tab được bấm CUỐI CÙNG.
+ *
+ * Đo trên fixture, hai nhánh khác nhau đúng một điều là tab có được bấm hay không:
+ *   · bấm tab      ⇒ chữ ký `/truong/:id` = [[],["tab"],[]]
+ *   · không bấm tab ⇒ chữ ký `/truong/:id` = [[],["data_table","tab"],[]]
+ * Tức lượt bò TỰ PHÁ thứ nó đang đo: `data_table` biến mất vì chính cú bấm của crawler.
+ *
+ * Hai hậu quả, và cái thứ hai nặng hơn:
+ *   ① MẤT TẤT ĐỊNH. Thứ tự và số tab bấm được phụ thuộc trần 250ms/400ms/8s của `moCacKhoi`, nên dưới
+ *      tải, cùng một route sinh ra HAI danh tính khác nhau — đo được một lượt bò ra 8 màn trong khi 9
+ *      lượt khác ra 7. Đó đúng là thứ phép kiểm "bò TẤT ĐỊNH" ra đời để bắt, và kit tự nhận đây là điểm
+ *      số 1 vượt kit A.
+ *   ② ĐẾM THIẾU MẪU SỐ. `so_field` và `components` của màn là mẫu số cho chiều Validation. Một màn có
+ *      bảng mà báo "không có data_table" thì mọi tỉ lệ phủ về sau tính trên mẫu số thiếu.
+ *
+ * Nên: đọc dấu vân tay TRƯỚC khi mở (bản nguyên trạng), sau MỖI lượt mở, và ở cuối — rồi HỢP chúng lại.
+ * Hợp là phép cộng, nên một lượt đọc sớm không thể làm sai: nó chỉ thêm thứ đã thật sự có trên màn.
+ *
+ * `thu_tu_focus` KHÔNG hợp được (nó là một THỨ TỰ, không phải một tập) nên lấy bản nguyên trạng.
+ */
+function gopDauVanTay(ds) {
+  const co = ds.filter(Boolean);
+  if (co.length <= 1) return co[0] || null;
+  const dau = co[0];
+  const khoaField = (f) => [f.nhan, f.ten_truong, f.code_loai].map((x) => String(x || '')).join('\u0000');
+  const fields = [];
+  const daCo = new Set();
+  for (const d of co) {
+    for (const f of d.fields || []) {
+      const k = khoaField(f);
+      if (daCo.has(k)) continue;
+      daCo.add(k);
+      fields.push(f);
+    }
+  }
+  const comp = [...new Set(co.flatMap((d) => d.components || []))].sort();
+  const chuaMap = [...new Set(co.flatMap((d) => d.component_chua_map || []))].sort();
+  /* Bảng hợp theo DẤU VÂN TAY HEADER: cùng bộ header thì là cùng bảng, dù đọc ở hai lượt khác nhau. */
+  let snap = dau.snapshot;
+  if (snap) {
+    const bang = [];
+    const daBang = new Set();
+    for (const d of co) {
+      for (const t of ((d.snapshot || {}).tables) || []) {
+        const k = JSON.stringify(t.headers || []);
+        if (daBang.has(k)) continue;
+        daBang.add(k);
+        bang.push(t);
+      }
+    }
+    snap = { ...snap, tables: bang };
+  }
+  return {
+    ...dau,
+    fields,
+    so_field: fields.length,
+    components: comp,
+    component_chua_map: chuaMap,
+    loai_field_quan_sat: [...new Set(fields.map((f) => f.code_loai))].sort(),
+    snapshot: snap,
+    so_lan_doc_van_tay: co.length,
+  };
+}
+
 function danhTinh(route, chuKy) {
   return `${route}\u0000${chuKy}`;
 }
@@ -117,7 +185,7 @@ async function choLangMang(page, { langMs = 250, tranMs = 2500 } = {}) {
   }
 }
 
-async function moCacKhoi(page, bienBan, cfg, doTre) {
+async function moCacKhoi(page, bienBan, cfg, doTre, sauKhiMo) {
   const moDuoc = [];
   /*
    * CHỈ bấm thứ để MỞ RA. `details > summary`, `[aria-expanded=false]`, `[role=tab]` — ba thứ này không
@@ -152,6 +220,11 @@ async function moCacKhoi(page, bienBan, cfg, doTre) {
         await el.click({ timeout: 400, noWaitAfter: true });
         moDuoc.push(nhan.trim());
         hongLienTiep = 0;
+        /*
+         * ĐỌC NGAY SAU MỖI LƯỢT MỞ. Lý do đầy đủ ở `gopDauVanTay`: mở khối sau có thể ẨN khối trước
+         * (tab là ca kinh điển), nên một lượt đọc duy nhất ở cuối chỉ thấy khối mở CUỐI CÙNG.
+         */
+        if (sauKhiMo) await sauKhiMo();
       } catch (e) { hongLienTiep += 1; }
       if (doTre > 0) await page.waitForTimeout(doTre);
     }
@@ -430,14 +503,42 @@ async function boApp(browser, o) {
     const tranTrang = (gh.thoi_gian_moi_trang_giay || 90) * 1000;
     const hetGio = Symbol('het-gio');
     const xuLyTrang = (async () => {
-      const moDuoc = await moCacKhoi(page, bienBan, cfg, doTre);
+      /*
+       * ĐỌC BẢN NGUYÊN TRẠNG TRƯỚC KHI MỞ KHỐI, và KHÔNG chờ mạng lặng trước lượt đọc này.
+       *
+       * Không chờ vì phép hợp là phép CỘNG: lượt đọc sớm chỉ thêm thứ đang có trên màn, không bỏ được
+       * thứ gì. Chờ thêm một `choLangMang` nữa ở đây sẽ cộng tới 2,5 giây cho MỖI url, tức gần 90 giây
+       * cho 35 url của fixture — trả giá đó để đổi lấy một thông tin mà lượt đọc cuối đã có.
+       */
+      const dsVanTay = [];
+      /*
+       * TRẦN SỐ LƯỢT ĐỌC. `moCacKhoi` mở tối đa 12 phần tử × 3 selector, nên không chặn thì một màn
+       * nhiều accordion phải trả giá hàng chục lượt đọc. Đo trên fixture 35 url: bản gộp làm một lượt bò
+       * đi từ 19s lên 21–28s, tức +10…45%; trần này giữ phần đuôi không nở thêm.
+       *
+       * Hết trần KHÔNG phải im lặng: `so_lan_doc_van_tay` trong kết quả nói đã đọc mấy lượt, và trần đặt
+       * ở 8 nên nó khác rõ với một màn thật sự chỉ có vài khối.
+       */
+      const TRAN_DOC = 8;
+      const docMot = async () => {
+        if (dsVanTay.length >= TRAN_DOC) return;
+        try { dsVanTay.push(await fp.docDauVanTay(page, { route: chuanHoaRoute(url), keoSnapshot: o.keoSnapshot !== false })); }
+        catch (e) { /* một lượt đọc hỏng KHÔNG được làm chết cả trang: các lượt còn lại vẫn là dữ liệu thật */ }
+      };
+      await docMot();
+      const moDuoc = await moCacKhoi(page, bienBan, cfg, doTre, docMot);
       /*
        * Chờ TRƯỚC khi đọc dấu vân tay và trước khi đi trang kế: `api_inventory` gắn bộ theo dõi vào
        * page, nên request về muộn hơn chỗ này sẽ bị bỏ hoặc được tính tuỳ lịch chạy.
        */
       await choLangMang(page, { langMs: o.langMs == null ? 250 : o.langMs, tranMs: o.tranLangMs == null ? 2500 : o.tranLangMs });
       const route = chuanHoaRoute(url);
-      const dvt = await fp.docDauVanTay(page, { route, keoSnapshot: o.keoSnapshot !== false });
+      /* Lượt đọc CUỐI luôn chạy, kể cả khi đã hết trần: trạng thái cuối của màn là trạng thái mà ảnh
+       * chụp và `so_ban_ghi_da_xem` nói tới, nên nó không được thiếu khỏi phép hợp. */
+      if (dsVanTay.length >= TRAN_DOC) dsVanTay.pop();
+      await docMot();
+      const dvt = gopDauVanTay(dsVanTay);
+      if (!dvt) throw new Error('không đọc được dấu vân tay nào của trang này');
       return { moDuoc, route, dvt };
     })();
     /*
@@ -641,4 +742,4 @@ async function boApp(browser, o) {
   };
 }
 
-module.exports = { boApp, chuanHoaRoute, choLangMang, danhTinh, chuKyCauTruc, oCanChe, gomLink };
+module.exports = { boApp, chuanHoaRoute, choLangMang, danhTinh, chuKyCauTruc, gopDauVanTay, oCanChe, gomLink };

@@ -126,6 +126,12 @@ thoát mã 2, tức "không phán được". Lý do: `screens` là MẪU SỐ c�
 `scope_anchor`, nên một mẫu số bằng 0 đi tiếp sẽ làm mọi tỉ lệ phủ về sau thành 0/0 mà vẫn mang nhãn
 `observed`. Ngoại lệ duy nhất là `--max-trang 0`, vì đó là người gọi cố ý xin bò 0 trang.
 
+**Dấu vân tay GỘP qua các lượt mở khối** (01/11/2026). Lượt bò đọc dấu vân tay trước khi mở khối, sau
+mỗi lượt mở, và ở cuối, rồi hợp lại; `so_lan_doc_van_tay` nói đã đọc mấy lượt, trần 8 lượt mỗi trang. Lý
+do: bấm tab sau **ẩn** tabpanel trước, nên đọc một lần ở cuối chỉ thấy tab được bấm cuối cùng — đo được
+`/truong/:id` mất hẳn `data_table` vì chính cú bấm của crawler. Hợp là phép **cộng**, nên một lượt đọc
+sớm không thể làm sai: nó chỉ thêm thứ đã thật sự có trên màn.
+
 **Điều hướng hỏng nhất thời được thử lại tối đa 3 lần**, và chỉ với lỗi hết hạn hoặc không nối được.
 Mã 4xx/5xx KHÔNG thử lại: đó là câu trả lời thật của server. Số lượt phải thử lại công khai ở
 `so_lan_thu_lai_dieu_huong` — một lượt bò thử lại nhiều lần vẫn ra đủ màn, nhưng nó đang nói rằng môi

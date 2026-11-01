@@ -451,6 +451,76 @@ test.describe('@infra bò TẤT ĐỊNH, và không chạm dữ liệu', () => {
     } finally { await mc.close(); }
   });
 
+  test('danh tính màn KHÔNG phụ thuộc việc bấm được bao nhiêu khối', async () => {
+    /*
+     * LỖI THẬT, đo 01/11/2026, và nó đánh đúng vào điểm kit tự nhận là số 1 vượt kit A.
+     *
+     * `moCacKhoi` bấm `[role="tab"]`, mà bấm tab sau thì ẨN tabpanel trước. Bản cũ đọc dấu vân tay ĐÚNG
+     * MỘT LẦN ở cuối, nên nó chỉ thấy nội dung của tab được bấm CUỐI CÙNG:
+     *   · bấm tab       ⇒ chữ ký `/truong/:id` = [[],["tab"],[]]
+     *   · không bấm tab ⇒ chữ ký `/truong/:id` = [[],["data_table","tab"],[]]
+     * Tức lượt bò TỰ PHÁ thứ nó đang đo — `data_table` biến mất vì chính cú bấm của crawler.
+     *
+     * Hai hậu quả: thứ tự và số tab bấm được phụ thuộc trần 250ms/400ms/8s, nên dưới tải cùng một route
+     * sinh HAI danh tính (đo được một lượt bò ra 8 màn trong khi 9 lượt khác ra 7); và `components` của
+     * màn là mẫu số cho chiều Validation, nên một màn có bảng mà báo "không có data_table" làm mọi tỉ lệ
+     * phủ về sau tính trên mẫu số thiếu.
+     *
+     * PHÉP ĐO Ở ĐÂY KHÔNG CẦN TẢI, nên nó tất định: hai nhánh khác nhau ĐÚNG MỘT điều — tab có được bấm
+     * hay không, chặn bằng `nut_cam_bam`. Đó là cách mô phỏng "dưới tải, crawler không bấm kịp".
+     */
+    const boVoiCam = async (camThem: string[]) => {
+      const cfg = fw.napCfg();
+      cfg.nut_cam_bam = [...(cfg.nut_cam_bam || []), ...camThem];
+      return cr.boApp(br, { baseUrl: srv.url, coCo: true, cfg, doTre: 0, keoSnapshot: false });
+    };
+    const coBam = await boVoiCam([]);
+    const khongBam = await boVoiCam(['hạ tầng', 'đội ngũ', 'thông tin chung']);
+
+    const man = (r: Record<string, any>) => (r.screens as Man[]).find((x) => x.route === '/truong/:id')!;
+    const a = man(coBam);
+    const b = man(khongBam);
+
+    /* ĐỐI CHỨNG rằng hai nhánh THẬT SỰ khác nhau — nếu không thì phép kiểm này không chứng minh gì. */
+    expect((a as unknown as { khoi_da_mo: string[] }).khoi_da_mo.length, 'nhánh có bấm phải mở được NHIỀU khối hơn')
+      .toBeGreaterThan((b as unknown as { khoi_da_mo: string[] }).khoi_da_mo.length);
+
+    expect(cr.danhTinh('/truong/:id', cr.chuKyCauTruc(b)), 'danh tính phải GIỐNG dù bấm được bao nhiêu khối')
+      .toBe(cr.danhTinh('/truong/:id', cr.chuKyCauTruc(a)));
+    /* Và mẫu số phải ĐÚNG ở cả hai nhánh: màn này CÓ bảng, bấm tab không được làm nó biến mất. */
+    for (const [ten, m] of [['có bấm', a], ['không bấm', b]] as [string, Man][]) {
+      expect(m.components, `${ten}: màn chi tiết có bảng, phải thấy data_table`).toContain('data_table');
+      expect(m.components, `${ten}: và vẫn phải thấy tab`).toContain('tab');
+    }
+    expect((coBam.screens as Man[]).map((x) => x.route)).toEqual((khongBam.screens as Man[]).map((x) => x.route));
+  });
+
+  test('phép hợp dấu vân tay là phép CỘNG — không lượt đọc nào bị bỏ', () => {
+    /*
+     * Đối chứng cho chính `gopDauVanTay`, không qua browser: hợp hai lượt đọc rời phải ra HỢP của chúng.
+     * Thiếu phép kiểm này thì một ngày nào đó hàm hợp đổi thành "lấy lượt cuối" mà không ai thấy.
+     */
+    const d1 = {
+      route: '/x', title_observed: 'X', fields: [{ nhan: 'Mã', code_loai: 'text' }],
+      components: ['data_table'], component_chua_map: [], loai_field_quan_sat: ['text'],
+      snapshot: { tables: [{ headers: ['Mã', 'Tên'] }] },
+    };
+    const d2 = {
+      route: '/x', title_observed: 'X', fields: [{ nhan: 'Ngày', code_loai: 'date' }],
+      components: ['tab'], component_chua_map: [], loai_field_quan_sat: ['date'],
+      snapshot: { tables: [{ headers: ['Khối'] }] },
+    };
+    const g = cr.gopDauVanTay([d1, d2]);
+    expect(g.components).toEqual(['data_table', 'tab']);
+    expect(g.so_field, 'field của CẢ hai lượt đọc').toBe(2);
+    expect(g.loai_field_quan_sat).toEqual(['date', 'text']);
+    expect(g.snapshot.tables.map((t: { headers: string[] }) => t.headers)).toEqual([['Mã', 'Tên'], ['Khối']]);
+    expect(g.so_lan_doc_van_tay).toBe(2);
+    /* Field TRÙNG giữa hai lượt đọc chỉ được đếm MỘT lần — hợp là tập, không phải cộng dồn. */
+    const h = cr.gopDauVanTay([d1, d1]);
+    expect(h.so_field, 'cùng một field đọc hai lượt vẫn là một field').toBe(1);
+  });
+
   test('sau CẢ lượt bò: 0 lượt ghi, dữ liệu fixture nguyên vẹn', async () => {
     srv.reset();
     const truoc = JSON.stringify(srv.store.truong);

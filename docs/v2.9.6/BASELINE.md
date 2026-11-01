@@ -685,6 +685,56 @@ dấu bằng thì lệnh vẫn bò hết app — trần 20 phút — rồi mới
 môi trường thì chúng đỏ với một thông điệp hoàn toàn khác. Nay kiểm **trước khi mở browser**; thông điệp
 và mã thoát giữ nguyên, chỉ đổi thời điểm. `discovery-roles.spec.ts`: **21 xanh**, cả spec còn 22,6 giây.
 
+### Lỗi thứ năm — và đây mới là lỗi tất định THẬT của crawler
+
+Bốn lỗi trên đều quanh chuyện *"không đo được thì phải nói là không đo được"*. Lỗi này khác hẳn: crawler
+**tự phá** thứ nó đang đo.
+
+`moCacKhoi` bấm `[role="tab"]` để dấu vân tay thấy field bên trong. Nhưng bấm tab sau thì **ẩn** tabpanel
+trước, còn dấu vân tay thì chỉ được đọc **đúng một lần, ở cuối**. Nên nó chỉ thấy nội dung của tab được
+bấm **cuối cùng**.
+
+Hai nhánh khác nhau đúng một điều — tab có được bấm hay không, chặn bằng `nut_cam_bam`:
+
+| Nhánh | Chữ ký `/truong/:id` |
+|---|---|
+| bấm tab (hành vi cũ) | `[[],["tab"],[]]` |
+| không bấm tab | `[[],["data_table","tab"],[]]` |
+
+`data_table` **biến mất** vì chính cú bấm của crawler. Hai hậu quả, và cái thứ hai nặng hơn:
+
+1. **Mất tất định.** Thứ tự và số tab bấm được phụ thuộc trần 250ms/400ms/8s của `moCacKhoi`, nên dưới
+   tải cùng một route sinh **hai** danh tính — đo được một lượt bò ra **8 màn** trong khi 9 lượt khác ra
+   7. Đó đúng là thứ phép kiểm *"bò TẤT ĐỊNH"* ra đời để bắt, và kit tự nhận đây là **điểm số 1** vượt
+   kit A.
+2. **Đếm thiếu mẫu số.** `components` và `so_field` của màn là mẫu số cho chiều Validation. Một màn có
+   bảng mà báo "không có data_table" thì mọi tỉ lệ phủ về sau tính trên mẫu số thiếu.
+
+Chữa: dấu vân tay **gộp** qua các lượt đọc — trước khi mở, sau mỗi lượt mở, và ở cuối. Hợp là phép
+**cộng**, nên một lượt đọc sớm không thể làm sai. Trần 8 lượt đọc mỗi trang, công khai ở
+`so_lan_doc_van_tay`. Chi phí: một lượt bò đi từ 19s lên **21–28s** (+10…45%).
+
+Đối chứng **không cần tải nên tất định**: chặn nhãn tab để mô phỏng "dưới tải không bấm kịp", rồi đòi
+danh tính phải GIỐNG và `components` phải có `data_table` ở **cả hai** nhánh. Chạy hai phép kiểm mới với
+bản `crawl.js` **trước khi vá**: **2/2 đỏ** — đối chứng không rỗng.
+
+### Ba giả thuyết nữa bị bác, ghi lại để khỏi đo lại
+
+| Giả thuyết | Phép đo | Kết luận |
+|---|---|---|
+| `page.route` của tường lửa gây treo | treo **cả ở nhánh không tường lửa** (1/15) | **loại** |
+| Context tích tụ qua các lượt bò | `context=0 page=0` sau **mọi** lượt | **loại** |
+| Rò tiến trình Chromium | `chrome-headless-shell`: 0 → 3, giữ 3–4 qua 8 lượt bò, về 0 sau khi đóng | **loại** |
+
+Lần thứ ba trong phiên, máy đo của tôi tự nó rỗng: tôi đếm `Get-Process chrome` và thấy "20 → 70", đọc ra
+như rò tiến trình — nhưng Playwright 1.64 headless chạy `chrome-headless-shell`, nên con số đó là **Chrome
+của người dùng**. Trước đó hai lần nữa: `CimInstance.CommandLine` escape vỡ trả 0 ở mọi dòng, và
+`khong_toi_duoc` lọc theo `.length` trên một map số đếm.
+
+Cú treo `page.goto` còn lại thì **không phải lỗi kit**: Node không bị đói (nhịp ≤353ms suốt 15s treo),
+server đáp 6–48ms, không rò gì. Nó là Chromium dưới CPU bị đặt quá tải. Thứ kit làm được là **gác**:
+chốt `BO_DUOC_0_MAN` và bước đo lại ở spec.
+
 ### Số đo cuối
 
 | Phép đo | Trước | Sau |
