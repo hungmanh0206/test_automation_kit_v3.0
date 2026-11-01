@@ -58,6 +58,15 @@ nó. Không máy nào đỏ, vì chẳng có gì sai — chỉ có mẫu số kh
   tệ*. Vượt trần có chủ đích bằng `PW_WORKERS`. Trên máy 12 lõi hành vi **không đổi** (vẫn 6), nên phép
   kiểm phải giả lập số lõi trong tiến trình con — đọc `workers` trên máy đang chạy thì không phân biệt
   được hai nhánh.
+- **Hai phép kiểm ⑨ xanh ở repo rồi đỏ trong gói — lần thứ SÁU cùng một họ lỗi trong một phiên.**
+  `release:verify` **14/15**: gói không chở `docs/library/**`, nên vế dương `ENOENT` và vế âm không thấy
+  dòng đếm. Một phép kiểm về **cơ chế** mà neo vào một **file của repo**. Nay cả hai dựng cây riêng như
+  các phép kiểm ⑦, cộng một phép kiểm cho đúng trạng thái của gói (*không bề mặt nào khai phiên bản ⇒
+  `CHƯA GÁC GÌ`, không phải "đạt"*) và một phép kiểm về cây đang chạy khẳng định **cả hai** nhánh, nên
+  không nhánh nào lặng lẽ cho qua. Kèm theo, `docs/v2.9.7/BASELINE.md` ghi cách **tái hiện trong 1 phút**
+  thay cho vòng 25 phút: `git archive HEAD` loại đúng phần gói không chở, `node_modules` nối bằng
+  junction — nghiệm thu rằng nó tái hiện thật (spec trước khi vá: `2 failed`, cùng ENOENT; sau khi vá:
+  `19 passed`).
 - **Phép kiểm ngưỡng BLOCKED neo vào dữ liệu task SỐNG, và đó là lần thứ ba cùng một bài học.**
   `run-analysis.spec.ts` khẳng định hai bộ dữ liệu **thật** (CSDL-9003, CSDL-9004) rơi vào hai dải khác
   nhau. Bản đầu ghim `28.9%` rồi đỏ khi dữ liệu trôi còn `28.6%`; sửa 13/10/2026 đổi sang ghim **dải** —

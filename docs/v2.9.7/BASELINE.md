@@ -192,6 +192,58 @@ tôi lặp lại đúng lỗi ⑦ đã sửa hôm 30/10 — chỉ hỏi `git ls-
 file** rồi tự khai *"CHƯA GÁC GÌ"*. Nay phần liệt kê file gộp về `lietKeFile`, dùng chung cho ⑦ và ⑨, nên
 chỉ còn **một** chỗ để sai.
 
+## Lần thứ SÁU: "chạy ở repo, chết trong gói" — và cách tái hiện trong 1 phút
+
+`release:verify` đỏ **14/15**, 2 ca — cả hai là phép kiểm ⑨ của chính tôi:
+
+```
+ENOENT: … \kit-2.9.7\docs\library\src\shell.html
+expect(received).toMatch(expected)        # dòng đếm ⑨ không có
+```
+
+Gói **không chở `docs/library/**`**. Nên vế dương ENOENT, và vế âm không thấy dòng đếm vì trong gói
+không bề mặt nào khai phiên bản. Phép kiểm về một **cơ chế** mà lại neo vào một **file của repo**.
+
+Nay cả hai dựng cây riêng (như các phép kiểm ⑦ đã làm), cộng một phép kiểm cho đúng trạng thái của gói
+(*không bề mặt nào ⇒ `CHƯA GÁC GÌ`, không phải "đạt"*), và một phép kiểm về **cây đang chạy** khẳng định
+**cả hai** nhánh nên không nhánh nào lặng lẽ cho qua.
+
+### Vòng lặp 25 phút rút còn 1 phút
+
+Mỗi lần phát hiện họ lỗi này đều mất một vòng `full:suite → package:kit → release:verify` (~25 phút).
+Không cần thế. Dựng **cây giả-gói** từ chính HEAD, loại đúng những gì gói không chở, và nối
+`node_modules` bằng junction thay vì chép:
+
+```bash
+d="…/nhugoi-$(date +%H%M%S)"; mkdir -p "$d"
+git archive HEAD -- . ':(exclude)docs/library' | tar -x -C "$d"
+powershell -NoProfile -Command "New-Item -ItemType Junction -Path '<win $d>\node_modules' -Target '<repo>\node_modules'"
+(cd "$d" && npx playwright test <spec> --project=chromium-desktop)
+```
+
+Nghiệm thu rằng cách này **thật sự** tái hiện: với spec **trước khi vá** ⇒ `2 failed · 15 passed`, cùng
+ENOENT y hệt `release:verify`; với spec **đã vá** ⇒ `19 passed`. Cây đó cũng không có `.git`, nên nó bắt
+luôn nhánh đọc-đĩa.
+
+### Có dựng nổi máy gác tĩnh cho họ lỗi này không — đo trước khi thiết kế
+
+| Số đo | Giá trị |
+|---|---|
+| spec trong làn `tests/fe/infra` | 168 |
+| tham chiếu `path.join(REPO, <hằng>)` | 625 |
+| trong đó **không** có trong gói | **49** (32 đường khác nhau) |
+
+Lượt đếm **đầu** ra **166** — và nó **sai đơn vị**: `PK.collect()` trả FILE, còn phần lớn tham chiếu là
+THƯ MỤC (`scripts`, `tests`, `.agent`), nên không bao giờ khớp. Cùng lỗi đơn vị tôi đã cắn ở bucket
+`firewall` đầu phiên: phải coi một đường là "có trong gói" khi nó là file **hoặc** là thư mục chứa file
+của gói.
+
+Soi 32 đường đó thì phần lớn **chính đáng**: `outputs/**` có chốt `existsSync` + `test.skip`, còn
+`khong-ton-tai.md` · `scratch_doi_chung_tam.json` · `*.test-tmp.json` · `tests/fe/lib/_doi_chung_tam/**`
+là file test **tự tạo** hoặc **cố tình** không tồn tại. Nên máy gác ở đây phải phân biệt *"đọc mà không
+chốt"* với *"test tự tạo"* — việc thiết kế thật, có rủi ro dương-tính-giả, **không** phải việc dọn. Chưa
+dựng; ghi lại số đo để lượt sau khỏi đo lại.
+
 ## Hai lần tôi tự làm rỗng phép đo
 
 - `/usr/bin/time` không có trong Git Bash ⇒ lượt đo worker **đầu không chạy gì**, mà lớp bọc vẫn báo

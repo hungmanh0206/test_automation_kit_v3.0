@@ -229,20 +229,86 @@ test.describe('@infra version:check ⑦ — chạy được trong gói (không `
  * chú thích trước khi tìm, bằng `boChuThich` đã có, và dưới đây có một phép kiểm riêng cho chuyện đó.
  */
 test.describe('@infra version:check ⑨ — số phiên bản viết tay phải khớp `package.json`', () => {
+  /*
+   * DỰNG CÂY RIÊNG, KHÔNG NEO VÀO FILE CỦA REPO.
+   *
+   * Lượt đầu của hai phép kiểm dưới đây neo vào `docs/library/src/shell.html`. Chúng xanh ở repo rồi ĐỎ
+   * trong gói: `release:verify` 14/15, vì gói KHÔNG chở `docs/library/**` — vế dương ENOENT, vế âm không
+   * thấy dòng đếm vì trong gói không bề mặt nào khai phiên bản.
+   *
+   * Đó là lần thứ SÁU trong một phiên cùng một họ lỗi: chạy ở repo, chết trong gói. Nên phép kiểm về một
+   * CƠ CHẾ phải tự dựng đầu vào của nó, giống các phép kiểm ⑦ ở trên — có thế nó mới đúng ở cả hai ngữ
+   * cảnh, và mới kiểm được những ca repo thật không có.
+   */
+  function cay(verPkg: string, beMat: Record<string, string> = {}) {
+    const d = fs.mkdtempSync(path.join(os.tmpdir(), 'ver9-'));
+    fs.mkdirSync(path.join(d, 'scripts/qa'), { recursive: true });
+    fs.mkdirSync(path.join(d, '.agent/config'), { recursive: true });
+    fs.copyFileSync(GATE, path.join(d, 'scripts/qa/version_check.js'));
+    fs.writeFileSync(path.join(d, 'package.json'), JSON.stringify({ name: 'x', version: verPkg }), 'utf8');
+    fs.writeFileSync(path.join(d, 'CHANGELOG.md'),
+      `# Changelog\n\n> Mỗi mục là một đợt phát hành.\n\n## v${verPkg} — 2026-11-01 — x\n\n- x\n`, 'utf8');
+    fs.writeFileSync(path.join(d, '.agent/config/GATES.md'), '# Gates\n\nTổng **7** máy — 1 CHẶN.\n', 'utf8');
+    fs.writeFileSync(path.join(d, 'README.md'), '# Kit\n\nXem .agent/config/GATES.md (danh mục 7 máy gác, tự sinh).\n', 'utf8');
+    for (const [ten, noi] of Object.entries(beMat)) {
+      fs.mkdirSync(path.dirname(path.join(d, ten)), { recursive: true });
+      fs.writeFileSync(path.join(d, ten), noi, 'utf8');
+    }
+    return d;
+  }
+  const chayTrongCay = (d: string) => {
+    const r = spawnSync(process.execPath, [path.join(d, 'scripts/qa/version_check.js')],
+      { cwd: d, encoding: 'utf8', env: gateEnv() });
+    return { code: r.status, out: `${r.stdout || ''}${r.stderr || ''}` };
+  };
+
   test('ĐỐI CHỨNG DƯƠNG: bề mặt khai phiên bản CŨ ⇒ CHẶN, nêu đích danh file', () => {
-    const f = path.join(REPO, 'docs/library/src/shell.html');
-    voi(f, (s) => s.replace(/Phiên bản kit: <b>[\d.]+<\/b>/, 'Phiên bản kit: <b>1.0.0</b>'), (r) => {
-      expect(r.code, 'lệch phiên bản phải chặn').toBe(1);
-      expect(r.out).toContain('docs/library/src/shell.html');
-      expect(r.out).toContain('1.0.0');
-    });
+    const d = cay('2.9.9', { 'docs/trang.html': '<p>Phiên bản kit: <b>1.0.0</b>.</p>\n' });
+    const r = chayTrongCay(d);
+    expect(r.code, r.out).toBe(1);
+    expect(r.out, 'phải nêu đích danh file, không chỉ nói "có chỗ lệch"').toContain('docs/trang.html');
+    expect(r.out).toContain('1.0.0');
+    expect(r.out).toContain('2.9.9');
+    fs.rmSync(d, { recursive: true, force: true });
   });
 
   test('ĐỐI CHỨNG ÂM: khớp `package.json` ⇒ ĐẠT, và nói ra đếm được mấy bản sao', () => {
-    const r = chay();
-    expect(r.code, 'repo đang khớp').toBe(0);
-    expect(r.out).toMatch(/⑨ \d+ bản sao viết tay của số phiên bản/);
+    const d = cay('2.9.9', { 'docs/trang.html': '<p>Phiên bản kit: <b>2.9.9</b>.</p>\n' });
+    const r = chayTrongCay(d);
+    expect(r.code, r.out).toBe(0);
+    expect(r.out).toMatch(/⑨ 1 bản sao viết tay của số phiên bản/);
     expect(r.out, 'phải nói nguồn là package.json').toContain('nguồn `package.json`');
+    fs.rmSync(d, { recursive: true, force: true });
+  });
+
+  test('KHÔNG bề mặt nào khai phiên bản ⇒ "CHƯA GÁC GÌ", KHÔNG phải "đạt"', () => {
+    /*
+     * Đây đúng là trạng thái của GÓI phát hành (không chở `docs/library/**`). Phải khai là chưa gác,
+     * chứ không được im lặng rồi để câu `✓ ĐẠT` ở cuối nói thay — "không đo được" KHÔNG thành "đo ra 0".
+     */
+    const d = cay('2.9.9');
+    const r = chayTrongCay(d);
+    expect(r.code, 'không có bề mặt nào thì cũng không có gì để chặn').toBe(0);
+    expect(r.out).toMatch(/⑨ CHƯA GÁC GÌ ở lượt này \(không phải đạt\)/);
+    expect(r.out, 'và KHÔNG được in dòng đếm như thể đã gác').not.toMatch(/⑨ \d+ bản sao/);
+    fs.rmSync(d, { recursive: true, force: true });
+  });
+
+  test('CÂY NÀY (repo hoặc gói) — mọi bề mặt đang khai đều khớp `package.json`', () => {
+    /*
+     * Phép kiểm về TRẠNG THÁI của cây đang chạy, nên nó phải đúng ở CẢ repo (có `docs/library/**`) và
+     * trong gói (không có). Số bề mặt được ĐO, không phải giả định — rồi hai nhánh ĐỀU bị khẳng định,
+     * nên không có nhánh nào lặng lẽ cho qua.
+     */
+    const r = chay();
+    expect(r.code, r.out).toBe(0);
+    const m = r.out.match(/⑨ (\d+) bản sao viết tay của số phiên bản/);
+    if (m) {
+      expect(Number(m[1]), 'đếm được bề mặt thì phải > 0').toBeGreaterThan(0);
+      expect(r.out).toContain('nguồn `package.json`');
+    } else {
+      expect(r.out, 'không đếm được bề mặt nào thì PHẢI khai là chưa gác').toMatch(/⑨ CHƯA GÁC GÌ/);
+    }
   });
 
   test('CHÚ THÍCH trong mã KHÔNG được tính thành một bản sao', () => {
