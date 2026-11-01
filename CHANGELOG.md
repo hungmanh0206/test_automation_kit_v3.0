@@ -14,7 +14,7 @@
 > `.agent/**`, `tests/support/**` đều là **shared change** (xem `RULE_GLOBAL.md` §Shared Change Gate) —
 > ảnh hưởng mọi story đang chạy. Mỗi mục ghi **vấn đề → cách chữa**, không chỉ liệt kê tính năng.
 
-## v2.9.6 — 2026-10-30 — Skill tự nạp được, và bốn cửa tắt cùng lúc khi gọi FAIL bằng đúng tên chuẩn
+## v2.9.6 — 2026-11-01 — Skill tự nạp được, và bốn cửa tắt cùng lúc khi gọi FAIL bằng đúng tên chuẩn
 
 **Vấn đề → cách chữa**
 
@@ -100,6 +100,15 @@
   nào kêu. Thêm `npm run version:check`: mục đỉnh khớp `package.json` · CHANGELOG giảm dần · số máy gác
   viết tay khớp bản máy sinh. Tài liệu **lịch sử** (CHANGELOG, `docs/v…`) cố ý được bỏ qua ở phép kiểm
   cuối, vì số máy trong đó đúng ở thời điểm ghi.
+
+  **Dãy tag đi từ `v2.9.4` sang `v2.9.6`, và chỗ trống ở `v2.9.5` là dấu chân của đúng lỗi này.** Mọi
+  tag đang có đều thoả `git show <tag>:package.json == <tag>` (đo 5/5 từ `v2.9.0` tới `v2.9.4`), và
+  `version:check` **CHẶN** khi tag lệch version. Trên `main`, `package.json` giữ `2.9.4` ở **cả
+  57/57 commit** trong `v2.9.4..main` — đếm từng commit, 0 commit mang version khác — nên không có commit
+  nào mà một tag `v2.9.5` chỉ vào mà không nói sai. Vá
+  ngược bằng cách tag một commit ghi `2.9.4` thành `v2.9.5` chỉ là chuyển lời khai sai từ CHANGELOG sang
+  dãy tag, nơi khó thấy hơn. Chỗ trống này **để lại**; `git diff v2.9.4..v2.9.6` là khoảng tra ngược
+  đúng cho cả hai vòng.
 
 ## v2.9.5 — 2026-10-29 — Vượt A ở mọi chỗ A còn hơn, và mỗi chỗ phải có máy đứng sau
 
