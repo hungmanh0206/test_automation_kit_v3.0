@@ -311,6 +311,64 @@ function main() {
   if (!soChoVer) warnings.push('không bề mặt nào khai `Phiên bản kit: X.Y.Z` ⇒ phép kiểm ⑨ CHƯA GÁC GÌ ở lượt này (không phải đạt).');
   else console.log(`[version] ⑨ ${soChoVer} bản sao viết tay của số phiên bản, nguồn \`package.json\` = ${version}`);
 
+  /*
+   * ⑩ BẢN SAO VIẾT TAY CỦA SỐ SPEC HẠ TẦNG (thêm 02/11/2026).
+   *
+   * ⑦ gác số MÁY, ⑨ gác số PHIÊN BẢN. Còn một con số nữa đang được tin mà không ai hỏi nó đếm trên bao
+   * nhiêu: `README.md` khai `147 spec KIỂM CHÍNH KIT` trong khi `tests/fe/infra/` có **168** spec đã track
+   * (không tính `*.probe.spec.*` — chúng không vào lane mặc định). Trôi 21, và trôi lặng lẽ vì con số ấy
+   * là chữ trong một sơ đồ cây, không ai sinh lại bao giờ.
+   *
+   * Neo là CỤM TỪ của chính lời khai, không phải `\d+ spec` chung chung — `3 spec` trong một câu văn
+   * khác không phải lời khai về quy mô bộ kiểm. Đổi lại, ai viết lại câu đó sẽ làm phép kiểm mất neo;
+   * nên khi KHÔNG tìm thấy bề mặt nào, ⑩ kêu `CHƯA GÁC GÌ` chứ KHÔNG im lặng đạt — cùng doctrine ⑦/⑨.
+   */
+  /*
+   * ĐẾM BẰNG `git ls-files`, VÀ KHÔNG RƠI VỀ QUÉT ĐĨA — ngược với ⑦/⑨, có chủ ý.
+   *
+   * ⑦ và ⑨ rơi về quét đĩa được vì NGUỒN của chúng cùng đi vào gói: `GATES.md` ship, `package.json`
+   * ship. Thước đo của ⑩ là CHÍNH CÁI CÂY, và cây gói **cố ý là một tập con**: `release:verify` ở
+   * v2.9.8 đỏ 13/15 vì gói có 167 spec hạ tầng trong khi repo có 169 (`db-verify-layer.spec.ts` và
+   * `db-verify-preflight.spec.ts` không được phát ra ngoài). Lời khai `169` trong `README.md` nói về
+   * REPO; đem nó so với cây gói là so hai mẫu số khác nhau rồi gọi kết quả là vi phạm.
+   *
+   * Nên trong gói, ⑩ khai **KHÔNG phán được** chứ không chặn, và cũng không im lặng đạt. Đây là lần
+   * thứ BẢY cùng một họ trong repo này (chạy ở repo, chết trong gói) — lần này điều cứu được nó không
+   * phải thêm một đường rơi, mà là nhận ra phép kiểm này KHÔNG có mẫu số trong gói.
+   */
+  const tuGitSpec = hasGit ? git(['ls-files', 'tests/fe/infra/*.spec.ts']) : null;
+  const dsSpec = (tuGitSpec || '')
+    .split('\n').map((x) => x.trim()).filter(Boolean)
+    .filter((f) => f.startsWith('tests/fe/infra/') && !/\.probe\.spec\.ts$/.test(f));
+  const soSpecThat = dsSpec.length;
+  let soChoSpec = 0;
+  if (!soSpecThat) {
+    warnings.push(hasGit
+      ? 'không đếm được spec nào dưới `tests/fe/infra/` ⇒ phép kiểm ⑩ KHÔNG phán được (không phải đạt).'
+      : 'không có `.git` (chạy từ gói phát hành) ⇒ phép kiểm ⑩ KHÔNG phán được: gói ship ít spec hơn repo CÓ Ý, '
+        + 'nên đếm trên cây này không phải mẫu số của lời khai trong `README.md`.');
+  } else {
+    for (const f of lietKeFile(/\.md$/, '*.md')) {
+      const duong = f.split(path.sep).join('/');
+      if (duong === 'CHANGELOG.md' || /^docs\/v\d+\.\d+(\.\d+)?\//.test(duong)) continue;
+      let noi;
+      try { noi = fs.readFileSync(path.join(REPO, f), 'utf8'); } catch (e) { continue; }
+      const re = /(\d+)\s+spec KIỂM CHÍNH KIT/g;
+      let m = re.exec(noi);
+      while (m) {
+        soChoSpec += 1;
+        if (Number(m[1]) !== soSpecThat) {
+          problems.push(`${duong} khai \`${m[1]} spec KIỂM CHÍNH KIT\` nhưng \`tests/fe/infra/\` có ${soSpecThat} spec đã track `
+            + '(không tính `*.probe.spec.*`). Một con số viết tay về quy mô bộ kiểm mà không ai gác thì nó trôi, '
+            + 'và người đọc tin kit nhỏ hơn thực tế.');
+        }
+        m = re.exec(noi);
+      }
+    }
+    if (!soChoSpec) warnings.push('không .md nào khai `<N> spec KIỂM CHÍNH KIT` ⇒ phép kiểm ⑩ CHƯA GÁC GÌ ở lượt này (không phải đạt).');
+    else console.log(`[version] ⑩ ${soChoSpec} bản sao viết tay của số spec hạ tầng, nguồn \`tests/fe/infra/\` = ${soSpecThat}`);
+  }
+
   console.log(`[version] ${version || '(chưa có)'} · ${problems.length} CHẶN · ${warnings.length} cảnh báo`);
   if (warnings.length) { console.log('\n[version] ⚠ Cảnh báo:'); warnings.forEach((w) => console.log(`  ~ ${w}`)); }
   if (!problems.length) { console.log('\n[version] ✓ ĐẠT'); process.exit(0); }

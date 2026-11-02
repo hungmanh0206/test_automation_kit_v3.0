@@ -342,3 +342,150 @@ test.describe('@infra version:check ⑨ — số phiên bản viết tay phải 
     });
   });
 });
+
+/*
+ * ⑩ — SỐ SPEC HẠ TẦNG VIẾT TAY (v2.9.8).
+ *
+ * `README.md` khai `147 spec KIỂM CHÍNH KIT` trong khi `tests/fe/infra/` có 169 spec đã track. Trôi 21,
+ * lặng lẽ, vì con số ấy là chữ trong một sơ đồ cây mà không ai sinh lại. Và nó KHÔNG chỉ ở một chỗ:
+ * `docs/kit-map.md` chép đúng con số cũ ấy — tôi không biết bề mặt thứ hai này tồn tại cho tới khi phép
+ * kiểm nêu đích danh nó. Đó là lý do cửa phải nêu TÊN FILE chứ không chỉ nói "có chỗ sai".
+ *
+ * Cây mẫu ở đây KHÔNG có `.git`, nên nó cũng kiểm luôn đường rơi về quét đĩa của `lietKeFile` — đúng
+ * cái bẫy "chạy ở repo, chết trong gói" đã cắn ⑦ (30/10) rồi ⑨ (01/11).
+ */
+test.describe('@infra version:check ⑩ — số spec hạ tầng viết tay phải khớp cây thật', () => {
+  const GATE10 = path.join(REPO, 'scripts/qa/version_check.js');
+
+  /** Cây rời: `so` spec thật dưới `tests/fe/infra/`, cộng các bề mặt `beMat` khai số. */
+  function caySpec(so: number, beMat: Record<string, string> = {}, probe = 0, coGit = true) {
+    const d = fs.mkdtempSync(path.join(os.tmpdir(), 'ver10-'));
+    fs.mkdirSync(path.join(d, 'scripts/qa'), { recursive: true });
+    fs.mkdirSync(path.join(d, '.agent/config'), { recursive: true });
+    fs.mkdirSync(path.join(d, 'tests/fe/infra'), { recursive: true });
+    fs.copyFileSync(GATE10, path.join(d, 'scripts/qa/version_check.js'));
+    fs.writeFileSync(path.join(d, 'package.json'), JSON.stringify({ name: 'x', version: '3.0.0' }), 'utf8');
+    fs.writeFileSync(path.join(d, 'CHANGELOG.md'),
+      '# Changelog\n\n> Mỗi mục là một đợt phát hành.\n\n## v3.0.0 — 2026-11-02 — x\n\n- x\n', 'utf8');
+    fs.writeFileSync(path.join(d, '.agent/config/GATES.md'), '# Gates\n\nTổng **7** máy — 1 CHẶN.\n', 'utf8');
+    for (let i = 0; i < so; i += 1) {
+      fs.writeFileSync(path.join(d, 'tests/fe/infra', `m${i}.spec.ts`), '// x\n', 'utf8');
+    }
+    for (let i = 0; i < probe; i += 1) {
+      fs.writeFileSync(path.join(d, 'tests/fe/infra', `p${i}.probe.spec.ts`), '// x\n', 'utf8');
+    }
+    for (const [ten, noi] of Object.entries(beMat)) {
+      fs.mkdirSync(path.dirname(path.join(d, ten)), { recursive: true });
+      fs.writeFileSync(path.join(d, ten), noi, 'utf8');
+    }
+    /*
+     * CÂY MẪU PHẢI CÓ `.git`, vì ⑩ đếm bằng `git ls-files` và KHÔNG rơi về quét đĩa — xem lý do ở
+     * chính phép kiểm. Không `git init` thì mọi đối chứng dưới đây đi vào đường "không phán được" và
+     * trở thành RỖNG, trong khi vẫn xanh.
+     */
+    if (coGit) {
+      for (const a of [['init', '-q'], ['add', '-A']]) {
+        const r = spawnSync('git', a, { cwd: d, encoding: 'utf8', env: gateEnv() });
+        expect(r.status, `git ${a.join(' ')} hỏng trong cây mẫu ⇒ đối chứng sẽ rỗng: ${r.stderr || ''}`).toBe(0);
+      }
+    }
+    return d;
+  }
+  const chay10 = (d: string) => {
+    const r = spawnSync(process.execPath, [path.join(d, 'scripts/qa/version_check.js')],
+      { cwd: d, encoding: 'utf8', env: gateEnv() });
+    return { code: r.status, out: `${r.stdout || ''}${r.stderr || ''}` };
+  };
+
+  test('ĐỐI CHỨNG DƯƠNG: khai 147 trong khi cây có 5 ⇒ CHẶN, nêu đích danh file', () => {
+    const d = caySpec(5, { 'README.md': '# Kit\n\nfe/infra/ 147 spec KIỂM CHÍNH KIT — chạy offline.\n' });
+    const r = chay10(d);
+    expect(r.code, r.out).toBe(1);
+    expect(r.out, 'phải nói ĐÚNG file nào khai sai, vì bản sao thứ hai là thứ không ai biết nó tồn tại')
+      .toContain('README.md');
+    expect(r.out).toContain('147');
+    expect(r.out, 'và phải nói số thật để người đọc sửa được ngay').toContain('5 spec đã track');
+    fs.rmSync(d, { recursive: true, force: true });
+  });
+
+  test('BẮT CẢ HAI bề mặt, không dừng ở cái đầu tiên', () => {
+    const d = caySpec(5, {
+      'README.md': '147 spec KIỂM CHÍNH KIT\n',
+      'docs/kit-map.md': '147 spec KIỂM CHÍNH KIT\n',
+    });
+    const r = chay10(d);
+    expect(r.code, r.out).toBe(1);
+    expect(r.out).toContain('README.md');
+    expect(r.out, 'dừng ở bề mặt đầu thì bề mặt thứ hai trôi tiếp mà không ai biết').toContain('docs/kit-map.md');
+    fs.rmSync(d, { recursive: true, force: true });
+  });
+
+  test('ĐỐI CHỨNG ÂM: khai đúng ⇒ ĐẠT, và NÓI RA đếm được mấy bản sao', () => {
+    const d = caySpec(5, { 'README.md': '5 spec KIỂM CHÍNH KIT\n' });
+    const r = chay10(d);
+    expect(r.code, r.out).toBe(0);
+    expect(r.out).toContain('⑩ 1 bản sao viết tay của số spec hạ tầng');
+    expect(r.out, 'phải nói nguồn là cây thật, không phải một con số khác cũng viết tay')
+      .toContain('nguồn `tests/fe/infra/` = 5');
+    fs.rmSync(d, { recursive: true, force: true });
+  });
+
+  test('`*.probe.spec.ts` KHÔNG được tính — chúng không vào lane mặc định', () => {
+    const d = caySpec(5, { 'README.md': '5 spec KIỂM CHÍNH KIT\n' }, 4);
+    const r = chay10(d);
+    expect(r.code, 'đếm cả probe thì ra 9 và cửa sẽ chặn oan').toBe(0);
+    expect(r.out).toContain('nguồn `tests/fe/infra/` = 5');
+    fs.rmSync(d, { recursive: true, force: true });
+  });
+
+  test('KHÔNG bề mặt nào khai ⇒ "CHƯA GÁC GÌ", KHÔNG phải "đạt"', () => {
+    const d = caySpec(5);
+    const r = chay10(d);
+    expect(r.code, 'không có gì để đối chiếu thì cũng không có gì để chặn').toBe(0);
+    expect(r.out, '"không đo được" KHÔNG được thành "đo ra 0"').toContain('⑩ CHƯA GÁC GÌ ở lượt này');
+    expect(r.out, 'và KHÔNG được in dòng đếm như thể đã gác').not.toContain('⑩ 1 bản sao');
+    fs.rmSync(d, { recursive: true, force: true });
+  });
+
+  test('KHÔNG có spec nào để đếm ⇒ "KHÔNG phán được", và không đụng từ khoá của ⑦', () => {
+    const d = caySpec(0, { 'README.md': '5 spec KIỂM CHÍNH KIT\n' });
+    const r = chay10(d);
+    expect(r.code, 'mất mẫu số thì không được chặn — cũng không được coi là đạt').toBe(0);
+    expect(r.out).toContain('phép kiểm ⑩ KHÔNG phán được');
+    expect(r.out, 'không được so với 0, vì "không đếm được" khác "đếm ra 0"').not.toContain('có 0 spec đã track');
+    fs.rmSync(d, { recursive: true, force: true });
+  });
+
+  /*
+   * ĐÂY LÀ CA ĐÃ LÀM `release:verify` ĐỎ 13/15 ở lượt đầu của v2.9.8, và nó đáng một phép kiểm riêng:
+   * gói ship 167 spec hạ tầng trong khi repo có 169 (`db-verify-*` không được phát ra ngoài), nên lời
+   * khai `169` của `README.md` đem so với cây gói là so hai mẫu số khác nhau. Lần thứ BẢY cùng họ
+   * "chạy ở repo, chết trong gói".
+   */
+  test('CÂY GÓI (không `.git`): ⑩ KHÔNG phán được — gói ship ít spec hơn repo CÓ Ý', () => {
+    const d = caySpec(5, { 'README.md': '169 spec KIỂM CHÍNH KIT\n' }, 0, false);
+    expect(fs.existsSync(path.join(d, '.git')), 'cây này phải KHÔNG có .git, nếu không phép kiểm rỗng').toBe(false);
+    const r = chay10(d);
+    expect(r.code, 'so 169 với 5 rồi chặn là đem lời khai về repo áp lên cây gói').toBe(0);
+    expect(r.out).toContain('phép kiểm ⑩ KHÔNG phán được');
+    expect(r.out, 'phải NÓI RA vì sao không phán được, không chỉ im lặng bỏ qua')
+      .toContain('gói ship ít spec hơn repo CÓ Ý');
+    expect(r.out, 'và KHÔNG được in dòng đếm như thể đã gác').not.toContain('⑩ 1 bản sao');
+    fs.rmSync(d, { recursive: true, force: true });
+  });
+
+  test('ĐỐI CHỨNG: cùng cây đó NHƯNG có `.git` thì ⑩ VẪN chặn — không nới gì', () => {
+    const d = caySpec(5, { 'README.md': '169 spec KIỂM CHÍNH KIT\n' });
+    const r = chay10(d);
+    expect(r.code, 'có .git là có mẫu số thật ⇒ lệch thì phải chặn').toBe(1);
+    expect(r.out).toContain('README.md');
+    fs.rmSync(d, { recursive: true, force: true });
+  });
+
+  test('CHANGELOG và docs/v*/ được bỏ qua — số trong đó đúng ở thời điểm ghi', () => {
+    const d = caySpec(5, { 'docs/v1.0.0/BASELINE.md': '147 spec KIỂM CHÍNH KIT\n' });
+    const r = chay10(d);
+    expect(r.code, 'tài liệu lịch sử không phải bề mặt trạng-thái-hiện-tại').toBe(0);
+    fs.rmSync(d, { recursive: true, force: true });
+  });
+});
