@@ -14,6 +14,45 @@
 > `.agent/**`, `tests/support/**` đều là **shared change** (xem `RULE_GLOBAL.md` §Shared Change Gate) —
 > ảnh hưởng mọi story đang chạy. Mỗi mục ghi **vấn đề → cách chữa**, không chỉ liệt kê tính năng.
 
+## v2.9.9 — 2026-11-02 — Hai nhánh hiển thị không ai gác, và ba con số trong bảng tổng hiệu năng
+
+**Vấn đề → cách chữa**
+
+`perf_index.js` nhận hai nhánh hiển thị mới — `detailHtml` cho case đo ở **tầng UI** (không có lượt k6)
+và chip `BLOCKED_SETUP` — mà **không có phép kiểm nào**. Đi viết đối chứng cho chúng thì lộ ra ba lỗ, và
+cả ba cùng lớp hỏng với v2.9.7/v2.9.8: một con số **đúng** được đọc thành kết luận **rộng hơn**.
+
+- **`BLOCKED_SETUP` bị đếm là "đã có lượt chạy"** — `daChay` là `tổng − CHUA_CHAY`, trong khi
+  `verdict_taxonomy.json` nói thẳng verdict ấy có `executed: false`. Một case bị chặn vì thiếu hook được
+  cộng vào số ĐÃ ĐO; đúng thứ CLAUDE.md §3 cấm. Nay trừ theo `CHUA_THUC_THI`, và phép kiểm **đối chiếu
+  danh sách ấy với `executed: false` của sổ chuẩn** thay vì tin một bản chép tay.
+- **Verdict bị đếm nhưng không có ô nào trong bảng tổng** — `ERROR` đã nằm trong `dem` mà không hiện ở
+  đâu từ TRƯỚC; `BLOCKED_SETUP` vừa đi theo đúng đường đó. Bảng tổng vì thế không cộng lại thành tổng số
+  case, mà không dòng nào nói ra là đang thiếu. Nay verdict có case mà không có ô viết tay thì tự được
+  một ô. Phép kiểm **không neo vào danh sách verdict chép tay**: nó dựng một verdict chưa ai khai và đòi
+  nó vẫn phải hiện ra, cộng ca "bảng tổng phải cộng lại bằng tổng số case".
+- **`class="dui"` không có luật CSS nào** — link mở trang chi tiết mà không có số k6 được gắn class ấy để
+  phân biệt, nhưng không rule nào cho nó, nên phân biệt là vô hình. Phép kiểm đòi **luật CSS phải tồn
+  tại**, không chỉ đòi class có mặt trong HTML.
+
+**Nghiệm thu, và mẫu số của nó**
+
+10/10 trên fixture (dựng bộ canonical `.md` tối thiểu + `so-case.json`, gọi script thật bằng tiến trình
+con; không k6, không chạm UAT). Đối chứng **không rỗng** — phá từng bản vá một, mỗi lần xác nhận phép phá
+ĐÃ áp dụng: bỏ `CHUA_THUC_THI` khỏi `daChay` ⇒ 1 đỏ · bỏ `${oThem}` ⇒ 3 đỏ · bỏ luật CSS `.dui` ⇒ 1 đỏ ·
+bỏ nhãn `NHAN.BLOCKED_SETUP` ⇒ 1 đỏ. Không lượt nào làm đỏ ca ngoài dự đoán; bản trả lại giống hệt từng
+byte.
+
+Nghiệm thu chạy trên **runner sạch** (dry-run `release.yml`), KHÔNG dùng máy local: ở đó có thay đổi chưa
+commit trên đĩa và một lượt Playwright đang chạy, nên số ở máy không mô tả cây đã commit.
+
+**Máy ngủ: phải đóng HAI cửa, không phải một**
+
+Lượt đo dài bị cắt ngang suốt v2.9.7–v2.9.8 vì máy ngủ sau 10 phút. Tắt `standby` một mình vẫn chưa đủ:
+`HIBERNATEIDLE` là **900s = 15 phút**, NGẮN hơn `release:verify` (~14 phút), và `powercfg /a` xác nhận
+`Hibernate` có bật. Đã tắt cả hai ở AC, giữ nguyên DC. Đây là thiết lập máy chứ không phải mã của kit —
+ghi vào đây vì mọi con số hiệu năng trước đó đều có thể đã bị nó cắt.
+
 ## v2.9.8 — 2026-11-02 — Bảy phép kiểm của chính tôi xanh ở máy tôi, đỏ trên runner — và lượt phát hành đỏ không ai mở
 
 **Vấn đề → cách chữa**
