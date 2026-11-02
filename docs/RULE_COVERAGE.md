@@ -18,7 +18,7 @@ Ví dụ cụ thể: `secret:scan` chặn theo mục Security mà mục đó kh�
 không nhắc tên. Đã đo trên bản máy của `gate:policy`: đòi luật canonical nhắc TÊN mọi lệnh thì **19/24
 script báo oan**. Nên con số `chưa nối được` ở dưới là **việc cần rà**, không phải một lỗ đã chứng minh.
 
-Nguồn: `RULE_GLOBAL.md` (35 mục có nội dung) · 151 gate · 169 spec hạ tầng.
+Nguồn: `RULE_GLOBAL.md` (35 mục có nội dung) · 151 gate · 170 spec hạ tầng.
 
 ## Mục luật ĐÃ nối được gate (29)
 
@@ -47,7 +47,7 @@ Nguồn: `RULE_GLOBAL.md` (35 mục có nội dung) · 151 gate · 169 spec hạ
 | Bug Claim Gate — kiểm chứng phải đi TRƯỚC lời nói | `bug:claim` · `check` · `spec:gap` · `report` | `bug-claim.spec.ts` · `bug-retest.spec.ts` · `trace-test-mocoi.spec.ts` +111 |
 | Retest một bug đã log (thêm 10/10/2026, v2.5.0 G1.8) | `bug:claim` · `check` | `bug-claim.spec.ts` · `bug-retest.spec.ts` · `trace-test-mocoi.spec.ts` +92 |
 | Backlog Bug Gate | `load` | `agent-routing.spec.ts` · `auth-session-lock.spec.ts` · `automation-review.spec.ts` +42 |
-| Executable QA capabilities (autonomy & safety) | `check` · `dashboard` · `learn` · `load` · `gate:output` · `perf` · `risk` · `rule` · `security` · `report` | `autofix.spec.ts` · `bug-claim.spec.ts` · `bug-retest.spec.ts` +140 |
+| Executable QA capabilities (autonomy & safety) | `check` · `dashboard` · `learn` · `load` · `gate:output` · `perf` · `risk` · `rule` · `security` · `report` | `autofix.spec.ts` · `bug-claim.spec.ts` · `bug-retest.spec.ts` +141 |
 | Automation quality | `auto:review` · `check` · `gate:friction` · `golden:check` · `judge` · `rule` | `automation-review.spec.ts` · `checks-l4.spec.ts` · `expected-ledger.spec.ts` +106 |
 | Push execution | `merge:execution-status` | `canonical-drift.spec.ts` · `expansion-gates.spec.ts` · `manual-run-gate.spec.ts` +2 |
 | Workflow | `report` | `ambiguity-gate.spec.ts` · `autofix.spec.ts` · `backlog-bug-images.spec.ts` +48 |

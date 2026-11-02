@@ -108,7 +108,21 @@ const NHAN = {
   KHONG_KET_LUAN: 'KHÔNG KẾT LUẬN', CHUA_CHAY: 'CHƯA CHẠY',
   /* Mọi vế ĐO ĐƯỢC của ô kỳ vọng đều đạt, nhưng có vế chưa dựng được tiền đề để đo. */
   PASS_CO_LECH: 'PASS · CÓ LỆCH',
+  /* `.agent/config/verdict_taxonomy.json`: Readiness=Needs hook mà thiếu capability. `executed: false`. */
+  BLOCKED_SETUP: 'CHẶN · THIẾU HOOK',
 };
+
+/*
+ * VERDICT CHƯA ĐƯỢC THỰC THI — lấy nghĩa từ `verdict_taxonomy.json` (`executed: false`), không tự đặt.
+ *
+ * `daChay` cũ là `tổng − CHUA_CHAY`, nên một case `BLOCKED_SETUP` được đếm là **đã có lượt chạy** trong
+ * khi sổ chuẩn nói thẳng nó `executed: false`. Đó là "không đo được" bị cộng vào số đã đo — đúng thứ
+ * CLAUDE.md §3 cấm, và là lớp hỏng cả đợt v2.9.8 vừa chữa ở ba con số khác.
+ */
+const CHUA_THUC_THI = ['CHUA_CHAY', 'BLOCKED_SETUP'];
+
+/* Ô tổng viết tay. Verdict nào KHÔNG nằm ở đây mà có case thì được thêm ô riêng — xem `oThem`. */
+const O_VIET_TAY = ['PASS', 'PASS_CO_LECH', 'FAIL', 'KHONG_KET_LUAN', 'CHUA_CHAY'];
 
 function the(ma) { return `<span class="chip ${esc(ma)}">${esc(NHAN[ma] || ma)}</span>`; }
 
@@ -140,28 +154,43 @@ function dongCase(c) {
       + `<td class="so">${k.vusMax != null ? gon(k.vusMax) : '—'}</td>`
     : '<td class="so">—</td><td class="so">—</td><td class="so">—</td><td class="so">—</td>';
 
-  const tenO = moi
-    ? `<a href="${esc(moi.html)}"><strong>${esc(c.id)}</strong></a>`
+  // Case đo ở TẦNG UI (không k6) có thể khai `detailHtml` trong so-case → vẫn mở được trang chi tiết.
+  const detail = (!moi && ghi.detailHtml) ? String(ghi.detailHtml) : null;
+  const dich = moi ? moi.html : detail;
+  const tenO = dich
+    ? `<a href="${esc(dich)}"><strong${moi ? '' : ' class="dui"'}>${esc(c.id)}</strong></a>`
     : `<strong class="mo">${esc(c.id)}</strong>`;
 
   const them = luot.length > 1
     ? `<div class="luot-cu">lượt trước: ${luot.slice(1).map((l) => `<a href="${esc(l.html)}">${esc(l.thuMuc)}</a>`).join(' · ')}</div>`
     : '';
 
-  return `<tr class="${moi ? 'co' : 'khong'}"${moi ? ` onclick="window.location='${esc(moi.html)}'"` : ''}>
+  return `<tr class="${dich ? 'co' : 'khong'}"${dich ? ` onclick="window.location='${esc(dich)}'"` : ''}>
     <td>${tenO}<div class="tieu">${esc(c.tieuDe)}</div>${them}</td>
     <td>${the(ma)}${nguonVerdict ? `<div class="nguon">nguồn verdict: ${esc(nguonVerdict)}</div>` : ''}${lyDo ? `<div class="tieu">${esc(lyDo)}</div>` : ''}${lech.length ? `<div class="lech">${lech.map((x) => `<span>${esc(x)}</span>`).join('')}</div>` : ''}</td>
     ${oSo}
   </tr>`;
 }
 
-const dem = { PASS: 0, PASS_CO_LECH: 0, FAIL: 0, ERROR: 0, KHONG_KET_LUAN: 0, CHUA_CHAY: 0 };
+const dem = {
+  PASS: 0, PASS_CO_LECH: 0, FAIL: 0, ERROR: 0, KHONG_KET_LUAN: 0, CHUA_CHAY: 0, BLOCKED_SETUP: 0,
+};
 for (const c of dsCase) {
   const luot = theoCase.get(c.id) || [];
   const ma = (soCase[c.id] || {}).trangThai || (luot.length ? luot[0].bao.trangThai : 'CHUA_CHAY');
   dem[ma] = (dem[ma] || 0) + 1;
 }
-const daChay = dsCase.length - dem.CHUA_CHAY;
+const daChay = dsCase.length - CHUA_THUC_THI.reduce((t, k) => t + (dem[k] || 0), 0);
+
+/*
+ * Ô cho verdict KHÔNG có ô viết tay nhưng CÓ case. Trước đây `ERROR` đã bị đếm vào `dem` rồi không
+ * hiện ở đâu, và `BLOCKED_SETUP` vừa đi theo đúng đường đó: bảng tổng không cộng lại thành tổng số
+ * case, mà không dòng nào nói ra là đang thiếu. Nay verdict mới tự có ô, thay vì âm thầm biến mất.
+ */
+const oThem = Object.keys(dem)
+  .filter((k) => !O_VIET_TAY.includes(k) && (dem[k] || 0) > 0)
+  .map((k) => `  <div class="o"><div class="nhan">${esc(NHAN[k] || k)}</div><div class="so">${dem[k]}</div></div>`)
+  .join('\n');
 
 const CSS = `
 :root{--muc:#16161A;--mo:#57534A;--nhat:#79736A;--vien:#E6E2DA;--nen:#F7F8FA;--the:#FFF;--nhan:#4F46E5;--xanh:#0E9F6E;--do:#DC2626;--cam:#D97706;}
@@ -195,6 +224,9 @@ a:hover{text-decoration:underline}
 .chip.PASS{background:#E7F7F0;color:#06694A}.chip.FAIL{background:#FDECEC;color:#9B1C1C}
 .chip.ERROR{background:#FEF3E2;color:#92400E}.chip.KHONG_KET_LUAN{background:#EEF0FF;color:#3730A3}
 .chip.CHUA_CHAY{background:#F1F0EC;color:#6B6558}
+.chip.BLOCKED_SETUP{background:#F3EEE6;color:#8A5A20;box-shadow:inset 0 0 0 1px #E3D3BC}
+/* Link mở trang chi tiết nhưng KHÔNG có số k6 — gạch chân nét đứt để người đọc biết trước khi bấm. */
+a .dui{border-bottom:1px dashed var(--nhat);padding-bottom:1px}
 .chip.PASS_CO_LECH{background:#EAF6EF;color:#1F6F4A;box-shadow:inset 0 0 0 1px #9FD4B8}
 .ghi{font-size:12.5px;color:var(--nhat);margin-top:10px}
 @media (max-width:720px){table{display:block;overflow-x:auto}.bao{padding:16px 12px 48px}}
@@ -219,6 +251,7 @@ const html = `<!doctype html>
   <div class="o"><div class="nhan">FAIL</div><div class="so">${dem.FAIL || 0}</div></div>
   <div class="o"><div class="nhan">Không kết luận</div><div class="so">${dem.KHONG_KET_LUAN || 0}</div></div>
   <div class="o"><div class="nhan">Chưa chạy</div><div class="so">${dem.CHUA_CHAY || 0}</div></div>
+${oThem}
 </div>
 
 <table><thead><tr>
