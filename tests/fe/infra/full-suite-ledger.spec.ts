@@ -156,3 +156,78 @@ test.describe('@infra full:suite — số ghi sổ phải ĐỐI SOÁT được 
     expect(r.chapChon, 'chập chờn bị bỏ rơi thì phép đối soát sẽ đỏ oan ở mọi lượt có flaky').toBe(1);
   });
 });
+
+/*
+ * CỬA CHẶN KHÔNG ĐƯỢC HUỶ BẰNG CHỨNG (đo 02/11/2026, nạn nhân là chính tôi).
+ *
+ * `chay()` ghi `full-suite.last.log` ở MÃI DƯỚI, sau hai cửa `docKetQua` và vân tay. Nên khi cửa phán
+ * `CHƯA ĐO ĐƯỢC` thì log đầy đủ KHÔNG được ghi — đúng lượt cần soi thì chỉ còn `out.slice(-600)`.
+ *
+ * Hậu quả thật: một lượt ra `2436 xanh · 3 đỏ` lệch mẫu số 3; cửa chặn ĐÚNG, nhưng 3 ca đỏ ấy không
+ * truy lại được. 600 ký tự cuối tình cờ chứa tên một spec không liên quan (`typecheck-scripts`, chạy
+ * riêng ra 7/7 xanh) và suýt thành nguyên nhân sai trong báo cáo. Chạy lại 11 phút ⇒ `2442 xanh · 0
+ * đỏ`: không tái hiện, chứng cứ mất hẳn.
+ *
+ * KHÔNG lái được `chay()` trong test vì nó chạy cả bộ (~12 phút), nên phép kiểm này đọc THỨ TỰ TRONG
+ * MÃ. Đó là phép kiểm yếu hơn một phép đo hành vi, và nói thẳng ra ở đây để không ai đọc nó thành
+ * mạnh hơn thực tế — nhưng nó bắt đúng cái đã hỏng: vị trí tương đối của lệnh ghi log so với `return`.
+ */
+test.describe('@infra full:suite — cửa chặn phải GIỮ log, không huỷ nó', () => {
+  const SRC = fs.readFileSync(path.join(REPO, 'scripts/qa/full_suite_ledger.js'), 'utf8');
+
+  /** Thân hàm `chay(...)` — cắt từ khai báo tới `module.exports`, đủ để so thứ tự bên trong nó. */
+  const thanChay = (() => {
+    const i = SRC.indexOf('function chay(');
+    expect(i, 'không tìm thấy `function chay(` ⇒ phép kiểm này RỖNG').toBeGreaterThan(-1);
+    const j = SRC.indexOf('module.exports', i);
+    return SRC.slice(i, j > i ? j : SRC.length);
+  })();
+
+  /*
+   * NEO Ở `const out =`, KHÔNG Ở ĐẦU HÀM — phép kiểm đầu của tôi neo sai và tự đỏ.
+   *
+   * `chay()` có một lệnh `return` SỚM HƠN chỗ ghi log: nhánh `typecheck ĐỎ`. Nó xảy ra TRƯỚC khi suite
+   * chạy, nên lúc đó chưa có output nào để ghi — đòi nó ghi log là đòi một thứ không tồn tại. Chỉ các
+   * lệnh `return` NẰM SAU `const out =` mới nói về một lượt chạy đã có kết quả.
+   */
+  const iOut = thanChay.indexOf('const out = ');
+  const sauOut = thanChay.slice(iOut);
+
+  test('log được ghi TRƯỚC mọi lệnh `return` mang lỗi của lượt ĐÃ CHẠY', () => {
+    expect(iOut, 'không tìm thấy `const out = ` ⇒ phép kiểm này RỖNG').toBeGreaterThan(-1);
+    const iGhi = sauOut.indexOf('writeFileSync(duongLog');
+    expect(iGhi, 'không còn chỗ nào ghi log ⇒ lượt đỏ sẽ không truy lại được').toBeGreaterThan(-1);
+
+    const viTriReturn = [...sauOut.matchAll(/return \{[\s\S]{0,80}?loi:/g)].map((m) => m.index as number);
+    expect(viTriReturn.length, 'không có lệnh `return` mang lỗi nào sau khi suite chạy ⇒ phép kiểm này RỖNG')
+      .toBeGreaterThan(0);
+
+    const som = Math.min(...viTriReturn);
+    expect(iGhi, `lệnh ghi log đứng SAU một lệnh return (log @${iGhi}, return @${som}) — `
+      + 'cửa sẽ chặn đúng rồi mang theo thứ cần để biết vì sao').toBeLessThan(som);
+  });
+
+  test('CHỈ MỘT chỗ ghi log — hai chỗ là hai bản sao sẽ trôi khỏi nhau', () => {
+    const n = [...SRC.matchAll(/writeFileSync\(duongLog/g)].length;
+    expect(n, 'nhiều hơn một chỗ ghi thì `const duongLog` khai trùng, hoặc hai bản ghi khác nội dung').toBe(1);
+  });
+
+  test('mỗi lệnh `return` mang lỗi của lượt ĐÃ CHẠY phải NÓI RA log nằm ở đâu', () => {
+    /*
+     * Cắt bằng CHỈ SỐ thay vì một regex đa dòng: mỗi `return {` lấy 400 ký tự kế tiếp là đủ trùm trọn
+     * lệnh, và cách này không phụ thuộc việc lệnh ấy viết một dòng hay nhiều dòng.
+     */
+    const khoi = [...sauOut.matchAll(/return \{/g)]
+      .map((m) => sauOut.slice(m.index as number, (m.index as number) + 400))
+      .filter((x) => /loi:/.test(x.slice(0, 140)));
+    expect(khoi.length, 'không cắt được lệnh return nào ⇒ phép kiểm này RỖNG').toBeGreaterThan(0);
+    const thieu = khoi.filter((x) => !x.includes('logTuongDoi'));
+    expect(thieu.map((x) => x.slice(0, 70)),
+      'báo "KHÔNG ghi sổ" mà không chỉ chỗ soi thì người đọc phải chạy lại cả bộ để biết chuyện gì').toEqual([]);
+  });
+
+  test('`log_day_du` trong sổ dùng CÙNG đường dẫn đã ghi, không dựng lại chuỗi thứ hai', () => {
+    expect(SRC, 'dựng lại đường dẫn lần hai là tạo một bản sao sẽ trôi khỏi bản gốc')
+      .toContain('log_day_du: logTuongDoi');
+  });
+});
