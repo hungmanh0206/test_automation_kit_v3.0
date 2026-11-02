@@ -216,9 +216,29 @@ function chay({ im = false } = {}) {
     maxBuffer: 1024 * 1024 * 64,
   });
   const out = `${r.stdout || ''}${r.stderr || ''}`;
+
+  /*
+   * GHI LOG TRƯỚC MỌI LỆNH `return` — đo 02/11/2026, và nạn nhân là chính tôi.
+   *
+   * Bản đầu ghi log ở MÃI DƯỚI, sau hai cửa `docKetQua` và vân tay. Nên khi cửa phán `CHƯA ĐO ĐƯỢC`
+   * thì nó **xoá luôn chứng cứ**: log đầy đủ chỉ được ghi nếu lượt chạy HỢP LỆ, còn lượt có vấn đề —
+   * đúng lượt cần soi — chỉ để lại `out.slice(-600)`.
+   *
+   * Hậu quả thật: một lượt ra `2436 xanh · 3 đỏ` lệch mẫu số 3, cửa chặn đúng, nhưng 3 ca đỏ ấy KHÔNG
+   * truy lại được. 600 ký tự cuối tình cờ chứa tên một spec không liên quan, và tôi suýt báo nguyên
+   * nhân sai. Chạy lại 11 phút thì ra `2442 xanh · 0 đỏ` — không tái hiện, nên chứng cứ mất hẳn.
+   *
+   * Nghịch lý đáng ghi: cửa này sinh ra để chặn một con số không nói nó đếm trên bao nhiêu, rồi chính
+   * nó mang theo thứ cần để biết điều đó. Một cửa chặn mà huỷ bằng chứng thì nó đẩy chi phí sang người
+   * đọc đúng lúc người đọc cần nhất.
+   */
+  const duongLog = path.join(path.dirname(SO), 'full-suite.last.log');
+  const logTuongDoi = path.relative(REPO, duongLog).split(path.sep).join('/');
+  try { fs.mkdirSync(path.dirname(SO), { recursive: true }); fs.writeFileSync(duongLog, out, 'utf8'); } catch (e) { /* log là tiện ích, không phải điều kiện */ }
+
   /* Đọc + đối soát tách ra hàm thuần `docKetQua` — xem lý do ở ngay trên hàm đó. */
   const kq = docKetQua(out);
-  if (kq.loi) return { loi: kq.loi, out: out.slice(-600) };
+  if (kq.loi) return { loi: `${kq.loi} — log ĐẦY ĐỦ của lượt này ở ${logTuongDoi}`, out: out.slice(-600), log: logTuongDoi };
   const {
     xanh, do_, boQua, chapChon, tong,
   } = kq;
@@ -229,7 +249,11 @@ function chay({ im = false } = {}) {
    */
   const sau = vanTayGoi();
   if (sau.bam !== truoc.bam) {
-    return { loi: `cây làm việc ĐỔI trong lúc suite chạy (${truoc.bam} → ${sau.bam}) — kết quả không mô tả cây nào, KHÔNG ghi sổ` };
+    return {
+      loi: `cây làm việc ĐỔI trong lúc suite chạy (${truoc.bam} → ${sau.bam}) — kết quả không mô tả cây nào, KHÔNG ghi sổ`
+        + ` — log ĐẦY ĐỦ của lượt này ở ${logTuongDoi}`,
+      log: logTuongDoi,
+    };
   }
 
   /*
@@ -250,13 +274,12 @@ function chay({ im = false } = {}) {
       }
     }
   }
-  const duongLog = path.join(path.dirname(SO), 'full-suite.last.log');
-  try { fs.mkdirSync(path.dirname(SO), { recursive: true }); fs.writeFileSync(duongLog, out, 'utf8'); } catch (e) { /* log là tiện ích, không phải điều kiện */ }
+  /* Log đã ghi ở TRÊN, trước mọi lệnh `return` — xem lý do ở đó. Đây chỉ dùng lại đường dẫn. */
 
   const ban = {
     _y: 'Sổ lượt chạy CẢ BỘ gần nhất. Sinh bằng `npm run full:suite`. KHÔNG sửa tay — sửa tay là quay về đúng lời khai mà gate này sinh ra để chặn.',
     test_do: tenDo,
-    log_day_du: path.relative(REPO, duongLog).replace(/\\/g, '/'),
+    log_day_du: logTuongDoi,
     pham_vi: PHAM_VI,
     workers: Number(WORKERS),
     head: headSha(),
