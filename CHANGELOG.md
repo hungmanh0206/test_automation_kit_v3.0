@@ -14,6 +14,53 @@
 > `.agent/**`, `tests/support/**` đều là **shared change** (xem `RULE_GLOBAL.md` §Shared Change Gate) —
 > ảnh hưởng mọi story đang chạy. Mỗi mục ghi **vấn đề → cách chữa**, không chỉ liệt kê tính năng.
 
+## v2.9.8 — 2026-11-02 — Bảy phép kiểm của chính tôi xanh ở máy tôi, đỏ trên runner — và lượt phát hành đỏ không ai mở
+
+**Vấn đề → cách chữa**
+
+v2.9.7 được tag, được tôi báo cáo là "nghiệm thu xong", và **lượt `release` trên tag đó ĐỎ**. Tôi báo
+`static-check` xanh — đúng — rồi đọc nó thành "bản phát hành xanh", là thứ chưa ai chứng minh.
+`static-check` chạy mỗi push; `release` chỉ chạy khi đẩy tag, và nó mới là cửa đóng gói rồi chạy gói từ
+con số 0. Hai cửa khác nhau, tôi gộp làm một.
+
+- **`release` đỏ trên tag `v2.9.7`** (01/11 14:57) — `full:suite` trên runner ra `2387 xanh · 7 đỏ · 24 bỏ
+  qua`, trong khi cùng cây đó ở máy tôi ra `2418 xanh · 0 đỏ`. Cả 7 ca đỏ đều là phép kiểm **tôi vừa thêm
+  trong v2.9.7**.
+- **Một gốc duy nhất cho cả 7**: tiến trình con của chúng thừa kế biến môi trường của runner, mà đó đúng là
+  biến thứ code bị đo rẽ nhánh theo. `playwright.config.js` đọc `CI` ⇒ `workers: CI ? 2 : <trần>`, nên 4
+  đối chứng giả lập 32/64/4/12/1 lõi đều nhận về `2`: chúng đo runner, không đo trần. `version_check.js`
+  đọc `GITHUB_REF_TYPE`/`GITHUB_REF_NAME` ⇒ lượt chạy từ tag bắt `package.json` khớp tên tag, nên 3 đối
+  chứng dựng cây giả version `2.9.6`/`2.9.9` bị chặn bởi một phép kiểm chẳng liên quan gì tới thứ chúng đo.
+- **`_gate_env.ts` sinh ra chính để chặn chuyện này, và đã hụt lần thứ hai.** 04/09/2026 nó hụt `RUN_ID`
+  (`ci-regression` đỏ 5 lượt liên tiếp); lần này nó hụt nhóm **danh tính CI**. Thêm `CI_IDENTITY_ENV`
+  (`CI` · `GITHUB_ACTIONS` · `GITHUB_REF_TYPE` · `GITHUB_REF_NAME` · `GITHUB_REF` · `GITHUB_EVENT_NAME`).
+- **Và canh chính cái lọc** — `tests/fe/infra/gate-env.spec.ts`. Hai lần hỏng trước đều vì cái lọc là một
+  mảng chuỗi mà không có gì canh: ai xoá một dòng thì mọi thứ vẫn xanh ở máy người xoá. Phép kiểm đáng giá
+  nhất ở đây **quét mã nguồn thật** và đòi mọi biến `CI`/`GITHUB_*` mà gate đọc phải có trong danh sách —
+  thêm một nhánh mới mà quên khai thì đỏ ngay, thay vì đỏ ba tuần sau trên một runner không ai mở log.
+- **Một con số nữa trôi 22, ở HAI bề mặt** — `README.md` và `docs/kit-map.md` cùng khai `147 spec
+  KIỂM CHÍNH KIT` trong khi `tests/fe/infra/` có **169** spec đã track. Tôi chỉ biết bề mặt thứ hai tồn
+  tại khi phép kiểm mới nêu đích danh nó — nên cửa phải in TÊN FILE, không được chỉ nói "có chỗ sai".
+  Thêm `version:check` ⑩, cùng doctrine ⑦/⑨: không bề mặt nào khai ⇒ `CHƯA GÁC GÌ`, không spec nào để
+  đếm ⇒ `KHÔNG phán được`, và cả hai đều KHÔNG phải "đạt".
+- **Nhan đề mục v2.9.7 đếm thiếu chính nội dung nó mô tả** — "Ba con số" trong khi bảng dưới nó có năm.
+
+**Nghiệm thu, và mẫu số của nó**
+
+Tái hiện được ở máy trong 15 giây, nên chẩn đoán là phép ĐO chứ không phải suy luận từ log:
+`CI=true GITHUB_REF_TYPE=tag GITHUB_REF_NAME=v2.9.7 npx playwright test
+tests/fe/infra/playwright-conventions.spec.ts tests/fe/infra/version-changelog.spec.ts` ⇒ đúng 7 ca đỏ ấy.
+Sau khi vá: **41/41 xanh ở CẢ HAI** môi trường (có biến CI và không có). Đối chứng không rỗng: gỡ `'CI'`
+khỏi danh sách thì cả đối chứng dương lẫn phép quét đều đỏ, và đã chạy riêng phép quét vì lượt serial để
+nó `did not run` — "did not run" không phải một verdict.
+
+**Bất biến tag ↔ `package.json`: 21/22, không phải 7/7**
+
+Con số `7/7` tôi từng báo là trên **tag `v2.9.x`**. Trên toàn bộ 22 tag `v2.*` thì `v2.5.0` trỏ vào cây có
+`package.json` = `2.4.1`, và chuỗi `"version": "2.5.0"` **chưa bao giờ tồn tại** trong lịch sử file đó.
+Cửa bắt được việc này đã có (`version_check` ③) nhưng nó tự bỏ qua khi không chạy từ tag — đúng cùng một
+họ với mọi thứ ở trên: một phép kiểm im lặng không khai rằng nó đã im lặng.
+
 ## v2.9.7 — 2026-11-01 — Năm con số được tin mà không ai hỏi chúng đếm trên bao nhiêu
 
 **Vấn đề → cách chữa**
