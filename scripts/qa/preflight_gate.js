@@ -83,6 +83,43 @@ function taskDirCua(projectOutputDir, task) {
   return path.resolve(rc.REPO_ROOT, projectOutputDir, 'tasks', task);
 }
 
+/**
+ * PROFILE PHẢI GHIM CẤP HỌC TRƯỚC KHI EXECUTE. Hàm thuần để có test kiểm chính nó bằng fixture.
+ *
+ * Vì sao CHẶN chứ không cảnh báo (đo 03/11/2026): thiếu `QEMIS_CAP_HOC` thì `opsLogin.ts:419` chỉ
+ * `console.warn` rồi để app giữ mặc định **"Mầm non"**. Lượt chạy KHÔNG gãy — nó đăng nhập được, đi hết
+ * các bước, chụp đủ ảnh, và chấm PASS trên một cấp học không phải cấp mà case nói tới. Thêm một cảnh báo
+ * nữa vào màn hình đã đầy cảnh báo thì không ai đọc; chỉ có CHẶN mới dừng được một lượt đo sai.
+ *
+ * Gác ở ĐÂY vì `npm run env:scope` quét cả repo nên không vào CI được: CI không có `.env` lẫn `profiles/`
+ * nên nó trả "KHÔNG PHÁN ĐƯỢC". Preflight chạy đúng lúc cần — trên máy có profile, ngay trước execute, và
+ * đã biết `TASK_KEY`. Một cửa CHẶN mà không ai gọi thì chỉ là đồ trang trí.
+ *
+ * Hàm này KHÔNG đọc giá trị, chỉ hỏi "dòng khai khoá này có tồn tại không".
+ */
+function kiemGhimCapHoc(repoRoot, task) {
+  const duong = path.join(repoRoot, 'profiles', task, 'task.env');
+  if (!fs.existsSync(duong)) {
+    return { problems: [], warnings: [`phase2: không thấy profiles/${task}/task.env ⇒ không kiểm được việc ghim cấp học.`] };
+  }
+  let noiDung;
+  try {
+    noiDung = fs.readFileSync(duong, 'utf8');
+  } catch (e) {
+    return { problems: [], warnings: [`phase2: không đọc được profiles/${task}/task.env (${e.message}) ⇒ không kiểm được việc ghim cấp học.`] };
+  }
+  const coKhai = noiDung.split(/\r?\n/).some((d) => /^\s*(export\s+)?QEMIS_CAP_HOC\s*=\s*\S/.test(d));
+  if (coKhai) return { problems: [], warnings: [] };
+  return {
+    problems: [
+      `phase2: profiles/${task}/task.env KHÔNG ghim QEMIS_CAP_HOC. App sẽ giữ mặc định "Mầm non" `
+      + '(opsLogin.ts:419 chỉ console.warn), nên lượt chạy vẫn XANH trên cấp học KHÔNG phải cấp mà case '
+      + 'nói tới. Khai QEMIS_CAP_HOC rồi chạy lại; soi cả bộ bằng `npm run env:scope`.',
+    ],
+    warnings: [],
+  };
+}
+
 function checkHandoff(repoRoot, { mode, taskDir }) {
   const out = [];
   let cfg;
@@ -215,6 +252,13 @@ function runPreflight({ mode = 'generic', task = '', extraRequire = [], allowMis
       // pull) — luồng Sheet luôn tải bản MỚI NHẤT qua MCP ngay trước execute (xem plan migrate sang Sheet,
       // 22/09/2026), nên "có file" đã đồng nghĩa "mới" — không cần gate riêng cho độ tươi nữa.
     }
+  }
+
+  // 5) phase2 + task: profile phải GHIM CẤP HỌC.
+  if (cfg.taskTestcase && task) {
+    const kq = kiemGhimCapHoc(rc.REPO_ROOT, task);
+    problems.push(...kq.problems);
+    warnings.push(...kq.warnings);
   }
 
   // Hai chiều "im lặng là hỏng": harness hook tắt · knowledge chưa có bản sao ngoài máy.
@@ -386,6 +430,6 @@ async function main() {
   process.exit(1);
 }
 
-module.exports = { runPreflight, MANIFEST, checkHarnessHooks, checkKnowledgeBackup, checkHandoff, taskDirCua, dbVerify: dbv };
+module.exports = { runPreflight, MANIFEST, checkHarnessHooks, checkKnowledgeBackup, checkHandoff, kiemGhimCapHoc, taskDirCua, dbVerify: dbv };
 
 if (require.main === module) main().catch((e) => { console.error('[preflight] LỖI:', e.message); process.exit(2); });

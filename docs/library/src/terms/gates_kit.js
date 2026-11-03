@@ -150,13 +150,27 @@ const TERMS_GATE3 = [
   src:'scripts/qa/scope_anchor.js', rel:['g-dimension_coverage','c-canonical','g-preflight_gate'] },
 { id:'g-gate_index', t:'gates:index', cat:'gate',
   def:'Sinh DANH MỤC GATE của kit từ chính source. Trả lời được "kit có bao nhiêu gate, mỗi cái CHẶN gì, gọi ở đâu".',
-  detail:'Quét source rồi suy mức từ code: exit 1 là CHẶN · ghi artifact là SINH · chỉ in là BÁO CÁO. Bảng hiện tại: 151 máy — 109 CHẶN, 23 SINH, 19 BÁO CÁO. Bản --check chặn khi bảng lệch source.',
+  detail:'Quét source rồi suy mức từ code: exit 1 là CHẶN · ghi artifact là SINH · chỉ in là BÁO CÁO. Bảng hiện tại: 152 máy — 110 CHẶN, 23 SINH, 19 BÁO CÁO. Bản --check chặn khi bảng lệch source.',
   why:'Kit có hơn 30 npm script dạng gate và gần 60 file trong scripts/qa/, nhưng không chỗ nào trả lời được câu trên. Hệ quả không phải bất tiện: luận đề của kit là "luật cần MÁY", mà máy không LIỆT KÊ ĐƯỢC thì không kiểm toán được. Không ai biết một gate đã âm thầm tụt thành cảnh báo, hay đã mất nơi gọi.',
   how:['npm run gates:index để sinh lại bảng.','npm run gates:index:check để chặn khi bảng lệch source.'],
   cmd:'npm run gates:index   ·   npm run gates:index:check',
   ex:'SINH và BÁO CÁO KHÔNG phải gate bị nới, chúng không kiểm vi phạm. bugs:checklist chỉ in brief bug lịch sử, còn việc CHẶN nằm ở dim:coverage chiều §20.',
   trap:'Bốn "phát hiện" đầu tiên khi mới dựng bảng đều là lỗi của BẢNG, không của kit, nên phải hiệu chuẩn danh mục trước khi tin số nó đưa ra.',
   src:'scripts/qa/gate_index.js', rel:['c-forcing-function','c-gate-real-content','g-policy_source_check','f-gate-catalog'] },
+
+{ id:'g-env_scope', t:'env:scope', cat:'gate',
+  def:'Chặn "profile không ghim nổi cấp học nó đang đo", và gọi tên bí mật mà không đường nào đọc tới.',
+  detail:'Hai mệnh đề. ① Mỗi profiles/<TASK>/task.env phải ghim QEMIS_CAP_HOC (CHẶN) và nên ghim QEMIS_NAM_HOC (cảnh báo). ② Khoá trong .env mang hậu tố không khớp khuôn <TIEN_TO>_<HAU_TO> mà uatDbClient.ts đọc, ví dụ LIB_MASTER_DB_RO_USERNAME_ADMIN, là bí mật chết: không đường nào chạm tới nó. Cửa chỉ in TÊN khoá, không bao giờ in giá trị. Chế độ --soi in khoá neo của từng profile để ĐO trước khi chốt luật.',
+  why:'opsLogin.ts:419 — thiếu QEMIS_CAP_HOC thì app giữ mặc định "Mầm non", và nó chỉ console.warn. Lượt chạy KHÔNG gãy: đăng nhập được, đi hết bước, chụp đủ ảnh, chấm PASS trên cấp học không phải cấp mà case nói tới. Không ca nào đỏ. Đo 03/11/2026: profiles/CSDL-4039 là EMIS THCS mà không ghim khoá này.',
+  how:[
+    'npm run env:scope để soi cả bộ profile trên máy.',
+    'node scripts/qa/env_scope_check.js --soi để ĐO trước, chốt luật sau.',
+    'Chặn thật nằm ở preflight_gate.js --mode phase2 (hàm kiemGhimCapHoc), vì env:scope quét cả repo nên không vào CI được.'
+  ],
+  cmd:'npm run env:scope   ·   node scripts/qa/env_scope_check.js --soi',
+  ex:'QEMIS_CAP_HOC= để RỖNG vẫn tính là chưa ghim: isReal() của opsLogin loại ô rỗng, nên "có tên khoá" KHÔNG phải "đã ghim".',
+  trap:'Bản luật ĐẦU của cửa này bắt mỗi profile tự khai OPS_USERNAME, và nó TỐ OAN 7 trong 8 profile. Khi một cửa mới tố gần hết hiện trạng, giả thuyết đầu tiên phải là CỬA SAI. Đo lại thì cả 8 profile đều ghim đơn vị, và một tài khoản QEMIS đổi được Sở/cấp/trường qua /Manage/ChonTruong.aspx — nên .env giữ MỘT tài khoản app là đúng thiết kế. Cửa tố oan gần hết hiện trạng tệ hơn không có cửa, vì người ta sẽ tắt nó. Cửa cũng cố ý KHÔNG require runtime_config.js: file đó gọi loadEnvFiles() lúc nạp module, tức kéo cả .env thật vào tiến trình của chính cửa.',
+  src:'scripts/qa/env_scope_check.js', rel:['g-preflight_gate','c-forcing-function','g-secret_scan'] },
 
 { id:'g-library_drift', t:'library:drift', cat:'gate',
   def:'Chặn "thư viện thuật ngữ đã trôi khỏi repo", đối chiếu chính trang này với source.',

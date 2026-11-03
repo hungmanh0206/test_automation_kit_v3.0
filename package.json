@@ -52,6 +52,7 @@
     "preflight:lanes": "node scripts/qa/preflight_gate.js --lanes",
     "inventory:gate": "node scripts/qa/test_inventory_gate.js",
     "secret:scan": "node scripts/qa/secret_scan.js",
+    "env:scope": "node scripts/qa/env_scope_check.js",
     "audit:ci": "node scripts/qa/audit_ci.js",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
