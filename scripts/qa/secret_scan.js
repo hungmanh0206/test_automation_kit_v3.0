@@ -117,5 +117,13 @@ if (credOnDisk.length) {
 if (!findings.length) { console.log('[secret-scan] OK — khong thay secret bi commit tren file da track.'); process.exit(0); }
 console.error('[secret-scan] Nghi co secret bi commit (' + findings.length + '):');
 for (const f of findings) console.error('  - ' + f.file + ':' + f.line + ' [' + f.pattern + '] ' + f.snippet);
-console.error('  -> Go secret khoi file + rotate key, dua vao .env (da gitignore). KHONG commit secret.');
+/*
+ * NOI DE SECRET KHONG PHAI MOT CHO. Dong nay truoc day chi noi "dua vao .env", va do la cau duy nhat
+ * mot QA doc DUNG LUC ho dang cam secret trong tay — nen no quyet dinh thoi quen ca doi. Sua 03/11/2026:
+ * tai khoan app theo task ma nam o .env chung thi hai task khac cap hoc chay song song se doi don vi
+ * cua nhau, va CA HAI cung do nham truong. Phan lap task la ly do profile ton tai.
+ */
+console.error('  -> Go secret khoi file + rotate key. KHONG commit secret. Noi de tuy loai:');
+console.error('     - Tai khoan app/DB THEO TASK (OPS_*, LIB_MASTER_DB_RO_*, QEMIS_*) -> profiles/<TASK_KEY>/task.env');
+console.error('     - Key cua MOT tai khoan dung chung moi task (BACKLOG_API_KEY, Figma) -> .env o goc (da gitignore)');
 process.exit(1);

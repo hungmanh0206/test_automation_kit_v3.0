@@ -92,8 +92,15 @@ Rồi mở `profiles/<TASK_KEY>/task.env` điền **giá trị động**: link B
 
 | Loại giá trị | Ví dụ | Đặt ở |
 |---|---|---|
-| **Tĩnh** — giống mọi task | API key Figma, base URL Backlog, `OPS_*` | `.env` chung |
+| **Tĩnh** — một tài khoản dùng cho mọi task | API key Figma, `BACKLOG_BASE_URL`, `BACKLOG_API_KEY` | `.env` chung |
 | **Động** — theo task | `TASK_KEY`, link story, `GOOGLE_SHEET_URL` | `profiles/<TASK_KEY>/task.env` |
+| **Tài khoản app + DB** — theo task | `OPS_USERNAME`/`OPS_PASSWORD`, `LIB_MASTER_DB_RO_*`, `QEMIS_SO`/`QEMIS_CAP_HOC`/`QEMIS_TRUONG` | `profiles/<TASK_KEY>/task.env` |
+
+**`OPS_*` KHÔNG được để ở `.env` chung** (sửa 03/11/2026 — bảng này từng xếp nó vào cột "Tĩnh", sai).
+Một tài khoản QEMIS chỉ thuộc **một cấp học**, nên hai task khác cấp chạy song song mà dùng chung một
+`OPS_USERNAME` thì task sau đổi đơn vị dưới chân task trước, và cả hai cùng đo nhầm trường. Cùng lý do
+với `LIB_MASTER_DB_RO_*` và khối `QEMIS_*`: chúng mô tả **đơn vị đang đo**, không phải cấu hình máy.
+Nguồn chốt: [`RULE_GLOBAL.md`](RULE_GLOBAL.md) §Đường dẫn chuẩn và `knowledge/setup_recipes/SR-QEMISLOGIN-001.json`.
 
 **Không sửa `.env` chung khi task khác đang chạy.**
 
