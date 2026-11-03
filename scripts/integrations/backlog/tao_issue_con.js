@@ -140,8 +140,48 @@ async function taiAnh(duongDan) {
   console.log(`tiêu đề: ${TIEU_DE}`);
   console.log(`mô tả (${MO_TA.length} ký tự):\n${MO_TA}`);
 
+  console.log(`ảnh đính kèm: ${ANH.map((x) => path.basename(x)).join(' · ') || '(không có)'}`);
   if (KHO) { console.log('\n[DRY-RUN] dừng ở đây, KHÔNG gọi API tạo issue.'); return; }
+
+  /*
+   * ĐÍNH ẢNH NGAY TRONG LƯỢT TẠO — nhánh này trước đây BỎ QUA `--anh` hoàn toàn và không báo gì.
+   * Hậu quả đo 27/10: CSDL-4089 tạo xong, log in ra "đã tạo" như bình thường, nhưng issue có 0 tệp và
+   * dòng `![image][...]` trong mô tả trỏ vào hư không — chủ dự án mở ra mới thấy bug không có evidence.
+   * Nhánh `--update` vốn đã làm đúng; chỗ thiếu chỉ ở nhánh tạo.
+   */
+  const ids = [];
+  for (const a of ANH) ids.push(await taiAnh(a));
+  if (ids.length) form['attachmentId[]'] = ids;
 
   const moi = await api('POST', '/api/v2/issues', form);
   console.log(`\n[OK] đã tạo ${moi.issueKey} — ${BASE}/view/${moi.issueKey}`);
-})().catch((e) => { console.error(`[ERROR] ${e.message}`); process.exit(1); });
+
+  /* NGHIỆM THU bằng cách đọc lại từ server, không tin mã trả về của lượt POST: `attachmentId[]` sai
+   * kiểu thì Backlog vẫn trả 201 kèm issue không có tệp nào. */
+  const lai = await api('GET', `/api/v2/issues/${moi.issueKey}`);
+  const soTep = (lai.attachments || []).length;
+  console.log(`[OK] đính kèm sau khi tạo: ${soTep}/${ANH.length}`);
+  if (ANH.length && soTep < ANH.length) {
+    console.error(`[ERROR] ${moi.issueKey} thiếu ${ANH.length - soTep} ảnh — mô tả đang nhúng ảnh không tồn tại.`
+      + ` Chạy lại: --update ${moi.issueKey} --mo-ta-file <file> --anh <ảnh>`);
+    /*
+     * `process.exitCode` CHỨ KHÔNG `process.exit()` — đo 03/11/2026 trên Windows.
+     *
+     * `process.exit(1)` ngay sau `fetch` làm libuv sụp: `Assertion failed: !(handle->flags &
+     * UV_HANDLE_CLOSING), file src\win\async.c, line 94` ⇒ `abort()` ⇒ mã thoát `3221226505`
+     * (0xC0000409), KHÔNG phải `1`. Script vẫn in đủ mọi dòng đúng rồi mới chết, nên nhìn log thì
+     * tưởng ổn. Là tranh chấp thời điểm nên nó CHẬP CHỜN: chạy tay được `1`, chạy trong bộ test thì
+     * `0xC0000409`.
+     *
+     * Hệ quả: người gọi kiểm `exit === 1` để biết "thiếu evidence" sẽ TRƯỢT, và một bug không có ảnh
+     * đi ra Backlog mà wrapper báo là bình thường. Đúng thứ cửa này sinh ra để chặn.
+     *
+     * Đo đường chữa 5 lượt: `process.exitCode = 1` rồi để Node tự thoát ⇒ 5/5 ra mã `1`, ~200ms.
+     */
+    process.exitCode = 1;
+  }
+})().catch((e) => {
+  console.error(`[ERROR] ${e.message}`);
+  /* Cùng lý do ở trên: `process.exit()` trong nhánh bất đồng bộ này cũng sụp libuv trên Windows. */
+  process.exitCode = 1;
+});

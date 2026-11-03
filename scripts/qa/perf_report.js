@@ -101,8 +101,45 @@ async function thuThap(runDir) {
   return { meta, summary, ts, nguonTs, log, runDir };
 }
 
+/*
+ * VERDICT CỦA CASE (so-case.json) — nguồn neo theo ô "Kết quả mong đợi" của case, do người ghi.
+ * Report chi tiết PHẢI hiện cùng verdict với trang mục lục; nếu không, index ghi FAIL mà mở ra lại
+ * thấy "KHÔNG KẾT LUẬN" (ngưỡng k6 ĐÚNG-SAI ≠ SLA). Đo 30/10/2026: chính mâu thuẫn đó làm người đọc
+ * mất tin vào cả báo cáo. Verdict case thắng; số liệu k6 ở phần F giữ nguyên làm chứng cứ kỹ thuật.
+ */
+function docVerdictCase(du) {
+  try {
+    const f = path.join(path.dirname(du.runDir), 'so-case.json');
+    if (!fs.existsSync(f)) return null;
+    const m = /([A-Z0-9]+(?:_[A-Z0-9]+)*_TC_\d+)/.exec(String(du.meta && du.meta.tenBaiTest || ''));
+    if (!m) return null;
+    const sc = JSON.parse(fs.readFileSync(f, 'utf8'));
+    const e = sc[m[1]];
+    return e && e.trangThai ? { id: m[1], ...e } : null;
+  } catch (e) { return null; }
+}
+
 /** Trạng thái tổng thể — xem khối chú thích đầu file, bốn trạng thái không được gộp. */
-function trangThaiTongThe({ meta, summary }) {
+function trangThaiTongThe(du) {
+  const { meta, summary } = du;
+  /* Verdict case (nếu có) thắng headline — index và chi tiết phải khớp. */
+  const vc = docVerdictCase(du);
+  if (vc) {
+    const anh = {
+      PASS: { ma: 'PASS', nhan: 'PASS' },
+      PASS_CO_LECH: { ma: 'PASS', nhan: 'PASS (có lệch)' },
+      FAIL: { ma: 'FAIL', nhan: 'FAIL' },
+      KHONG_KET_LUAN: { ma: 'KHONG_KET_LUAN', nhan: 'KHÔNG KẾT LUẬN ĐƯỢC' },
+    }[vc.trangThai];
+    if (anh) {
+      return {
+        ...anh,
+        vi: vc.lyDo || '',
+        lech: Array.isArray(vc.lech) ? vc.lech : [],
+        nguon: 'so-case.json · neo theo "Kết quả mong đợi" của case',
+      };
+    }
+  }
   if (!summary.coFile) {
     return { ma: 'ERROR', nhan: 'ERROR',
       vi: 'k6 không sinh ra summary — lượt này KHÔNG có số liệu nào. Đây không phải "hiệu năng đạt".' };
@@ -791,8 +828,12 @@ function dungHtml(du) {
     <div><h1>Báo cáo kiểm thử hiệu năng</h1>
       <div class="phu">${esc(tieuDe)}${meta.runId ? ` · Run ID <code>${esc(meta.runId)}</code>` : ''} · dựng lúc ${esc(new Date().toLocaleString('vi-VN', { hour12: false }))}</div></div>
     <div style="text-align:right"><span class="huy ${trangThai.ma}">${esc(trangThai.nhan)}</span>
-      <div class="phu" style="margin-top:6px;max-width:330px">${esc(trangThai.vi)}</div></div>
+      <div class="phu" style="margin-top:6px;max-width:360px">${esc(trangThai.vi)}</div>
+      ${trangThai.nguon ? `<div class="phu" style="margin-top:4px;max-width:360px;opacity:.75">Nguồn verdict: ${esc(trangThai.nguon)}</div>` : ''}</div>
   </div>
+  ${(trangThai.lech && trangThai.lech.length) ? `<div class="the" style="margin-top:12px;border-left:4px solid ${trangThai.ma === 'FAIL' ? '#cf222e' : trangThai.ma === 'PASS' ? '#1a7f37' : '#3730A3'}">
+    <h3 style="margin-top:0">${trangThai.ma === 'FAIL' ? 'Fail ở đâu &amp; như thế nào' : 'Chi tiết &amp; độ lệch'}</h3>
+    <ul class="nx">${trangThai.lech.map((x) => `<li>${esc(x).replace(/`([^`]+)`/g, '<code>$1</code>')}</li>`).join('')}</ul></div>` : ''}
 </header>
 
 <h2>A · Tổng quan bài test</h2>
