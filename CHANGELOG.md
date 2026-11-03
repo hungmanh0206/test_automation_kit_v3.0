@@ -14,6 +14,53 @@
 > `.agent/**`, `tests/support/**` đều là **shared change** (xem `RULE_GLOBAL.md` §Shared Change Gate) —
 > ảnh hưởng mọi story đang chạy. Mỗi mục ghi **vấn đề → cách chữa**, không chỉ liệt kê tính năng.
 
+## v2.9.10 — 2026-11-03 — Ba bản vá mồ côi, và chỗ chúng thiếu người canh
+
+**Vấn đề → cách chữa**
+
+Ba phiên Claude song song để lại ba thay đổi **chưa commit** rồi **kết thúc**. Không ai còn nắm, nhánh
+chưa có — một cú `git checkout` là mất hẳn. Cả ba đều **đang được dùng thật**, và cả ba đều **không có
+spec nào canh**. Bản phát hành này commit mã của họ y nguyên và thêm **32 đối chứng**.
+
+- **Bug ra Backlog không mang chứng cứ** — `tao_issue_con.js` đọc `--anh` và kiểm tồn tại, nhưng toàn bộ
+  logic đính kèm nằm trong nhánh `--update`. Nhánh TẠO bỏ qua nó hoàn toàn, nên issue ra đời với 0 tệp
+  trong khi mô tả nhúng `![image][...]` trỏ vào hư không, và log vẫn in `[OK] đã tạo`. Nay thiếu ảnh ⇒
+  thất bại ồn ào kèm số thiếu và lệnh sửa.
+- **Một verdict khai bằng tay đè lên một phép đo** — `perf_report.js` cho `so-case.json` thắng headline
+  báo cáo hiệu năng. Lý do chính đáng (ngưỡng k6 không phải SLA), nhưng nếu đè mà KHÔNG nói ra thì báo
+  cáo thành `PASS` cạnh một bảng số có ngưỡng vỡ. Bộ kiểm cũ **mù** với nhánh đó: mọi fixture k6 đều
+  thiếu `run-meta.json` nên `docVerdictCase` luôn trả `null` — xanh vì không chạm tới, không vì đúng.
+- **Một dòng log khai điều nó chưa đo** — `cap_nhat_issue.js` in `đính kèm trong comment: (không có)` kể
+  cả khi ảnh đã đính thành công, vì response `POST comment` không trả mảng `attachments`.
+- **Cửa chặn huỷ luôn bằng chứng của lượt nó vừa chặn** — `full_suite_ledger` ghi log SAU hai lệnh
+  `return`, nên lượt `CHƯA ĐO ĐƯỢC` chỉ để lại 600 ký tự cuối. Một lượt `2436 xanh · 3 đỏ` lệch mẫu số đã
+  mất dấu vì thế.
+- **`sua_mo_ta.js`** — đường ghi đè nguyên mô tả issue, đã dùng thật trước khi có spec nào nhắc tới.
+
+**Phép phá hoại không được chạm cây dùng chung**
+
+`_may_thu.ts`: spec nhận đường dẫn script qua biến môi trường riêng, mặc định bản thật. Trước đó tôi
+`git stash` chính file trên cây làm việc — cây dùng chung cho mọi phiên — và đã mở một cửa sổ ~15 giây
+trong lúc một phiên khác nói họ còn dùng script ấy.
+
+Hàm **ném** ở hai cửa thay vì lùi về bản thật, vì lùi là chỗ phép thử tự rỗng: lượt "phá hoại" chạy trên
+bản THẬT, mọi ca xanh, và người đọc kết luận "đối chứng không bắt được gì" trong khi phép phá chưa bao
+giờ xảy ra. Cửa thứ hai là thứ không ngờ: bản chép **phẳng** không nạp nổi `runtime_config` và chết lúc
+khởi động, cho 4 ca đỏ trong đó MỘT ca lẽ ra phải xanh.
+
+**Một lỗi trong mã của phiên khác mà tôi buộc phải sửa**
+
+`process.exit(1)` ngay sau `fetch` làm **libuv sụp trên Windows** (`UV_HANDLE_CLOSING`, trong `async.c` cua libuv tren Windows)
+⇒ mã thoát `0xC0000409` thay vì `1`. Script in đủ mọi dòng đúng rồi mới chết, và vì là tranh chấp thời
+điểm nên nó **chập chờn**. Người gọi kiểm `exit === 1` để biết "thiếu evidence" sẽ trượt — đúng thứ bản
+vá ấy sinh ra để chặn. Đo 5 lượt: `process.exitCode = 1` ⇒ 5/5 ra `1`, ~200ms.
+
+**Đối chứng không rỗng, và phần đáng nói là các ca KHÔNG đỏ**
+
+Mỗi bộ đều được nghiệm thu bằng cách phá bản vá rồi đếm ca đỏ. Ví dụ `cap_nhat_issue.js`: về bản cũ ⇒
+**6/8 đỏ**, hai ca còn lại xanh **đúng như phải vậy** vì chúng kiểm hành vi đã có TRƯỚC bản vá. Nếu cả 8
+cùng đỏ thì phép kiểm mới là thứ đáng nghi — nó đo "bản vá có tồn tại" chứ không đo từng tính chất.
+
 ## v2.9.9 — 2026-11-02 — Hai nhánh hiển thị không ai gác, và ba con số trong bảng tổng hiệu năng
 
 **Vấn đề → cách chữa**
