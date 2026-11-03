@@ -14,6 +14,75 @@
 > `.agent/**`, `tests/support/**` đều là **shared change** (xem `RULE_GLOBAL.md` §Shared Change Gate) —
 > ảnh hưởng mọi story đang chạy. Mỗi mục ghi **vấn đề → cách chữa**, không chỉ liệt kê tính năng.
 
+## v2.9.11 — 2026-11-03 — Một cửa tố 7/8 hiện trạng thì CỬA sai
+
+Bản này mang ra người nhận kit **5 commit** mà `v2.9.10` chưa có, gồm một máy gác chặn được một
+lớp hỏng mà trước đó không có gì bắt: **lượt execute chấm PASS trên cấp học sai**.
+
+### `env:scope` — profile phải ghim cấp học nó đang đo
+
+`tests/fe/support/opsLogin.ts:419`: thiếu `QEMIS_CAP_HOC` thì app giữ mặc định **"Mầm non"**, và nó
+chỉ `console.warn`. Lượt chạy **không gãy** — nó đăng nhập được, đi hết các bước, chụp đủ ảnh, rồi
+chấm **PASS** trên một cấp học không phải cấp mà case nói tới. Không ca nào đỏ.
+
+Đo được lúc dựng cửa: `profiles/CSDL-3544` và `profiles/CSDL-4039` không ghim khoá này, mà **4039 là
+EMIS THCS**. Cả hai có **0 ảnh evidence** nên chưa từng execute, tức cửa bắt được khe này *trước khi*
+nó kịp sinh ra một bộ verdict sai.
+
+Cửa cũng gọi tên **bí mật chết**: khoá trong `.env` mang hậu tố không khớp khuôn `<TIEN_TO>_<HAU_TO>`
+mà `uatDbClient.ts` đọc, ví dụ `LIB_MASTER_DB_RO_USERNAME_ADMIN`, thì không đường nào chạm tới nó.
+Bí mật không ai đọc được là rủi ro thuần.
+
+`env:scope` quét cả repo nên **không vào CI được**: CI không có `.env` lẫn `profiles/` nên nó trả
+`KHÔNG PHÁN ĐƯỢC` (exit 2), đúng bài học cửa ⑩ ở `v2.9.10` — thà im còn hơn đoán. Nên chỗ **chặn thật**
+nằm ở `preflight_gate.js --mode phase2`, qua hàm thuần `kiemGhimCapHoc()`: chạy trên máy có profile,
+ngay trước execute, đã biết `TASK_KEY`. Một cửa CHẶN mà không ai gọi chỉ là đồ trang trí.
+
+### Bản luật ĐẦU của cửa này đã sai, và đó là phần đáng đọc nhất
+
+Nó bắt mỗi profile tự khai `OPS_USERNAME`/`OPS_PASSWORD`, dựng từ câu "creds ở `task.env`" trong
+`CLAUDE.md` §5. Chạy thật thì nó tố **7 trong 8 profile**.
+
+> Khi một cửa mới tố gần hết hiện trạng, giả thuyết đầu tiên phải là **CỬA SAI**, không phải hiện
+> trạng sai.
+
+Thêm chế độ `--soi` để **đo rồi mới chốt luật**: cả 8 profile đều ghim `QEMIS_SO` + `QEMIS_TRUONG`, và
+một tài khoản QEMIS đổi được Sở/cấp/trường qua `/Manage/ChonTruong.aspx`. Nên `.env` chung giữ **một**
+tài khoản app là **đúng thiết kế**, không phải lệch. Một cửa tố oan gần hết hiện trạng **tệ hơn không
+có cửa**, vì người ta sẽ tắt nó.
+
+Ca `P8` trong bộ đối chứng ghim lại kết luận ấy: thử bò về luật đã bị bác thì **5 ca đỏ**.
+
+### `USER_GUIDE` từng chỉ sai chỗ nguy nhất
+
+Bảng "tĩnh ↔ động" ở §2.2 từng xếp `OPS_*` (**tài khoản đăng nhập QEMIS**) vào cột *"Tĩnh → `.env`
+chung"*. Bản sửa đầu lại viết *"`OPS_*` KHÔNG được để ở `.env` chung"*, **cũng sai** và chính là luật
+tố oan 7/8 ở trên. Câu đúng nằm ở chỗ profile có ghim nổi **cấp học** hay không. Cả lịch sử ấy được
+ghi ngay trong tài liệu để lần sau không sửa qua sửa lại.
+
+`secret_scan.js` trước đây nói cộc lốc `dua vao .env`. Đó là câu **duy nhất** một QA đọc đúng lúc đang
+cầm secret trong tay, nên nó quyết định thói quen. Nay nó phân loại: cred theo task thì vào
+`profiles/<TASK_KEY>/task.env`; key của một tài khoản dùng chung mọi task thì vào `.env` ở gốc.
+
+### Danh sách cửa phải TRÍCH TỪ workflow
+
+`static-check.yml` chạy **32 lệnh**; bước `Gate repo` của `release.yml` chạy **8**. Trong đợt này tôi
+tự lập một danh sách "13 cửa" rồi báo ĐẠT ba lượt liền, và nó thiếu **19 cửa** — trong đó có đúng
+`library:drift`, cửa bắt lỗi của lượt đó. Mẫu số do người đo tự đặt thì con số không nói được điều nó
+trông như đang nói.
+
+### Đối chứng
+
+12 phép phá, 12 lần đỏ, phá **bản chép** giữ đúng độ sâu tương đối chứ không `git stash` cây dùng chung
+(`tests/fe/infra/_may_thu.ts`). Đáng kể: `P8` bò về luật đã bị bác (**5 đỏ**) · `Q1` gỡ dòng gọi khỏi
+`runPreflight` (**1 đỏ**, nếu không có ca này thì chỗ nối là code không ai gác) · `Q3` nới regex từ
+`=\s*\S` xuống `=` (**1 đỏ**, vì `QEMIS_CAP_HOC=` để **rỗng** vẫn là chưa ghim).
+
+Cửa `env:scope` **không bao giờ in giá trị**, chỉ in tên khoá, và có một ca test khai đúng điều đó: một
+cửa gác chỗ để bí mật mà rò ra log CI thì tự phản lại mục đích. Nó cũng cố ý **không** `require`
+`runtime_config.js`, vì file đó gọi `loadEnvFiles()` lúc nạp module, tức kéo cả `.env` thật vào tiến
+trình của chính cửa.
+
 ## v2.9.10 — 2026-11-03 — Ba bản vá mồ côi, và chỗ chúng thiếu người canh
 
 **Vấn đề → cách chữa**
