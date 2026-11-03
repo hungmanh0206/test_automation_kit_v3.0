@@ -40,9 +40,10 @@ import * as os from 'os';
 import * as path from 'path';
 import { spawn } from 'child_process';
 import { gateEnv } from './_gate_env';
+import { mayThu } from './_may_thu';
 
 const REPO = path.resolve(__dirname, '..', '..', '..');
-const MAY = path.join(REPO, 'scripts/integrations/backlog/sua_mo_ta.js');
+const MAY = mayThu('SUA_MO_TA_JS', path.join(REPO, 'scripts/integrations/backlog/sua_mo_ta.js'));
 
 type Bat = { method: string; duong: string; than: string };
 
