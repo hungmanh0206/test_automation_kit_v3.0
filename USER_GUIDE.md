@@ -92,15 +92,26 @@ Rồi mở `profiles/<TASK_KEY>/task.env` điền **giá trị động**: link B
 
 | Loại giá trị | Ví dụ | Đặt ở |
 |---|---|---|
-| **Tĩnh** — một tài khoản dùng cho mọi task | API key Figma, `BACKLOG_BASE_URL`, `BACKLOG_API_KEY` | `.env` chung |
-| **Động** — theo task | `TASK_KEY`, link story, `GOOGLE_SHEET_URL` | `profiles/<TASK_KEY>/task.env` |
-| **Tài khoản app + DB** — theo task | `OPS_USERNAME`/`OPS_PASSWORD`, `LIB_MASTER_DB_RO_*`, `QEMIS_SO`/`QEMIS_CAP_HOC`/`QEMIS_TRUONG` | `profiles/<TASK_KEY>/task.env` |
+| **Tĩnh**: một tài khoản dùng cho mọi task | API key Figma, `BACKLOG_BASE_URL`, `BACKLOG_API_KEY` | `.env` chung |
+| **Động**: theo task | `TASK_KEY`, link story, `GOOGLE_SHEET_URL` | `profiles/<TASK_KEY>/task.env` |
+| **Đơn vị đang đo**: theo task | `QEMIS_SO`, `QEMIS_CAP_HOC`, `QEMIS_TRUONG`, `QEMIS_NAM_HOC`, `LIB_MASTER_DB_RO_*` | `profiles/<TASK_KEY>/task.env` |
 
-**`OPS_*` KHÔNG được để ở `.env` chung** (sửa 03/11/2026 — bảng này từng xếp nó vào cột "Tĩnh", sai).
-Một tài khoản QEMIS chỉ thuộc **một cấp học**, nên hai task khác cấp chạy song song mà dùng chung một
-`OPS_USERNAME` thì task sau đổi đơn vị dưới chân task trước, và cả hai cùng đo nhầm trường. Cùng lý do
-với `LIB_MASTER_DB_RO_*` và khối `QEMIS_*`: chúng mô tả **đơn vị đang đo**, không phải cấu hình máy.
-Nguồn chốt: [`RULE_GLOBAL.md`](RULE_GLOBAL.md) §Đường dẫn chuẩn và `knowledge/setup_recipes/SR-QEMISLOGIN-001.json`.
+**Mỗi profile PHẢI ghim `QEMIS_CAP_HOC`.** Gác bằng `npm run env:scope`.
+
+Thiếu khoá đó thì app giữ mặc định của nó là "Mầm non" (`tests/fe/support/opsLogin.ts:419`), và chỗ nguy
+là nó chỉ `console.warn`. Lượt chạy không gãy: nó đăng nhập được, đi hết các bước, chụp đủ ảnh, rồi chấm
+**PASS** trên một cấp học **không phải** cấp mà case nói tới. Không ca nào đỏ. Nên hãy ghim cả
+`QEMIS_NAM_HOC`: `ID_TRUONG` đổi theo năm học, thiếu nó là lấy trường của năm khác.
+
+Ngược lại, `.env` chung giữ **một** tài khoản app cho mọi task là **đúng thiết kế**, không phải lệch: một
+tài khoản QEMIS đổi được Sở, cấp và trường qua `/Manage/ChonTruong.aspx`, nên thứ phân biệt các task là
+khối `QEMIS_*` trong profile, chứ không phải mỗi task một mật khẩu riêng.
+
+> Lịch sử của chính đoạn này, để lần sau đừng sửa qua sửa lại. Bảng từng xếp `OPS_*` vào cột "Tĩnh".
+> Bản sửa đầu 03/11/2026 đổi thành *"`OPS_*` KHÔNG được để ở `.env` chung"*, và đó cũng **sai**: luật ấy
+> tố oan **7 trong 8** profile, vì `profiles/task.env.example` không hề có `OPS_*`. Ràng buộc thật nằm ở
+> chỗ profile có ghim nổi **cấp học** hay không. Nguồn chốt: [`RULE_GLOBAL.md`](RULE_GLOBAL.md) §Đường
+> dẫn chuẩn, `knowledge/setup_recipes/SR-QEMISLOGIN-001.json`, và `opsLogin.ts:419`.
 
 **Không sửa `.env` chung khi task khác đang chạy.**
 
