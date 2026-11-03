@@ -96,13 +96,28 @@ async function goi(method, duong, body) {
   p.set('content', noiDung);
   if (typeof anhId !== 'undefined') p.append('attachmentId[]', String(anhId));
   const cmt = await goi('POST', `issues/${encodeURIComponent(ISSUE)}/comments`, p.toString());
-  console.log(`[cap-nhat] đã đăng comment id=${cmt.id} · đính kèm trong comment: ${(cmt.attachments || []).map((x) => x.name).join(', ') || '(không có)'}`);
+  /*
+   * Response của POST comment KHÔNG trả mảng `attachments`, nên đừng in nó ra như thể đó là sự thật:
+   * bản trước in "đính kèm trong comment: (không có)" kể cả khi ảnh đã đính THÀNH CÔNG, và dòng đó
+   * làm người đọc tưởng upload hỏng (đã cắn 02/11 ở CSDL-4043 — kiểm lại bằng `doc_comment.js` thì
+   * ảnh nằm đúng chỗ). Chỉ khai những gì gửi đi; muốn biết thật thì đọc lại bằng `doc_comment.js`.
+   */
+  console.log(`[cap-nhat] đã đăng comment id=${cmt.id}`
+    + `${typeof anhId !== 'undefined' ? ` · đã gửi kèm attachmentId ${anhId} ("${anhTen}") — xác nhận bằng: doc_comment.js ${ISSUE}` : ' · không gửi kèm ảnh'}`);
 
   /* 3. Đổi trạng thái và người nhận. */
-  if (STATUS || ASSIGNEE) {
+  /*
+   * GỠ người nhận cần cờ RIÊNG. `--assignee-id ""` là chuỗi rỗng ⇒ falsy ⇒ bị bỏ qua, còn
+   * `--assignee-id 0` thì Backlog trả 404 "No such user. (id:Undefined)". Backlog chỉ gỡ khi nhận
+   * `assigneeId=` rỗng, nên phải nói ý định ra bằng một cờ thay vì đoán từ giá trị.
+   * Cờ này KHÔNG đổi hành vi cũ: không truyền thì mọi thứ chạy y như trước.
+   */
+  const GO_ASSIGNEE = process.argv.includes('--go-assignee');
+  if (STATUS || ASSIGNEE || GO_ASSIGNEE) {
     const q = new URLSearchParams();
     if (STATUS) q.set('statusId', STATUS);
-    if (ASSIGNEE) q.set('assigneeId', ASSIGNEE);
+    if (GO_ASSIGNEE) q.set('assigneeId', '');
+    else if (ASSIGNEE) q.set('assigneeId', ASSIGNEE);
     const sau = await goi('PATCH', `issues/${encodeURIComponent(ISSUE)}`, q.toString());
     console.log(`[cap-nhat] đã đổi: trạng thái "${truoc.status?.name}" → "${sau.status?.name}" · người nhận "${truoc.assignee?.name || '(trống)'}" → "${sau.assignee?.name || '(trống)'}"`);
     console.log(`[cap-nhat] đính kèm của issue sau khi đổi (${(sau.attachments || []).length}): ${(sau.attachments || []).map((x) => x.name).join(', ') || '(không có)'}`);
