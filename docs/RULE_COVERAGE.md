@@ -36,7 +36,7 @@ Nguồn: `RULE_GLOBAL.md` (35 mục có nội dung) · 151 gate · 171 spec hạ
 | Parallel Story Safety | `report` | `ambiguity-gate.spec.ts` · `autofix.spec.ts` · `backlog-bug-images.spec.ts` +49 |
 | Phase-Separated Story Execution | `merge:execution-status` · `canonical:drift` · `check` · `expected:check` · `load` · `gate:policy` · `ledger:check` · `risk` · `sync:canonical` · `report` | `canonical-drift.spec.ts` · `expansion-gates.spec.ts` · `manual-run-gate.spec.ts` +131 |
 | Task-Scoped Automation Code | `report` | `ambiguity-gate.spec.ts` · `autofix.spec.ts` · `backlog-bug-images.spec.ts` +49 |
-| Shared Change Gate | `dim:coverage` · `domain:check` · `rule` · `secret:scan` | `config-presence.spec.ts` · `dimension-threshold.spec.ts` · `dimension-wiring.spec.ts` +49 |
+| Shared Change Gate | `dim:coverage` · `domain:check` · `rule` · `secret:scan` | `config-presence.spec.ts` · `dimension-threshold.spec.ts` · `dimension-wiring.spec.ts` +50 |
 | Automation Promote Review | `report` | `ambiguity-gate.spec.ts` · `autofix.spec.ts` · `backlog-bug-images.spec.ts` +49 |
 | Analysis & Ambiguity Gate (Phase 1 — đọc kỹ, hỏi trước khi gen) | `rule` · `report` | `api-card.spec.ts` · `automation-review.spec.ts` · `backlog-bug-images.spec.ts` +76 |
 | Chiều coverage (Phase 1 — khai phạm vi, gắn tag, có máy đếm) | `dim:coverage` · `domain:check` · `rule` | `config-presence.spec.ts` · `dimension-threshold.spec.ts` · `dimension-wiring.spec.ts` +48 |
