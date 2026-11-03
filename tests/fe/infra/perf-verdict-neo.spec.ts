@@ -27,11 +27,12 @@ import { test, expect } from '@playwright/test';
 import * as fs from 'fs';
 import * as os from 'os';
 import * as path from 'path';
+import { mayThu } from './_may_thu';
 
 const REPO = path.resolve(__dirname, '..', '..', '..');
 const FIXTURE = path.join(REPO, 'tests', 'fixtures', 'k6');
 /* eslint-disable-next-line @typescript-eslint/no-var-requires, global-require */
-const perf = require(path.join(REPO, 'scripts', 'qa', 'perf_report.js'));
+const perf = require(mayThu('PERF_REPORT_JS', path.join(REPO, 'scripts', 'qa', 'perf_report.js')));
 
 const TC = 'PERF_TC_007';
 

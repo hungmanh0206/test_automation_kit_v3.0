@@ -37,9 +37,10 @@ import * as os from 'os';
 import * as path from 'path';
 import { spawn } from 'child_process';
 import { gateEnv } from './_gate_env';
+import { mayThu } from './_may_thu';
 
 const REPO = path.resolve(__dirname, '..', '..', '..');
-const MAY = path.join(REPO, 'scripts/integrations/backlog/cap_nhat_issue.js');
+const MAY = mayThu('CAP_NHAT_ISSUE_JS', path.join(REPO, 'scripts/integrations/backlog/cap_nhat_issue.js'));
 const KHOA_GIA = ['khoa', 'gia', 'chi', 'de', 'kiem'].join('-');
 
 type Bat = { method: string; duong: string; than: string };
