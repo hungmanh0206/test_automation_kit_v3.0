@@ -145,6 +145,8 @@
     "learn:report": "node scripts/qa/learn_report.js",
     "docs:budget": "node scripts/qa/doc_budget.js",
     "prompt:budget": "node scripts/qa/prompt_budget.js",
+    "token:session": "node scripts/qa/token_session.js",
+    "token:phase1": "node scripts/qa/token_session.js --phase phase1",
     "token:audit": "node scripts/qa/token_audit.js",
     "results:summary": "node scripts/qa/summarize_results.js",
     "rerun:failed": "node scripts/qa/rerun_failed.js",

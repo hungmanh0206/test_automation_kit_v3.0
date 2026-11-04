@@ -150,13 +150,27 @@ const TERMS_GATE3 = [
   src:'scripts/qa/scope_anchor.js', rel:['g-dimension_coverage','c-canonical','g-preflight_gate'] },
 { id:'g-gate_index', t:'gates:index', cat:'gate',
   def:'Sinh DANH MỤC GATE của kit từ chính source. Trả lời được "kit có bao nhiêu gate, mỗi cái CHẶN gì, gọi ở đâu".',
-  detail:'Quét source rồi suy mức từ code: exit 1 là CHẶN · ghi artifact là SINH · chỉ in là BÁO CÁO. Bảng hiện tại: 152 máy — 110 CHẶN, 23 SINH, 19 BÁO CÁO. Bản --check chặn khi bảng lệch source.',
+  detail:'Quét source rồi suy mức từ code: exit 1 là CHẶN · ghi artifact là SINH · chỉ in là BÁO CÁO. Bảng hiện tại: 153 máy — 111 CHẶN, 23 SINH, 19 BÁO CÁO. Bản --check chặn khi bảng lệch source.',
   why:'Kit có hơn 30 npm script dạng gate và gần 60 file trong scripts/qa/, nhưng không chỗ nào trả lời được câu trên. Hệ quả không phải bất tiện: luận đề của kit là "luật cần MÁY", mà máy không LIỆT KÊ ĐƯỢC thì không kiểm toán được. Không ai biết một gate đã âm thầm tụt thành cảnh báo, hay đã mất nơi gọi.',
   how:['npm run gates:index để sinh lại bảng.','npm run gates:index:check để chặn khi bảng lệch source.'],
   cmd:'npm run gates:index   ·   npm run gates:index:check',
   ex:'SINH và BÁO CÁO KHÔNG phải gate bị nới, chúng không kiểm vi phạm. bugs:checklist chỉ in brief bug lịch sử, còn việc CHẶN nằm ở dim:coverage chiều §20.',
   trap:'Bốn "phát hiện" đầu tiên khi mới dựng bảng đều là lỗi của BẢNG, không của kit, nên phải hiệu chuẩn danh mục trước khi tin số nó đưa ra.',
   src:'scripts/qa/gate_index.js', rel:['c-forcing-function','c-gate-real-content','g-policy_source_check','f-gate-catalog'] },
+
+{ id:'g-token_session', t:'token:session', cat:'gate',
+  def:'Đo phần LUÔN NẠP — thứ mọi phiên đều trả, kể cả phiên chỉ hỏi một câu.',
+  detail:'Ba khối: CLAUDE.md · đầu ra hook SessionStart · frontmatter description của MỌI skill, command, agent mà harness quảng bá. Ngưỡng ở prompt_budget.json khoá alwaysOnMaxKB. Bản --phase <luồng> đo khối bắt buộc của một luồng (diem_vao + bat_buoc trong load_map.json, KHÔNG tính co_dieu_kien), ngưỡng ở phaseMaxKB.',
+  why:'Khối thứ ba không nằm trong load_map.json nên prompt:budget không thấy nó — mà đo 04/11/2026 nó là khối LỚN NHẤT: 10,05 trên 16,29 KB, riêng 28 skill chiếm 7,28 KB. Tức trước cửa này, một dòng description dài thêm một câu làm MỌI phiên về sau đắt thêm, mãi mãi, và không gate nào kêu.',
+  how:[
+    'npm run token:session để đo phần luôn nạp.',
+    'npm run token:phase1 để đo khối bắt buộc của Phase 1.',
+    'node scripts/qa/token_session.js --moc in số đo hiện tại để chốt ngưỡng, thay vì đặt số bằng cảm giác.'
+  ],
+  cmd:'npm run token:session   ·   npm run token:phase1',
+  ex:'KHÁC prompt:budget: máy đó đo chi phí CHẠY MỘT PHASE theo token; máy này đo chi phí MỞ MỘT PHIÊN theo KB. Hai cửa giữ CÙNG hệ số 3,2 ký tự/token để số của chúng so được với nhau, và có một ca test khoá điều đó.',
+  trap:'Regex đọc description bản đầu dùng cờ /m, nên $ khớp cuối MỖI DÒNG và mô tả trải nhiều dòng bị đếm hụt — cửa báo RẺ hơn thực tế, tức sai về phía nguy hiểm. Ca đối chứng bắt được. Và thiếu `.claude/` (như cây-gói phát hành) thì cửa trả exit 2 KHÔNG PHÁN ĐƯỢC chứ không trả 0: cửa ⑩ của version_check.js từng trả "đạt" trong hoàn cảnh y hệt và làm release:verify đọc thành 13/15.',
+  src:'scripts/qa/token_session.js', rel:['g-prompt_budget','c-forcing-function','g-library_drift'] },
 
 { id:'g-env_scope', t:'env:scope', cat:'gate',
   def:'Chặn "profile không ghim nổi cấp học nó đang đo", và gọi tên bí mật mà không đường nào đọc tới.',
