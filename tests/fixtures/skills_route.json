@@ -1,8 +1,8 @@
 {
-  "_why": "Skill của kit KHÔNG auto-load, nên `description` + 'Câu kích hoạt mẫu' là thứ DUY NHẤT agent đọc để quyết định mở skill nào. Hai skill mô tả gần nhau thì nó không có căn cứ để chọn, và nó sẽ chọn sai hoặc mở cả hai. Fixture này là phép đo cho chuyện đó.",
+  "_why": "Hai skill mô tả gần nhau thì agent không có căn cứ để chọn, và nó sẽ chọn sai hoặc mở cả hai. Fixture này là phép đo cho chuyện đó. SỬA 04/11/2026: câu cũ ở đây ghi \"Skill của kit KHÔNG auto-load, nên description là thứ DUY NHẤT agent đọc\" — tiền đề đó đã HẾT ĐÚNG. Harness nay quảng bá đủ 28 skill kèm mô tả, và gọi được bằng tên qua công cụ Skill. Description vẫn là căn cứ chính để CHỌN, nhưng không còn là thứ duy nhất, và skill không còn phải mở bằng tay.",
   "_cach_viet_ca": "Câu trong fixture CỐ Ý diễn đạt KHÁC với 'Câu kích hoạt mẫu' trong SKILL.md. Chép lại y nguyên thì phép đo thành vòng tròn — nó chỉ chứng minh một câu khớp chính file chứa nó. Viết khác đi mới đo được khả năng phân biệt.",
   "_khi_do_duoi_nguong": "Sửa `description` hoặc câu kích hoạt của skill bị nhầm cho tách ra. KHÔNG sửa fixture để cho xanh — đây là câu người dùng nói thật, không phải chỗ nhượng bộ.",
-  "_ca_none": "Ca `skill: \"none\"` là câu KHÔNG thuộc skill nào. Thiếu chúng thì bộ chấm chỉ cần gán bừa một skill cho mọi câu là đạt.",
+  "_ca_none": "Ca skill \"none\" là câu KHÔNG thuộc skill nào. Thiếu chúng thì bộ chấm chỉ cần gán bừa một skill cho mọi câu là đạt. Nâng từ 4 lên 20 ngày 04/11/2026, và cố ý trộn hai loại: câu hoàn toàn ngoài miền, VÀ câu nghe rất giống việc QA nhưng không thuộc skill nào. Loại thứ hai mới khó, và là loại hay bị gán bừa.",
   "cap_de_nham": [
     [
       "tc_reviewer",
@@ -37,6 +37,10 @@
     [
       "run_report_reader",
       "release_summary"
+    ],
+    [
+      "git_impact_analyzer",
+      "system_mapper"
     ]
   ],
   "ca": [
@@ -315,6 +319,90 @@
     },
     {
       "cau": "đặt vé máy bay đi Hà Nội",
+      "skill": "none"
+    },
+    {
+      "cau": "vừa merge PR xong, giờ phải regression những màn nào",
+      "skill": "git_impact_analyzer"
+    },
+    {
+      "cau": "đọc diff của branch này rồi nói nó đụng bề mặt dùng chung nào",
+      "skill": "git_impact_analyzer"
+    },
+    {
+      "cau": "commit hôm qua sửa hàm chung, ảnh hưởng tới đâu",
+      "skill": "git_impact_analyzer"
+    },
+    {
+      "cau": "chưa đổi dòng code nào, chỉ muốn tra danh mục bề mặt dùng chung đã chốt",
+      "skill": "system_mapper"
+    },
+    {
+      "cau": "ai được phép sửa hồ sơ trường, tra ma trận phân quyền",
+      "skill": "system_mapper"
+    },
+    {
+      "cau": "giải thích cho tôi git rebase khác git merge chỗ nào",
+      "skill": "none"
+    },
+    {
+      "cau": "đổi tên biến này cho dễ đọc hơn",
+      "skill": "none"
+    },
+    {
+      "cau": "npm install báo lỗi EACCES thì sửa sao",
+      "skill": "none"
+    },
+    {
+      "cau": "viết hộ tôi email xin nghỉ phép",
+      "skill": "none"
+    },
+    {
+      "cau": "commit message nên viết theo quy ước nào",
+      "skill": "none"
+    },
+    {
+      "cau": "xoá các nhánh đã merge trên remote bằng lệnh gì",
+      "skill": "none"
+    },
+    {
+      "cau": "VS Code mở file 50MB bị treo",
+      "skill": "none"
+    },
+    {
+      "cau": "định dạng lại file JSON này cho dễ nhìn",
+      "skill": "none"
+    },
+    {
+      "cau": "giải thích đoạn regex này làm gì",
+      "skill": "none"
+    },
+    {
+      "cau": "tạo .gitignore cho dự án Node",
+      "skill": "none"
+    },
+    {
+      "cau": "máy tôi hết dung lượng ổ C, dọn gì trước",
+      "skill": "none"
+    },
+    {
+      "cau": "dịch đoạn mô tả này sang tiếng Anh",
+      "skill": "none"
+    },
+    {
+      "cau": "cho tôi biết phiên bản kit hiện tại",
+      "skill": "none"
+    },
+    {
+      "cau": "mở giúp file CHANGELOG",
+      "skill": "none"
+    },
+    {
+      "cau": "đổi theme của terminal sang nền tối",
+      "skill": "none"
+    },
+    {
+      "cau": "tắt thông báo của Teams trong giờ làm",
       "skill": "none"
     }
   ]

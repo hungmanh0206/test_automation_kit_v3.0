@@ -1,6 +1,6 @@
 ---
 name: system_mapper
-description: Ghi bản đồ HỆ THỐNG đã xác nhận vào knowledge/system/ — state machine, ma trận phân quyền, và DANH MỤC bề mặt dùng chung — để trả lời được "hành vi này là lỗi hay đúng thiết kế" và "chạm chỗ này phải regression đâu" mà không suy từ app. Đây là danh mục đã chốt, tra được mà không cần diff.
+description: "KHÔNG đọc thay đổi code. Ghi và tra bản đồ hệ thống ĐÃ CHỐT ở knowledge/system/: state machine, ma trận phân quyền, danh mục bề mặt dùng chung. Tra được mà không cần diff."
 ---
 
 <!-- SINH TỰ ĐỘNG bởi `node scripts/qa/skills_index.js --write` — ĐỪNG SỬA TAY. -->

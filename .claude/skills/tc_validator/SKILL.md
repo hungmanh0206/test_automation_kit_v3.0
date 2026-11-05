@@ -1,6 +1,6 @@
 ---
 name: tc_validator
-description: Validate testcase Phase 1 theo template 10 cột, coverage/risk gate và khả năng execute automation.
+description: "Soi file testcase Phase 1: Ô LÕI nào CÒN TRỐNG, có đúng template 10 cột, qua coverage/risk gate chưa, và case có EXECUTE AUTOMATION ĐƯỢC không."
 ---
 
 <!-- SINH TỰ ĐỘNG bởi `node scripts/qa/skills_index.js --write` — ĐỪNG SỬA TAY. -->

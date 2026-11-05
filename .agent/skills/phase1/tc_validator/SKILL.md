@@ -1,9 +1,18 @@
 ---
 name: tc_validator
-description: Validate testcase Phase 1 theo template 10 cột, coverage/risk gate và khả năng execute automation.
+description: "Soi file testcase Phase 1: Ô LÕI nào CÒN TRỐNG, có đúng template 10 cột, qua coverage/risk gate chưa, và case có EXECUTE AUTOMATION ĐƯỢC không."
 ---
 
 # TC Validator
+
+## Dùng khi nào
+
+Dùng khi đã có file testcase và cần biết **nó thiếu gì**: ô lõi bỏ trống, cột sai template,
+chiều coverage chưa phủ, hoặc case viết ra mà automation không chạy nổi.
+
+KHÁC [`tc_reviewer`](../tc_reviewer/SKILL.md): máy này soi **tính đầy đủ cơ học** của file;
+`tc_reviewer` chấm **chất lượng nội dung** theo rubric 9 tiêu chí. Một bộ có thể đủ ô mà vẫn
+dở, và ngược lại.
 
 ## Purpose
 

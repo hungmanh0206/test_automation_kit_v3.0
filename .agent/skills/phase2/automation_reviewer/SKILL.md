@@ -1,9 +1,24 @@
 ---
 name: automation_reviewer
-description: "Chấm độ tin của một bộ spec đã viết — nó xanh vì sản phẩm đúng, hay xanh vì nó không kiểm gì. Gọi bó cửa `auto:review` rồi soi tay năm chỗ máy mù: test phụ thuộc nhau, cleanup dọn sai thứ, oracle so app với chính app, dữ liệu trùng giữa hai lượt, data của task lọt vào suite chung. Mở trước khi bàn giao, hoặc khi nghi một bộ đang xanh giả. KHÔNG sinh spec mới, KHÔNG sửa case đỏ."
+description: "Chấm độ tin của bộ spec đã viết: nó xanh vì sản phẩm đúng, hay xanh vì KHÔNG KIỂM GÌ. Soi oracle tautology, test phụ thuộc nhau, dữ liệu trùng lượt."
 ---
 
 # Automation Reviewer
+
+## Dùng khi nào
+
+Mở **trước khi bàn giao** một bộ automation, hoặc khi nghi một bộ đang **xanh giả**.
+
+Gọi bó cửa `auto:review`, rồi soi tay năm chỗ máy mù:
+
+1. test phụ thuộc thứ tự chạy của nhau;
+2. bước cleanup xoá nhầm thứ không phải của lượt này;
+3. oracle so app với chính app (tautology);
+4. dữ liệu trùng giữa hai lượt chạy;
+5. data riêng của task lọt vào suite dùng chung.
+
+KHÔNG sinh spec mới (việc của [`qa_automation_engineer`](../qa_automation_engineer/SKILL.md)),
+KHÔNG sửa case đã đỏ (việc của agent `case-debugger`).
 
 ## Ranh giới
 

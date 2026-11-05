@@ -150,13 +150,27 @@ const TERMS_GATE3 = [
   src:'scripts/qa/scope_anchor.js', rel:['g-dimension_coverage','c-canonical','g-preflight_gate'] },
 { id:'g-gate_index', t:'gates:index', cat:'gate',
   def:'Sinh DANH MỤC GATE của kit từ chính source. Trả lời được "kit có bao nhiêu gate, mỗi cái CHẶN gì, gọi ở đâu".',
-  detail:'Quét source rồi suy mức từ code: exit 1 là CHẶN · ghi artifact là SINH · chỉ in là BÁO CÁO. Bảng hiện tại: 153 máy — 111 CHẶN, 23 SINH, 19 BÁO CÁO. Bản --check chặn khi bảng lệch source.',
+  detail:'Quét source rồi suy mức từ code: exit 1 là CHẶN · ghi artifact là SINH · chỉ in là BÁO CÁO. Bảng hiện tại: 154 máy — 111 CHẶN, 24 SINH, 19 BÁO CÁO. Bản --check chặn khi bảng lệch source.',
   why:'Kit có hơn 30 npm script dạng gate và gần 60 file trong scripts/qa/, nhưng không chỗ nào trả lời được câu trên. Hệ quả không phải bất tiện: luận đề của kit là "luật cần MÁY", mà máy không LIỆT KÊ ĐƯỢC thì không kiểm toán được. Không ai biết một gate đã âm thầm tụt thành cảnh báo, hay đã mất nơi gọi.',
   how:['npm run gates:index để sinh lại bảng.','npm run gates:index:check để chặn khi bảng lệch source.'],
   cmd:'npm run gates:index   ·   npm run gates:index:check',
   ex:'SINH và BÁO CÁO KHÔNG phải gate bị nới, chúng không kiểm vi phạm. bugs:checklist chỉ in brief bug lịch sử, còn việc CHẶN nằm ở dim:coverage chiều §20.',
   trap:'Bốn "phát hiện" đầu tiên khi mới dựng bảng đều là lỗi của BẢNG, không của kit, nên phải hiệu chuẩn danh mục trước khi tin số nó đưa ra.',
   src:'scripts/qa/gate_index.js', rel:['c-forcing-function','c-gate-real-content','g-policy_source_check','f-gate-catalog'] },
+
+{ id:'g-skills_route_live', t:'skills:route:live', cat:'gate',
+  def:'Đo định tuyến skill bằng CHÍNH MODEL, không bằng đếm từ. Không vào CI vì mỗi lượt là một phiên model thật.',
+  detail:'Mỗi câu trong tests/fixtures/skills_route.json chạy một phiên claude -p, công cụ làm việc bị CHẶN để model không đi dò thay vì định tuyến. Skill được chọn đọc từ lời GỌI công cụ Skill, KHÔNG từ lời model tự thuật. Cờ --trong-repo chạy ở gốc repo (hook CÓ chạy) để tách ảnh hưởng của ngữ cảnh; --gioi-han lấy mẫu và tự dán nhãn "đây là MẪU".',
+  why:'skills:route:check chấm bằng TỪ NGỮ và tự khai giới hạn đó. Giới hạn ấy không phải lý thuyết: câu "soak test nửa tiếng" bị bộ chấm từ ngữ xếp dưới sàn 3,57 điểm, còn model thật gọi thẳng load_check ngay lượt đầu. Chỉ có thước đại diện thì người ta sẽ đi nhồi từ khoá vào description cho vừa một bag-of-words — làm mô tả tệ đi cho model thật để một con số đẹp lên.',
+  how:[
+    'npm run skills:route:live để quét bộ đầy đủ; thêm --trong-repo để đo kèm hook.',
+    '--ra docs/<phiên bản>/ROUTE_LIVE.md ghi báo cáo kèm NGÀY và PHIÊN BẢN MODEL.',
+    'Chạy tay trước mỗi bản phát hành, KHÔNG đưa vào CI.'
+  ],
+  cmd:'npm run skills:route:live   ·   node scripts/qa/skills_route_live.js --trong-repo',
+  ex:'Phát hiện lớn nhất của nó (04/11/2026): cùng 90 câu, cùng gốc repo, chỉ khác MỘT dòng hook — bỏ dòng "Skill của kit (28, KHÔNG auto-load — mở file để dùng)" làm top-1 từ 24,3% lên 50,0%. Một dòng trong phần luôn nạp đang CHẶN chính thứ nó định giúp.',
+  trap:'BA lỗi đường ống cùng cho một triệu chứng "model không gọi skill nào", và không cái nào là lỗi định tuyến: spawn với shell:true nối tham số KHÔNG escape nên câu tiếng Việt vỡ; --allowed-tools KHÔNG giới hạn gì (phải dùng --disallowed-tools); stdin không chặn thì chờ 3 giây mỗi lượt. Lượt đầu ra 0/6 vì lỗi một. Và ĐỪNG so con số của --gioi-han với con số bộ đầy đủ: tôi đã so 20 câu với 90 câu rồi kết luận nhân quả, đối chứng cùng mẫu bác ngay.',
+  src:'scripts/qa/skills_route_live.js', rel:['g-skills_route','c-forcing-function','g-skills_lint'] },
 
 { id:'g-token_session', t:'token:session', cat:'gate',
   def:'Đo phần LUÔN NẠP — thứ mọi phiên đều trả, kể cả phiên chỉ hỏi một câu.',

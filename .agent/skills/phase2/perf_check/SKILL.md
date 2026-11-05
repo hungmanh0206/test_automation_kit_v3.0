@@ -1,9 +1,17 @@
 ---
 name: perf_check
-description: Đo performance thật (web vitals + API SLA + large-dataset + resource weight) qua Playwright, so ngưỡng catalog → verdict advisory. Median N lần chống flaky. Threshold-gated, không thêm dependency.
+description: "Đo hiệu năng một người dùng: API có VƯỢT SLA không, web vitals, màn dữ liệu lớn, trọng lượng tài nguyên. So ngưỡng catalog, median N lần chống flaky."
 ---
 
 # Performance Check
+
+## Dùng khi nào
+
+Dùng khi câu hỏi là **"cái này có chậm không"** cho MỘT người dùng: thời gian mở màn, thời
+gian một lời gọi API, màn có nhiều bản ghi.
+
+KHÁC [`load_check`](../load_check/SKILL.md): máy đó đo **nhiều VU cùng lúc** (load/stress/soak).
+Verdict ở đây là advisory, threshold-gated, không thêm dependency.
 
 ## Purpose
 
