@@ -1,6 +1,6 @@
 ---
 name: ui_mocking
-description: Chặn response bằng page.route để cô lập dependency ngoài scope hoặc inject fault (5xx/timeout/abort), rồi kiểm FE xử lý response đó thế nào. Dùng khi dependency ngoài không sẵn, hoặc cần dựng nhánh lỗi không tạo được thật. KHÔNG dùng để mock chính logic đang kiểm thử, và KHÔNG dùng case mock để kết luận về backend.
+description: "Chặn và GIẢ LẬP RESPONSE bằng page.route: cô lập dependency ngoài scope, hoặc dựng nhánh lỗi 5xx/timeout/abort rồi xem FE xử lý sao."
 ---
 
 <!-- SINH TỰ ĐỘNG bởi `node scripts/qa/skills_index.js --write` — ĐỪNG SỬA TAY. -->

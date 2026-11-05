@@ -24,8 +24,8 @@
     "phase2_lite": 19015
   },
   "_alwaysOn_la_gi": "Phần MỌI phiên đều trả, kể cả phiên chỉ hỏi một câu: CLAUDE.md + đầu ra hook SessionStart + frontmatter description của mọi skill/command/agent mà harness quảng bá. KHÁC `luong`: `luong` đo chi phí CHẠY MỘT PHASE, còn đây là chi phí MỞ MỘT PHIÊN. Khối description không nằm trong load_map.json nên trước v2.10.0 không gate nào đếm nó — mà đo 04/11/2026 nó là khối LỚN NHẤT (10,05 trên 16,29 KB). Đo bằng: node scripts/qa/token_session.js",
-  "_alwaysOn_nguong_dat_o_dau": "Đặt ngay TRÊN mức hiện tại rồi hạ dần sau mỗi đợt cắt, giống `_nguong_dat_o_dau` ở trên. 17.1 = số đo 16,29 cộng 5% đệm, chốt 04/11/2026 TRƯỚC khi cắt. Đích của v2.10.0 là dưới 10; hạ xuống đó ở mục 3.4 sau khi cắt xong, kèm số đo.",
-  "alwaysOnMaxKB": 17.1,
+  "_alwaysOn_nguong_dat_o_dau": "Chốt 05/11/2026 SAU khi cắt: số đo 11,99 KB cộng 5% đệm = 12,6. KHÓA lại thành quả 16,29 → 11,99 (giảm 26%). ĐÍCH CỦA v2.10.0 LÀ DƯỚI 10 VÀ CHƯA ĐẠT — còn thiếu 1,99 KB. Không đặt 10 ở đây vì một ngưỡng đỏ ngay hôm đặt là tiếng ồn, và tiếng ồn thì bị tắt (xem _nguong_dat_o_dau). Muốn xuống dưới 10 phải chặn description ở 110 ký tự, tức cắt cụt 38/44 mô tả — xem đường cong trong docs/v2.10.0/BASELINE.md. Cấm nâng ngưỡng này mà không kèm số đo.",
+  "alwaysOnMaxKB": 12.6,
   "_phaseMaxKB_la_gi": "Khối BẮT BUỘC của một luồng (`diem_vao` + `bat_buoc` trong load_map.json), tính bằng KB. KHÔNG tính `co_dieu_kien` — đúng nghĩa của chúng là chỉ nạp khi gặp điều kiện; tính vào là thổi phồng số rồi đi cắt nhầm chỗ. Đo bằng: node scripts/qa/token_session.js --phase <luồng>. Số đo 04/11/2026: phase1 89,3 KB, phase2 91,8 KB. Đích v2.10.0: phase1 nhỏ hơn hoặc bằng 45.",
   "phaseMaxKB": {
     "phase1": 93.8,

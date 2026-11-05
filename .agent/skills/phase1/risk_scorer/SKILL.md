@@ -1,9 +1,16 @@
 ---
 name: risk_scorer
-description: Risk-Based Testing có thực thi — chấm Risk = Likelihood × Impact per module từ knowledge/ + config, sinh risk-register (Suggest-only), và gate depth theo band (default cảnh báo, --enforce chặn). QA override band.
+description: "Chấm RISK từng module (Likelihood × Impact) từ knowledge/ và config, sinh risk-register, rồi gác ĐỘ SÂU test theo band. Dùng khi chia độ sâu giữa các module."
 ---
 
 # Risk Scorer
+
+## Dùng khi nào
+
+Risk-Based Testing **có thực thi**: không chỉ chấm điểm mà còn gác độ sâu theo band.
+Mặc định chỉ cảnh báo; `--enforce` mới chặn. QA được quyền override band. Suggest-only.
+
+**KHÔNG dùng** để tự quyết phạm vi thay QA — band là gợi ý có căn cứ, người chốt vẫn là QA.
 
 ## Purpose
 

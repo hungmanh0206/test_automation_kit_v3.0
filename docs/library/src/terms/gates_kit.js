@@ -168,7 +168,7 @@ const TERMS_GATE3 = [
     'Chạy tay trước mỗi bản phát hành, KHÔNG đưa vào CI.'
   ],
   cmd:'npm run skills:route:live   ·   node scripts/qa/skills_route_live.js --trong-repo',
-  ex:'Phát hiện lớn nhất của nó (04/11/2026): cùng 90 câu, cùng gốc repo, chỉ khác MỘT dòng hook — bỏ dòng "Skill của kit (28, KHÔNG auto-load — mở file để dùng)" làm top-1 từ 24,3% lên 50,0%. Một dòng trong phần luôn nạp đang CHẶN chính thứ nó định giúp.',
+  ex:'Điều nó dạy được, đo tuần tự 05/11/2026: rút 12 description từ ~250 xuống ~140 ký tự (-2,05 KB phần luôn nạp) KHÔNG làm định tuyến tụt đo được — trước 68,6–70,0%, sau 64,7–73,5%, hai dải chồng lên nhau, trung bình chênh 0,2 điểm. Trước đó một lượt 3 luồng đã cho 50 → 32,9% và suýt khiến nhát cắt bị hoàn tác; con số ấy là nhiễu do chạy song song.',
   trap:'BA lỗi đường ống cùng cho một triệu chứng "model không gọi skill nào", và không cái nào là lỗi định tuyến: spawn với shell:true nối tham số KHÔNG escape nên câu tiếng Việt vỡ; --allowed-tools KHÔNG giới hạn gì (phải dùng --disallowed-tools); stdin không chặn thì chờ 3 giây mỗi lượt. Lượt đầu ra 0/6 vì lỗi một. Và ĐỪNG so con số của --gioi-han với con số bộ đầy đủ: tôi đã so 20 câu với 90 câu rồi kết luận nhân quả, đối chứng cùng mẫu bác ngay.',
   src:'scripts/qa/skills_route_live.js', rel:['g-skills_route','c-forcing-function','g-skills_lint'] },
 

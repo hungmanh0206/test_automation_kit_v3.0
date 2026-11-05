@@ -1,9 +1,14 @@
 ---
 name: qa_automation_engineer
-description: Sinh, cập nhật và chạy automation Playwright UI/API cho Phase 2 từ testcase canonical. Dùng khi đã có bộ TC và cần code chạy được. KHÔNG dùng để gỡ một case đã đỏ (dùng case-debugger), cũng không dùng để chấm verdict cuối.
+description: "Sinh, cập nhật và chạy AUTOMATION Playwright UI/API cho Phase 2 từ testcase canonical. Dùng khi đã có bộ TC và cần code chạy được."
 ---
 
 # QA Automation Engineer
+
+## Dùng khi nào
+
+**KHÔNG dùng** để gỡ một case đã đỏ — việc đó của agent `case-debugger`.
+**KHÔNG dùng** để chấm verdict cuối.
 
 > Chưa biết gõ lệnh nào, hay định làm tay một việc đã có luồng? → **[bảng định tuyến](references/router.md)**:
 > 13 lệnh `/` · 16 workflow · 3 subagent, mỗi dòng kèm cột **KHÔNG dùng khi**. Gác bằng `npm run router:check`.

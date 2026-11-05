@@ -35,15 +35,18 @@ const cfgLine = nProb
  * quảng bá cả 28, kèm mô tả đầy đủ, gọi được bằng tên qua công cụ `Skill`. Dòng của hook vì thế vừa
  * THỪA, vừa SAI: nó dạy một cách dùng không còn đúng, trong phần mà mọi phiên đều đọc.
  *
- * VÀ NÓ KHÔNG CHỈ TỐN CHỖ. Đo bằng `skills:route:live` trên cùng 90 câu, cùng model, cùng ngày:
+ * LÝ DO GỠ LÀ VÌ NÓ SAI, KHÔNG PHẢI VÌ MỘT CON SỐ ĐỊNH TUYẾN.
  *
- *   ngữ cảnh                        top-1       không gọi skill nào
- *   thư mục tạm, KHÔNG hook         38,6%       43/70
- *   gốc repo, CÓ hook               24,3%       53/70
+ * Bản đầu của chú thích này ghi một bảng "có hook 24,3% / gỡ hook 50,0%" và kết luận gỡ dòng ấy làm
+ * định tuyến TĂNG GẤP ĐÔI. RÚT LẠI 05/11/2026: cả hai con số lấy từ lượt quét chạy 3 LUỒNG SONG SONG,
+ * nơi các phiên model bị throttle và bản đầu của `skills_route_live.js` đếm lượt bị throttle THÀNH
+ * "model không gọi skill". Chạy lại tuần tự thì riêng dao động giữa hai lượt CÙNG trạng thái đã tới 8,8
+ * điểm (64,7% và 73,5%). Không có phép đo tuần tự trước/sau cho việc gỡ hook, nên con số "gấp đôi"
+ * KHÔNG có căn cứ và không được dẫn lại.
  *
- * Thêm hook làm model GỌI SKILL ÍT HƠN. Cả hai lượt đều 0 ca chọn sai, 0 lẫn cặp dễ nhầm, 0 ca `none`
- * kích hoạt nhầm — tức khoảng cách nằm trọn ở chỗ "có gọi hay không", đúng chỗ câu "KHÔNG auto-load"
- * tác động. Số đo sau khi gỡ ghi ở docs/v2.10.0/ROUTE_LIVE_REPO_SAU.md.
+ * Điều CÒN đúng: dòng ấy nói "KHÔNG auto-load" về những skill đang được quảng bá là gọi được bằng tên.
+ * Một chỉ dẫn sai trong phần mọi phiên đều đọc thì gỡ là đúng, dù nó có ảnh hưởng đo được hay không.
+ * Phần luôn nạp giảm 2,01 → 1,23 KB.
  */
 
 const ctx = [

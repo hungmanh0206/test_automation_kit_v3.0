@@ -1,6 +1,6 @@
 ---
 name: backlog_bug_reporter
-description: Log Backlog sub-bug từ testcase FAIL đã qua Bug Claim Gate sau Phase 2. Dùng khi tầng lỗi là product_bug hoặc api_bug và đã có evidence ảnh/video. KHÔNG dùng cho setup_failure, SKIP, hay FAIL chưa rerun đủ vòng.
+description: "LOG BUG lên Backlog thành sub-bug từ testcase FAIL đã qua Bug Claim Gate. Chỉ khi tầng lỗi là product_bug hoặc api_bug và đã có evidence."
 ---
 
 <!-- SINH TỰ ĐỘNG bởi `node scripts/qa/skills_index.js --write` — ĐỪNG SỬA TAY. -->

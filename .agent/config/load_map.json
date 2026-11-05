@@ -122,11 +122,11 @@
       "co_dieu_kien": [
         {
           "file": "prompt_templates/run_phase1_template.md",
-          "khi": "Người dùng trả lời câu 3 là Phase 1 — lúc đó mới nạp, và nạp thì chuyển hẳn sang luồng phase1."
+          "khi": "KHÔNG nạp trong /start. Chỉ nạp khi người dùng TỰ gõ /phase1 (câu 3 trả lời Phase 1 chỉ quyết định lệnh nào được BÁO ra, không phải lệnh để agent tự chạy)."
         },
         {
           "file": "prompt_templates/run_phase2_template.md",
-          "khi": "Người dùng trả lời câu 3 là Phase 2 — tương tự, chuyển hẳn sang luồng phase2."
+          "khi": "KHÔNG nạp trong /start. Chỉ nạp khi người dùng TỰ gõ /phase2."
         }
       ]
     },

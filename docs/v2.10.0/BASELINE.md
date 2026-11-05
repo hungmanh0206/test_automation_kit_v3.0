@@ -131,53 +131,131 @@ câu truy vấn *"sửa chỗ này thì vỡ bề mặt nào"*. Thêm 5 ca đố
 `skills:route:check`: **69/69 → 90/90 ca**, top-1 **97,8%**, `none` kích hoạt nhầm **0/20**, **0** ca
 chọn sai, **2** ca dưới sàn (khai thành nợ mô tả).
 
-## 2.2 — CHƯA ĐẠT 5. Đo được 50%, ngưỡng 90%.
+## 2.2 — CHƯA ĐẠT 5. Đo tuần tự được ~69%, ngưỡng 90%.
 
-### Phát hiện chính: một dòng trong hook đang CHẶN việc gọi skill
+### Số đo đáng tin duy nhất: 4 lượt TUẦN TỰ, 05/11/2026
 
-Phép phân biệt đúng chuẩn — **cùng 90 câu, cùng gốc repo, cùng model, chỉ khác một dòng**:
+Cùng 90 câu, cùng gốc repo, cùng model `2.1.285`, cùng bản dụng cụ (kiểm khớp từng byte), một luồng.
+Biến DUY NHẤT là 12 description. Bên "trước" đo trên một `git worktree` riêng, không sửa cây dùng chung.
 
-| Hook | top-1 | ca thật không gọi skill nào |
-|---|---|---|
-| CÓ dòng `Skill của kit (28, KHÔNG auto-load — mở file để dùng)` | **24,3%** (17/70) | 53/70 |
-| ĐÃ GỠ dòng đó | **50,0%** (35/70) | 31/70 |
+| | lượt 1 | lượt 2 | dải | trung bình |
+|---|---|---|---|---|
+| "trước" — 12 mô tả DÀI (~250 ký tự) | 70,0% | 68,6% | 68,6–70,0 | **69,3%** |
+| "sau" — 12 mô tả NGẮN (~140 ký tự) | 64,7% | 73,5% | 64,7–73,5 | **69,1%** |
 
-Gỡ một dòng làm tỉ lệ gọi đúng **tăng gấp đôi**. Cả hai lượt: **0** ca chọn sai, **0** lẫn cặp dễ
-nhầm, **0/20** ca `none` kích hoạt nhầm — khoảng cách nằm TRỌN ở chỗ "có gọi hay không", đúng chỗ câu
-"KHÔNG auto-load" tác động.
+Cả bốn lượt: **0** ca chọn sai · **0** lẫn cặp dễ nhầm · **0** ca `none` kích hoạt nhầm.
 
-Dòng đó tồn tại vì một tiền đề đã hết đúng (`harness không tự phát hiện .agent/skills`). Nó vừa thừa,
-vừa dạy sai, vừa làm giảm chất lượng định tuyến — và nằm trong phần mọi phiên đều đọc.
+Luật đọc viết TRƯỚC khi có số: hai dải chồng lên nhau thì nhát cắt không gây hại đo được và được giữ;
+bên "trước" cao rõ hơn cả dải của "sau" thì hoàn tác. **Hai dải chồng lên nhau hoàn toàn, trung bình
+chênh 0,2 điểm ⇒ GIỮ nhát rút mô tả.** Phần luôn nạp ở mức 11,88 KB vì thế không phải trả bằng chất
+lượng định tuyến.
+
+Và một con số phụ quan trọng hơn cả kết luận: **hai lượt của CÙNG MỘT trạng thái lệch nhau tới 8,8
+điểm** (64,7% và 73,5%). Đó là độ phân giải của phép đo này. Mọi chênh lệch trước/sau nhỏ hơn cỡ đó
+đều không phân biệt được với dao động.
+
+### Rút lại: con số "gỡ hook làm định tuyến tăng gấp đôi"
+
+Bản trước của mục này ghi một bảng "CÓ dòng hook 24,3% / ĐÃ GỠ 50,0%" và kết luận gỡ dòng ấy làm tỉ lệ
+gọi đúng **tăng gấp đôi**. **RÚT LẠI.** Cả hai con số lấy từ lượt quét chạy **3 luồng song song**, nơi
+các phiên model bị throttle, và bản đầu của dụng cụ đếm lượt bị throttle **thành** "model không gọi
+skill". Không có phép đo tuần tự trước/sau cho việc gỡ hook, nên câu "gấp đôi" **không có căn cứ**.
+
+Điều còn đúng: dòng hook nói *"KHÔNG auto-load — mở file để dùng"* về những skill đang được quảng bá là
+gọi được bằng tên. Gỡ một chỉ dẫn sai trong phần mọi phiên đều đọc là đúng, dù nó có ảnh hưởng đo được
+hay không. Phần luôn nạp giảm 2,01 → 1,23 KB.
 
 ### Còn thiếu gì để lên 5
 
-- **top-1 50% so với ngưỡng 90%.** Thiếu **28 ca** nữa trên 70.
-- 31 ca còn trượt đều là *"không gọi skill nào"*, **rải mỏng khắp 21 skill** (nhiều nhất 5 ca cho
-  `system_mapper`). **Không mô tả nào là thủ phạm**, nên không nhát sửa mô tả nào kéo được con số này.
-  Đây là khuôn "model trả lời luôn thay vì mở skill" — thuộc về quyết định *có cần skill không*, không
-  thuộc về định tuyến.
+- **top-1 ~69% so với ngưỡng 90%.** Thiếu khoảng **15 ca** trên 70.
+- Ca trượt đều là *"không gọi skill nào"*, không có ca nào chọn SAI. Lượt 3 luồng trước đó cho thấy chúng
+  rải mỏng khắp nhiều skill, nên không nhát sửa mô tả nào kéo được con số này. Khuôn là *"model trả lời
+  luôn thay vì mở skill"*, tức quyết định *có cần skill không*, không phải định tuyến.
 
-### Giới hạn của chính phép đo này, khai thẳng
+### Giới hạn của chính phép đo này
 
 Bộ đo chặn mọi công cụ làm việc, nên model chỉ còn hai đường: gọi `Skill` hoặc trả lời bằng chữ. Trong
-lượt dùng thật, model có công cụ và có task, nên nó có thể mở skill muộn hơn trong lượt. **Vậy 50% là
-CHẶN DƯỚI, không phải "độ chính xác định tuyến".** Đừng đọc nó thành con số tuyệt đối.
+lượt dùng thật, model có công cụ và có task, nên nó có thể mở skill muộn hơn trong lượt. **Vậy ~69% là
+CHẶN DƯỚI, không phải "độ chính xác định tuyến".**
 
 Và `skills:route:check` (từ ngữ) **đo hụt** so với model thật: câu *"soak test nửa tiếng"* bị nó xếp
 dưới sàn 3,57 điểm, còn model gọi thẳng `load_check` ngay lượt đầu.
 
-### Hai lỗi của chính tôi trong lúc dựng, ghi lại vì chúng sẽ lặp
+### Ba lỗi của chính tôi trong lúc đo, và lỗi thứ ba vô hiệu hoá cả hai lỗi trước
 
 1. **Ba lỗi đường ống, một triệu chứng.** `spawn` với `shell:true` nối tham số không escape (câu tiếng
    Việt vỡ); `--allowed-tools Skill` KHÔNG giới hạn gì (model đi `PowerShell` dò thư mục rỗng); stdin
    không chặn (chờ 3 giây mỗi lượt). Cả ba đều hiện ra thành *"model không gọi skill nào"*, và **không
-   cái nào là lỗi định tuyến**. Lượt đầu ra 0/6, lượt hai 1/6 — nếu báo hai số đó thì người đọc nhận
-   một kết luận hoàn toàn sai mà trông y hệt kết quả thật.
+   cái nào là lỗi định tuyến**. Lượt đầu ra 0/6, lượt hai 1/6.
 2. **So hai mẫu số khác nhau rồi kết luận nhân quả.** Tôi lấy 38,6% (90 câu, thư mục rỗng) so với
-   68,8% (20 câu, repo) và kết luận "ngữ cảnh làm nên khác biệt". Đối chứng cùng mẫu bác ngay: 20 câu
-   ấy ở thư mục rỗng ra **75,0%**, tức cao hơn chứ không thấp hơn. Đã vá dụng cụ: `--gioi-han` nay in
-   cảnh báo "ĐÂY LÀ MẪU, không đại diện về độ khó" và dòng đó đi vào **cả file báo cáo**.
+   68,8% (20 câu, repo) và kết luận "ngữ cảnh làm nên khác biệt". Đối chứng cùng mẫu bác ngay: 20 câu ấy
+   ở thư mục rỗng ra **75,0%**. Đã vá: `--gioi-han` nay in cảnh báo "ĐÂY LÀ MẪU", và dòng đó đi vào
+   **cả file báo cáo**.
+3. **Chạy song song, và đếm lượt hỏng thành kết quả.** Năm lượt quét 3 luồng cho 38,6% · 24,3% · 50,0% ·
+   32,9% · **2,9%**. Lượt 2,9% có 68/70 ca "không gọi skill" — ngay sau đó một lượt đơn lẻ vẫn gọi đúng
+   `load_check`, và 6 câu chạy tuần tự cho 5/5. Dụng cụ không phân biệt "model không gọi" với "lượt chạy
+   hỏng". **Lỗi này làm cả năm con số trên đều không đọc được**, kể cả con số tôi từng dùng để kết luận
+   ở mục 2 bên trên. Đã vá: đọc `result.subtype` và `is_error`, tách ô `KHÔNG CHẠY ĐƯỢC` ra khỏi mẫu số,
+   hỏng quá 10% thì exit 2 "KHÔNG PHÁN ĐƯỢC", và mặc định `--song-song` đổi từ 2 xuống 1.
+
+Đây đúng lớp hỏng cả kit đi chữa — *một lượt không đo được trả về thứ trông như một kết quả* — và lần
+này nó nằm trong dụng cụ của chính tôi, sau khi tôi đã vá nó ba lần ở nơi khác.
 
 Thêm một chỗ bắt được trước khi nổ: chế độ `--trong-repo` làm `goc` **là gốc repo**, mà dòng dọn cuối
 script là `fs.rmSync(goc, { recursive: true, force: true })` — chạy một lần là **xoá sạch cây làm
 việc**, cây đang có WIP của các phiên khác. Đã chặn bằng `if (!TRONG_REPO)`.
+
+---
+
+# SỐ ĐO SAU — Phần 3.2 (cắt phần luôn nạp)
+
+Đo 05/11/2026 bằng `npm run token:session`.
+
+| Khối | trước | sau | chênh |
+|---|---|---|---|
+| `CLAUDE.md` | 4,23 | **2,77** | −1,46 |
+| hook SessionStart | 2,01 | **1,23** | −0,78 |
+| description 28 skill | 7,28 | **5,23** | −2,05 |
+| description 13 command | 2,03 | 2,03 | 0 |
+| description 3 agent | 0,74 | **0,63** | −0,11 |
+| **TỔNG luôn nạp** | **16,29** | **11,88 KB** | **−4,41 (−27%)** |
+
+## Ba nhát cắt của bản chấm: ước so với đo
+
+| | bản chấm ước | đo thật |
+|---|---|---|
+| gỡ danh sách skill khỏi hook | −2,2 | **−0,78** |
+| mọi description ≤ 200 ký tự | −1,7 | **−2,16** (viết gọn lại, không cắt cụt; cắt cụt chỉ được −0,71) |
+| `CLAUDE.md` mỗi điều ≤ 2 câu | −2,0 | **−1,46** |
+
+## Đích < 10 KB — CHƯA ĐẠT, thiếu 1,88 KB
+
+Đường cong đo được (giả định `CLAUDE.md` đã cắt): muốn xuống dưới 10 KB phải chặn description ở **110
+ký tự**, tức **cắt cụt 38 trên 44 mô tả**. Ở 120 ký tự vẫn còn 10,13 KB.
+
+Không cắt tới đó, vì nó đổi tiêu chí này lấy tiêu chí "Kích hoạt skill", và chính Luật nền của bản chấm
+yêu cầu hoàn tác khi một phép đo chất lượng tụt. Mô tả command (2,03 KB) cũng không cắt thêm: chúng là
+thứ NGƯỜI đọc để chọn lệnh `/…`, và cắt hết chỗ dư chỉ được ~0,4 KB — không tới đích.
+
+## Nhát rút description có làm hỏng định tuyến không — KHÔNG, đo được
+
+Xem mục 2.2 và [`ROUTE_LIVE.md`](ROUTE_LIVE.md): 4 lượt tuần tự, mô tả dài 68,6–70,0% so với mô tả
+ngắn 64,7–73,5%. Hai dải chồng lên nhau hoàn toàn. Bộ chấm từ ngữ (`skills:route:check`) sau khi cắt
+vẫn **96,7%** top-1, `none` kích hoạt nhầm **5%** (trần 10%), **0** ca chọn sai.
+
+## Khoá kết quả
+
+- `skills:lint` thêm luật **`descMaxChars: 200`**, CHẶN khi vượt. Đi cặp với `descMinChars: 80`.
+- `alwaysOnMaxKB` chốt **12,6** = số đo 11,88 + 5% đệm. Ghi thẳng trong `prompt_budget.json` rằng đích
+  dưới 10 **chưa đạt** và cái giá phải trả nếu muốn ép xuống. Không đặt 10, vì một ngưỡng đỏ ngay hôm
+  đặt là tiếng ồn, và tiếng ồn thì bị tắt.
+
+## Một sửa nội dung, ngoài phạm vi, vì nó là lỗi thật
+
+`CLAUDE.md` mục 5 từng ghi *"Creds ở `profiles/<TASK>/task.env` (**KHÔNG** `.env` chung)"*. Câu đó đã
+dẫn tới một kết luận sai ở phiên trước: `RULE_GLOBAL.md` và `profiles/task.env.example` đặt tài khoản
+app dùng chung ở `.env`. Nay mục 5 ghi điều đã đo được: **mỗi profile phải tự ghim `QEMIS_CAP_HOC`**,
+vì thiếu nó app lặng lẽ về "Mầm non" và lượt chạy vẫn XANH trên cấp sai.
+
+Mục 3 từng chiếm **2028 trên 4336 byte** của `CLAUDE.md` — một bức tường gộp 8 luật. Phần chi tiết
+chuyển sang `core_rules.md §Verify mở rộng`, **không bỏ luật nào**.

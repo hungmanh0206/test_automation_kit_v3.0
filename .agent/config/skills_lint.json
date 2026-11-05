@@ -1,6 +1,8 @@
 {
   "_why": "Tiêu chí CHẤT LƯỢNG mô tả skill (v2.5.0 G3.3). `skills:index --check` đã khoá rằng INDEX.md khớp cây và frontmatter có `name`/`description`, nhưng KHÔNG chấm chất lượng: một description 20 ký tự vẫn qua. Mà description là thứ DUY NHẤT agent đọc để quyết định có mở skill hay không — mô tả không nói được 'dùng khi nào' thì skill đó không bao giờ được gọi, và 25 skill thành 25 file chết.",
   "descMinChars": 80,
+  "_descMaxChars_la_gi": "Trần độ dài description. Đi CẶP với descMinChars và hai cái kéo ngược nhau có chủ ý: quá ngắn thì skill không bao giờ được gọi, quá dài thì MỌI phiên trả tiền cho chữ phần lớn không dùng tới. Đo 04/11/2026: 44 mô tả = 9,51 KB trên tổng 16,29 KB phần luôn nạp, khối LỚN NHẤT, lớn hơn cả CLAUDE.md. Phần dư KHÔNG xoá, nó xuống mục Dùng khi nào trong thân skill. Đo bằng npm run token:session.",
+  "descMaxChars": 200,
   "_descMinChars_do_duoc": "Đo 10/10/2026 trên 25 skill: chỉ 3 skill có description dưới 80 ký tự (`qa_automation_engineer` 69 · `backlog_bug_reporter` 61 · `test_data_generator` 78), và cả 3 đều chỉ thiếu một mệnh đề 'dùng khi'. Ngưỡng 80 vì vậy CHẶN được ngay mà chỉ phải sửa 3 chỗ — không phải một ngưỡng đặt cho đẹp.",
   "dupDescThreshold": 0.3,
   "_dupDescThreshold_do_duoc": "Jaccard trên tập từ ≥ 4 ký tự. Đo 10/10/2026: **0 cặp** trong 25 skill đạt 0.30, nên ngưỡng này CHẶN được ngay. Hai skill mô tả giống nhau thì agent không có căn cứ để chọn, và nó sẽ chọn sai hoặc mở cả hai.",

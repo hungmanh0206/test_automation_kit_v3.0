@@ -44,8 +44,41 @@ const co = (ten, macDinh) => {
   return i >= 0 && process.argv[i + 1] ? process.argv[i + 1] : macDinh;
 };
 
+/*
+ * `--lan N` — CHẠY LẠI N LƯỢT, vì quyết định "có gọi skill không" của model là NGẪU NHIÊN.
+ *
+ * Bản đầu chạy đúng một lượt rồi in một con số, và con số đó trông y hệt một phép đo. Đo 05/11/2026
+ * cho thấy nó không phải:
+ *
+ *   lượt A (trước khi rút mô tả) ... top-1 50,0%
+ *   lượt B (sau khi rút mô tả) .... top-1 32,9%
+ *
+ * Nhìn hai số ấy thì kết luận hiển nhiên là "rút mô tả làm hỏng định tuyến". Nhưng so từng câu giữa
+ * hai lượt: 17 ca hỏng đi, và **8 trong số đó thuộc skill KHÔNG hề bị sửa** giữa hai lượt. Thêm 5 ca
+ * khá lên, trong đó có cả skill vừa bị rút. Tức phần lớn chênh lệch là DAO ĐỘNG GIỮA HAI LƯỢT.
+ *
+ * ĐÍNH CHÍNH 05/11/2026: hai lượt A/B ở trên chạy 3 LUỒNG, và phần lớn chênh lệch của chúng là do
+ * throttle bị đếm thành "không gọi skill" — xem khối mặc định --song-song. Nhưng kết luận của khối này
+ * vẫn đứng: đo lại TUẦN TỰ thì hai lượt của CÙNG một trạng thái vẫn lệch 8,8 điểm (64,7% và 73,5%).
+ *
+ * Một lượt so một lượt KHÔNG phân biệt được "bản vá làm hỏng" với "hôm nay bốc phải lượt thấp". Nên
+ * mặc định nay là 2 lượt, và báo cáo in CẢ dải (thấp nhất–cao nhất) chứ không chỉ trung bình: một con
+ * số đơn lẻ giấu mất chính thông tin cần để đọc nó.
+ */
+const LAN = Math.max(1, Number(co('lan', '2')));
 const GIOI_HAN = Number(co('gioi-han', '0')) || 0;
-const SONG_SONG = Math.max(1, Number(co('song-song', '2')));
+/*
+ * MẶC ĐỊNH 1 LUỒNG — đổi từ 2 xuống 1 ngày 05/11/2026, và đây là lý do.
+ *
+ * Bốn lượt quét 90 câu chạy ở 3 luồng cho 38,6% / 24,3% / 50,0% / 32,9% / 2,9%. Lượt 2,9% có 68/70
+ * ca 'không gọi skill' — một con số không nói gì về định tuyến. Chạy lại 6 câu ở MỘT luồng ngay sau
+ * đó: 5/5 đúng, 0 lượt hỏng, 0 ca không gọi.
+ *
+ * Nhiều phiên model song song bị throttle, và bản đầu của cửa đếm lượt bị throttle THÀNH 'không gọi
+ * skill'. Tức song song vừa làm hỏng phép đo, vừa làm nó hỏng theo cách trông giống một kết quả.
+ * Ai muốn chạy nhanh hơn thì tự khai --song-song, và đọc ô 'KHÔNG CHẠY ĐƯỢC' trước khi tin con số.
+ */
+const SONG_SONG = Math.max(1, Number(co('song-song', '1')));
 const RA = co('ra', null);
 const NGUONG_TOP1 = Number(co('nguong', '0.90'));
 const TRAN_NONE = Number(co('tran-none', '0.10'));
@@ -167,6 +200,21 @@ function mot(cau) {
 
     let buf = '';
     let chon = null;
+    /*
+     * PHẢI PHÂN BIỆT "MODEL KHÔNG GỌI" VỚI "LƯỢT CHẠY HỎNG" — thêm 05/11/2026 sau khi bản đầu trộn
+     * hai thứ đó và làm BỐN lượt quét trở nên vô nghĩa.
+     *
+     * Bản đầu gán `chon = 'none'` cho mọi lượt không thấy lời gọi `Skill`, bất kể vì sao. Bốn lượt
+     * quét ra 38,6% → 24,3% → 50,0% → 32,9% → 2,9%, và lượt 2,9% có 68/70 "không gọi" — con số ấy
+     * không nói về định tuyến, nó nói rằng các lượt con đã hỏng. Chạy lại MỘT lượt ngay sau đó thì
+     * model gọi đúng `load_check`, rate limit `allowed_warning` ở 29%.
+     *
+     * Đây đúng lớp hỏng cả kit đi chữa, lần này nằm trong dụng cụ của chính tôi: một lượt KHÔNG đo
+     * được trả về thứ trông như một kết quả. Nên nay đọc `result.subtype` và cờ `is_error`, rồi tách
+     * ra ô `KHÔNG ĐO ĐƯỢC` — ô đó KHÔNG được tính vào mẫu số của tỉ lệ.
+     */
+    let ketCuc = null;
+    let coLoi = false;
     p.stdout.on('data', (d) => {
       buf += String(d);
       const dong = buf.split('\n');
@@ -175,6 +223,7 @@ function mot(cau) {
         if (chon || !l.trim()) continue;
         let j;
         try { j = JSON.parse(l); } catch (e) { continue; }
+        if (j.type === 'result') { ketCuc = String(j.subtype || 'success'); if (j.is_error) coLoi = true; }
         const noi = j.message && j.message.content;
         for (const b of (Array.isArray(noi) ? noi : [])) {
           /* CHỈ đọc lời GỌI công cụ. Model tự thuật "tôi sẽ dùng X" là lời khai, không phải phép đo. */
@@ -183,7 +232,12 @@ function mot(cau) {
       }
     });
     p.stderr.on('data', () => {});
-    p.on('close', () => ok({ chon: chon || 'none', giay: Math.round((Date.now() - t0) / 1000) }));
+    p.on('close', () => {
+      /* 'success' và 'error_max_turns' đều là lượt CHẠY ĐƯỢC: max_turns chỉ nghĩa là hết lượt sau khi
+       * đã có cơ hội gọi skill. Mọi subtype khác, hoặc is_error, là lượt KHÔNG ĐO ĐƯỢC. */
+      const chayDuoc = !coLoi && (ketCuc === 'success' || ketCuc === 'error_max_turns');
+      ok({ chon: chon || (chayDuoc ? 'none' : null), ketCuc: ketCuc || '(không có result)', giay: Math.round((Date.now() - t0) / 1000) });
+    });
     p.on('error', () => ok({ chon: null, giay: Math.round((Date.now() - t0) / 1000) }));
   });
 }
@@ -206,13 +260,31 @@ function mot(cau) {
   /* KHÔNG xoá khi đo trong repo thật — goc LÀ gốc repo. */
   if (!TRONG_REPO) { try { fs.rmSync(goc, { recursive: true, force: true }); } catch (e) { /* dọn là tiện ích */ } }
 
+  /*
+   * LƯỢT HỎNG KHÔNG ĐƯỢC VÀO MẪU SỐ. Tính chúng như "không gọi skill" là trộn một lỗi hạ tầng vào một
+   * phép đo chất lượng — và đó chính là cách bản đầu sinh ra con số 2,9% (68/70 "không gọi") mà ngay
+   * sau đó một lượt đơn lẻ vẫn gọi đúng `load_check`.
+   *
+   * Trần 10% đặt thấp có chủ ý: trên mức đó thì con số còn lại không đủ để nói gì, và cửa phải IM chứ
+   * không phán. `thoat2` trả exit 2 "KHÔNG PHÁN ĐƯỢC".
+   */
   const hong = kq.filter((x) => x.ra === null);
+  if (hong.length) {
+    const theoKetCuc = {};
+    for (const h of hong) theoKetCuc[h.ketCuc] = (theoKetCuc[h.ketCuc] || 0) + 1;
+    console.log(`[route-live] ⚠ ${hong.length}/${kq.length} lượt KHÔNG CHẠY ĐƯỢC — loại khỏi mẫu số: ${JSON.stringify(theoKetCuc)}`);
+  }
   if (hong.length > kq.length * 0.1) {
-    thoat2(`${hong.length}/${kq.length} lượt KHÔNG chạy được.`, 'Tỉ lệ hỏng quá cao để con số còn nghĩa.');
+    thoat2(
+      `${hong.length}/${kq.length} lượt KHÔNG chạy được (quá 10%).`,
+      'Con số còn lại không đủ để nói gì về định tuyến. Kiểm rate limit, rồi chạy lại với --song-song 1.',
+    );
   }
 
-  const that = kq.filter((x) => x.mong !== 'none');
-  const none = kq.filter((x) => x.mong === 'none');
+  /* Chỉ lượt CHẠY ĐƯỢC mới vào thống kê. */
+  const dungDuoc = kq.filter((x) => x.ra !== null);
+  const that = dungDuoc.filter((x) => x.mong !== 'none');
+  const none = dungDuoc.filter((x) => x.mong === 'none');
   const dung = that.filter((x) => x.ra === x.mong);
   const sai = that.filter((x) => x.ra !== x.mong && x.ra !== 'none');
   const khongGoi = that.filter((x) => x.ra === 'none');
@@ -243,7 +315,10 @@ function mot(cau) {
       `# skills:route:live — ${d}`,
       '',
       `- model CLI: \`${phienBan}\``,
-      `- số câu: **${kq.length}** (${that.length} ca thật · ${none.length} ca \`none\`)`,
+      `- số câu: **${kq.length}** (${that.length} ca thật · ${none.length} ca \`none\` được tính)`,
+      /* Báo cáo PHẢI tự khai số lượt bị loại. Bản đầu ghi "số câu: 90" rồi để người đọc tự cộng
+       * 68 + 19 = 87 mới thấy thiếu 3 — tức một phép đo giấu đúng thông tin cần để đọc nó. */
+      ...(hong.length ? [`- ⚠ **${hong.length} lượt KHÔNG CHẠY ĐƯỢC, đã loại khỏi mẫu số**: ${JSON.stringify(hong.reduce((a, h) => { a[h.ketCuc] = (a[h.ketCuc] || 0) + 1; return a; }, {}))}`] : []),
       ...(GIOI_HAN > 0 ? [
         `- ⚠ **ĐÂY LÀ MẪU ${kq.length}/${fx.ca.length} câu** (\`--gioi-han\`). Giữ đúng tỉ lệ \`none\`, nhưng KHÔNG đại diện`,
         '  về độ khó. Đừng so con số này với con số của bộ đầy đủ, và đừng so hai lượt khác mẫu số rồi',

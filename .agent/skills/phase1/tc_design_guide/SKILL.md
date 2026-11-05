@@ -1,9 +1,14 @@
 ---
 name: tc_design_guide
-description: Dạy cách THIẾT KẾ test case thủ công cho tốt — 6 thành phần, ranh giới Actor/Context/Tiền điều kiện, chọn kỹ thuật theo tình huống, anti-pattern. Dùng khi đang viết testcase ở Phase 1, trước khi gắn tag chiều. Không dạy locator, không đặt luật evidence.
+description: "Dạy THIẾT KẾ TEST CASE thủ công: 6 thành phần, ranh giới Actor/Context/TIỀN ĐIỀU KIỆN, chọn KỸ THUẬT (phân vùng, BIÊN) theo tình huống, anti-pattern."
 ---
 
 # Thiết kế test case — hướng dẫn
+
+## Dùng khi nào
+
+Dùng khi đang viết testcase ở Phase 1, **trước** khi gắn tag chiều.
+Không dạy locator, không đặt luật evidence.
 
 > **Mỗi điểm dạy ở đây đều nối tới một máy kiểm có thật**, hoặc ghi thẳng *"chưa có máy"*. Không có
 > mục nào tự chấm bằng văn: việc chấm thuộc `tc:review`, `dim:coverage`, `gate:gen-testcase`.

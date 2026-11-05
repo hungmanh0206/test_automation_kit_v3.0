@@ -1,6 +1,6 @@
 ---
 name: run_report_reader
-description: Đọc kết quả một lượt chạy theo đúng thứ tự và đúng nguồn — artifact nào trả lời được câu gì, và câu nào KHÔNG artifact nào trả lời được. Mở khi vừa chạy xong và cần hiểu lượt đó nói gì, hoặc khi nhận lại một lượt chạy của người khác. KHÔNG chấm verdict, KHÔNG sửa spec, KHÔNG viết bug.
+description: "ĐỌC KẾT QUẢ một lượt chạy đúng thứ tự và đúng nguồn: artifact nào trả lời được câu gì, và câu nào KHÔNG artifact nào trả lời được."
 ---
 
 <!-- SINH TỰ ĐỘNG bởi `node scripts/qa/skills_index.js --write` — ĐỪNG SỬA TAY. -->

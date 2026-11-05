@@ -1,3 +1,12 @@
+> ## ⛔ BÁO CÁO NÀY KHÔNG ĐỌC ĐƯỢC — giữ lại làm lịch sử của một phép đo hỏng
+>
+> Lượt này chạy **3 LUỒNG SONG SONG**. Các phiên model bị throttle, và bản dụng cụ lúc đó đếm lượt bị
+> throttle **thành** "model không gọi skill". Năm lượt chạy kiểu này cho 38,6% · 24,3% · 50,0% · 32,9% ·
+> 2,9% — lượt cuối có 68/70 ca "không gọi" trong khi ngay sau đó một lượt đơn lẻ vẫn gọi đúng skill.
+>
+> **Đừng dẫn con số dưới đây.** Số đo đáng tin là 4 lượt TUẦN TỰ ở [`ROUTE_LIVE.md`](ROUTE_LIVE.md).
+> Vì sao hỏng và đã vá thế nào: [`BASELINE.md`](BASELINE.md) mục 2.2.
+
 # skills:route:live — 2026-11-04
 
 - model CLI: `2.1.285 (Claude Code)`

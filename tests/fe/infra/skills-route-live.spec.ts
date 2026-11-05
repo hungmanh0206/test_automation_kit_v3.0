@@ -80,6 +80,45 @@ test.describe('@infra skills:route:live — báo cáo phải mô tả ĐÚNG lư
   });
 });
 
+/*
+ * LƯỢT HỎNG KHÔNG ĐƯỢC THÀNH KẾT QUẢ — nhóm ca thêm 05/11/2026.
+ *
+ * Năm lượt quét chạy 3 luồng cho 38,6% · 24,3% · 50,0% · 32,9% · 2,9%. Lượt 2,9% có 68/70 ca "không gọi
+ * skill", và ngay sau đó một lượt đơn lẻ vẫn gọi đúng `load_check`. Bản đầu của cửa gán 'none' cho MỌI
+ * lượt không thấy lời gọi `Skill`, kể cả lượt bị throttle — nên nó trộn một lỗi hạ tầng vào một phép đo
+ * chất lượng, và một kết luận rút từ đó ("gỡ hook làm định tuyến tăng gấp đôi") đã phải rút lại.
+ */
+test.describe('@infra skills:route:live — lượt hỏng không được thành kết quả', () => {
+  test('đọc `result.subtype` để phân biệt "không gọi" với "không chạy được"', () => {
+    const s = src();
+    expect(s).toMatch(/j\.type === 'result'/);
+    expect(s, 'thiếu nhánh này thì lượt bị throttle bị đếm thành "model không gọi skill"')
+      .toMatch(/chayDuoc\s*\?\s*'none'\s*:\s*null/);
+  });
+
+  test('lượt hỏng bị LOẠI KHỎI MẪU SỐ, không tính vào tỉ lệ', () => {
+    const s = src();
+    expect(s).toMatch(/const dungDuoc = kq\.filter\(\(x\) => x\.ra !== null\)/);
+    expect(s, 'tỉ lệ phải tính trên lượt CHẠY ĐƯỢC, không trên mọi lượt')
+      .toMatch(/const that = dungDuoc\.filter/);
+  });
+
+  test('hỏng quá 10% ⇒ KHÔNG PHÁN ĐƯỢC, không in tỉ lệ', () => {
+    expect(src()).toMatch(/hong\.length > kq\.length \* 0\.1\)\s*\{\s*\n\s*thoat2\(/);
+  });
+
+  test('mặc định MỘT luồng — chạy song song từng làm hỏng phép đo theo cách trông giống kết quả', () => {
+    expect(src()).toMatch(/co\('song-song', '1'\)/);
+  });
+
+  test('báo cáo .md TỰ KHAI số lượt bị loại, không để người đọc tự cộng', () => {
+    const s = src();
+    const khoi = s.slice(s.indexOf('const dong = ['));
+    expect(khoi, 'bản đầu ghi "số câu: 90" rồi để người đọc tự cộng 68+19=87 mới thấy thiếu 3')
+      .toMatch(/hong\.length \? \[`- ⚠ \*\*\$\{hong\.length\} lượt KHÔNG CHẠY ĐƯỢC/);
+  });
+});
+
 test.describe('@infra skills:route:live — đo cái gọi, không đo cái tự thuật', () => {
   /*
    * Model nói "tôi sẽ dùng X" mà không gọi X là một LỜI KHAI, không phải một phép đo. Cửa chỉ được
