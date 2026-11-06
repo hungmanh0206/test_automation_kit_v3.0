@@ -4,6 +4,7 @@ import os from 'os';
 import path from 'path';
 import { spawnSync } from 'child_process';
 import { gateEnv } from './_gate_env';
+import { mayThu } from './_may_thu';
 
 /*
  * Test cho gate `Loại case` — case sinh mới phải TỰ XÁC ĐỊNH 1 trong 9 loại đã chốt.
@@ -20,7 +21,10 @@ import { gateEnv } from './_gate_env';
 
 const REPO = path.resolve(__dirname, '..', '..', '..');
 // eslint-disable-next-line global-require
-const CASE_TYPES = require(path.join(REPO, '.agent', 'config', 'case_types.json'));
+/* Hai NGUỒN của cùng một dữ liệu, cho phép trỏ sang bản chép để phép phá hoại không chạm cây dùng chung.
+ * Xem _may_thu.ts: bản chép phải giữ đúng đường dẫn TƯƠNG ĐỐI so với một gốc có package.json. */
+const F_CASE_TYPES = mayThu('CASE_TYPES_JSON', path.join(REPO, '.agent', 'config', 'case_types.json'));
+const CASE_TYPES = JSON.parse(fs.readFileSync(F_CASE_TYPES, 'utf8'));
 const CONVERT = path.join(REPO, 'scripts', 'convert_excel', 'md_to_xlsx.js');
 const node = process.execPath;
 
@@ -117,5 +121,70 @@ test.describe('gate Loại case', () => {
     const r = run([CONVERT, md, out]);
     expect(r.code).toBe(0);
     expect(r.out, 'hai tag trỏ hai loại khác nhau — đoán tiếp là đoán bừa').not.toContain('tag chiều gợi');
+  });
+});
+
+/*
+ * BẢNG 9 LOẠI TRONG PROMPT PHẢI KHỚP `case_types.json` — nhóm ca thêm 05/11/2026.
+ *
+ * Cùng một dữ liệu đang nằm ở HAI chỗ: `case_types.json` (5,7 KB, máy đọc) và bảng markdown trong
+ * `prompt_templates/phase1/02_gen_testcases.md` (5,9 KB, agent đọc). Đo 05/11/2026: hai bên khớp từng
+ * chữ, **0 ô lệch** — nhưng KHÔNG máy nào gác chuyện đó. Spec này đọc `case_types.json` từ trước, mà
+ * chưa bao giờ so với bảng trong prompt.
+ *
+ * Tức sự khớp hôm nay là TÌNH CỜ. Ai sửa một bên rồi quên bên kia thì agent phân loại theo bảng cũ,
+ * `md_to_xlsx` chặn theo bảng mới, và triệu chứng là một case bị từ chối vì một loại "không tồn tại"
+ * trong khi prompt vừa dạy đúng loại đó. Không có ca nào đỏ để chỉ ra nguyên nhân.
+ *
+ * Giữ hai bản sao là có lý: JSON cho máy, bảng cho agent đọc liền mạch trong prompt. Nhưng hai bản sao
+ * KHÔNG CÓ MÁY GÁC thì sớm muộn lệch — đúng lớp hỏng mà `library:drift` và `rule:parity` sinh ra để chặn.
+ */
+test.describe('@infra case_types — bảng trong prompt phải khớp config', () => {
+  const PROMPT = mayThu('GEN_PROMPT_MD', path.join(REPO, 'prompt_templates', 'phase1', '02_gen_testcases.md'));
+  const chuan = (x: unknown) => String(x ?? '').replace(/[`*]/g, '').replace(/\s+/g, ' ').trim().toLowerCase();
+
+  type Hang = { so: number; ten: string; dinhNghia: string; chon: string; khong: string };
+  const docBang = (): Hang[] => {
+    const md = fs.readFileSync(PROMPT, 'utf8');
+    return [...md.matchAll(/^\|\s*(\d+)\s*\|\s*\*\*`([^`]+)`\*\*\s*\|([^|]*)\|([^|]*)\|([^|]*)\|([^|]*)\|/gm)]
+      .map((m) => ({ so: +m[1], ten: m[2], dinhNghia: m[3], chon: m[5], khong: m[6] }));
+  };
+
+  test('bảng có mặt trong prompt — thiếu nó thì mọi ca dưới đây RỖNG', () => {
+    const b = docBang();
+    expect(b.length, 'không đọc được hàng nào ⇒ đổi khuôn bảng rồi, phải sửa ca chứ không mừng')
+      .toBe(CASE_TYPES.types.length);
+  });
+
+  test('TÊN và THỨ TỰ 9 loại khớp `case_types.json`', () => {
+    const tenMd = docBang().map((h) => h.ten);
+    const tenJson = CASE_TYPES.types.map((t: { name: string }) => t.name);
+    expect(tenMd, 'thứ tự cũng phải khớp: prompt dạy "xét chuyên biệt trước", thứ tự LÀ một phần của luật')
+      .toEqual(tenJson);
+  });
+
+  test('ĐỊNH NGHĨA, "chọn khi" và "KHÔNG chọn khi" của từng loại khớp config', () => {
+    const lech: string[] = [];
+    for (const h of docBang()) {
+      const t = CASE_TYPES.types.find((x: { name: string }) => x.name === h.ten);
+      if (!t) continue;
+      const cap: [string, string, unknown][] = [
+        ['định nghĩa', h.dinhNghia, t.definition],
+        ['chọn khi', h.chon, t.choose_when],
+        ['KHÔNG chọn khi', h.khong, t.not_when],
+      ];
+      for (const [nhan, a, b] of cap) {
+        const cb = chuan(Array.isArray(b) ? b.join(' · ') : b);
+        if (chuan(a) !== cb) lech.push(`${h.ten}/${nhan}`);
+      }
+    }
+    expect(lech, `lệch ${lech.length} ô: ${lech.join(', ')} — sửa một bên mà quên bên kia`).toEqual([]);
+  });
+
+  test('"Thứ tự xét" trong prompt khớp `_decision_order`', () => {
+    const md = fs.readFileSync(PROMPT, 'utf8');
+    const ttMd = (md.match(/\*\*Thứ tự xét:\*\*([^\n]*)/) || [, ''])[1];
+    expect(chuan(ttMd), 'thứ tự xét quyết định case được gán loại nào khi khớp nhiều loại')
+      .toBe(chuan(CASE_TYPES._decision_order));
   });
 });

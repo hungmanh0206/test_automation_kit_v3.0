@@ -259,3 +259,65 @@ vì thiếu nó app lặng lẽ về "Mầm non" và lượt chạy vẫn XANH t
 
 Mục 3 từng chiếm **2028 trên 4336 byte** của `CLAUDE.md` — một bức tường gộp 8 luật. Phần chi tiết
 chuyển sang `core_rules.md §Verify mở rộng`, **không bỏ luật nào**.
+
+---
+
+# SỐ ĐO SAU — Phần 3.3 và 3.4 (cắt phần nạp theo phase)
+
+Đo 06/11/2026 bằng `npm run token:phase1`.
+
+| | trước | sau |
+|---|---|---|
+| `run_phase1_template.md` | 31,3 | **11,3** |
+| `phase1/01_setup_engine_fetch_docs.md` | 7,0 | 7,0 |
+| `phase1/02_gen_testcases.md` | 51,1 | 51,1 |
+| **TỔNG bắt buộc phase1** | **89,3** | **69,7 KB** (−22%) |
+
+## Nhát cắt: dời khối "Prompt mẫu để chạy" (20,3 KB)
+
+Khối này là mẫu cho **người** chép, điền placeholder rồi gửi cho agent — agent nhận bản **đã điền** qua
+tin nhắn, nên không cần nạp bản mẫu mỗi lượt. Chuyển sang
+`prompt_templates/phase1/references/prompt_mau_phase1.md`, khai ở `load_map.json` `co_dieu_kien`.
+
+**Căn cứ dời, đo chứ không đoán:** tách khối thành 87 dòng chỉ dẫn, so tập từ khoá với phần CÒN LẠI của
+`run_phase1` + `01_setup` + `02_gen` + `core_rules` + `RULE_GLOBAL`. Kết quả **82/87 dòng đã có ở nơi
+khác**; 2 dòng "có thể riêng" chỉ là ô trống chờ điền URL (`[OPS_BASE_URL]`, `[LMS_BASE_URL]`).
+
+**`gate:policy` bắt một luật thật bị mất:** lệnh `node scripts/convert_excel/md_to_xlsx.js` trước đây
+**chỉ** được nhắc trong khối "Prompt mẫu". Dời khối đi là bước 7 (xuất Excel) mất đường vào từ điểm vào
+duy nhất của phase. Đã thêm một dòng vào bảng "Gate bắt buộc" của `run_phase1_template.md`.
+
+Đó là lý do phải có cửa: 82/87 trùng nghĩa là **5 dòng không trùng**, và một trong số đó là một bước
+bắt buộc. Phép đo của tôi xếp nó vào nhóm "trùng" vì các từ khoá của nó có xuất hiện rải rác ở nơi khác.
+
+## Đích ≤ 45 KB — CHƯA ĐẠT, thiếu 24,7 KB
+
+Đo `02_gen_testcases.md` (51,1 KB) theo từng khối lớn hơn 1 KB:
+
+| | KB |
+|---|---|
+| khối mang **LUẬT CHẶN** (`Kết quả mong đợi` · `Self-check vét cạn biên` · `Loại case` · `CHIỀU COVERAGE` · `Tiền điều kiện`…) | **27,2** |
+| khối "có thể mở" | 16,4 |
+
+Dời **hết** phần có thể mở vẫn còn **53,3 KB**, tức thiếu 8,3 KB so với đích. Cắt thêm là phải dời chính
+luật chặn — và `rule:parity` **không gác `prompt_templates/`**, nên một luật mất ở đó sẽ không máy nào
+bắt. Ngay nhát cắt vừa rồi đã suýt mất một bước bắt buộc, và chỉ `gate:policy` cứu được.
+
+Nên dừng ở 69,7 KB. Ngưỡng `phaseMaxKB.phase1` chốt **73,2** (số đo + 5%), khoá thành quả −22%; ghi thẳng
+trong `prompt_budget.json` rằng đích 45 chưa đạt và vì sao.
+
+## Một lỗ đã đóng nhân lúc đo: hai bản sao không ai gác
+
+Bảng 9 loại case tồn tại ở **hai** chỗ — `.agent/config/case_types.json` (5,7 KB, máy đọc) và bảng
+markdown trong `02_gen_testcases.md` (6,0 KB, agent đọc). Đo 05/11: khớp từng chữ, **0 ô lệch** — nhưng
+`case-type-gate.spec.ts` đọc file JSON mà **chưa bao giờ so với bảng trong prompt**. Sự khớp là **tình cờ**.
+
+Triệu chứng nếu lệch: agent phân loại theo bảng cũ, `md_to_xlsx` chặn theo bảng mới, và một case bị từ
+chối vì một loại "không tồn tại" trong khi prompt vừa dạy đúng loại đó — không ca nào đỏ để chỉ nguyên nhân.
+
+Đã thêm 4 ca gác tên, thứ tự, nội dung ba trường, và `_decision_order`. **5 phép phá → 5 lần đỏ.**
+
+Lượt phá đầu tiên trả **"0 failed · 0 passed"** cho cả 4 phép: đó là lượt **KHÔNG CHẠY** (playwright không
+chạy nổi trong worktree tạm), không phải "phép phá không bắt được". Đã chuyển sang khuôn `mayThu` — trỏ
+spec vào bản chép qua `CASE_TYPES_JSON` và `GEN_PROMPT_MD` — và thêm một nhánh in thẳng *"LƯỢT KHÔNG CHẠY
+— không phải kết quả"* vào script phá hoại.
