@@ -15,6 +15,7 @@
 import { test, expect } from '@playwright/test';
 import fs from 'fs';
 import path from 'path';
+import os from 'os';
 import { spawnSync } from 'child_process';
 import { gateEnv } from './_gate_env';
 
@@ -132,10 +133,39 @@ test.describe('@infra shim skill — đủ, khớp, và không thừa', () => {
     }
   });
 
-  test('ĐỐI CHỨNG ÂM: sau `--write` thì `--check` phải sạch ngay', () => {
-    expect(chay(['--write']).code).toBe(0);
-    const r = chay(['--check']);
-    expect(r.code, r.out).toBe(0);
+  test('ĐỐI CHỨNG ÂM: sau `--write` thì `--check` phải sạch ngay — trên BẢN CHÉP', () => {
+    /*
+     * BẢN ĐẦU GỌI `--write` LÊN CHÍNH REPO, và đó là một spec có TÁC DỤNG PHỤ lên 29 file ĐÃ TRACK.
+     *
+     * Đo 06/11/2026: trên Windows (`core.autocrlf`) bản ghi ra là LF trong khi bản checkout là CRLF, nên
+     * cây thành "đã đổi" dù nội dung y nguyên — và `full_suite_ledger` từ chối phán vì *"cây ĐỔI trong
+     * lúc suite chạy"*. Tức `full:suite` KHÔNG chạy được ở máy, và đó đúng là lỗ đã để 11 ca đỏ lọt tới
+     * runner sạch: tôi chỉ chạy được các spec mình nhắm tới.
+     *
+     * Trên runner Linux thì lượt ghi ra byte y hệt nên không ai thấy. Một tác dụng phụ chỉ lộ ở một hệ
+     * điều hành vẫn là tác dụng phụ.
+     */
+    const d = fs.mkdtempSync(path.join(os.tmpdir(), 'shim-write-'));
+    try {
+      fs.cpSync(GOC, path.join(d, '.agent', 'skills'), { recursive: true });
+      fs.cpSync(SHIM, path.join(d, '.claude', 'skills'), { recursive: true });
+      expect(chay(['--root', d, '--write']).code).toBe(0);
+      const r = chay(['--root', d, '--check']);
+      expect(r.code, r.out).toBe(0);
+    } finally {
+      fs.rmSync(d, { recursive: true, force: true });
+    }
+  });
+
+  test('và ca trên KHÔNG được ghi vào cây dùng chung', () => {
+    /* Neo vào chính nguồn của spec: thiếu `--root` thì `--write` ghi thẳng vào repo, và lỗi cũ trở lại. */
+    const src = fs.readFileSync(__filename.replace(/\.js$/, '.ts'), 'utf8');
+    const i = src.indexOf("test('ĐỐI CHỨNG ÂM: sau `--write`");
+    expect(i, 'không tìm thấy ca đối chứng').toBeGreaterThan(0);
+    const than = src.slice(i, src.indexOf('\n  });', i));
+    expect(than, '`--write` phải kèm `--root`').toContain("'--root', d, '--write'");
+    expect(than, 'còn một lượt `--write` KHÔNG kèm --root là còn ghi vào repo')
+      .not.toMatch(/chay\(\['--write'/);
   });
 
   test('phép kiểm này TĨNH — nó KHÔNG chứng minh harness nạp thật', () => {

@@ -23,7 +23,27 @@ const fs = require('fs');
 const path = require('path');
 const rc = require(path.resolve(__dirname, '..', 'utils', 'runtime_config'));
 
-const ROOT = path.join(rc.REPO_ROOT, '.agent', 'skills');
+/*
+ * `--root <cây>` để `--write` có chỗ chạy KHÁC cây dùng chung.
+ *
+ * VÌ SAO BẮT BUỘC, đo 06/11/2026: ca đối chứng của `skills-shim.spec.ts` gọi `--write` lên CHÍNH repo,
+ * nên mỗi lượt `full:suite` tự ghi lại 29 file ĐÃ TRACK. Trên Windows (`core.autocrlf`) bản ghi ra là LF
+ * trong khi bản checkout là CRLF, nên cây thành "đã đổi" dù nội dung y nguyên — và `full_suite_ledger`
+ * từ chối phán vì "cây ĐỔI trong lúc suite chạy". Tức cả bộ KHÔNG chạy được ở máy, và đó đúng là lỗ đã
+ * để 11 ca đỏ lọt tới runner.
+ *
+ * Cây `--root` KHÔNG tồn tại thì THOÁT 2, không bao giờ rơi về cây thật: một cờ gõ sai mà im lặng chạy
+ * trên repo là đúng cái lỗi này.
+ */
+const iRoot = process.argv.indexOf('--root');
+const GOC = iRoot > -1 ? process.argv[iRoot + 1] : null;
+if (iRoot > -1 && (!GOC || !fs.existsSync(GOC))) {
+  console.error(`[skills-index] ✗ --root trỏ tới cây KHÔNG tồn tại: ${GOC || '(trống)'}`);
+  process.exit(2);
+}
+const REPO = GOC ? path.resolve(GOC) : rc.REPO_ROOT;
+
+const ROOT = path.join(REPO, '.agent', 'skills');
 const OUT = path.join(ROOT, 'INDEX.md');
 
 /** Đọc frontmatter tối giản (chỉ cần name + description, mỗi cái 1 dòng). */
@@ -106,7 +126,7 @@ const md = `${L.join('\n')}\n`;
  * VÌ SAO `--check` PHẢI CHẶN CẢ "THỪA": xoá một skill gốc mà quên xoá shim thì harness vẫn liệt kê nó,
  * agent mở ra và gặp con trỏ chết. Thiếu/lệch/thừa đều chặn.
  */
-const CLAUDE_SKILLS = path.join(rc.REPO_ROOT, '.claude', 'skills');
+const CLAUDE_SKILLS = path.join(REPO, '.claude', 'skills');
 
 function thanShim(r) {
   return [
