@@ -110,6 +110,16 @@ kế cận · **phân quyền** · **oracle giá trị tính toán**. Chi phí t
 Hai dòng cuối ghi thẳng là chưa có máy. Một bảng như thế này chỉ có giá trị khi người đọc kiểm lại
 được từng dòng; bịa một tên máy là làm hỏng cả bảng.
 
+## Outputs
+
+| Output | Vị trí | Mẫu |
+|---|---|---|
+| Checklist rà tay (Smoke / Post-hotfix / Regression / Release-readiness) | `<TASK_OUTPUT_DIR>/test-cases/` | Mẫu: `.agent/skills/phase1/tc_design_guide/templates/checklist-smoke-ho-so-lop.md` |
+
+> Mẫu là bản **đã điền xong** trên miền hồ sơ lớp học, không phải khung trống, và nó **tự qua máy**:
+> `node scripts/qa/design_gate.js --mode checklist --file <mẫu>` trả ĐẠT với 0 chặn, 0 cảnh báo.
+> `skills:template:check` chạy lại chính lệnh đó mỗi lượt, nên mẫu sai thì cửa đỏ.
+
 ## Anti-pattern
 
 Danh sách đầy đủ kèm máy bắt được: [`references/anti_patterns.md`](references/anti_patterns.md).

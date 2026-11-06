@@ -122,6 +122,8 @@
     "skills:index:check": "node scripts/qa/skills_index.js --check",
     "skills:lint": "node scripts/qa/skills_lint.js",
     "skills:lint:enforce": "node scripts/qa/skills_lint.js --enforce",
+    "skills:template:check": "node scripts/qa/skills_template_check.js",
+    "skills:template:check:enforce": "node scripts/qa/skills_template_check.js --enforce",
     "skills:route:check": "node scripts/qa/skills_route.js",
     "skills:route:live": "node scripts/qa/skills_route_live.js",
     "course:numbers": "node scripts/qa/course_numbers.js",

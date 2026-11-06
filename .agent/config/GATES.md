@@ -7,7 +7,7 @@
 > **T1** chỉ chặn ở cửa ra, lúc đang làm thì cảnh báo và ghi `reports/gate-debt.json` · **T2** không
 > bao giờ chặn. T0 khai tay trong `.agent/config/gate_tiers.json`; không khai thì mặc định T1.
 
-Tổng **154** máy — **111 CHẶN** · 24 SINH (ghi artifact) · 19 BÁO CÁO (chỉ in).
+Tổng **155** máy — **112 CHẶN** · 24 SINH (ghi artifact) · 19 BÁO CÁO (chỉ in).
 
 SINH/BÁO CÁO **không phải gate bị nới** — chúng không kiểm vi phạm. Ví dụ `bugs:checklist` in brief bug
 lịch sử, còn việc CHẶN nằm ở `dim:coverage` (chiều `bug_history` §20).
@@ -120,6 +120,7 @@ lịch sử, còn việc CHẶN nằm ở `dim:coverage` (chiều `bug_history` 
 | T1 | CHẶN (có cờ --enforce) | `scope:anchor`, `scope:anchor:enforce`, `scope:anchor:init` | NEO MẪU SỐ của Phase 1. | `scripts/qa/scope_anchor.js` | .agent/workflows · .agent/skills · prompt_templates · .claude/commands · tests/fe/infra |
 | T1 | CHẶN (có cờ --enforce) | `self-review`, `self-review:enforce` | Lượt 2: đối chiếu CHECKLIST trước finalize (ADVISORY). | `scripts/qa/self_review.js` | RULE_GLOBAL.md · USER_GUIDE.md · scripts/qa/README.md · docs/kit-map.md · .agent/workflows · .agent/skills · prompt_templates · manual-run · .claude/commands · tests/fe/infra |
 | T1 | CHẶN (có cờ --enforce) | `skills:lint`, `skills:lint:enforce` | MÔ TẢ SKILL CÓ ĐỦ THÔNG TIN ĐỂ CHỌN HAY CHƯA? | `scripts/qa/skills_lint.js` | .github/workflows · tests/fe/infra |
+| T1 | CHẶN (có cờ --enforce) | `skills:template:check`, `skills:template:check:enforce` | SKILL KHAI OUTPUT THÌ PHẢI CÓ MẪU, VÀ MẪU PHẢI TỰ QUA MÁY CỦA NÓ. | `scripts/qa/skills_template_check.js` | .agent/skills · tests/fe/infra |
 | T1 | CHẶN (có cờ --enforce) | `spec:gap` | CHIỀU NGƯỢC: build CÓ mà tài liệu KHÔNG NHẮC (B3 của chương trình chống lọt bug). | `scripts/qa/spec_gap_report.js` | RULE_GLOBAL.md · docs/kit-map.md · .agent/workflows · .agent/rules · .agent/skills · prompt_templates · tests/fe/infra |
 | T1 | CHẶN (có cờ --enforce) | `system:check`, `system:index` | quản lý `knowledge/system/`: bản đồ HỆ THỐNG đã được xác nhận. | `scripts/qa/system_map.js` | docs/kit-map.md · .agent/workflows · .agent/skills · prompt_templates · partial-rerun · tests/fe/infra |
 | T1 | CHẶN (có cờ --enforce) | `tc:review`, `tc:review:enforce` | CHẤM CHẤT LƯỢNG bộ testcase theo rubric 8 tiêu chí, 0–2 điểm mỗi tiêu chí. | `scripts/qa/tc_review.js` | .agent/workflows · .agent/skills · prompt_templates · partial-rerun · .claude/commands · tests/fe/infra |

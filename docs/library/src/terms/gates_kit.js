@@ -150,13 +150,27 @@ const TERMS_GATE3 = [
   src:'scripts/qa/scope_anchor.js', rel:['g-dimension_coverage','c-canonical','g-preflight_gate'] },
 { id:'g-gate_index', t:'gates:index', cat:'gate',
   def:'Sinh DANH MỤC GATE của kit từ chính source. Trả lời được "kit có bao nhiêu gate, mỗi cái CHẶN gì, gọi ở đâu".',
-  detail:'Quét source rồi suy mức từ code: exit 1 là CHẶN · ghi artifact là SINH · chỉ in là BÁO CÁO. Bảng hiện tại: 154 máy — 111 CHẶN, 24 SINH, 19 BÁO CÁO. Bản --check chặn khi bảng lệch source.',
+  detail:'Quét source rồi suy mức từ code: exit 1 là CHẶN · ghi artifact là SINH · chỉ in là BÁO CÁO. Bảng hiện tại: 155 máy — 112 CHẶN, 24 SINH, 19 BÁO CÁO. Bản --check chặn khi bảng lệch source.',
   why:'Kit có hơn 30 npm script dạng gate và gần 60 file trong scripts/qa/, nhưng không chỗ nào trả lời được câu trên. Hệ quả không phải bất tiện: luận đề của kit là "luật cần MÁY", mà máy không LIỆT KÊ ĐƯỢC thì không kiểm toán được. Không ai biết một gate đã âm thầm tụt thành cảnh báo, hay đã mất nơi gọi.',
   how:['npm run gates:index để sinh lại bảng.','npm run gates:index:check để chặn khi bảng lệch source.'],
   cmd:'npm run gates:index   ·   npm run gates:index:check',
   ex:'SINH và BÁO CÁO KHÔNG phải gate bị nới, chúng không kiểm vi phạm. bugs:checklist chỉ in brief bug lịch sử, còn việc CHẶN nằm ở dim:coverage chiều §20.',
   trap:'Bốn "phát hiện" đầu tiên khi mới dựng bảng đều là lỗi của BẢNG, không của kit, nên phải hiệu chuẩn danh mục trước khi tin số nó đưa ra.',
   src:'scripts/qa/gate_index.js', rel:['c-forcing-function','c-gate-real-content','g-policy_source_check','f-gate-catalog'] },
+
+{ id:'g-skills_template', t:'skills:template:check', cat:'gate',
+  def:'Skill khai output thì phải có MẪU, và mẫu phải tự qua máy kiểm của chính nó.',
+  detail:'Quét mục `## Outputs` của mọi skill, đối chiếu với các dòng `Mẫu: <đường dẫn>`. Mẫu phải TỒN TẠI; frontmatter của mẫu khai `kiem_bang: <lệnh>` thì cửa nối đường dẫn mẫu vào cuối lệnh rồi CHẠY, exit khác 0 là CHẶN. Không có máy kiểm được thì BẮT BUỘC khai `vi_sao` — phần lớn cửa của kit đọc THƯ MỤC output của một task chứ không đọc file rời, nên "chưa có máy kiểm" là trạng thái thật và phải khai được.',
+  why:'Khoảng cách của tiêu chí "hướng dẫn cụ thể" không nằm ở chỗ skill thiếu chữ, mà ở chỗ đọc xong vẫn chưa biết SẢN PHẨM trông thế nào. Đo 06/11/2026: trong 28 skill thì có 18 cái khai mục Outputs, tổng 47 output, và chỉ 1 output có mẫu. Mẫu KHÔNG phải khung trống — khung trống thì ai cũng dựng được và không ai học được gì từ nó; mẫu là bản ĐÃ ĐIỀN trên miền thật.',
+  how:[
+    'npm run skills:template:check để xem sổ nợ; bản :enforce mới chặn.',
+    'Hạ nợ: viết thêm một mẫu, trỏ `Mẫu:` từ skill tới nó, rồi sửa `no.thieuMau` đúng số cửa in ra.',
+    'Ngưỡng ở .agent/config/skills_template.json — một nguồn duy nhất, cùng khuôn skills_lint.json.'
+  ],
+  cmd:'npm run skills:template:check   ·   npm run skills:template:check:enforce',
+  ex:'Mẫu đầu tiên tự qua máy thật: checklist Smoke hồ sơ lớp học, kiểm bằng `design_gate --mode checklist --file`, 0 chặn 0 cảnh báo. Chính máy đó chỉ ra mẫu còn thiếu bảng ký nhận.',
+  trap:'SỔ NỢ chứ không chặn tất: chặn thẳng 47 output là đặt một ngưỡng đỏ ngay hôm đặt, và ngưỡng đỏ ngay hôm đặt là tiếng ồn, tiếng ồn thì bị tắt. Nợ PHÌNH chặn, nợ TRẢ RỒI MÀ KHÔNG HẠ SỔ cũng chặn — chỉ chặn một chiều thì sổ ở mãi con số cũ và mất nghĩa. Khoá nợ đặt NGOÀI `no` chặn ngay: lớp lỗi đó đã sống 13 ngày ở skills_lint.json. Và regex đọc `Mẫu:` sai HAI chiều trong một buổi: neo đầu dòng thì trượt ô bảng rồi báo nợ phình oan; nới ra thì bắt cả "Câu kích hoạt mẫu:" ở 18 skill và CHE nợ thật từ 46 xuống 29.',
+  src:'scripts/qa/skills_template_check.js', rel:['g-skills_lint','c-forcing-function','g-design_gate'] },
 
 { id:'g-skills_route_live', t:'skills:route:live', cat:'gate',
   def:'Đo định tuyến skill bằng CHÍNH MODEL, không bằng đếm từ. Không vào CI vì mỗi lượt là một phiên model thật.',
