@@ -14,6 +14,126 @@
 > `.agent/**`, `tests/support/**` đều là **shared change** (xem `RULE_GLOBAL.md` §Shared Change Gate) —
 > ảnh hưởng mọi story đang chạy. Mỗi mục ghi **vấn đề → cách chữa**, không chỉ liệt kê tính năng.
 
+## v2.10.0 — 2026-11-06 — Bốn lần một lượt đơn lẻ suýt thành kết luận
+
+Bản này đưa ba tiêu chí của bản chấm 04/11 lên: **hướng dẫn cụ thể 4,5 → 5**, **kích hoạt skill 4 →
+4,5**, **gọn token 3 → 4**. Hai tiêu chí **chưa tới 5**, và chỗ thiếu được ghi thành số ở
+[`docs/v2.10.0/CHAM_LAI.md`](docs/v2.10.0/CHAM_LAI.md) chứ không làm tròn.
+
+Nhưng thứ đáng đọc nhất của bản này không phải ba con số. Nó là **bốn lần một lượt đo đơn lẻ suýt
+thành một kết luận**, và cả bốn đều đã được vá tận dụng cụ.
+
+### Bốn lần đó
+
+**① `skills:route:live` ra 0/6 rồi 1/6.** Ba lỗi đường ống cùng cho một triệu chứng *"model không gọi
+skill nào"*: `spawn` với `shell: true` nối tham số **không escape** nên câu tiếng Việt vỡ · cờ
+`--allowed-tools` **không giới hạn gì** nên model đi `PowerShell` dò thư mục rỗng · stdin không chặn
+nên mỗi lượt chờ 3 giây. Không cái nào là lỗi định tuyến.
+
+**② So 90 câu với 20 câu rồi kết luận nhân quả.** Tôi lấy 38,6% (bộ đầy đủ, thư mục rỗng) so với 68,8%
+(mẫu 20 câu, trong repo) và kết luận *"ngữ cảnh làm nên khác biệt"*. Đối chứng cùng mẫu bác ngay: 20
+câu ấy ở thư mục rỗng ra **75,0%**. Nay `--gioi-han` tự in nhãn *"ĐÂY LÀ MẪU, không đại diện về độ
+khó"*, và nhãn đó đi vào **cả file báo cáo**.
+
+**③ Năm lượt quét 3 luồng cho 38,6 · 24,3 · 50,0 · 32,9 · 2,9%.** Lượt cuối có **68/70** ca "không gọi
+skill" — ngay sau đó một lượt đơn lẻ vẫn gọi đúng. Các phiên model bị throttle, và dụng cụ đếm lượt bị
+throttle **thành** "model không gọi skill". Làm cả năm con số không đọc được, và một kết luận đã phải
+rút lại (xem dưới). Nay cửa đọc `result.subtype` + `is_error`, tách ô `KHÔNG CHẠY ĐƯỢC` **khỏi mẫu
+số**, hỏng quá 10% thì `exit 2` KHÔNG PHÁN ĐƯỢC, và mặc định chạy **tuần tự**.
+
+**④ `skills:practice` ra 2/5 rồi 5/5 trên cùng một bài**, cùng bộ chấm, cùng skill. Lúc thấy 2/5 tôi
+nêu hai giả thuyết — skill mỏng, hay bộ chấm khắt khe — và **cả hai bị bác**: ba lượt chính thức sau đó
+đều 5/5. Nếu dừng ở lượt đầu, việc tiếp theo là đi **sửa một skill không hỏng**.
+
+### Một kết luận đã rút lại
+
+Bản trước của chú thích hook ghi *"gỡ dòng danh sách skill làm định tuyến **tăng gấp đôi**, 24,3% →
+50,0%"*. **RÚT LẠI**: cả hai con số lấy từ lượt 3 luồng ở mục ③. Không có phép đo tuần tự trước/sau cho
+việc gỡ hook.
+
+Điều **còn** đúng: dòng ấy nói *"KHÔNG auto-load — mở file để dùng"* về những skill mà harness đang
+quảng bá là **gọi được bằng tên**. Gỡ một chỉ dẫn sai trong phần mọi phiên đều đọc là đúng, dù nó có
+ảnh hưởng đo được hay không.
+
+### Máy gác mới
+
+| Cửa | Gác gì |
+|---|---|
+| `token:session` · `token:phase1` | phần LUÔN NẠP — khối chưa gate nào đếm, và nó là khối **lớn nhất** |
+| `skills:route:live` | định tuyến skill bằng **chính model**, không bằng đếm từ |
+| `skills:template:check` | skill khai output thì phải có **mẫu**, và mẫu phải **tự qua máy của nó** |
+| `skills:practice` | **đọc một skill xong có làm ra được sản phẩm không** — chỗ vượt gói nguồn |
+| `skills:lint` thêm `descMaxChars: 200` | mô tả nằm trong phần luôn nạp, mọi phiên đều trả |
+| `case_types` khớp prompt | hai bản sao của cùng dữ liệu, trước đây **không ai gác** |
+
+**80 ca spec mới · 52 phép phá cho 52 lần đỏ.**
+
+### Gọn token: 16,29 → 11,84 KB phần luôn nạp (−27%)
+
+Khối lớn nhất **không** phải `CLAUDE.md` mà là **mô tả 44 skill/command/agent** (9,51 KB). Nó không nằm
+trong `load_map.json` nên `prompt:budget` chưa từng thấy nó: một `description` dài thêm một câu làm mọi
+phiên về sau đắt thêm **mãi mãi** mà không gì kêu.
+
+`phase1` bắt buộc **89,3 → 69,7 KB** (−22%) bằng cách dời khối *"Prompt mẫu để chạy"* (20,3 KB) sang
+`references/`. Căn cứ dời là số đo: 82/87 dòng chỉ dẫn trong khối đã có ở nơi khác mà lượt chạy vẫn nạp.
+
+**Và `gate:policy` bắt một luật thật suýt mất theo**: lệnh `md_to_xlsx.js` — bước 7, xuất Excel, bắt
+buộc — trước đó **chỉ** được nhắc trong khối ấy. Đó đúng chỗ phép đo của tôi sai: 82/87 trùng nghĩa là
+**5 dòng không trùng**, và một trong số đó là một bước bắt buộc.
+
+Cả hai đích **chưa đạt**, và cái giá nếu ép tới đã đo: dưới 10 KB cần chặn mô tả ở **110 ký tự** tức
+cắt cụt **38/44** mô tả; dưới 45 KB cần dời chính phần **luật chặn**, mà `rule:parity` **không gác**
+`prompt_templates/`.
+
+### Kích hoạt skill: bộ đo cũ không phân biệt được
+
+Fixture chỉ có **4 ca `none`** và chính nó đã cảnh báo *"thiếu chúng thì bộ chấm chỉ cần gán bừa một
+skill cho mọi câu là đạt"*. Nâng lên **20 ca `none`** thì lộ: ở sàn 3,0 có **8/20 = 40%** câu
+không-nên-kích-hoạt vẫn kích hoạt, **mà vẫn đạt 91,1%**.
+
+Nay: sàn 5,0 (chọn từ một lượt quét sàn), trần `none` thành **điều kiện ĐẠT riêng** chứ không gộp vào
+top-1, và **ba kết cục** thay vì hai — *đúng* / *CHỌN SAI* (chặn) / *dưới sàn* (khai thành nợ mô tả).
+Gộp hai cái sau chính là thứ đẩy người sửa đi **nhồi từ khoá** thay vì viết mô tả đúng.
+
+Ba lỗi thật tìm được: cụm *"cleanup dọn sai thứ"* trong `automation_reviewer` hút câu *"máy hết dung
+lượng, **dọn** gì trước"* lên 7,64 điểm · câu mẫu *"điểm performance của màn **đăng nhập**"* của
+`lighthouse_check` cướp câu k6 của `load_check` · thiếu stopword chung nên hai từ vô nghĩa về định
+tuyến vẫn cộng 5,52 điểm.
+
+### Hướng dẫn cụ thể: 47 output khai ra, 0 cái có mẫu
+
+Và **4 trong 7** mẫu bản chấm đòi thuộc skill **chưa khai `Outputs` chút nào** — `tc_reviewer`,
+`automation_reviewer`, `release_summary`, `run_report_reader`. Những skill sinh ra tài liệu quan trọng
+nhất lại không khai chúng sinh ra gì.
+
+Nợ thiếu mẫu vì thế **đi lên** 46 → 49 khi khai chúng ra, rồi xuống 48 khi cấp mẫu. Con số 46 cũ nhỏ
+hơn nhưng **sai**: một sổ nợ chỉ có nghĩa khi mẫu số của nó đầy đủ.
+
+Đủ **7/7** mẫu bản chấm đòi, mỗi mẫu là bản **đã điền** trên miền thật với khuôn lấy từ nguồn — các
+dòng `md.push` của `tc_review.js`, các dòng `console.log` của `release_summary.js`, `dungKhoi()` của
+`exec_summary_tally.js`, `TRUONG_BAT_BUOC` của `manual_run_check.js`, và một lượt `auto:review` **thật**.
+
+### Sửa hai chỗ nội dung, ngoài phạm vi, vì chúng là lỗi thật
+
+`CLAUDE.md` mục 3 từng chiếm **2028/4336 byte** — một bức tường gộp 8 luật. Chi tiết chuyển sang
+`core_rules.md §Verify mở rộng`, **không bỏ luật nào**.
+
+Mục 5 từng ghi *"Creds ở `profiles/<TASK>/task.env` (**KHÔNG** `.env` chung)"* — câu đã dẫn tới một kết
+luận sai ở phiên trước. Nay nó ghi điều đã đo được: **mỗi profile phải tự ghim `QEMIS_CAP_HOC`**, vì
+thiếu nó app lặng lẽ về *"Mầm non"* và lượt chạy vẫn **XANH trên cấp sai**.
+
+### Giới hạn, nói thẳng
+
+- `skills:practice` có **1 trong 5 bài**. Ba bài còn lại cần một **thư mục task giả** vì `bug:claim`,
+  `gate:output`, `tc:review`, `data:chain:check` đều đọc thư mục output của task chứ không đọc file rời.
+- **6 trong 7 mẫu** khai `vi_sao` thay `kiem_bang` — cùng lý do trên. Nên *"mẫu tự qua máy"* đúng với
+  **1/7**, không phải 7/7.
+- `route:live` **69,1%** là **chặn dưới**: bộ đo chặn mọi công cụ làm việc nên model chỉ còn hai đường.
+- Nợ **48 output** chưa có mẫu. Sổ khai thành số, nhưng nợ vẫn là nợ.
+- `CLAUDE.md` giảm 1,46 KB bằng cách dời sang `core_rules.md`. Harness **không** tự nạp file đó, nên
+  1,46 KB thật sự rời phần mở phiên — nhưng `prompt:budget` tính nó vào nền của luồng phase, tức nó
+  **dời** khoảng 660 token sang mỗi lượt chạy phase chứ không biến mất hẳn.
+
 ## v2.9.11 — 2026-11-03 — Một cửa tố 7/8 hiện trạng thì CỬA sai
 
 Bản này mang ra người nhận kit **5 commit** mà `v2.9.10` chưa có, gồm một máy gác chặn được một
