@@ -253,6 +253,7 @@ const KEEP_FILES = [
   '.agent/config/run_analysis.json',
   '.agent/config/manual_run.json',
   '.agent/config/skills_lint.json',
+  '.agent/config/skills_template.json',
 ];
 
 /*

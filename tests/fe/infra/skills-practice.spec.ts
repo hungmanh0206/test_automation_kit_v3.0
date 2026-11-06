@@ -111,7 +111,7 @@ test.describe('@infra skills:practice — chỉ đọc MỘT skill', () => {
 
 test.describe('@infra skills:practice — đáp án bài 2 trỏ đúng dòng', () => {
   const DAP_AN = path.join(FIXTURE, 'spec_5_loi.dapan.json');
-  const DE = path.join(FIXTURE, 'spec_5_loi.spec.ts');
+  const DE = path.join(FIXTURE, 'spec_5_loi.de.txt');
 
   /*
    * Mẫu nhận dạng từng lỗi, giữ RỜI khỏi file đáp án có chủ ý: nếu lấy chính `tu_khoa` của đáp án để
@@ -167,5 +167,41 @@ test.describe('@infra skills:practice — đáp án bài 2 trỏ đúng dòng', 
     }
     expect(sot, `đề có lỗi ở dòng mà đáp án không khai: ${sot.join(', ')} — model nêu đúng dòng đó sẽ bị chấm sai`)
       .toEqual([]);
+  });
+});
+
+test.describe('@infra skills:practice — đề bài KHÔNG được là một test chạy thật', () => {
+  /*
+   * ĐO ĐƯỢC 06/11/2026, và đây là lỗi nặng nhất của cả đợt v2.10.0 chứ không phải một dòng gate đỏ.
+   *
+   * Bản đầu của đề bài tên `spec_5_loi.spec.ts` và tự ghi trong chú thích rằng nó "KHÔNG được chạy".
+   * Câu đó là một tiền đề SAI: `playwright.config` khai `testDir: './tests'`, nên `npx playwright test
+   * --list` thu nó thành **4 test thật** — trong đó một test bấm `#btnXoaTatCa` và một `afterEach` bấm
+   * tiếp cái đó sau MỖI test. Trên máy có profile ghim sẵn, cả bộ sẽ lái UAT và bấm "Xoá tất cả".
+   *
+   * Nên luật ở đây không phải "đừng đặt tên thế" mà là: KHÔNG file nào dưới `tests/fixtures/**` được
+   * khớp `testMatch` của Playwright. Một chú thích "đừng chạy file này" không chặn được bộ chạy.
+   */
+  const FIX = path.join(REPO, 'tests', 'fixtures');
+  const THU = /\.(test|spec)\.(js|ts|mjs|cjs|mts)$/;
+
+  const bo = (d: string, ra: string[] = []): string[] => {
+    for (const e of fs.readdirSync(d, { withFileTypes: true })) {
+      const p = path.join(d, e.name);
+      if (e.isDirectory()) bo(p, ra);
+      else if (THU.test(e.name)) ra.push(path.relative(REPO, p).replace(/\\/g, '/'));
+    }
+    return ra;
+  };
+
+  test('không file nào dưới `tests/fixtures/**` khớp `testMatch`', () => {
+    expect(fs.existsSync(FIX), 'không có tests/fixtures ⇒ ca này RỖNG').toBe(true);
+    expect(bo(FIX), 'file đề/fixture khớp testMatch sẽ bị chạy như test thật — đổi đuôi, đừng dựa vào chú thích')
+      .toEqual([]);
+  });
+
+  test('ĐỐI CHỨNG: phép kiểm bắt được đúng cái tên đã gây ra lỗi', () => {
+    expect(THU.test('spec_5_loi.spec.ts'), 'tên cũ phải bị bắt, nếu không ca trên rỗng').toBe(true);
+    expect(THU.test('spec_5_loi.de.txt'), 'tên nay dùng phải KHÔNG bị bắt').toBe(false);
   });
 });

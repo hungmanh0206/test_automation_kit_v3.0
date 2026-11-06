@@ -1,8 +1,8 @@
 /*
  * FIXTURE BÀI TẬP 2 — spec cài sẵn ĐÚNG 5 lỗi. Đáp án ở `spec_5_loi.dapan.json`.
  *
- * File này KHÔNG phải spec thật của kit và KHÔNG được chạy: nó là đề bài cho `skills:practice`.
- * Tên file cố ý không khớp `tests/fe/**` nên lưới chắn của `ci:scope` không vớ phải nó.
+ * File này là ĐỀ BÀI cho `skills:practice`, không phải spec của kit. Đuôi `.de.txt` là để Playwright
+ * KHÔNG thu nó: đo 06/11/2026, bản đuôi `.spec.ts` bị `testDir: ./tests` thu thành 4 test THẬT.
  *
  * Năm lỗi được chọn là năm lỗi `auto:review` xếp P0 hoặc năm chỗ máy mù mà `automation_reviewer`
  * dạy soi tay — tức đọc skill đó xong là đủ căn cứ để tìm ra cả năm.

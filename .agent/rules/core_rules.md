@@ -40,14 +40,12 @@
 - **Verification theo ASSERTION** (`scripts/lib/testcase/assertions.js`) — khai `assertions:[{text,verified,evidence}]` thì gate CHẶN được (verified thiếu evidence · chưa verified không nêu lý do); bản ghi cũ không bị phạt. `deriveAssertions` chỉ ĐÁNH DẤU dòng nhồi nhiều điều kiện, không tự tách. (Đầy đủ: RULE_GLOBAL §5 trục, mục 13)
 - **Visual regression** — lane RIÊNG `tests/fe/visual/` + `visual.js` (freeze + mask lớp task); ảnh evidence KHÔNG dùng làm baseline. Oracle = build đã chấp nhận lần trước ⇒ bắt regression, KHÔNG bắt sai-từ-đầu. Lượt đầu chỉ tạo baseline (chưa kiểm gì); không có config ⇒ skip kèm lý do; KHÔNG commit baseline. (Đầy đủ: RULE_GLOBAL §5 trục)
 
-## Verify mở rộng — phần chuyển từ `CLAUDE.md` mục 3
+## Verify mở rộng
 
-Chuyển vào đây ngày 05/11/2026 (v2.10.0). `CLAUDE.md` nằm trong phần LUÔN NẠP — harness đưa nó vào mọi phiên, kể cả phiên chỉ hỏi một câu — và mục 3 một mình chiếm 2028 trên 4336 byte của file. `CLAUDE.md` mục 3 nay giữ bốn câu quyết định; các luật dưới đây là chi tiết của đúng mục đó, và KHÔNG luật nào bị bỏ.
-
-- **Execute không chỉ bám chữ trong case**: mở rộng 7 trục quanh case — field cùng khối · cùng giá trị khác màn · chuỗi `form → payload → API → UI` · nhánh · trạng thái kế cận · phân quyền · oracle tính toán — cộng chiều ngược `spec:gap`, độ sâu theo risk band. (Đầy đủ: RULE_GLOBAL §7 trục mở rộng.)
-- **Bug do người ngoài tìm ra = lỗi của máy**: phải chỉ ra máy lẽ ra bắt được ở đâu, không chỉ sửa bug. (Đầy đủ: RULE_GLOBAL §7 trục mở rộng.)
-- **Mở rộng chỉ được PASS/FAIL khi có `oracle_ref`** (`BR-`/`SM-`/`UI-`…); không có neo thì là `OBSERVATION`, vì nhất quán KHÔNG phải bằng chứng của đúng. (Đầy đủ: RULE_GLOBAL §7 trục mở rộng.)
-- **Neo của kỳ vọng gồm cả ô `Kết quả mong đợi` của chính case** trong bộ canonical, không chỉ `BR-`: phải đọc TRỌN ô trước khi kết luận, câu quyết định hay nằm ở gạch đầu dòng cuối. (Đầy đủ: RULE_GLOBAL §Bug Claim Gate.)
-- **Không log Backlog cho `setup_failure` hay `SKIP`.** (Đầy đủ: RULE_GLOBAL §Backlog Bug Gate.)
-- **Câu hỏi còn lại cho người dùng chỉ là "có log không"**, không bao giờ là "có phải bug không". (Đầy đủ: RULE_GLOBAL §Bug Claim Gate.)
-- **Thân bug Backlog viết cho DEV đọc**: mỗi ý một dòng, câu ngắn, kể theo thứ tự xảy ra, có số thì đưa số, chuỗi và id bọc nháy ngược, bỏ dòng trailer `TC:`/`Tầng:`; lập luận dài ở lại claim. (Đầy đủ: RULE_GLOBAL §Giọng văn output.)
+- **Execute không chỉ bám chữ trong case**: 7 trục quanh case — field cùng khối · cùng giá trị khác màn · `form → payload → API → UI` · nhánh · trạng thái kế cận · phân quyền · oracle tính toán — cộng chiều ngược `spec:gap`, độ sâu theo risk band. (RULE_GLOBAL §7 trục mở rộng)
+- **Bug do người ngoài tìm ra = lỗi của máy**: phải chỉ ra máy lẽ ra bắt được ở đâu, không chỉ sửa bug. (RULE_GLOBAL §7 trục mở rộng)
+- **Mở rộng chỉ được PASS/FAIL khi có `oracle_ref`** (`BR-`/`SM-`/`UI-`…); không neo thì là `OBSERVATION`, vì nhất quán KHÔNG phải bằng chứng của đúng. (RULE_GLOBAL §7 trục mở rộng)
+- **Neo của kỳ vọng gồm cả ô `Kết quả mong đợi` của chính case**, không chỉ `BR-`: đọc TRỌN ô, câu quyết định hay ở gạch cuối. (RULE_GLOBAL §Bug Claim Gate)
+- **Không log Backlog cho `setup_failure` hay `SKIP`.** (RULE_GLOBAL §Backlog Bug Gate)
+- **Câu hỏi còn lại cho người dùng chỉ là "có log không"**, không bao giờ là "có phải bug không". (RULE_GLOBAL §Bug Claim Gate)
+- **Thân bug Backlog viết cho DEV đọc**: mỗi ý một dòng, câu ngắn, theo thứ tự xảy ra, id bọc nháy ngược, bỏ trailer `TC:`/`Tầng:`; lập luận dài ở lại claim. (RULE_GLOBAL §Giọng văn output)

@@ -61,7 +61,9 @@ const BAI = [
   {
     ma: 'review-5-loi',
     skill: 'automation_reviewer',
-    tep: ['spec_5_loi.spec.ts'],
+    /* Đề bài nằm ở `.de.txt` để Playwright KHÔNG thu nó làm test; trong thư mục làm bài nó mang lại
+     * tên `.spec.ts` để model thấy đúng thứ nó phải review. */
+    tep: [{ tu: 'spec_5_loi.de.txt', thanh: 'spec_5_loi.spec.ts' }],
     de: 'Review file `spec_5_loi.spec.ts` trong thư mục này. Nêu TỪNG lỗi kèm số dòng. Chỉ đọc skill automation_reviewer, đừng tìm tài liệu khác.',
     cham(traLoi) {
       const dapAn = JSON.parse(fs.readFileSync(path.join(FIXTURE, 'spec_5_loi.dapan.json'), 'utf8'));
@@ -102,7 +104,7 @@ function dungGoc(bai) {
   const dich = path.join(goc, '.claude', 'skills', bai.skill);
   fs.mkdirSync(dich, { recursive: true });
   fs.cpSync(nguon, dich, { recursive: true });
-  for (const t of bai.tep) fs.copyFileSync(path.join(FIXTURE, t), path.join(goc, t));
+  for (const t of bai.tep) fs.copyFileSync(path.join(FIXTURE, t.tu), path.join(goc, t.thanh));
   return goc;
 }
 

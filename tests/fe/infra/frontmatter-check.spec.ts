@@ -137,26 +137,44 @@ test.describe('@infra frontmatter:check — định nghĩa phải nạp được
     fs.rmSync(d, { recursive: true, force: true });
   });
 
-  test('CỬA KHÔNG RỖNG: nó bắt đúng nội dung Ở HEAD TRƯỚC khi vá', () => {
+  test('CỬA KHÔNG RỖNG: nó bắt đúng nội dung ĐÃ CÓ THẬT trong lịch sử', () => {
     /*
      * Phép kiểm quan trọng nhất ở file này. Một cửa mới luôn xanh trên cây đã vá; điều cần chứng minh là
      * nó ĐÃ đỏ trên cây chưa vá. Lấy nội dung thật từ git, không dựng giả.
+     *
+     * BẢN ĐẦU NEO SAI, và tự vô hiệu sau MỘT lần sửa file (đo 06/11/2026): nó lấy `-1` commit mới nhất
+     * sửa `case-debugger.md` rồi kiểm bản `^` của commit đó, tức ngầm giả định "lượt sửa gần nhất chính
+     * là lượt VÁ". Khi v2.10.0 rút `description` của file ấy cho dưới 200 ký tự, commit mới nhất thành
+     * lượt rút đó, bản `^` của nó là bản ĐÃ vá — và đối chứng ra 0 file có vấn đề, tức cửa này RỖNG mà
+     * vẫn xanh. Một phép đối chứng hỏng thì kết luận nó bảo vệ cũng hỏng theo.
+     *
+     * Nay dò NGƯỢC cả lịch sử của file và đòi tìm được ÍT NHẤT MỘT bản mà cửa chặn. Sức của phép kiểm
+     * không đổi — vẫn là "cửa phải đỏ trên nội dung thật chưa vá" — nhưng nó không còn phụ thuộc vào
+     * việc lượt sửa gần nhất là lượt gì.
      */
-    const cu = spawnSync('git', ['log', '--diff-filter=M', '-1', '--format=%H', '--', '.claude/agents/case-debugger.md'],
-      { cwd: REPO, encoding: 'utf8' });
-    const sha = String(cu.stdout || '').trim().split('\n')[0];
-    test.skip(!sha, 'chưa có commit nào sửa file này để lấy bản trước');
-
-    const truoc = spawnSync('git', ['show', `${sha}^:.claude/agents/case-debugger.md`], { cwd: REPO, encoding: 'utf8' });
-    test.skip(truoc.status !== 0, 'không lấy được bản trước từ git');
+    const F = '.claude/agents/case-debugger.md';
+    const log = spawnSync('git', ['log', '--format=%H', '--', F], { cwd: REPO, encoding: 'utf8' });
+    test.skip(log.status !== 0, 'không đọc được lịch sử git của file');
+    const shas = String(log.stdout || '').trim().split('\n').filter(Boolean);
+    test.skip(!shas.length, 'file chưa có lịch sử');
 
     const d = fs.mkdtempSync(path.join(os.tmpdir(), 'fmchk-head-'));
     fs.mkdirSync(path.join(d, '.claude/agents'), { recursive: true });
-    fs.writeFileSync(path.join(d, '.claude/agents/case-debugger.md'), truoc.stdout, 'utf8');
-    const r = chay(d);
-    expect(r.code, `bản TRƯỚC khi vá phải bị CHẶN, nếu không cửa này rỗng — ${r.out}`).toBe(1);
-    expect(r.out).toMatch(/chứa `: ` mà KHÔNG bọc nháy/);
+    let batDuoc: { sha: string; out: string } | null = null;
+    const daThu: string[] = [];
+    for (const sha of shas) {
+      const ban = spawnSync('git', ['show', `${sha}:${F}`], { cwd: REPO, encoding: 'utf8' });
+      if (ban.status !== 0) continue;
+      fs.writeFileSync(path.join(d, F), ban.stdout, 'utf8');
+      const r = chay(d);
+      daThu.push(sha.slice(0, 7));
+      if (r.code === 1 && /chứa `: ` mà KHÔNG bọc nháy/.test(r.out)) { batDuoc = { sha, out: r.out }; break; }
+    }
     fs.rmSync(d, { recursive: true, force: true });
+
+    expect(batDuoc, `không bản nào trong ${daThu.length} bản của \`${F}\` bị chặn (${daThu.join(' ')})`
+      + ' — hoặc lịch sử không còn bản hỏng, hoặc CỬA ĐÃ THÔI BẮT. Cả hai đều làm phép đối chứng này rỗng.')
+      .not.toBeNull();
   });
 
   test('cửa nằm trong bó `predeploy` — kit phát hành kèm agent không nạp được là kit hỏng', () => {

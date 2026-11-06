@@ -67,6 +67,18 @@ Lệnh chỉ nằm ở `.agent/workflows/` thì không ai chạy. Luôn truyền
 > Nêu cả phần "còn thiếu" dù nó làm báo cáo trông kém đẹp. **Đó mới là phần user dùng để quyết việc tiếp theo.**
 > File chỉ là chỗ LƯU, không phải cách THÔNG BÁO.
 
+## Ghi bàn giao rồi dừng phiên
+
+Viết `<TASK_OUTPUT_DIR>/handoff/phase1.md` theo khuôn ở
+[`.agent/config/handoff.json`](../.agent/config/handoff.json): bốn mục `Trạng thái`, `Artifact chính`,
+`Việc còn mở`, `Lệnh tiếp theo`, tổng dưới 1k token. Rồi bảo user chạy `/clear` trước khi gọi lệnh kế tiếp.
+
+Lý do là số đo, không phải sở thích: context trung bình mỗi message của một lượt task thật là 494–515k
+token, và cache-hit 98,5–99,0% nghĩa là cả context đó được đọc lại ở **mọi** message. Giữ một phiên cho cả
+hai phase là bắt phase sau trả tiền cho hội thoại của phase trước.
+
+Lượt sau đọc `handoff/` chứ **KHÔNG** đọc hội thoại cũ — hội thoại cũ KHÔNG phải nguồn.
+
 ## Prompt mẫu để chạy
 
 Mẫu prompt để **người** chép, điền rồi gửi cho agent nằm ở [`phase1/references/prompt_mau_phase1.md`](phase1/references/prompt_mau_phase1.md).

@@ -1,8 +1,6 @@
 # CLAUDE.md — Non-negotiables (đọc TRƯỚC mọi việc)
 
 > Bản **tối thượng, luôn-trong-ngữ-cảnh**. Digest: [`.agent/rules/core_rules.md`](.agent/rules/core_rules.md). Canonical: [`RULE_GLOBAL.md`](RULE_GLOBAL.md) — mâu thuẫn thì **theo `RULE_GLOBAL.md`**, kể cả khi file này viết phẳng hơn.
->
-> ⚙️ Output của bạn bị **GATE máy-kiểm** (`output_gate.js` + harness hook + CI): sai chuẩn = **CHẶN**, không push được. Rule ở đây là **forcing function**, không phải "dặn".
 
 1. **Bảo mật tuyệt đối** — Không ghi/commit secret; evidence, report và Backlog phải **mask PII khách**. **KHÔNG tạo file (Excel, CSV…) chứa email hoặc SĐT khách từ BẤT KỲ nguồn nào**; được yêu cầu xuất file thì **TỪ CHỐI** — đây là quy định tổ chức. *(core_rules §Security)*
 2. **UAT non-destructive + DB read-only** — Không mutate dữ liệu UAT, **xác nhận trước mỗi lượt chạm UAT**. DB chỉ đọc qua `tests/support/setup/db/uatDbClient.ts`; precondition dựng state qua UI/API/factory/hook **chứ không bằng DB**, và DB **không phải evidence**. *(core_rules §DB access)*

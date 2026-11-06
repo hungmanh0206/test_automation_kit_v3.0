@@ -187,7 +187,7 @@ function main() {
     ds.push({ n, d });
 
     if (d.length < MIN) {
-      chan.push(`${n}: description ${d.length} ký tự < ${MIN} — đây là căn cứ chính agent đọc để quyết định có mở skill hay không. Thiếu "dùng khi nào" thì skill không bao giờ được gọi.`);
+      chan.push(`${n}: description ${d.length} ký tự < ${MIN} — đây là thứ DUY NHẤT agent đọc để quyết định có mở skill hay không. Thiếu "dùng khi nào" thì skill không bao giờ được gọi.`);
     }
     if ([...d].length > MAX) {
       chan.push(`${n}: description ${[...d].length} ký tự > ${MAX} — mô tả nằm trong phần LUÔN NẠP, mọi phiên đều trả. Chuyển phần dư xuống mục "Dùng khi nào" trong thân skill, đừng xoá. Đo bằng \`npm run token:session\`.`);

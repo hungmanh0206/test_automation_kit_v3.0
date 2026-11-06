@@ -1,25 +1,23 @@
 ---
-description: Cửa vào cho người mới — hỏi đúng 5 điều, tạo profile task, chạy preflight, rồi chỉ lệnh kế tiếp. Dùng khi bắt đầu một task mới và chưa có profile.
+description: Cửa vào cho người mới — hỏi đúng 5 điều, tạo profile task, chạy preflight, rồi chỉ lệnh kế tiếp. Dùng khi bắt đầu task mới, chưa có profile.
 ---
 
 Task: **$ARGUMENTS**
 
-Kit có 151 gate và 28 skill. Người mới không cần biết hết — cần **5 điều**. Hỏi đủ 5 câu dưới, **gom thành
-MỘT lần hỏi**, rồi làm đúng các bước ở mục "Rồi làm". Đừng hỏi lắt nhắt.
+Kit có 156 gate và 28 skill. Người mới cần **5 điều**. Hỏi đủ 5 câu dưới, **gom thành MỘT lần hỏi**, rồi
+làm ba bước. Đừng hỏi lắt nhắt.
 
-> **Phạm vi của `/start`: CHỈ tạo profile và task.** Không đọc nội dung đặc tả, không kéo Backlog/vault về để
-> phân tích, không neo mẫu số, không sinh testcase, không execute. Câu 4 chỉ HỎI đặc tả nằm ở đâu để ghi vào
-> task — đọc nó là việc của `/phase1`. Xong các bước thì báo lệnh kế tiếp rồi **DỪNG**. **KHÔNG tự gọi
-> `/phase1` hay `/phase2`**, kể cả khi người dùng nhắn "tiếp": "tiếp" ở đây nghĩa là làm nốt bước còn lại
-> của `/start`. Phase chỉ bắt đầu khi người dùng tự gõ lệnh của phase đó.
+> **Phạm vi: CHỈ tạo profile và task.** Không đọc đặc tả, không neo mẫu số, không sinh case, không execute.
 
-| # | Hỏi gì | Vì sao phải biết TRƯỚC |
+| # | Hỏi gì | Thiếu nó thì sao |
 |---|---|---|
-| 1 | `TASK_KEY` (vd `CSDL-9003`) | Một trong **đúng hai** biến code thật sự chặn khi thiếu. Không suy từ hội thoại cũ. Chạy song song cùng key thì bắt buộc thêm `RUN_ID` |
-| 2 | `PROJECT_OUTPUT_DIR` (vd `outputs/CSDL`) | Biến bắt buộc thứ hai. Output đi vào `<đây>/tasks/<TASK_KEY>/` |
-| 3 | Phase 1 hay Phase 2? | Phase 1 sinh/sửa testcase; Phase 2 execute bộ đã có. **Không trộn trong một lượt** |
-| 4 | Đặc tả ở đâu (đường dẫn hoặc mã issue) | Mẫu số coverage neo vào nguồn này. Không có nguồn thì mọi tỉ lệ về sau là tỉ lệ trên danh mục agent tự đặt, và "đủ" chỉ còn nghĩa "tôi thấy đủ" |
-| 5 | Có mấy tài khoản test, màn login có captcha? | Captcha ⇒ CI không người trông **KHÔNG tự đăng nhập được** (phải nạp sẵn session). Chỉ một tài khoản ⇒ case phân quyền/IDOR ra `NEEDS_ACCOUNT`, **không phải FAIL** |
+| 1 | `TASK_KEY` | Một trong **đúng hai** biến code chặn khi thiếu |
+| 2 | `PROJECT_OUTPUT_DIR` | Biến bắt buộc thứ hai; output vào `<đây>/tasks/<TASK_KEY>/` |
+| 3 | Phase 1 hay Phase 2? | **Không trộn hai phase trong một lượt chạy** |
+| 4 | Đặc tả ở đâu | Mẫu số coverage neo vào đây; `/start` chỉ HỎI chỗ |
+| 5 | Mấy tài khoản, có captcha? | Captcha ⇒ CI **KHÔNG tự đăng nhập được**; một tài khoản ⇒ `NEEDS_ACCOUNT` **không phải FAIL** |
+
+Vì sao không đoán được: [docs/rationale/start-pham-vi.md](../../docs/rationale/start-pham-vi.md).
 
 ## Rồi làm ba bước
 
@@ -28,30 +26,26 @@ npm run profile:create -- <TASK_KEY> --project-output <PROJECT_OUTPUT_DIR>
 TASK_KEY=<TASK_KEY> PROJECT_OUTPUT_DIR=<PROJECT_OUTPUT_DIR> npm run preflight -- --mode generic --task <TASK_KEY>
 ```
 
-Giữa hai lệnh: điền giá trị động vào `profiles/<TASK_KEY>/task.env` vừa tạo. **Không** sửa `.env` chung,
-và không đọc `TASK_KEY` từ `.env` chung. Agent không đọc được `task.env` (hook chặn) — giá trị nào cần
-người dùng tự điền thì liệt kê ra cho họ.
+Giữa hai lệnh: điền giá trị động vào `profiles/<TASK_KEY>/task.env`. Hook chặn agent đọc file đó — liệt kê cho người dùng tự điền. **Không** sửa `.env` chung, không đọc `TASK_KEY` từ đó.
 
-Bước ba: tạo `<PROJECT_OUTPUT_DIR>/tasks/<TASK_KEY>/task.md` ghi lại 5 câu trả lời (key, output, phase, nơi
-để đặc tả, tài khoản/captcha) và dòng `Trạng thái: đã tạo profile — chờ người dùng gọi phase`. Chỉ ghi
-câu trả lời, không phân tích.
+Bước ba: ghi 5 câu trả lời vào `<PROJECT_OUTPUT_DIR>/tasks/<TASK_KEY>/task.md`, kèm dòng
+`Trạng thái: chờ người dùng gọi phase`.
 
 ## Báo lệnh kế tiếp rồi DỪNG
 
-Cột dưới là thứ để **in ra cho người dùng**, không phải để agent chạy:
+In cho người dùng, **không** phải để agent chạy:
 
 | Phase | Người dùng gõ tiếp |
 |---|---|
-| Phase 1 | `/phase1 <TASK_KEY>` (bước đầu của nó là `npm run scope:anchor:init`) |
+| Phase 1 | `/phase1 <TASK_KEY>` — bước đầu của nó là `scope:anchor:init` |
 | Phase 2 | `/preflight` với `--mode phase2` → `/phase2 <TASK_KEY>` |
 
 ## Dừng khi
 
-- **Thiếu câu trả lời cho bất kỳ câu nào trong 5.** Đừng đoán, và đừng lấy giá trị của task khác — profile
-  dùng chung giữa hai task là nguồn lỗi "đăng nhập nhầm đơn vị", rất khó tìm.
-- **`preflight` exit ≠ 0.** Đọc từng dòng CHẶN rồi sửa nguyên nhân. KHÔNG bỏ bước preflight để đi tiếp: nó
-  bắt thiếu input và config hỏng, bỏ nó thì lỗi lộ ra giữa lượt execute dưới dạng "FAIL" trông như bug.
+- **Thiếu câu trả lời cho bất kỳ câu nào trong 5.** Đừng đoán, đừng lấy giá trị của task khác.
+- **`preflight` exit ≠ 0.** Sửa theo từng dòng CHẶN. KHÔNG bỏ bước preflight để đi tiếp: bỏ nó
+  thì lỗi lộ ra giữa lượt execute dưới dạng "FAIL" trông như bug.
 - **Profile đã tồn tại.** `profile:create` không ghi đè — dùng cái đang có, hoặc `--force` nếu chắc.
-- **Đã xong ba bước.** In bảng lệnh kế tiếp và những giá trị người dùng cần tự điền vào `task.env`, rồi
-  dừng phiên. Đã trả giá thật (CSDL-4172, 05/11/2026): người dùng nhắn "tiếp", agent tự gọi `/phase1` và đi
-  tới sinh ~90 case trong khi người dùng chỉ định tạo profile.
+- **Đã xong ba bước.** In bảng trên và các giá trị cần tự điền, rồi dừng phiên.
+  **KHÔNG tự gọi `/phase1` hay `/phase2`**, kể cả khi người dùng nhắn "tiếp" — "tiếp" ở đây là làm
+  nốt bước còn lại của `/start`.

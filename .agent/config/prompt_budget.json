@@ -4,7 +4,7 @@
   "_cach_do": "Ngân sách một luồng = nền auto-load (`CLAUDE.md` cộng `core_rules.md`) cộng điểm vào cộng mọi file khai `bat_buoc` trong `.agent/config/load_map.json`. KHÔNG tính file `co_dieu_kien`, vì đúng nghĩa của chúng là chỉ nạp khi gặp điều kiện. Hệ số 3,2 ký tự mỗi token, cùng `doc_budget.js`.",
   "_nguong_dat_o_dau": "Đặt ngay TRÊN mức hiện tại, không đặt ở mức mong muốn. Lý do: H9 là cái chốt chống trôi, không phải cái roi dọn nợ. Một ngưỡng đã đỏ ngay hôm đặt thì nó là tiếng ồn, và tiếng ồn thì bị tắt. Mức mong muốn của prompt gốc là Phase 1 và Phase 2 mỗi luồng 18k; đạt được nó cần H7 (tách thẻ chạy và tài liệu lý do), mà H7 đã HOÃN có lý do đo được — xem docs/token-diet/BASELINE.md mục 3.",
   "luong": {
-    "phase1": 31000,
+    "phase1": 24200,
     "phase2": 32000,
     "publish": 9000,
     "rerun": 12000,
@@ -15,13 +15,14 @@
   "_moc_la_gi": "MỐC = số token của phần NẠP BẮT BUỘC ĐÃ ĐO tại thời điểm chốt. Trần (`luong`) chặn chuyện phình TO; mốc chặn chuyện phình DẦN. Đo 10/10/2026: phase1 còn 1,2k và phase2 còn 1,5k chỗ trống dưới trần, tức một đợt thêm chữ vẫn đi qua gate mà vẫn làm mọi phiên đắt hơn. Phần bắt buộc TĂNG so với mốc là CHẶN, dù còn dưới trần.",
   "_muon_them_chu_thi_sao": "CẮT BÙ trong CÙNG luồng. Nguồn bù chính là `.agent/rules/core_rules.md` (4,5k token, nạp mọi phiên) — rút về mỗi mục một dòng cộng con trỏ §, chi tiết giữ ở RULE_GLOBAL.md. Hạ mốc thì sửa số ở đây: đó là một việc thấy được trong diff, không phải một con số trôi đi trong im lặng.",
   "_cach_chot_lai_moc": "node scripts/qa/prompt_budget.js --moc  (in số đo hiện tại dưới dạng JSON để dán vào đây).",
+  "_moc_ha_061126": "HẠ mốc sáu luồng theo số đo của v2.10.0 (lệnh: --moc). phase1 28371 → 23042 là nhát cắt dời khối Prompt mẫu (20,3 KB) sang references/; năm luồng kia giảm 2-60 token là phần cắt bù ở nền (CLAUDE.md bỏ câu đã có nguyên văn trong hook SessionStart; core_rules rút mục Verify mở rộng về bản digest). KHÔNG hạ mốc thì chính phép KIỂM-ÂM của cửa này rỗng: đo 06/11/2026, phình thẻ run_phase1_template thêm 5.000 token vẫn KHÔNG đỏ vì mốc phase1 cũ còn dư 5.538 token. Một cải thiện không khoá lại thì nó vừa trôi về vừa làm chết phép đối chứng.",
   "moc": {
-    "phase1": 28371,
-    "publish": 6803,
-    "phase2": 29251,
-    "rerun": 9437,
+    "phase1": 23043,
+    "publish": 6748,
+    "phase2": 29198,
+    "rerun": 9377,
     "start": 4820,
-    "phase2_lite": 19015
+    "phase2_lite": 18963
   },
   "_alwaysOn_la_gi": "Phần MỌI phiên đều trả, kể cả phiên chỉ hỏi một câu: CLAUDE.md + đầu ra hook SessionStart + frontmatter description của mọi skill/command/agent mà harness quảng bá. KHÁC `luong`: `luong` đo chi phí CHẠY MỘT PHASE, còn đây là chi phí MỞ MỘT PHIÊN. Khối description không nằm trong load_map.json nên trước v2.10.0 không gate nào đếm nó — mà đo 04/11/2026 nó là khối LỚN NHẤT (10,05 trên 16,29 KB). Đo bằng: node scripts/qa/token_session.js",
   "_alwaysOn_nguong_dat_o_dau": "Chốt 05/11/2026 SAU khi cắt: số đo 11,99 KB cộng 5% đệm = 12,6. KHÓA lại thành quả 16,29 → 11,99 (giảm 26%). ĐÍCH CỦA v2.10.0 LÀ DƯỚI 10 VÀ CHƯA ĐẠT — còn thiếu 1,99 KB. Không đặt 10 ở đây vì một ngưỡng đỏ ngay hôm đặt là tiếng ồn, và tiếng ồn thì bị tắt (xem _nguong_dat_o_dau). Muốn xuống dưới 10 phải chặn description ở 110 ký tự, tức cắt cụt 38/44 mô tả — xem đường cong trong docs/v2.10.0/BASELINE.md. Cấm nâng ngưỡng này mà không kèm số đo.",
@@ -46,7 +47,7 @@
   },
   "_luong_hien_tai": "Số chính xác nằm ở `moc` ngay trên — đừng ghi lại số ở đây nữa. Hai chỗ khai cùng một con số thì sớm muộn lệch nhau, và dòng này đã lệch thật: nó ghi phase2 30,4k trong khi số đo là 30.519.",
   "the_chay": {
-    "prompt_templates/run_phase1_template.md": 9500,
+    "prompt_templates/run_phase1_template.md": 3550,
     "prompt_templates/run_phase2_template.md": 14500,
     "prompt_templates/run_phase_re-run_template.md": 6000,
     "prompt_templates/phase1/02_gen_testcases.md": 15000,
