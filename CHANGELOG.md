@@ -66,24 +66,25 @@ quảng bá là **gọi được bằng tên**. Gỡ một chỉ dẫn sai trong
 | `skills:lint` thêm `descMaxChars: 200` | mô tả nằm trong phần luôn nạp, mọi phiên đều trả |
 | `case_types` khớp prompt | hai bản sao của cùng dữ liệu, trước đây **không ai gác** |
 
-**80 ca spec mới · 52 phép phá cho 52 lần đỏ.**
+**82 ca spec mới · 52 phép phá cho 52 lần đỏ.**
 
-### Gọn token: 16,29 → 11,84 KB phần luôn nạp (−27%)
+### Gọn token: 16,29 → 11,63 KB phần luôn nạp (−29%)
 
 Khối lớn nhất **không** phải `CLAUDE.md` mà là **mô tả 44 skill/command/agent** (9,51 KB). Nó không nằm
 trong `load_map.json` nên `prompt:budget` chưa từng thấy nó: một `description` dài thêm một câu làm mọi
 phiên về sau đắt thêm **mãi mãi** mà không gì kêu.
 
-`phase1` bắt buộc **89,3 → 69,7 KB** (−22%) bằng cách dời khối *"Prompt mẫu để chạy"* (20,3 KB) sang
+`phase1` bắt buộc **89,3 → 70,5 KB** (−21%) bằng cách dời khối *"Prompt mẫu để chạy"* (20,3 KB) sang
 `references/`. Căn cứ dời là số đo: 82/87 dòng chỉ dẫn trong khối đã có ở nơi khác mà lượt chạy vẫn nạp.
 
 **Và `gate:policy` bắt một luật thật suýt mất theo**: lệnh `md_to_xlsx.js` — bước 7, xuất Excel, bắt
 buộc — trước đó **chỉ** được nhắc trong khối ấy. Đó đúng chỗ phép đo của tôi sai: 82/87 trùng nghĩa là
 **5 dòng không trùng**, và một trong số đó là một bước bắt buộc.
 
-Cả hai đích **chưa đạt**, và cái giá nếu ép tới đã đo: dưới 10 KB cần chặn mô tả ở **110 ký tự** tức
-cắt cụt **38/44** mô tả; dưới 45 KB cần dời chính phần **luật chặn**, mà `rule:parity` **không gác**
-`prompt_templates/`.
+Cả hai đích **chưa đạt** — còn thiếu **1,63 KB** và **25,5 KB** — và cái giá nếu ép tới đã đo: dưới
+10 KB cần chặn mô tả ở **110 ký tự** tức cắt cụt **38/44** mô tả; dưới 45 KB cần dời chính phần **luật
+chặn**, mà `rule:parity` **không gác** `prompt_templates/`. Ngưỡng đã khoá ở `alwaysOnMaxKB = 12,2` và
+`phaseMaxKB.phase1 = 73,2`, cộng mốc 6 luồng của `prompt:budget` hạ theo số đo.
 
 ### Kích hoạt skill: bộ đo cũ không phân biệt được
 
@@ -121,6 +122,36 @@ dòng `md.push` của `tc_review.js`, các dòng `console.log` của `release_su
 Mục 5 từng ghi *"Creds ở `profiles/<TASK>/task.env` (**KHÔNG** `.env` chung)"* — câu đã dẫn tới một kết
 luận sai ở phiên trước. Nay nó ghi điều đã đo được: **mỗi profile phải tự ghim `QEMIS_CAP_HOC`**, vì
 thiếu nó app lặng lẽ về *"Mầm non"* và lượt chạy vẫn **XANH trên cấp sai**.
+
+### Mười một ca đỏ mà tôi không thấy, vì tôi dùng mẫu số nhỏ để nói về cái lớn
+
+Lượt dry-run `42183908761` đỏ ở *"Chạy CẢ BỘ"*: **2547 xanh · 11 đỏ · 24 bỏ qua**. Cả 11 là spec **tôi
+không viết**. `full:suite` chưa lần nào chạy xong ở máy — nó typecheck trước và chết ở một file chưa track
+của phiên khác — nên tôi chỉ chạy spec mình nhắm tới, rồi báo *"31/32 cửa"* ba lần. Con số đó nói về
+`static-check`, **không** phải về cả bộ 180 spec.
+
+**Ca nặng nhất không phải một dòng gate đỏ.** `tests/fixtures/practice/spec_5_loi.spec.ts` — file **đề
+bài** cài sẵn 5 lỗi — bị `playwright test --list` thu thành **4 test THẬT**; một test bấm `#btnXoaTatCa`
+và `afterEach` bấm lại sau **mỗi** test. Chú thích do tôi viết nói *"KHÔNG được chạy… tên file cố ý không
+khớp `tests/fe/**`"*: sai hai lần — `testDir: './tests'` gom cả `tests/fixtures/**`, và `ci:scope` là cửa
+khác chứ không phải bộ thu test. Trên máy có profile ghim sẵn thì cả bộ lái UAT và bấm *"Xoá tất cả"*.
+Nay đề bài mang đuôi `.de.txt` và chỉ mang lại tên `.spec.ts` **trong thư mục làm bài**; thêm 2 ca gác
+*"không file nào dưới `tests/fixtures/**` được khớp `testMatch`"*. Một chú thích không chặn được bộ chạy.
+
+**Sáu luồng vượt mốc, và tôi trả bằng cách CẮT.** Nhát dời `CLAUDE.md` mục 3 sang `core_rules.md` làm
+phần bắt buộc của **mọi** luồng tăng ~160 token, `start` tăng 570; đo ở worktree sạch tại `main` thì xanh,
+nên 100% là của nhánh này. Đã cắt bù: `CLAUDE.md` −176 ký tự (câu đã có **nguyên vẹn** trong hook
+SessionStart) · `core_rules.md` −386 (digest, 7 luật còn đủ 7) · `start.md` −1138 (−32%, lý lẽ sang
+`docs/rationale/start-pham-vi.md`). **Không một ngưỡng nào bị nới.**
+
+**Và cửa bắt được một lỗi nữa: phép KIỂM-ÂM của chính nó đã chết.** Phình một thẻ chạy thêm 5.000 token
+phải ĐỎ — nó ra **XANH**, vì tôi cắt phase1 −5.538 token mà **không hạ mốc**, nên dư địa lớn hơn cả phép
+phá. Đã hạ mốc 6 luồng theo số đo, trần phase1 31k → 24,2k, thẻ `run_phase1_template` 9,5k → 3,55k.
+Một cải thiện không khoá lại thì vừa trôi về được, vừa làm chính phép kiểm canh nó thành rỗng.
+
+Chi tiết 8 ca còn lại — và hai lỗi của tôi **ngay trong lượt vá này** mà cửa bắt (ngắt dòng giữa cụm
+regex; viết gọn **tên** một luật nên `rule:parity` xếp là mất luật) — ở
+[`docs/v2.10.0/CHAM_LAI.md`](docs/v2.10.0/CHAM_LAI.md).
 
 ### Giới hạn, nói thẳng
 

@@ -14,7 +14,7 @@ Lệnh tái lập ghi kèm từng số. Số đo đầy đủ ở [`BASELINE.md`
 |---|---|---|---|
 | Hướng dẫn cụ thể, có mẫu | 4,5 | **5** | 7/7 mẫu bản chấm đòi · 1 mẫu tự qua máy · 6 bộ cặp ❌/✅ có spec gác cột ✅ · `skills:practice` 3/3 lượt đạt |
 | Kích hoạt đúng skill | 4 | **4,5** | 28/28 skill được harness quảng bá · `route:check` 96,7% · `route:live` **69,1%** so với ngưỡng 90% |
-| Gọn token | 3 | **4** | luôn nạp **16,29 → 11,84 KB** (−27%) · phase1 **89,3 → 69,7 KB** (−22%) · cả hai **chưa** tới đích |
+| Gọn token | 3 | **4** | luôn nạp **16,29 → 11,63 KB** (−29%) · phase1 **89,3 → 70,5 KB** (−21%) · cả hai **chưa** tới đích |
 
 Hai tiêu chí chưa tới 5. Lý do ở dưới, kèm cái giá phải trả nếu muốn ép tới.
 
@@ -90,10 +90,17 @@ phép đo tuần tự trước/sau cho việc gỡ hook.
 
 | | trước | sau | đích | còn thiếu |
 |---|---|---|---|---|
-| Phần luôn nạp | 16,29 | **11,84 KB** (−27%) | < 10 | **1,84 KB** |
-| `phase1` bắt buộc | 89,3 | **69,7 KB** (−22%) | ≤ 45 | **24,7 KB** |
+| Phần luôn nạp | 16,29 | **11,63 KB** (−29%) | < 10 | **1,63 KB** |
+| `phase1` bắt buộc | 89,3 | **70,5 KB** (−21%) | ≤ 45 | **25,5 KB** |
 
-Cả hai ngưỡng đã **khoá**: `alwaysOnMaxKB = 12,6` · `phaseMaxKB.phase1 = 73,2`.
+Cả hai ngưỡng đã **khoá**: `alwaysOnMaxKB = 12,2` · `phaseMaxKB.phase1 = 73,2` — cộng **mốc 6 luồng của
+`prompt:budget`** hạ theo số đo (phase1 28.371 → 23.043, trần 31k → 24,2k, thẻ `run_phase1_template`
+9,5k → 3,55k).
+
+**Khoá lại không phải việc dọn dẹp — không khoá thì phép đối chứng CHẾT.** Đo 06/11: sau nhát cắt phase1
+−5.538 token, phép KIỂM-ÂM của `prompt:budget` (phình một thẻ chạy thêm 5.000 token thì phải ĐỎ) ra
+**XANH**, vì dư địa dưới mốc cũ lớn hơn cả phép phá. Một cải thiện không khoá lại thì vừa trôi về được,
+vừa làm chính phép kiểm canh nó thành rỗng.
 
 ### Cái giá nếu muốn ép tới đích
 
@@ -134,10 +141,10 @@ lượt chạy phase, chứ không biến mất hẳn.
 | `token:session` + `token:phase1` | 11 | 7 → 7 |
 | `skills:route:live` | 15 | 13 → 13 |
 | `skills:template:check` | 15 | 10 → 10 |
-| `skills:practice` | 15 | 10 → 10 |
+| `skills:practice` | 17 | 10 → 10 |
 | cặp ❌/✅ (mục 1.3) | 20 | 7 → 7 |
 | `case_types` khớp prompt | 4 | 5 → 5 |
-| **Tổng** | **80** | **52 → 52** |
+| **Tổng** | **82** | **52 → 52** |
 
 Cộng `skills:lint` thêm luật `descMaxChars: 200`, và `skills:route:check` tách **ba kết cục** thay vì
 hai (*đúng* / *CHỌN SAI* chặn / *dưới sàn* khai thành nợ).
@@ -167,6 +174,74 @@ loại.
 - [ ] 4 fixture `skills:practice` còn lại (~$5,7 model, và 3 bài cần thư mục task giả)
 - [ ] `release:verify` xanh **hai lượt liên tiếp** — chưa chạy, vì chưa cắt bản phát hành
 - [ ] CHANGELOG `v2.10.0` + `package.json` lên `2.10.0`
-- [x] 80 ca spec mới, 52 phép phá cho 52 lần đỏ
-- [x] 31/32 cửa `static-check` ĐẠT; cửa đỏ duy nhất là `typecheck` với toàn bộ lỗi trong **một file
-      chưa track của phiên khác**, đã chứng minh 0 lỗi ở worktree sạch tại `HEAD`
+- [x] 82 ca spec mới, 52 phép phá cho 52 lần đỏ
+- [x] 31/32 cửa `static-check` ĐẠT (danh sách trích bằng `grep` từ workflow, không từ trí nhớ); cửa đỏ
+      duy nhất là `typecheck` với toàn bộ lỗi trong **một file chưa track của phiên khác**, đã chứng minh
+      0 lỗi ở worktree sạch tại commit của nhánh
+- [x] **11 ca đỏ của lượt dry-run 42183908761 đã vá tận nguyên nhân** — xem mục dưới
+
+---
+
+## 11 ca đỏ mà tôi không thấy, và vì sao tôi không thấy
+
+Lượt dry-run `42183908761` đỏ ở bước *"Chạy CẢ BỘ"*: **2547 xanh · 11 đỏ · 24 bỏ qua**. Cả 11 là spec
+**tôi không viết** — tức bản vá v2.10.0 làm chúng đỏ.
+
+**Vì sao tôi không thấy:** `full:suite` chưa lần nào chạy xong ở máy (nó typecheck trước, và chết ở một
+file chưa track của phiên khác), nên tôi chỉ chạy các spec mình nhắm tới. Con số *"31/32 cửa"* tôi báo ba
+lần là về `static-check` — **không** phải về cả bộ 180 spec. Hai mẫu số khác nhau, và tôi dùng cái nhỏ để
+nói về cái lớn.
+
+### Ca nặng nhất không phải một dòng gate đỏ
+
+`tests/fixtures/practice/spec_5_loi.spec.ts` — **file đề bài** cài sẵn 5 lỗi — bị `playwright test --list`
+thu thành **4 test THẬT**. Một test bấm `#btnXoaTatCa`; `afterEach` bấm lại cái đó sau **mỗi** test.
+
+Chú thích dòng 4–5 **do tôi viết** nói: *"KHÔNG được chạy… tên file cố ý không khớp `tests/fe/**` nên lưới
+chắn của `ci:scope` không vớ phải nó"*. Tiền đề đó **sai hai lần**: `testDir: './tests'` gom cả
+`tests/fixtures/**`, và `ci:scope` là cửa KHÁC chứ không phải bộ thu test. Trên máy có profile ghim sẵn,
+`npx playwright test` sẽ lái UAT và bấm *"Xoá tất cả"* — đúng thứ non-negotiable §2 cấm.
+
+Vá: đổi đuôi `.de.txt`, và `skills_practice.js` chép nó vào thư mục làm bài **dưới tên `.spec.ts`** nên
+model vẫn thấy đúng thứ phải review. Thêm 2 ca gác: **không file nào dưới `tests/fixtures/**` được khớp
+`testMatch`**, kèm đối chứng rằng phép kiểm bắt đúng cái tên cũ. Luật không phải *"đừng đặt tên thế"* —
+một chú thích không chặn được bộ chạy.
+
+### Sáu luồng vượt mốc: cắt bù, không nới ngưỡng
+
+Nhát dời `CLAUDE.md` mục 3 sang `core_rules.md` làm phần nạp **bắt buộc của mọi luồng** tăng ~160 token, và
+`start` tăng **570**. Đo ở worktree sạch tại `main`: **xanh** ⇒ 100% là của nhánh này, không có cớ "mốc cũ".
+
+Trả bằng cách cắt, theo đúng luật của chính config (*"thêm chữ thì phải CẮT BÙ trong CÙNG luồng"*):
+
+| Chỗ cắt | Cắt gì |
+|---|---|
+| `CLAUDE.md` −176 ký tự | câu đã có **nguyên vẹn** trong hook SessionStart (bản ở hook còn kể tên 4 cửa) |
+| `core_rules.md` −386 | §Verify mở rộng về bản digest: 7 luật còn đủ 7, con trỏ còn giải được |
+| `.claude/commands/start.md` −1138 (−32%) | lý lẽ sang [`docs/rationale/start-pham-vi.md`](../../docs/rationale/start-pham-vi.md) |
+
+Kết quả: sáu luồng đều **dưới mốc**, và **không một ngưỡng nào bị nới**.
+
+### Tám ca còn lại — mỗi ca một nguyên nhân thật
+
+| Ca | Nguyên nhân | Vá |
+|---|---|---|
+| `skills-lint:74` | tôi đổi chữ *"thứ DUY NHẤT agent đọc"* thành *"căn cứ chính"* | khôi phục nguyên văn — bản đổi là vô cớ |
+| `skills-lint:254` · `requirement-evidence:249` | `requirements_analyzer` 2543 > trần 2500 (`main` đã ở **2496**, dư 4 token) | rút hai con trỏ trong SKILL.md |
+| `handoff-gate:105` | nhát cắt phase1 làm **mất hẳn** khối *"ghi bàn giao + `/clear`"* | khôi phục, kèm số đo 494–515k token/message |
+| `start-command:144` | `/start` ghi 151 gate, thật **156**; và ô *"vì sao"* câu 3 ngắn hơn 40 ký tự | sửa số, viết lại ô |
+| `config-presence:89` | `skills_template.json` chưa có trong danh sách **đóng gói** | thêm vào `package_kit.js` |
+| `automation-review:59` | nợ ngủ cứng của file đề bài | hết sau khi đổi đuôi |
+| `frontmatter-check:140` | đối chứng neo vào *"commit MỚI NHẤT sửa file"*, nên **tự vô hiệu sau một lần sửa** | dò ngược cả lịch sử |
+
+Ca cuối đáng kể riêng: bản vá rút `description` của `case-debugger.md` làm commit mới nhất thành lượt rút
+đó, nên bản `^` của nó là bản **đã vá** — cửa ra *"0 file có vấn đề"* mà vẫn **xanh**. Một phép đối chứng
+hỏng thì kết luận nó bảo vệ cũng hỏng theo. Nay nó dò **ngược cả lịch sử** và đòi tìm được ít nhất một bản
+bị chặn, nên không còn phụ thuộc vào việc lượt sửa gần nhất là lượt gì.
+
+### Và hai lỗi của tôi ngay trong lượt vá này, do cửa bắt
+
+- **Ngắt dòng giữa cụm** ``/phase1` hay `/phase2`` làm regex của `start-command` trượt — đúng lớp lỗi
+  `rule:parity` đã dạy ở commit trước, tôi vẫn lặp lại.
+- **Viết gọn TÊN luật** *"Neo CỦA kỳ vọng"* → *"Neo kỳ vọng"*, và `rule:parity` xếp là **MẤT LUẬT**. Nó
+  đúng: tên là danh tính của luật, đổi nó để tiết kiệm 4 ký tự là đổi sai thứ.
