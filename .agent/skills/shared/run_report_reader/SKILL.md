@@ -10,6 +10,8 @@ description: "ĐỌC KẾT QUẢ một lượt chạy đúng thứ tự và đú
 Mở khi vừa chạy xong và cần hiểu lượt đó nói gì, hoặc khi nhận lại một lượt chạy của người khác.
 **KHÔNG** chấm verdict, **KHÔNG** sửa spec, **KHÔNG** viết bug.
 
+> **Cặp sai → đúng**: [`references/sai-dung.md`](references/sai-dung.md) — mỗi lỗi một cặp ❌/✅ lấy từ ca đã gặp thật. Cột ✅ không vi phạm gate nào.
+
 ## Ranh giới
 
 | | |
@@ -107,6 +109,7 @@ là đổ rác điều khiển terminal vào context rồi vẫn phải đọc l
 | Output | Vị trí | Mẫu |
 |---|---|---|
 | Bảng phân loại lỗi → `failureLayer` → việc tiếp theo | tài liệu tra cứu, dùng khi đọc report chạy tay | Mẫu: `.agent/skills/shared/run_report_reader/templates/bang-phan-loai-loi.md` |
+| Sổ một phiên chạy tay | `<TASK_OUTPUT_DIR>/test-results/runs/<RUN_ID>/manual-run/session.md` | Mẫu: `.agent/skills/shared/run_report_reader/templates/session-chay-tay.md` |
 
 > Mỗi dòng có một ví dụ trích từ sổ thật đã khử PII. Dòng chưa gặp ca thật ghi thẳng "chưa gặp" kèm ngày — bảng điền ví dụ bịa tệ hơn bảng còn chỗ trống.
 ## Anti-Patterns

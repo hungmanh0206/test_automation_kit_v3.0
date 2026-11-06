@@ -20,6 +20,8 @@ Gọi bó cửa `auto:review`, rồi soi tay năm chỗ máy mù:
 KHÔNG sinh spec mới (việc của [`qa_automation_engineer`](../qa_automation_engineer/SKILL.md)),
 KHÔNG sửa case đã đỏ (việc của agent `case-debugger`).
 
+> **Cặp sai → đúng**: [`references/sai-dung.md`](references/sai-dung.md) — mỗi lỗi một cặp ❌/✅ lấy từ ca đã gặp thật. Cột ✅ không vi phạm gate nào.
+
 ## Ranh giới
 
 | | |

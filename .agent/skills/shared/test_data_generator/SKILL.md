@@ -5,6 +5,8 @@ description: "SINH TEST DATA cụ thể, unique theo RUN_ID, truy vết và roll
 
 # Test Data Generator
 
+> **Cặp sai → đúng**: [`references/sai-dung.md`](references/sai-dung.md) — mỗi lỗi một cặp ❌/✅ lấy từ ca đã gặp thật. Cột ✅ không vi phạm gate nào.
+
 ## Dùng khi nào
 
 **KHÔNG dùng** để dựng state qua DB, và **KHÔNG** sinh dữ liệu chứa PII khách thật.

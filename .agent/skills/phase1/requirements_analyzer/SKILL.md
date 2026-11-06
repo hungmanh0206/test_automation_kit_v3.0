@@ -5,6 +5,8 @@ description: Phân tích requirement/UI/API artifact để tạo scope, business
 
 # Requirements Analyzer
 
+> **Cặp sai → đúng**: [`references/sai-dung.md`](references/sai-dung.md) — mỗi lỗi một cặp ❌/✅ lấy từ ca đã gặp thật. Cột ✅ không vi phạm gate nào.
+
 ## Purpose
 
 Chuyển Backlog/tài liệu/Figma/Swagger/artifact local thành requirement summary, business rule, open question và coverage input để sinh testcase.

@@ -5,6 +5,8 @@ description: "LOG BUG lên Backlog thành sub-bug từ testcase FAIL đã qua Bu
 
 # Backlog Bug Reporter
 
+> **Cặp sai → đúng**: [`references/sai-dung.md`](references/sai-dung.md) — mỗi lỗi một cặp ❌/✅ lấy từ ca đã gặp thật. Cột ✅ không vi phạm gate nào.
+
 ## Dùng khi nào
 
 **KHÔNG dùng** cho `setup_failure`, `SKIP`, hay FAIL chưa rerun đủ vòng.
