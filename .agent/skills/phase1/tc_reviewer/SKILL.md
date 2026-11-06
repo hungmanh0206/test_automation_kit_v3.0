@@ -70,6 +70,14 @@ TC trùng (cùng bước, cùng dữ liệu) để cân nhắc gộp.
 Điểm thấp ở tiêu chí 5 thường không phải case viết dở, mà là **rule chưa có mã để neo**. Lúc đó việc cần làm
 là ghi rule vào `knowledge/domain/` trước, không phải sửa case.
 
+## Outputs
+
+| Output | Vị trí | Mẫu |
+|---|---|---|
+| Bảng chấm từng TC + danh sách chưa đạt | `<TASK_OUTPUT_DIR>/reports/tc-review.md` | Mẫu: `.agent/skills/phase1/tc_reviewer/templates/tc-review.md` |
+| Danh sách TC trùng (cùng bước + cùng dữ liệu) | cùng file trên, mục cuối |  |
+
+> Mẫu là bản **đã điền** trên một bộ 6 case hồ sơ lớp học, khớp đúng khuôn `npm run tc:review` ghi ra.
 ## Anti-pattern
 
 - Chạy `tc:review` rồi sửa case cho qua ngưỡng mà không đọc chỗ nó chỉ ra. Điểm lên, chất lượng không đổi.

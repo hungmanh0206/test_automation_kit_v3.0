@@ -102,6 +102,13 @@ là đổ rác điều khiển terminal vào context rồi vẫn phải đọc l
 > người viết, và máy không đối chiếu được lời kể với artifact. Đọc nó SAU bước 1–2, để còn biết nó có bỏ
 > sót gì.
 
+## Outputs
+
+| Output | Vị trí | Mẫu |
+|---|---|---|
+| Bảng phân loại lỗi → `failureLayer` → việc tiếp theo | tài liệu tra cứu, dùng khi đọc report chạy tay | Mẫu: `.agent/skills/shared/run_report_reader/templates/bang-phan-loai-loi.md` |
+
+> Mỗi dòng có một ví dụ trích từ sổ thật đã khử PII. Dòng chưa gặp ca thật ghi thẳng "chưa gặp" kèm ngày — bảng điền ví dụ bịa tệ hơn bảng còn chỗ trống.
 ## Anti-Patterns
 
 - Đọc `results.json` thô rồi tự đếm.

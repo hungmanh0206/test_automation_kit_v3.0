@@ -110,6 +110,14 @@ Hai chỗ này chấm tay, mỗi lượt review.
    dòng cuối.
 3. So oracle trong spec với ô đó. Lệch thì sửa spec, KHÔNG sửa expected.
 
+## Outputs
+
+| Output | Vị trí | Mẫu |
+|---|---|---|
+| Bảng 6 nhóm theo Definition of Done + vi phạm chặn bàn giao | `<TASK_OUTPUT_DIR>/reports/automation-review.md` | Mẫu: `.agent/skills/phase2/automation_reviewer/templates/automation-review.md` |
+| Kết quả soi tay 5 chỗ máy mù | cùng file trên |  |
+
+> Mẫu chép khuôn từ một lượt `auto:review` THẬT ngày 06/11/2026 (735 file · 1702 finding), không suy từ code.
 ## Anti-Patterns của chính lượt review
 
 - Đòi sửa một spec vì không thấy `expect(` — xem lại ba dạng oracle ở trên.

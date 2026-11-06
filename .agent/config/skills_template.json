@@ -5,6 +5,7 @@
   "_moi_mau_phai_khai_may_kiem": "Trong frontmatter của chính mẫu: `kiem_bang: <lệnh>` (cửa sẽ nối đường dẫn mẫu vào cuối rồi chạy; exit khác 0 là CHẶN), hoặc `vi_sao: <một câu>` khi không máy nào kiểm được nó. Phần lớn cửa của kit đọc THƯ MỤC output của một task chứ không đọc file rời, nên 'chưa có máy kiểm' là trạng thái thật và phải khai được.",
   "_ha_no_the_nao": "Viết thêm một mẫu, trỏ `Mẫu:` từ skill tới nó, rồi hạ `no.thieuMau` đúng số cửa in ra. Đó là một việc thấy được trong diff, không phải một con số trôi đi trong im lặng.",
   "no": {
-    "thieuMau": 46
-  }
+    "thieuMau": 49
+  },
+  "_vi_sao_no_tang": "Nợ ĐI LÊN 46 → 49 ngày 06/11/2026, và đó là tiến triển chứ không phải thụt lùi. Bốn skill sinh ra tài liệu quan trọng nhất (tc_reviewer, automation_reviewer, release_summary, run_report_reader) trước đây KHÔNG khai mục Outputs chút nào, nên 7 output của chúng nằm ngoài tầm mọi phép đếm: sổ ghi 46 trong khi thực tế là 53. Khai chúng ra cộng 7, cấp 4 mẫu trừ 4, ròng +3. Một sổ nợ chỉ có nghĩa khi mẫu số của nó đầy đủ; con số 46 cũ nhỏ hơn nhưng SAI."
 }
