@@ -150,13 +150,27 @@ const TERMS_GATE3 = [
   src:'scripts/qa/scope_anchor.js', rel:['g-dimension_coverage','c-canonical','g-preflight_gate'] },
 { id:'g-gate_index', t:'gates:index', cat:'gate',
   def:'Sinh DANH MỤC GATE của kit từ chính source. Trả lời được "kit có bao nhiêu gate, mỗi cái CHẶN gì, gọi ở đâu".',
-  detail:'Quét source rồi suy mức từ code: exit 1 là CHẶN · ghi artifact là SINH · chỉ in là BÁO CÁO. Bảng hiện tại: 155 máy — 112 CHẶN, 24 SINH, 19 BÁO CÁO. Bản --check chặn khi bảng lệch source.',
+  detail:'Quét source rồi suy mức từ code: exit 1 là CHẶN · ghi artifact là SINH · chỉ in là BÁO CÁO. Bảng hiện tại: 156 máy — 112 CHẶN, 25 SINH, 19 BÁO CÁO. Bản --check chặn khi bảng lệch source.',
   why:'Kit có hơn 30 npm script dạng gate và gần 60 file trong scripts/qa/, nhưng không chỗ nào trả lời được câu trên. Hệ quả không phải bất tiện: luận đề của kit là "luật cần MÁY", mà máy không LIỆT KÊ ĐƯỢC thì không kiểm toán được. Không ai biết một gate đã âm thầm tụt thành cảnh báo, hay đã mất nơi gọi.',
   how:['npm run gates:index để sinh lại bảng.','npm run gates:index:check để chặn khi bảng lệch source.'],
   cmd:'npm run gates:index   ·   npm run gates:index:check',
   ex:'SINH và BÁO CÁO KHÔNG phải gate bị nới, chúng không kiểm vi phạm. bugs:checklist chỉ in brief bug lịch sử, còn việc CHẶN nằm ở dim:coverage chiều §20.',
   trap:'Bốn "phát hiện" đầu tiên khi mới dựng bảng đều là lỗi của BẢNG, không của kit, nên phải hiệu chuẩn danh mục trước khi tin số nó đưa ra.',
   src:'scripts/qa/gate_index.js', rel:['c-forcing-function','c-gate-real-content','g-policy_source_check','f-gate-catalog'] },
+
+{ id:'g-skills_practice', t:'skills:practice', cat:'gate',
+  def:'Đọc MỘT skill xong có làm ra được sản phẩm qua được gate không. Chạy model thật, KHÔNG vào CI.',
+  detail:'Mỗi bài chạy một phiên claude -p trong thư mục chỉ có ĐÚNG MỘT skill; cố ý KHÔNG chép prompt_templates/ nên model không mở được prompt phase để lấy thêm hướng dẫn. Làm được là nhờ skill, không nhờ thứ khác. Mỗi bài 3 lượt, đạt khi ít nhất 2/3. Lượt KHÔNG CHẠY ĐƯỢC bị loại khỏi mẫu số, không tính là trượt. Cờ --gia chạy một lượt và chỉ in chi phí; --luu lưu câu trả lời thô.',
+  why:'skills:lint chấm mô tả có ĐỦ THÔNG TIN ĐỂ CHỌN, skills:template:check chấm mẫu có THẬT và có QUA MÁY. Cả hai đo TÀI LIỆU. Không cửa nào trả lời câu cuối: đọc skill xong có làm ra được sản phẩm không. Đây là chỗ kit B vượt gói nguồn — gói đó không có phép đo này.',
+  how:[
+    'npm run skills:practice:gia để đo chi phí MỘT lượt trước khi quyết chạy cả bộ.',
+    'npm run skills:practice -- --bai <mã> --lan 3 --ra docs/<phiên bản>/PRACTICE.md',
+    'Chạy tay trước mỗi bản phát hành. Kết quả ghi kèm NGÀY và PHIÊN BẢN MODEL.'
+  ],
+  cmd:'npm run skills:practice:gia   ·   npm run skills:practice -- --lan 3',
+  ex:'Giá đo 06/11/2026: một lượt 65–114 giây, $0,30–0,45. Một bài 3 lượt $1,14. Cả 5 bài 15 lượt khoảng $5,7.',
+  trap:'MỘT LƯỢT LÀ TUNG ĐỒNG XU. Hai lượt hiệu chuẩn CÙNG bài, CÙNG bộ chấm, CÙNG skill cho 2/5 rồi 5/5. Nếu dừng ở lượt đầu, kết luận sẽ là "automation_reviewer dạy không đủ" và việc tiếp theo là đi sửa một skill KHÔNG hỏng; ba lượt chính thức sau đó đều 5/5. Đó là vì sao ngưỡng 2/3 không phải thận trọng dư. Và đáp án bài 2 bản đầu tôi đếm số dòng BẰNG MẮT, sai cả 5 mục — để vậy thì bài tập chấm model "sai dòng" trong khi model nêu đúng; nay có ca spec đối chiếu từng dòng với đoạn mã thật.',
+  src:'scripts/qa/skills_practice.js', rel:['g-skills_template','g-skills_route_live','c-forcing-function'] },
 
 { id:'g-skills_template', t:'skills:template:check', cat:'gate',
   def:'Skill khai output thì phải có MẪU, và mẫu phải tự qua máy kiểm của chính nó.',

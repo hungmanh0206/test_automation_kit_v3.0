@@ -126,6 +126,8 @@
     "skills:template:check:enforce": "node scripts/qa/skills_template_check.js --enforce",
     "skills:route:check": "node scripts/qa/skills_route.js",
     "skills:route:live": "node scripts/qa/skills_route_live.js",
+    "skills:practice": "node scripts/qa/skills_practice.js",
+    "skills:practice:gia": "node scripts/qa/skills_practice.js --gia",
     "course:numbers": "node scripts/qa/course_numbers.js",
     "course:maturity": "node scripts/qa/course_maturity.js",
     "course:maturity:check": "node scripts/qa/course_maturity.js --check",

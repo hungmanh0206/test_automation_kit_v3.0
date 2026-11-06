@@ -1,0 +1,85 @@
+{
+  "_doc": "Đáp án bài tập 2 của `skills:practice`. Năm lỗi cài sẵn trong `spec_5_loi.spec.ts`.",
+  "_cach_cham": "Mỗi lỗi tính là TÌM ĐƯỢC khi câu trả lời của model nhắc ít nhất một `tu_khoa` VÀ nêu đúng một trong các `dong` (dạng `file:line` hoặc chỉ số dòng). Đạt bài khi tìm được >= 4/5. Đòi file:line là có chủ ý: 'spec này có test không assertion' là một nhận xét, 'dòng 38 không có assertion' là một phát hiện.",
+  "_vi_sao_nam_loi_nay": "Cả năm đều nằm trong phạm vi `automation_reviewer` dạy: ba cái đầu là rule P0 của `auto:review`, hai cái sau là chỗ máy mù mà skill đó dặn soi tay. Nếu đọc skill xong vẫn không tìm ra, đó là khoảng cách của SKILL, không phải của người làm bài — và mục 1.4 nói rõ: bài nào trượt thì sửa skill, không sửa đề.",
+  "loi": [
+    {
+      "ma": "L1-hard-sleep",
+      "ten": "Chờ theo đồng hồ, không theo điều kiện",
+      "dong": [
+        21
+      ],
+      "tu_khoa": [
+        "waitForTimeout",
+        "hard-sleep",
+        "ngủ cứng",
+        "chờ theo đồng hồ",
+        "sleep"
+      ],
+      "muc": "P0"
+    },
+    {
+      "ma": "L2-console-log",
+      "ten": "`console.log` sót lại",
+      "dong": [
+        22
+      ],
+      "tu_khoa": [
+        "console.log",
+        "console-log"
+      ],
+      "muc": "P1"
+    },
+    {
+      "ma": "L3-vacuous-count",
+      "ten": "Đếm rỗng nghĩa — `toBeGreaterThan(0)` pass với mọi lưới không rỗng",
+      "dong": [
+        31
+      ],
+      "tu_khoa": [
+        "toBeGreaterThan",
+        "vacuous",
+        "đếm rỗng",
+        "ít nhất 1",
+        "rỗng nghĩa"
+      ],
+      "muc": "P1"
+    },
+    {
+      "ma": "L4-tautology",
+      "ten": "Oracle so app với chính app — `expect(ten).toContain(ten)`",
+      "dong": [
+        37
+      ],
+      "tu_khoa": [
+        "tautology",
+        "toContain(ten)",
+        "so app với chính app",
+        "chính nó",
+        "luôn đúng"
+      ],
+      "muc": "P0"
+    },
+    {
+      "ma": "L5-phu-thuoc-thu-tu",
+      "ten": "Test phụ thuộc thứ tự chạy qua biến `maLopDaTao`, và cleanup xoá theo TÊN chứ không theo RUN_ID",
+      "dong": [
+        17,
+        18,
+        27,
+        49
+      ],
+      "tu_khoa": [
+        "phụ thuộc",
+        "thứ tự",
+        "maLopDaTao",
+        "RUN_ID",
+        "cleanup",
+        "btnXoaTatCa",
+        "xoá tất cả"
+      ],
+      "muc": "P0"
+    }
+  ],
+  "_so_dong_lay_bang_may": "Số dòng do scripts đối chiếu lại ngày 06/11/2026, KHÔNG đếm bằng mắt. Bản đầu tôi đếm tay và sai cả 5 mục — nếu để vậy, bài tập sẽ chấm model \"sai dòng\" trong khi model nêu đúng."
+}
