@@ -150,13 +150,69 @@ const TERMS_GATE3 = [
   src:'scripts/qa/scope_anchor.js', rel:['g-dimension_coverage','c-canonical','g-preflight_gate'] },
 { id:'g-gate_index', t:'gates:index', cat:'gate',
   def:'Sinh DANH MỤC GATE của kit từ chính source. Trả lời được "kit có bao nhiêu gate, mỗi cái CHẶN gì, gọi ở đâu".',
-  detail:'Quét source rồi suy mức từ code: exit 1 là CHẶN · ghi artifact là SINH · chỉ in là BÁO CÁO. Bảng hiện tại: 152 máy — 110 CHẶN, 23 SINH, 19 BÁO CÁO. Bản --check chặn khi bảng lệch source.',
+  detail:'Quét source rồi suy mức từ code: exit 1 là CHẶN · ghi artifact là SINH · chỉ in là BÁO CÁO. Bảng hiện tại: 156 máy — 112 CHẶN, 25 SINH, 19 BÁO CÁO. Bản --check chặn khi bảng lệch source.',
   why:'Kit có hơn 30 npm script dạng gate và gần 60 file trong scripts/qa/, nhưng không chỗ nào trả lời được câu trên. Hệ quả không phải bất tiện: luận đề của kit là "luật cần MÁY", mà máy không LIỆT KÊ ĐƯỢC thì không kiểm toán được. Không ai biết một gate đã âm thầm tụt thành cảnh báo, hay đã mất nơi gọi.',
   how:['npm run gates:index để sinh lại bảng.','npm run gates:index:check để chặn khi bảng lệch source.'],
   cmd:'npm run gates:index   ·   npm run gates:index:check',
   ex:'SINH và BÁO CÁO KHÔNG phải gate bị nới, chúng không kiểm vi phạm. bugs:checklist chỉ in brief bug lịch sử, còn việc CHẶN nằm ở dim:coverage chiều §20.',
   trap:'Bốn "phát hiện" đầu tiên khi mới dựng bảng đều là lỗi của BẢNG, không của kit, nên phải hiệu chuẩn danh mục trước khi tin số nó đưa ra.',
   src:'scripts/qa/gate_index.js', rel:['c-forcing-function','c-gate-real-content','g-policy_source_check','f-gate-catalog'] },
+
+{ id:'g-skills_practice', t:'skills:practice', cat:'gate',
+  def:'Đọc MỘT skill xong có làm ra được sản phẩm qua được gate không. Chạy model thật, KHÔNG vào CI.',
+  detail:'Mỗi bài chạy một phiên claude -p trong thư mục chỉ có ĐÚNG MỘT skill; cố ý KHÔNG chép prompt_templates/ nên model không mở được prompt phase để lấy thêm hướng dẫn. Làm được là nhờ skill, không nhờ thứ khác. Mỗi bài 3 lượt, đạt khi ít nhất 2/3. Lượt KHÔNG CHẠY ĐƯỢC bị loại khỏi mẫu số, không tính là trượt. Cờ --gia chạy một lượt và chỉ in chi phí; --luu lưu câu trả lời thô.',
+  why:'skills:lint chấm mô tả có ĐỦ THÔNG TIN ĐỂ CHỌN, skills:template:check chấm mẫu có THẬT và có QUA MÁY. Cả hai đo TÀI LIỆU. Không cửa nào trả lời câu cuối: đọc skill xong có làm ra được sản phẩm không. Đây là chỗ kit B vượt gói nguồn — gói đó không có phép đo này.',
+  how:[
+    'npm run skills:practice:gia để đo chi phí MỘT lượt trước khi quyết chạy cả bộ.',
+    'npm run skills:practice -- --bai <mã> --lan 3 --ra docs/<phiên bản>/PRACTICE.md',
+    'Chạy tay trước mỗi bản phát hành. Kết quả ghi kèm NGÀY và PHIÊN BẢN MODEL.'
+  ],
+  cmd:'npm run skills:practice:gia   ·   npm run skills:practice -- --lan 3',
+  ex:'Giá đo 06/11/2026: một lượt 65–114 giây, $0,30–0,45. Một bài 3 lượt $1,14. Cả 5 bài 15 lượt khoảng $5,7.',
+  trap:'MỘT LƯỢT LÀ TUNG ĐỒNG XU. Hai lượt hiệu chuẩn CÙNG bài, CÙNG bộ chấm, CÙNG skill cho 2/5 rồi 5/5. Nếu dừng ở lượt đầu, kết luận sẽ là "automation_reviewer dạy không đủ" và việc tiếp theo là đi sửa một skill KHÔNG hỏng; ba lượt chính thức sau đó đều 5/5. Đó là vì sao ngưỡng 2/3 không phải thận trọng dư. Và đáp án bài 2 bản đầu tôi đếm số dòng BẰNG MẮT, sai cả 5 mục — để vậy thì bài tập chấm model "sai dòng" trong khi model nêu đúng; nay có ca spec đối chiếu từng dòng với đoạn mã thật.',
+  src:'scripts/qa/skills_practice.js', rel:['g-skills_template','g-skills_route_live','c-forcing-function'] },
+
+{ id:'g-skills_template', t:'skills:template:check', cat:'gate',
+  def:'Skill khai output thì phải có MẪU, và mẫu phải tự qua máy kiểm của chính nó.',
+  detail:'Quét mục `## Outputs` của mọi skill, đối chiếu với các dòng `Mẫu: <đường dẫn>`. Mẫu phải TỒN TẠI; frontmatter của mẫu khai `kiem_bang: <lệnh>` thì cửa nối đường dẫn mẫu vào cuối lệnh rồi CHẠY, exit khác 0 là CHẶN. Không có máy kiểm được thì BẮT BUỘC khai `vi_sao` — phần lớn cửa của kit đọc THƯ MỤC output của một task chứ không đọc file rời, nên "chưa có máy kiểm" là trạng thái thật và phải khai được.',
+  why:'Khoảng cách của tiêu chí "hướng dẫn cụ thể" không nằm ở chỗ skill thiếu chữ, mà ở chỗ đọc xong vẫn chưa biết SẢN PHẨM trông thế nào. Đo 06/11/2026: trong 28 skill thì có 18 cái khai mục Outputs, tổng 47 output, và chỉ 1 output có mẫu. Mẫu KHÔNG phải khung trống — khung trống thì ai cũng dựng được và không ai học được gì từ nó; mẫu là bản ĐÃ ĐIỀN trên miền thật.',
+  how:[
+    'npm run skills:template:check để xem sổ nợ; bản :enforce mới chặn.',
+    'Hạ nợ: viết thêm một mẫu, trỏ `Mẫu:` từ skill tới nó, rồi sửa `no.thieuMau` đúng số cửa in ra.',
+    'Ngưỡng ở .agent/config/skills_template.json — một nguồn duy nhất, cùng khuôn skills_lint.json.'
+  ],
+  cmd:'npm run skills:template:check   ·   npm run skills:template:check:enforce',
+  ex:'Mẫu đầu tiên tự qua máy thật: checklist Smoke hồ sơ lớp học, kiểm bằng `design_gate --mode checklist --file`, 0 chặn 0 cảnh báo. Chính máy đó chỉ ra mẫu còn thiếu bảng ký nhận.',
+  trap:'SỔ NỢ chứ không chặn tất: chặn thẳng 47 output là đặt một ngưỡng đỏ ngay hôm đặt, và ngưỡng đỏ ngay hôm đặt là tiếng ồn, tiếng ồn thì bị tắt. Nợ PHÌNH chặn, nợ TRẢ RỒI MÀ KHÔNG HẠ SỔ cũng chặn — chỉ chặn một chiều thì sổ ở mãi con số cũ và mất nghĩa. Khoá nợ đặt NGOÀI `no` chặn ngay: lớp lỗi đó đã sống 13 ngày ở skills_lint.json. Và regex đọc `Mẫu:` sai HAI chiều trong một buổi: neo đầu dòng thì trượt ô bảng rồi báo nợ phình oan; nới ra thì bắt cả "Câu kích hoạt mẫu:" ở 18 skill và CHE nợ thật từ 46 xuống 29.',
+  src:'scripts/qa/skills_template_check.js', rel:['g-skills_lint','c-forcing-function','g-design_gate'] },
+
+{ id:'g-skills_route_live', t:'skills:route:live', cat:'gate',
+  def:'Đo định tuyến skill bằng CHÍNH MODEL, không bằng đếm từ. Không vào CI vì mỗi lượt là một phiên model thật.',
+  detail:'Mỗi câu trong tests/fixtures/skills_route.json chạy một phiên claude -p, công cụ làm việc bị CHẶN để model không đi dò thay vì định tuyến. Skill được chọn đọc từ lời GỌI công cụ Skill, KHÔNG từ lời model tự thuật. Cờ --trong-repo chạy ở gốc repo (hook CÓ chạy) để tách ảnh hưởng của ngữ cảnh; --gioi-han lấy mẫu và tự dán nhãn "đây là MẪU".',
+  why:'skills:route:check chấm bằng TỪ NGỮ và tự khai giới hạn đó. Giới hạn ấy không phải lý thuyết: câu "soak test nửa tiếng" bị bộ chấm từ ngữ xếp dưới sàn 3,57 điểm, còn model thật gọi thẳng load_check ngay lượt đầu. Chỉ có thước đại diện thì người ta sẽ đi nhồi từ khoá vào description cho vừa một bag-of-words — làm mô tả tệ đi cho model thật để một con số đẹp lên.',
+  how:[
+    'npm run skills:route:live để quét bộ đầy đủ; thêm --trong-repo để đo kèm hook.',
+    '--ra docs/<phiên bản>/ROUTE_LIVE.md ghi báo cáo kèm NGÀY và PHIÊN BẢN MODEL.',
+    'Chạy tay trước mỗi bản phát hành, KHÔNG đưa vào CI.'
+  ],
+  cmd:'npm run skills:route:live   ·   node scripts/qa/skills_route_live.js --trong-repo',
+  ex:'Điều nó dạy được, đo tuần tự 05/11/2026: rút 12 description từ ~250 xuống ~140 ký tự (-2,05 KB phần luôn nạp) KHÔNG làm định tuyến tụt đo được — trước 68,6–70,0%, sau 64,7–73,5%, hai dải chồng lên nhau, trung bình chênh 0,2 điểm. Trước đó một lượt 3 luồng đã cho 50 → 32,9% và suýt khiến nhát cắt bị hoàn tác; con số ấy là nhiễu do chạy song song.',
+  trap:'BA lỗi đường ống cùng cho một triệu chứng "model không gọi skill nào", và không cái nào là lỗi định tuyến: spawn với shell:true nối tham số KHÔNG escape nên câu tiếng Việt vỡ; --allowed-tools KHÔNG giới hạn gì (phải dùng --disallowed-tools); stdin không chặn thì chờ 3 giây mỗi lượt. Lượt đầu ra 0/6 vì lỗi một. Và ĐỪNG so con số của --gioi-han với con số bộ đầy đủ: tôi đã so 20 câu với 90 câu rồi kết luận nhân quả, đối chứng cùng mẫu bác ngay.',
+  src:'scripts/qa/skills_route_live.js', rel:['g-skills_route','c-forcing-function','g-skills_lint'] },
+
+{ id:'g-token_session', t:'token:session', cat:'gate',
+  def:'Đo phần LUÔN NẠP — thứ mọi phiên đều trả, kể cả phiên chỉ hỏi một câu.',
+  detail:'Ba khối: CLAUDE.md · đầu ra hook SessionStart · frontmatter description của MỌI skill, command, agent mà harness quảng bá. Ngưỡng ở prompt_budget.json khoá alwaysOnMaxKB. Bản --phase <luồng> đo khối bắt buộc của một luồng (diem_vao + bat_buoc trong load_map.json, KHÔNG tính co_dieu_kien), ngưỡng ở phaseMaxKB.',
+  why:'Khối thứ ba không nằm trong load_map.json nên prompt:budget không thấy nó — mà đo 04/11/2026 nó là khối LỚN NHẤT: 10,05 trên 16,29 KB, riêng 28 skill chiếm 7,28 KB. Tức trước cửa này, một dòng description dài thêm một câu làm MỌI phiên về sau đắt thêm, mãi mãi, và không gate nào kêu.',
+  how:[
+    'npm run token:session để đo phần luôn nạp.',
+    'npm run token:phase1 để đo khối bắt buộc của Phase 1.',
+    'node scripts/qa/token_session.js --moc in số đo hiện tại để chốt ngưỡng, thay vì đặt số bằng cảm giác.'
+  ],
+  cmd:'npm run token:session   ·   npm run token:phase1',
+  ex:'KHÁC prompt:budget: máy đó đo chi phí CHẠY MỘT PHASE theo token; máy này đo chi phí MỞ MỘT PHIÊN theo KB. Hai cửa giữ CÙNG hệ số 3,2 ký tự/token để số của chúng so được với nhau, và có một ca test khoá điều đó.',
+  trap:'Regex đọc description bản đầu dùng cờ /m, nên $ khớp cuối MỖI DÒNG và mô tả trải nhiều dòng bị đếm hụt — cửa báo RẺ hơn thực tế, tức sai về phía nguy hiểm. Ca đối chứng bắt được. Và thiếu `.claude/` (như cây-gói phát hành) thì cửa trả exit 2 KHÔNG PHÁN ĐƯỢC chứ không trả 0: cửa ⑩ của version_check.js từng trả "đạt" trong hoàn cảnh y hệt và làm release:verify đọc thành 13/15.',
+  src:'scripts/qa/token_session.js', rel:['g-prompt_budget','c-forcing-function','g-library_drift'] },
 
 { id:'g-env_scope', t:'env:scope', cat:'gate',
   def:'Chặn "profile không ghim nổi cấp học nó đang đo", và gọi tên bí mật mà không đường nào đọc tới.',

@@ -1,0 +1,51 @@
+/*
+ * FIXTURE BÀI TẬP 2 — spec cài sẵn ĐÚNG 5 lỗi. Đáp án ở `spec_5_loi.dapan.json`.
+ *
+ * File này là ĐỀ BÀI cho `skills:practice`, không phải spec của kit. Đuôi `.de.txt` là để Playwright
+ * KHÔNG thu nó: đo 06/11/2026, bản đuôi `.spec.ts` bị `testDir: ./tests` thu thành 4 test THẬT.
+ *
+ * Năm lỗi được chọn là năm lỗi `auto:review` xếp P0 hoặc năm chỗ máy mù mà `automation_reviewer`
+ * dạy soi tay — tức đọc skill đó xong là đủ căn cứ để tìm ra cả năm.
+ */
+import { test, expect } from '@playwright/test';
+
+test.describe('Hồ sơ lớp học', () => {
+  let maLopDaTao: string;
+
+  test('thêm lớp mới', async ({ page }) => {
+    await page.goto('/HoSoLop.aspx');
+    maLopDaTao = '1C';
+    await page.fill('#MaLop', maLopDaTao);
+    await page.fill('#TenLop', '1C');
+    await page.click('#btnGhi');
+    await page.waitForTimeout(2000);
+    console.log('đã ghi lớp', maLopDaTao);
+  });
+
+  test('mã lớp trùng bị chặn', async ({ page }) => {
+    await page.goto('/HoSoLop.aspx');
+    await page.fill('#MaLop', maLopDaTao);
+    await page.fill('#TenLop', 'lớp trùng');
+    await page.click('#btnGhi');
+    const rows = await page.locator('#grid tr').all();
+    expect(rows.length).toBeGreaterThan(0);
+  });
+
+  test('lưới hiện đúng lớp vừa tạo', async ({ page }) => {
+    await page.goto('/HoSoLop.aspx');
+    const ten = await page.locator('#grid tr').first().textContent();
+    expect(ten).toContain(ten);
+  });
+
+  test('xoá lớp', async ({ page }) => {
+    await page.goto('/HoSoLop.aspx');
+    await page.fill('#loc', '1C');
+    await page.click('#btnXoa');
+  });
+
+  test.afterEach(async ({ page }) => {
+    await page.goto('/HoSoLop.aspx');
+    await page.fill('#loc', '1C');
+    await page.click('#btnXoaTatCa');
+  });
+});

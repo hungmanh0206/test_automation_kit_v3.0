@@ -1,6 +1,6 @@
 ---
 name: perf_check
-description: Đo performance thật (web vitals + API SLA + large-dataset + resource weight) qua Playwright, so ngưỡng catalog → verdict advisory. Median N lần chống flaky. Threshold-gated, không thêm dependency.
+description: "Đo hiệu năng một người dùng: API có VƯỢT SLA không, web vitals, màn dữ liệu lớn, trọng lượng tài nguyên. So ngưỡng catalog, median N lần chống flaky."
 ---
 
 <!-- SINH TỰ ĐỘNG bởi `node scripts/qa/skills_index.js --write` — ĐỪNG SỬA TAY. -->

@@ -1,9 +1,14 @@
 ---
 name: release_summary
-description: Gộp kết quả nhiều lượt chạy của MỘT MỐC (release/sprint/UAT) thành khuyến nghị go/no-go có căn cứ, đối chiếu với tiêu chí exit đã chốt TRƯỚC khi xem kết quả. Dùng khi sắp bàn giao một mốc và cần nói với PM "có nên release không". KHÔNG dùng cho một lượt chạy đơn lẻ (dùng results:summary) hay để kiểm bản đóng gói (dùng release:verify).
+description: "Gộp nhiều lượt chạy của MỘT MỐC (release/sprint/UAT) thành khuyến nghị GO/NO-GO có căn cứ, đối chiếu tiêu chí exit đã chốt trước khi xem kết quả."
 ---
 
 # Release Summary — khuyến nghị, không phải quyết định
+
+## Dùng khi nào
+
+Dùng khi sắp bàn giao một mốc và cần nói với PM "có nên release không".
+**KHÔNG dùng** cho một lượt chạy đơn lẻ (dùng `results:summary`), cũng không để kiểm bản đóng gói (dùng `release:verify`).
 
 ## Purpose
 
@@ -66,6 +71,14 @@ thể bị chấm bằng cảm nhận. Khai nguồn thì máy tự biết tiêu 
 - Tính pass rate trên tổng số case thay vì trên số **đã chạy**, hoặc ngược lại, mà không nói rõ mẫu số nào.
 - Viết "cấm release" thay vì "khuyến nghị NO-GO kèm căn cứ".
 
+## Outputs
+
+| Output | Vị trí | Mẫu |
+|---|---|---|
+| Báo cáo go/no-go có căn cứ | `<TASK_OUTPUT_DIR>/reports/release-summary.md` | Mẫu: `.agent/skills/shared/release_summary/templates/bao-cao-go-no-go.md` |
+| Bảng đối chiếu tiêu chí exit đã chốt trước | cùng file trên |  |
+
+> Mẫu cho thấy ba điều mô tả skill không dạy được: tiêu chí exit chốt TRƯỚC khi xem kết quả, "đạt nhờ miễn trừ" khác "đạt thật", và dòng cuối luôn là ĐỀ XUẤT.
 ## Related
 
 - [[decision_recorder]] — ghi lý do khi PM duyệt một ngoại lệ, để lần sau không bàn lại.

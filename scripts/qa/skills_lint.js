@@ -55,6 +55,21 @@ const CFG = cfgLoad.napConfigGate({
 }) || {};
 
 const MIN = Number(CFG.descMinChars || 80);
+
+/*
+ * TRẦN ĐỘ DÀI MÔ TẢ — thêm 05/11/2026, v2.10.0.
+ *
+ * `description` của MỌI skill, command và agent nằm trong phần LUÔN NẠP: harness quảng bá chúng ở mỗi
+ * phiên, kể cả phiên chỉ hỏi một câu. Đo 04/11/2026 bằng `token:session`: riêng 44 mô tả là 9,51 KB
+ * trên tổng 16,29 KB — khối LỚN NHẤT, lớn hơn cả `CLAUDE.md`. Và nó không nằm trong `load_map.json`
+ * nên `prompt:budget` không thấy nó: trước v2.10.0, một mô tả dài thêm một câu làm mọi phiên về sau
+ * đắt thêm MÃI MÃI mà không gate nào kêu.
+ *
+ * Trần đi CẶP với sàn `descMinChars` ở trên, và hai cái kéo ngược nhau có chủ ý: quá ngắn thì skill
+ * không bao giờ được gọi, quá dài thì mọi phiên trả tiền cho chữ phần lớn không dùng tới. Phần dư
+ * KHÔNG xoá — nó xuống mục "Dùng khi nào" trong thân skill, chỗ chỉ ai đã mở skill mới phải đọc.
+ */
+const MAX = Number(CFG.descMaxChars || 200);
 const DUP = Number(CFG.dupDescThreshold || 0.3);
 const NO = CFG.no || {};
 
@@ -173,6 +188,9 @@ function main() {
 
     if (d.length < MIN) {
       chan.push(`${n}: description ${d.length} ký tự < ${MIN} — đây là thứ DUY NHẤT agent đọc để quyết định có mở skill hay không. Thiếu "dùng khi nào" thì skill không bao giờ được gọi.`);
+    }
+    if ([...d].length > MAX) {
+      chan.push(`${n}: description ${[...d].length} ký tự > ${MAX} — mô tả nằm trong phần LUÔN NẠP, mọi phiên đều trả. Chuyển phần dư xuống mục "Dùng khi nào" trong thân skill, đừng xoá. Đo bằng \`npm run token:session\`.`);
     }
     chan.push(...conTroChet(f, src, tenSkill));
 

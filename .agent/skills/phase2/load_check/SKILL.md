@@ -1,9 +1,19 @@
 ---
 name: load_check
-description: Chạy load/stress/soak (Loại B, nhiều VU) qua k6 — wrapper mỏng, parse summary → report. k6 là binary NGOÀI (không phải npm dep). Never-auto, chỉ non-prod, cap khiêm tốn. Loại A single-user dùng perf_check.
+description: "Chạy LOAD, STRESS và SOAK TEST nhiều VU cùng lúc qua k6: hệ chịu được bao nhiêu người, trụ được bao lâu. Never-auto, chỉ non-prod."
 ---
 
 # Load Check (Loại B — load/stress/soak qua k6)
+
+## Dùng khi nào
+
+Dùng khi câu hỏi là **"chịu được bao nhiêu người cùng lúc"** hoặc **"chạy liên tục nửa tiếng
+có rò rỉ gì không"**. Đây là Loại B, nhiều VU.
+
+KHÁC [`perf_check`](../perf_check/SKILL.md): máy đó đo MỘT người dùng (Loại A).
+
+`k6` là **binary NGOÀI**, không phải npm dependency — chưa cài thì skip, đừng coi là đỏ.
+Wrapper ở đây mỏng: chạy rồi parse summary thành report, cap khiêm tốn.
 
 ## Purpose
 

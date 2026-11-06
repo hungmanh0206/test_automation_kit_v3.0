@@ -90,6 +90,30 @@ test.describe('@infra /start — KHÔNG được bỏ preflight', () => {
   });
 });
 
+test.describe('@infra /start — CHỈ tạo profile + task, không tự sang phase', () => {
+  /*
+   * Đã trả giá thật (CSDL-4172, 05/11/2026): command ghi "rồi làm tiếp" và bảng "→ /phase1", load_map ghi
+   * "chuyển hẳn sang luồng phase1". Người dùng nhắn "tiếp", agent đọc hai câu đó thành lệnh, tự gọi /phase1 và
+   * sinh ~90 case trong khi người dùng chỉ định tạo profile.
+   */
+  test('command nói rõ KHÔNG tự gọi /phase1 hay /phase2 và phải DỪNG', () => {
+    const b = body();
+    expect(b).toMatch(/KHÔNG tự gọi[\s>]*`\/phase1` hay `\/phase2`/);
+    expect(b).toMatch(/Báo lệnh kế tiếp rồi DỪNG/);
+    expect(b, 'điều kiện dừng sau ba bước').toMatch(/\*\*Đã xong ba bước\.\*\*/);
+    expect(b, 'không còn câu "rồi làm tiếp" mơ hồ').not.toMatch(/rồi làm tiếp\./);
+  });
+
+  test('load_map luồng start KHÔNG được bảo agent chuyển sang luồng phase', () => {
+    const lm = JSON.parse(fs.readFileSync(path.join(REPO, '.agent/config/load_map.json'), 'utf8'));
+    const start = lm.luong.start;
+    for (const c of start.co_dieu_kien) {
+      expect(c.khi, `${c.file}: không được ra lệnh chuyển luồng`).not.toMatch(/chuyển hẳn sang/);
+      expect(c.khi, `${c.file}: phải nói KHÔNG nạp trong /start`).toMatch(/KHÔNG nạp trong \/start/);
+    }
+  });
+});
+
 test.describe('@infra /start — lệnh nhắc tới phải chạy được THẬT', () => {
   test('`profile:create` tạo được profile, và KHÔNG ghi đè', () => {
     /*

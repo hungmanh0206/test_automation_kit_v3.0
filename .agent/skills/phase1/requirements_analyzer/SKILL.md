@@ -5,6 +5,8 @@ description: Phân tích requirement/UI/API artifact để tạo scope, business
 
 # Requirements Analyzer
 
+> Cặp ❌/✅ từ ca thật: [`references/sai-dung.md`](references/sai-dung.md).
+
 ## Purpose
 
 Chuyển Backlog/tài liệu/Figma/Swagger/artifact local thành requirement summary, business rule, open question và coverage input để sinh testcase.
@@ -64,11 +66,10 @@ xanh. `goto` và `page.evaluate` đọc DOM được phép. Số đo: [`recon.md
 
 ## Tài liệu bán phần — chia vùng trước khi mở browser
 
-Sai lầm hay gặp là xử cả module theo MỘT cách: tin tài liệu rồi recon qua loa, hoặc bỏ tài liệu rồi recon
-lại từ đầu. Cả hai đều tốn công và đều sai. Chia vùng trước — 🟩 đầy đủ ⇒ **đối chiếu** · 🟨 một phần ⇒
+Xử cả module theo MỘT cách là sai: tin tài liệu rồi recon qua loa, hoặc bỏ tài liệu rồi recon lại từ
+đầu. Chia vùng trước — 🟩 đầy đủ ⇒ **đối chiếu** · 🟨 một phần ⇒
 **bổ khuyết** · ⬜ trắng ⇒ **recon đủ** chín bước · ⚠️ nghi lỗi thời ⇒ recon đủ, tài liệu thành **danh
-sách câu hỏi**. Chiến lược từng mức, luật cứng, và cột `Nguồn` bốn cấp:
-[`references/recon.md`](references/recon.md) §4.
+sách câu hỏi**. Chi tiết: [`references/recon.md`](references/recon.md) §4.
 
 Khác A ở đúng một ô: A ghi vùng ⚠️ là "UI thắng". Ở đây quan sát là `OBSERVATION` + câu hỏi Ambiguity
 Gate — xem mục dưới.

@@ -46,8 +46,8 @@ hoặc đã lệch — tìm ra vì sao trước khi chạy task thật, đừng 
 
 | Số đo | GitHub | GitLab |
 |---|---|---|
-| file được track | 881 | 881 |
-| `npm run ci:scope` đếm | 180 | 180 |
+| file được track | 920 | 920 |
+| `npm run ci:scope` đếm | 185 | 185 |
 
 Hai cột đang bằng nhau vì `.agent/config/gitlab_strip.json` chưa khai mục nào, tức hai cây còn giống
 hệt nhau. Ngày nào danh sách strip có mục thì cột GitLab tụt đúng bằng số mục đó.
@@ -58,7 +58,8 @@ hệt nhau. Ngày nào danh sách strip có mục thì cột GitLab tụt đúng
 /start <TASK_KEY>
 ```
 
-`/start` hỏi năm điều, tạo `profiles/<TASK_KEY>/task.env`, rồi chạy preflight và chỉ lệnh kế tiếp.
+`/start` hỏi năm điều, tạo `profiles/<TASK_KEY>/task.env` và `task.md`, chạy preflight, chỉ lệnh kế tiếp rồi
+**dừng**. Nó không đọc đặc tả, không sinh case và không tự gọi `/phase1` — phase bắt đầu khi bạn tự gõ lệnh đó.
 
 Mở file profile vừa tạo và điền **giá trị động**: link Backlog, link requirement, Figma,
 `GOOGLE_SHEET_URL`, tài khoản app. Giá trị **tĩnh** dùng chung cho mọi task thì để ở `.env`.

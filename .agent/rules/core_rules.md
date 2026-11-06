@@ -39,3 +39,13 @@
 - **Biến thiên data theo `RUN_ID`** (`scripts/lib/expansion/variation.js`) — xoay trong cùng lớp tương đương để độ phủ không đóng băng, nhưng PHẢI seed bằng `RUN_ID` (cùng RUN_ID = cùng data) vì random thuần biến bug thật thành flaky. Xoay data thì phải siết teardown. (Đầy đủ: RULE_GLOBAL §5 trục, mục 16)
 - **Verification theo ASSERTION** (`scripts/lib/testcase/assertions.js`) — khai `assertions:[{text,verified,evidence}]` thì gate CHẶN được (verified thiếu evidence · chưa verified không nêu lý do); bản ghi cũ không bị phạt. `deriveAssertions` chỉ ĐÁNH DẤU dòng nhồi nhiều điều kiện, không tự tách. (Đầy đủ: RULE_GLOBAL §5 trục, mục 13)
 - **Visual regression** — lane RIÊNG `tests/fe/visual/` + `visual.js` (freeze + mask lớp task); ảnh evidence KHÔNG dùng làm baseline. Oracle = build đã chấp nhận lần trước ⇒ bắt regression, KHÔNG bắt sai-từ-đầu. Lượt đầu chỉ tạo baseline (chưa kiểm gì); không có config ⇒ skip kèm lý do; KHÔNG commit baseline. (Đầy đủ: RULE_GLOBAL §5 trục)
+
+## Verify mở rộng
+
+- **Execute không chỉ bám chữ trong case**: 7 trục quanh case — field cùng khối · cùng giá trị khác màn · `form → payload → API → UI` · nhánh · trạng thái kế cận · phân quyền · oracle tính toán — cộng chiều ngược `spec:gap`, độ sâu theo risk band. (RULE_GLOBAL §7 trục mở rộng)
+- **Bug do người ngoài tìm ra = lỗi của máy**: phải chỉ ra máy lẽ ra bắt được ở đâu, không chỉ sửa bug. (RULE_GLOBAL §7 trục mở rộng)
+- **Mở rộng chỉ được PASS/FAIL khi có `oracle_ref`** (`BR-`/`SM-`/`UI-`…); không neo thì là `OBSERVATION`, vì nhất quán KHÔNG phải bằng chứng của đúng. (RULE_GLOBAL §7 trục mở rộng)
+- **Neo của kỳ vọng gồm cả ô `Kết quả mong đợi` của chính case**, không chỉ `BR-`: đọc TRỌN ô, câu quyết định hay ở gạch cuối. (RULE_GLOBAL §Bug Claim Gate)
+- **Không log Backlog cho `setup_failure` hay `SKIP`.** (RULE_GLOBAL §Backlog Bug Gate)
+- **Câu hỏi còn lại cho người dùng chỉ là "có log không"**, không bao giờ là "có phải bug không". (RULE_GLOBAL §Bug Claim Gate)
+- **Thân bug Backlog viết cho DEV đọc**: mỗi ý một dòng, câu ngắn, theo thứ tự xảy ra, id bọc nháy ngược, bỏ trailer `TC:`/`Tầng:`; lập luận dài ở lại claim. (RULE_GLOBAL §Giọng văn output)

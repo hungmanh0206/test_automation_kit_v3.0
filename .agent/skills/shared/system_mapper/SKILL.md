@@ -1,9 +1,21 @@
 ---
 name: system_mapper
-description: Ghi bản đồ HỆ THỐNG đã xác nhận vào knowledge/system/ — state machine, ma trận phân quyền, và DANH MỤC bề mặt dùng chung — để trả lời được "hành vi này là lỗi hay đúng thiết kế" và "chạm chỗ này phải regression đâu" mà không suy từ app. Đây là danh mục đã chốt, tra được mà không cần diff.
+description: "KHÔNG đọc thay đổi code. Ghi và tra bản đồ hệ thống ĐÃ CHỐT ở knowledge/system/: state machine, ma trận phân quyền, danh mục bề mặt dùng chung. Tra được mà không cần diff."
 ---
 
 # System Mapper — bản đồ hệ thống, không phải tài liệu để ngắm
+
+## Dùng khi nào
+
+Dùng khi cần trả lời *"hành vi này là lỗi hay đúng thiết kế"*, hoặc cần **tra danh mục** bề mặt dùng
+chung — mà **không có** và **không cần** một thay đổi code nào. Đây là bản đồ đã xác nhận, tra được
+bất cứ lúc nào.
+
+**KHÔNG dùng** khi vừa sửa code và muốn biết thay đổi ấy chạm vào đâu: đầu vào của câu hỏi đó là một
+`git diff`, nên nó thuộc [`git_impact_analyzer`](../../phase1/git_impact_analyzer/SKILL.md). Ranh
+giới giữa hai skill là **đầu vào**, không phải chủ đề — mô tả cũ của skill này mang cụm *"chạm chỗ
+này phải regression đâu"* và làm câu *"sửa chỗ này thì vỡ bề mặt nào"* định tuyến sai suốt một thời
+gian.
 
 ## Purpose
 

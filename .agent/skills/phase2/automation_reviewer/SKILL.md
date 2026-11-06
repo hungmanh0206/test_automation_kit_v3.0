@@ -1,9 +1,26 @@
 ---
 name: automation_reviewer
-description: "Chấm độ tin của một bộ spec đã viết — nó xanh vì sản phẩm đúng, hay xanh vì nó không kiểm gì. Gọi bó cửa `auto:review` rồi soi tay năm chỗ máy mù: test phụ thuộc nhau, cleanup dọn sai thứ, oracle so app với chính app, dữ liệu trùng giữa hai lượt, data của task lọt vào suite chung. Mở trước khi bàn giao, hoặc khi nghi một bộ đang xanh giả. KHÔNG sinh spec mới, KHÔNG sửa case đỏ."
+description: "Chấm độ tin của bộ spec đã viết: nó xanh vì sản phẩm đúng, hay xanh vì KHÔNG KIỂM GÌ. Soi oracle tautology, test phụ thuộc nhau, dữ liệu trùng lượt."
 ---
 
 # Automation Reviewer
+
+## Dùng khi nào
+
+Mở **trước khi bàn giao** một bộ automation, hoặc khi nghi một bộ đang **xanh giả**.
+
+Gọi bó cửa `auto:review`, rồi soi tay năm chỗ máy mù:
+
+1. test phụ thuộc thứ tự chạy của nhau;
+2. bước cleanup xoá nhầm thứ không phải của lượt này;
+3. oracle so app với chính app (tautology);
+4. dữ liệu trùng giữa hai lượt chạy;
+5. data riêng của task lọt vào suite dùng chung.
+
+KHÔNG sinh spec mới (việc của [`qa_automation_engineer`](../qa_automation_engineer/SKILL.md)),
+KHÔNG sửa case đã đỏ (việc của agent `case-debugger`).
+
+> **Cặp sai → đúng**: [`references/sai-dung.md`](references/sai-dung.md) — mỗi lỗi một cặp ❌/✅ lấy từ ca đã gặp thật. Cột ✅ không vi phạm gate nào.
 
 ## Ranh giới
 
@@ -95,6 +112,14 @@ Hai chỗ này chấm tay, mỗi lượt review.
    dòng cuối.
 3. So oracle trong spec với ô đó. Lệch thì sửa spec, KHÔNG sửa expected.
 
+## Outputs
+
+| Output | Vị trí | Mẫu |
+|---|---|---|
+| Bảng 6 nhóm theo Definition of Done + vi phạm chặn bàn giao | `<TASK_OUTPUT_DIR>/reports/automation-review.md` | Mẫu: `.agent/skills/phase2/automation_reviewer/templates/automation-review.md` |
+| Kết quả soi tay 5 chỗ máy mù | cùng file trên |  |
+
+> Mẫu chép khuôn từ một lượt `auto:review` THẬT ngày 06/11/2026 (735 file · 1702 finding), không suy từ code.
 ## Anti-Patterns của chính lượt review
 
 - Đòi sửa một spec vì không thấy `expect(` — xem lại ba dạng oracle ở trên.

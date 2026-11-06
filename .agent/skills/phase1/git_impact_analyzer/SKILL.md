@@ -1,9 +1,20 @@
 ---
 name: git_impact_analyzer
-description: Đọc git diff của branch/PR gắn TASK_KEY, liệt kê file/module thay đổi và phân loại vào 7 bề mặt dùng chung của mục 17 — cấp dữ liệu diff thật làm input cho Bước 1 mục 17 thay vì đọc code đoán. Suggest-only.
+description: "ĐẦU VÀO LÀ GIT DIFF. Vừa sửa code và cần biết thay đổi đó làm vỡ bề mặt nào: đọc diff của branch/PR, xếp file đã đổi vào 7 bề mặt dùng chung. Suggest-only."
 ---
 
 # Git Impact Analyzer
+
+## Dùng khi nào
+
+Dùng khi **đã có thay đổi code cụ thể** và câu hỏi là *"sửa chỗ này thì vỡ cái gì"*. Đầu vào bắt
+buộc là `git diff` của branch hoặc PR gắn `TASK_KEY`. Nó cấp **dữ liệu diff thật** làm input cho
+Bước 1 mục 17, thay cho việc đọc code rồi đoán.
+
+**KHÔNG dùng** khi chưa có thay đổi nào và bạn chỉ muốn tra danh mục bề mặt đã chốt — việc đó là
+của [`system_mapper`](../../shared/system_mapper/SKILL.md), và nó tra được **mà không cần diff**.
+Hai skill này từng bị lẫn đúng ở câu *"sửa chỗ này thì vỡ bề mặt nào"*; ranh giới là **đầu vào**,
+không phải chủ đề.
 
 ## Purpose
 

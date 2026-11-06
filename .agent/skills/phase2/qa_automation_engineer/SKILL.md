@@ -1,9 +1,14 @@
 ---
 name: qa_automation_engineer
-description: Sinh, cập nhật và chạy automation Playwright UI/API cho Phase 2 từ testcase canonical. Dùng khi đã có bộ TC và cần code chạy được. KHÔNG dùng để gỡ một case đã đỏ (dùng case-debugger), cũng không dùng để chấm verdict cuối.
+description: "Sinh, cập nhật và chạy AUTOMATION Playwright UI/API cho Phase 2 từ testcase canonical. Dùng khi đã có bộ TC và cần code chạy được."
 ---
 
 # QA Automation Engineer
+
+## Dùng khi nào
+
+**KHÔNG dùng** để gỡ một case đã đỏ — việc đó của agent `case-debugger`.
+**KHÔNG dùng** để chấm verdict cuối.
 
 > Chưa biết gõ lệnh nào, hay định làm tay một việc đã có luồng? → **[bảng định tuyến](references/router.md)**:
 > 13 lệnh `/` · 16 workflow · 3 subagent, mỗi dòng kèm cột **KHÔNG dùng khi**. Gác bằng `npm run router:check`.
@@ -21,7 +26,7 @@ Phase 2 chỉ execute phần có thể chạy an toàn qua UI/API public-busines
 | Automation | Ưu tiên task-scoped automation, chỉ sửa/generate spec/helper liên quan tới testcase trong scope. |
 | Execution | Chạy thật UI/API/E2E theo expected result đã review. |
 | Nhạy bén điều tra | Với MỌI tín hiệu bất thường (field trống, count=0, "thành công" nhưng không đổi, 200-mà-body-lỗi, data cũ, latency cao...), khoanh tầng lỗi FE/BE/setup/env/auth qua Console/Network/response TRƯỚC khi kết luận PASS/FAIL — theo `.agent/rules/qa_instincts.md`. Nguồn sự thật của data là API response, không phải UI. |
-| Evidence | Ảnh/video bắt buộc cho MỌI case PASS+FAIL: case thường 1 ảnh ở **bước quyết định**, case tầng bug (`product_bug`/`api_bug`) ảnh **từng step**. Mọi step vẫn phải có `status` riêng. Đã mask PII, highlight đúng element; log chỉ là artifact debug local, không phải evidence. |
+| Evidence | Ảnh/video bắt buộc cho MỌI case PASS+FAIL: case thường 1 ảnh ở **bước quyết định**, case tầng bug (`product_bug`/`api_bug`) ảnh **từng step**. Mọi step vẫn phải có `status` riêng. Đã mask PII, highlight đúng element; log chỉ là artifact debug local, không phải evidence. |  |
 | Report | Cập nhật PASS/FAIL/SKIP, actual result, blocker và shared change nếu có. |
 | Promotion | Không promote task automation vào core regression nếu chưa có review/approval rõ. |
 
@@ -39,11 +44,11 @@ Phase 2 chỉ execute phần có thể chạy an toàn qua UI/API public-busines
 
 | Output | Vị trí |
 |---|---|
-| Playwright results | `<TASK_OUTPUT_DIR>/test-results/` hoặc `test-results/runs/<RUN_ID>/` |
-| Evidence | `<TASK_OUTPUT_DIR>/test-results/artifacts/` hoặc run-scoped artifacts |
-| Execution summary | `<TASK_OUTPUT_DIR>/reports/execution-summary.md` hoặc run-scoped report |
-| Task-scoped automation | `<TASK_OUTPUT_DIR>/automation/` |
-| Core automation nếu được approve | `tests/fe/<TASK_KEY>.spec.*` hoặc `tests/api/<TASK_KEY>.spec.*` |
+| Playwright results | `<TASK_OUTPUT_DIR>/test-results/` hoặc `test-results/runs/<RUN_ID>/` |  |
+| Evidence | `<TASK_OUTPUT_DIR>/test-results/artifacts/` hoặc run-scoped artifacts |  |
+| Execution summary | `<TASK_OUTPUT_DIR>/reports/execution-summary.md` hoặc run-scoped report | Mẫu: `.agent/skills/phase2/qa_automation_engineer/templates/execution-summary.md` |
+| Task-scoped automation | `<TASK_OUTPUT_DIR>/automation/` |  |
+| Core automation nếu được approve | `tests/fe/<TASK_KEY>.spec.*` hoặc `tests/api/<TASK_KEY>.spec.*` |  |
 
 ## Decision Rules
 

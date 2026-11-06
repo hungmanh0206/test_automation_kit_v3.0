@@ -1,6 +1,6 @@
 ---
 name: lighthouse_check
-description: Điểm Lighthouse thật (Performance/Accessibility/SEO/Best-practices) chạy qua CDP bằng playwright-lighthouse; verdict advisory theo dải điểm chuẩn. Opt-in nặng (skip nếu chưa cài), never-auto + non-prod, evidence PNG bảng điểm.
+description: "Chấm ĐIỂM LIGHTHOUSE thật cho một trang: Performance, ACCESSIBILITY, SEO, Best-practices. Verdict advisory theo dải điểm chuẩn."
 ---
 
 <!-- SINH TỰ ĐỘNG bởi `node scripts/qa/skills_index.js --write` — ĐỪNG SỬA TAY. -->

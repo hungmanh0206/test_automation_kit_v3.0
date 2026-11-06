@@ -1,9 +1,14 @@
 ---
 name: lighthouse_check
-description: Điểm Lighthouse thật (Performance/Accessibility/SEO/Best-practices) chạy qua CDP bằng playwright-lighthouse; verdict advisory theo dải điểm chuẩn. Opt-in nặng (skip nếu chưa cài), never-auto + non-prod, evidence PNG bảng điểm.
+description: "Chấm ĐIỂM LIGHTHOUSE thật cho một trang: Performance, ACCESSIBILITY, SEO, Best-practices. Verdict advisory theo dải điểm chuẩn."
 ---
 
 # Lighthouse Check
+
+## Dùng khi nào
+
+Chạy qua CDP bằng `playwright-lighthouse`. **Opt-in nặng**: chưa cài thì SKIP, đừng coi là đỏ.
+Never-auto, chỉ non-prod. Evidence là ảnh PNG bảng điểm.
 
 ## Purpose
 
@@ -78,6 +83,6 @@ Catalog block `lighthouse` (schema đầy đủ ở `scripts/qa/README.md`):
 | **Dùng khi** | Bộ TC có case đòi điểm Lighthouse hoặc tiêu chí a11y/SEO ở mức TRANG · Cần một số đối chiếu giữa hai lần phát hành của cùng một màn |
 | **KHÔNG dùng khi** | Cần đo **web vitals của một luồng người dùng** hoặc SLA của API ⇒ `perf_check`; Lighthouse chấm một TRANG tải lạnh, không chấm một chuỗi thao tác · Cần đo **nhiều VU** ⇒ `load_check` · `playwright-lighthouse` chưa cài — skill tự SKIP, và SKIP đó KHÔNG được đọc thành PASS · Lấy điểm Lighthouse làm verdict PASS/FAIL: nó là **advisory**, dải điểm đổi theo bản Lighthouse |
 
-**Câu kích hoạt mẫu:** "chấm điểm lighthouse trang này" · "đo accessibility và SEO" · "điểm performance của màn đăng nhập" · "trang này có đạt chuẩn a11y chưa"
+**Câu kích hoạt mẫu:** "chấm điểm lighthouse trang này" · "đo accessibility và SEO" · "điểm Lighthouse của trang chủ" · "trang này có đạt chuẩn a11y chưa"
 
 ⚙️ **Máy kiểm:** `npm run lighthouse` — chạy qua CDP, verdict advisory theo dải điểm; thiếu dependency thì SKIP kèm lý do, không im lặng.

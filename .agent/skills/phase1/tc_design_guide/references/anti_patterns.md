@@ -21,6 +21,7 @@ nó luôn PASS miễn là bấm được nút.
 ## 2. Kỳ vọng rỗng, hoặc "hiển thị đúng"
 
 ❌ `Hiển thị đúng` · `Hoạt động bình thường` · `Không có lỗi`
+✅ `Toast "Lưu thành công" hiện, và lưới có dòng mã "1C-${RUN_ID}" ở Khối 1`
 
 "Đúng" theo cái gì? Một kỳ vọng không nói giá trị/URL/element cụ thể thì người chạy phải tự đoán, và
 hai người đoán khác nhau.
@@ -32,6 +33,7 @@ hai người đoán khác nhau.
 ## 3. Một case kiểm năm thứ
 
 ❌ `Kiểm tra form thêm mới: nhập thiếu, nhập sai định dạng, nhập quá dài, bỏ trống, và lưu thành công`
+✅ Tách năm case: `bỏ trống Tên lớp` · `Mã lớp trùng` · `Tên lớp 256 ký tự` · `Mã lớp có ký tự lạ` · `lưu hợp lệ`
 
 Case đỏ thì không biết cái nào hỏng, và phải đọc lại toàn bộ bước mới đoán ra. Case xanh thì cũng
 không biết năm phép kiểm có thật sự chạy hết không.
@@ -55,6 +57,7 @@ liệu khác nhau mà vẫn trông như cùng một case.
 ## 5. Tiền điều kiện lẫn với thao tác
 
 ❌ `Tiền điều kiện: Đăng nhập, vào màn Hồ sơ lớp, bấm Thêm mới`
+✅ `Tiền điều kiện: tài khoản cấp Tiểu học trường TEST 1, năm 2026-2027, Khối 1 đã có lớp 1A [ui]` — ba thao tác kia thuộc cột Các bước
 
 "Bấm Thêm mới" là **bước 1**, không phải tiền điều kiện. Tiền điều kiện là thứ **phải có sẵn** trước
 khi case bắt đầu — dữ liệu, trạng thái, quyền.

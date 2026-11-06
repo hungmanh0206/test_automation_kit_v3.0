@@ -1,0 +1,12 @@
+{
+  "_doc": "Sổ nợ cho `skills:template:check`. NGUỒN DUY NHẤT của ngưỡng, giống `skills_lint.json`.",
+  "_vi_sao": "Skill khai output mà không có mẫu thì người đọc skill vẫn không biết sản phẩm trông thế nào. Đo 06/11/2026: 17 skill khai 46 output, 0 output có mẫu. Chặn thẳng 46 là đặt một ngưỡng đỏ ngay hôm đặt, và prompt_budget.json đã viết vì sao không làm thế: ngưỡng đỏ ngay hôm đặt là tiếng ồn, tiếng ồn thì bị tắt.",
+  "_cach_doc": "`no.thieuMau` = số output CHƯA có mẫu. Thực > khai ⇒ CHẶN (nợ MỚI). Thực < khai ⇒ CHẶN kèm số để hạ sổ: nợ trả rồi mà không hạ thì sổ mất nghĩa. Mẫu khai mà đường dẫn chết ⇒ CHẶN ngay, KHÔNG tính vào nợ.",
+  "_moi_mau_phai_khai_may_kiem": "Trong frontmatter của chính mẫu: `kiem_bang: <lệnh>` (cửa sẽ nối đường dẫn mẫu vào cuối rồi chạy; exit khác 0 là CHẶN), hoặc `vi_sao: <một câu>` khi không máy nào kiểm được nó. Phần lớn cửa của kit đọc THƯ MỤC output của một task chứ không đọc file rời, nên 'chưa có máy kiểm' là trạng thái thật và phải khai được.",
+  "_ha_no_the_nao": "Viết thêm một mẫu, trỏ `Mẫu:` từ skill tới nó, rồi hạ `no.thieuMau` đúng số cửa in ra. Đó là một việc thấy được trong diff, không phải một con số trôi đi trong im lặng.",
+  "no": {
+    "thieuMau": 48
+  },
+  "_vi_sao_no_tang": "Nợ ĐI LÊN 46 → 49 ngày 06/11/2026, và đó là tiến triển chứ không phải thụt lùi. Bốn skill sinh ra tài liệu quan trọng nhất (tc_reviewer, automation_reviewer, release_summary, run_report_reader) trước đây KHÔNG khai mục Outputs chút nào, nên 7 output của chúng nằm ngoài tầm mọi phép đếm: sổ ghi 46 trong khi thực tế là 53. Khai chúng ra cộng 7, cấp 4 mẫu trừ 4, ròng +3. Một sổ nợ chỉ có nghĩa khi mẫu số của nó đầy đủ; con số 46 cũ nhỏ hơn nhưng SAI.",
+  "_moc_7_mau_bat_buoc": "Đủ 7 mẫu bản chấm 04/11 đòi, chốt 06/11/2026: checklist Smoke (tc_design_guide, tự qua design_gate --mode checklist) · tc-review.md (tc_reviewer) · automation-review.md (automation_reviewer) · báo cáo go/no-go (release_summary) · bảng phân loại lỗi (run_report_reader) · execution-summary.md (qa_automation_engineer) · sổ phiên chạy tay session.md (run_report_reader). Chỉ mẫu đầu có máy kiểm file rời; 6 mẫu còn lại khai vi_sao vì cửa tương ứng đọc THƯ MỤC output của task hoặc cây spec, không nhận file lẻ."
+}

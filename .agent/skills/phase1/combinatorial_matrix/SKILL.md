@@ -1,9 +1,13 @@
 ---
 name: combinatorial_matrix
-description: Sinh ma trận tổ hợp (Pairwise mặc định) từ các chiều (dimensions) + values + constraints, map expected cho từng bộ. Chống nổ case — KHÔNG full Cartesian mặc định. Dùng cho cross-module/nhiều biến kết hợp.
+description: "Sinh MA TRẬN TỔ HỢP (Pairwise mặc định) từ các chiều + values + constraints, map expected cho từng bộ. Chống nổ case, dùng cho cross-module nhiều biến."
 ---
 
 # Combinatorial Matrix
+
+## Dùng khi nào
+
+**KHÔNG** full Cartesian mặc định — đó là cách nhanh nhất để nổ số case mà không tăng độ phủ thật.
 
 ## Purpose
 

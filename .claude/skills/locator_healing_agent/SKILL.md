@@ -1,6 +1,6 @@
 ---
 name: locator_healing_agent
-description: Khi locator ACTION fail lúc execute, thử fallback chain và tự áp dụng nếu confidence cao (accessible name exact + role + vùng DOM); ghi lịch sử vào knowledge/locators/. KHÔNG heal locator assertion. Threshold-gated, opt-in LOCATOR_HEAL=1.
+description: "Khi LOCATOR hành động FAIL lúc execute: thử chuỗi fallback rồi tự áp dụng nếu đủ tự tin, ghi lịch sử vào knowledge/locators/. KHÔNG heal locator assertion."
 ---
 
 <!-- SINH TỰ ĐỘNG bởi `node scripts/qa/skills_index.js --write` — ĐỪNG SỬA TAY. -->

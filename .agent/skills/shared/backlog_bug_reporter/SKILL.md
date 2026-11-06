@@ -1,9 +1,15 @@
 ---
 name: backlog_bug_reporter
-description: Log Backlog sub-bug từ testcase FAIL đã qua Bug Claim Gate sau Phase 2. Dùng khi tầng lỗi là product_bug hoặc api_bug và đã có evidence ảnh/video. KHÔNG dùng cho setup_failure, SKIP, hay FAIL chưa rerun đủ vòng.
+description: "LOG BUG lên Backlog thành sub-bug từ testcase FAIL đã qua Bug Claim Gate. Chỉ khi tầng lỗi là product_bug hoặc api_bug và đã có evidence."
 ---
 
 # Backlog Bug Reporter
+
+> **Cặp sai → đúng**: [`references/sai-dung.md`](references/sai-dung.md) — mỗi lỗi một cặp ❌/✅ lấy từ ca đã gặp thật. Cột ✅ không vi phạm gate nào.
+
+## Dùng khi nào
+
+**KHÔNG dùng** cho `setup_failure`, `SKIP`, hay FAIL chưa rerun đủ vòng.
 
 > Tên thư mục skill (`backlog_bug_reporter`) giữ nguyên sau khi tổ chức chuyển hệ bug-tracking cũ → Backlog (22/09/2026) —
 > đổi tên thư mục sẽ phá mọi chỗ gọi `Skill(shared:backlog_bug_reporter)`. Nội dung bên dưới đã cập nhật cho

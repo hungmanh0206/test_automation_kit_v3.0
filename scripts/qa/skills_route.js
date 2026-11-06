@@ -49,10 +49,34 @@ const NGUONG = Number(argOf('nguong', '0.9'));
  * Sàn đặt theo PHÂN BỐ ĐO ĐƯỢC, không theo cảm tính:
  *   · 54 ca khớp đúng: điểm thấp nhất **3,52** · p10 5,68 · trung vị 9,85;
  *   · 4 ca `none`: điểm **0 và 2,56**.
- * Sàn 3,0 nằm giữa 2,56 và 3,52 — có lề ở cả hai phía. Nếu một ngày ca đúng tụt xuống dưới 3,0 thì
+ * Sàn 3,0 nằm giữa 2,56 và 3,52 — có lề ở cả hai phía. Nếu một ngày ca đúng tụt xuống dưới sàn thì
  * đừng hạ sàn: đó là dấu hiệu `description` của skill đó quá mỏng để chọn được.
+ *
+ * ──────────────────────────────────────────────────────────────────────────────────────────────
+ * SÀN NÂNG 3,0 → 5,0 NGÀY 04/11/2026, và lý do là bộ đo cũ KHÔNG PHÂN BIỆT ĐƯỢC.
+ *
+ * Fixture khi ấy chỉ có 4 ca `none`, và chính nó đã cảnh báo: "thiếu chúng thì bộ chấm chỉ cần gán
+ * bừa một skill cho mọi câu là đạt". Nâng lên 20 ca `none` thì lộ ra: ở sàn 3,0 có **8/20 = 40%** câu
+ * không-nên-kích-hoạt vẫn kích hoạt một skill. Tỉ lệ đó nghĩa là bộ chấm gần như không bao giờ nói
+ * được "tôi không biết", mà vẫn đạt 91,1% — tức con số 91,1% KHÔNG đo cái nó trông như đang đo.
+ *
+ * Quét sàn trên 90 ca (70 thật + 20 `none`):
+ *
+ *   sàn   top-1    none kích hoạt nhầm   ca THẬT tụt dưới sàn
+ *   3,0   91,1%    8/20  (40%)           0/70
+ *   4,5   92,2%    3/20  (15%)           4/70
+ *   5,0   94,4%    1/20  ( 5%)           4/70     <-- chọn
+ *   6,0   92,2%    1/20  ( 5%)           6/70
+ *   8,0   81,1%    0/20  ( 0%)          17/70
+ *
+ * 5,0 là chỗ tỉ lệ kích hoạt nhầm xuống dưới mục tiêu 10% mà chưa phải trả thêm ca thật nào so với
+ * 4,5. Bốn ca thật tụt xuống dưới sàn KHÔNG được chữa bằng cách hạ sàn lại — theo đúng câu ngay trên
+ * đây — mà bằng cách sửa `description` của bốn skill đó cho mang từ khoá kích hoạt. Đã làm cùng ngày.
  */
-const SAN = Number(argOf('san', '3.0'));
+const SAN = Number(argOf('san', '5.0'));
+
+/** Trần tỉ lệ ca `none` bị gán nhầm một skill. Xem khối ngay trên để biết vì sao có ngưỡng này. */
+const TRAN_NONE = Number(argOf('tran-none', '0.10'));
 
 function thoat2(msg) {
   console.error(msg);
@@ -75,7 +99,11 @@ if (CA.length < 1) thoat2('[skills-route] KHÔNG PHÁN ĐƯỢC: fixture 0 ca �
  */
 const STOP = new Set(['này', 'cho', 'của', 'và', 'thì', 'là', 'có', 'không', 'được', 'khi', 'nào', 'ở',
   'một', 'các', 'đã', 'rồi', 'mà', 'với', 'như', 'nó', 'tôi', 'bạn', 'đi', 'ra', 'vào', 'lên', 'từ',
-  'sao', 'gì', 'nên', 'phải', 'hay', 'còn', 'để', 'bao', 'nhiêu', 'mỗi', 'đó', 'kia', 'trong', 'theo']);
+  'sao', 'gì', 'nên', 'phải', 'hay', 'còn', 'để', 'bao', 'nhiêu', 'mỗi', 'đó', 'kia', 'trong', 'theo',
+  /* Thêm 04/11/2026: từ CHUNG cho gần như mọi skill nên không mang tín hiệu định tuyến, mà điểm thì
+   * vẫn cộng. Chúng tạo hố hút giả: câu 'máy tôi hết dung lượng ổ C, dọn gì TRƯỚC' từng ăn 5,52 điểm
+   * của tc_reviewer chỉ nhờ 'máy' và 'trước'. */
+  'máy', 'trước', 'sau', 'này', 'làm', 'xem', 'cần', 'muốn', 'giúp', 'hết']);
 const tach = (s) => String(s || '').toLowerCase().split(/[^0-9a-zà-ỹ_:-]+/u)
   .filter((w) => w.length >= 2 && !STOP.has(w));
 
@@ -128,6 +156,20 @@ for (const c of CA) {
   /* Dưới sàn tự tin = "không đủ căn cứ để chọn", và đó mới là câu trả lời đúng cho ca `none`. */
   const duTin = top.diem >= SAN;
   const dung = c.skill === 'none' ? !duTin : (duTin && top.ten === c.skill);
+  /*
+   * BA KẾT CỤC, KHÔNG PHẢI HAI — sửa 04/11/2026.
+   *
+   * Bản cũ gộp "chọn SAI skill" và "không đủ tự tin để chọn" thành cùng một ô `dung: false`. Hai thứ
+   * đó hại khác nhau hẳn: chọn SAI thì agent đi mở nhầm skill và làm nhầm việc; dưới sàn thì nó nói
+   * "không chắc" và hỏi lại — khó chịu, chứ không sai.
+   *
+   * Gộp chúng đẩy người sửa đi tối ưu ĐỘ TỰ TIN thay vì ĐỘ ĐÚNG: cách rẻ nhất để một ca dưới sàn hoá
+   * xanh là nhồi từ khoá vào `description` cho điểm cao lên, mà việc đó làm mô tả tệ đi cho model
+   * thật. Đo 04/11: chính tôi đã rơi vào vòng đó vài lượt trước khi tách ba ô này ra.
+   */
+  const loai = c.skill === 'none'
+    ? (duTin ? 'none-nham' : 'dung')
+    : (!duTin ? 'duoi-san' : (top.ten === c.skill ? 'dung' : 'sai'));
   ketQua.push({
     cau: c.cau,
     mong: c.skill,
@@ -135,6 +177,7 @@ for (const c of CA) {
     diem: Number(top.diem.toFixed(2)),
     nhi: xh[1] ? xh[1].ten : null,
     dung,
+    loai,
   });
 }
 
@@ -142,10 +185,17 @@ const soDung = ketQua.filter((r) => r.dung).length;
 const tiLe = soDung / ketQua.length;
 
 /* CẶP DỄ NHẦM: mỗi cặp phải tách được ở MỌI ca của fixture thuộc hai skill đó. */
+/*
+ * CẶP DỄ NHẦM chỉ hỏi MỘT câu: hai skill này có bị LẪN VÀO NHAU không.
+ *
+ * Nên chỉ tính ca `loai === 'sai'` — tức top-1 là một skill KHÁC. Ca `duoi-san` nghĩa là bộ chấm
+ * không đủ tự tin để chọn ai cả; đó là mô tả mỏng, KHÔNG phải hai mô tả lẫn nhau, và tính nó vào đây
+ * làm phép kiểm trả lời sai câu hỏi của chính nó. Sửa 04/11/2026 cùng lúc với việc tách ba kết cục.
+ */
 const capLoi = [];
 for (const cap of (fx.cap_de_nham || [])) {
   const trong = ketQua.filter((r) => cap.includes(r.mong));
-  const sai = trong.filter((r) => !r.dung);
+  const sai = trong.filter((r) => r.loai === 'sai');
   if (sai.length) capLoi.push({ cap, sai: sai.map((r) => `"${r.cau}" ⇒ ${r.top1} (mong ${r.mong})`) });
 }
 
@@ -163,7 +213,39 @@ for (const c of capLoi) {
   for (const s of c.sai) console.log(`      ${s}`);
 }
 
-if (tiLe >= NGUONG && !capLoi.length) {
+/*
+ * TỈ LỆ KÍCH HOẠT NHẦM LÀ MỘT ĐIỀU KIỆN RIÊNG, không gộp vào top-1.
+ *
+ * Gộp thì 20 ca `none` chỉ là 20/90 phiếu, và một bộ chấm gán bừa mọi câu vẫn đạt — đúng trạng thái
+ * trước 04/11/2026. Tách ra thì con số trả lời được câu khác hẳn: "bộ chấm có bao giờ nói được
+ * KHÔNG BIẾT không". Một phép đo không phân biệt được hai giả thuyết thì không phải phép đo.
+ */
+const caNone = ketQua.filter((x) => x.mong === 'none');
+const noneNham = caNone.filter((x) => x.loai === 'none-nham');
+const tiLeNone = caNone.length ? noneNham.length / caNone.length : 0;
+if (caNone.length) {
+  console.log(`[skills-route] ca "none": ${noneNham.length}/${caNone.length} kích hoạt nhầm = ${(tiLeNone * 100).toFixed(0)}% (trần ${(TRAN_NONE * 100).toFixed(0)}%)`);
+}
+const noneDat = caNone.length === 0 || tiLeNone <= TRAN_NONE;
+if (!noneDat) {
+  for (const x of noneNham) console.log(`  ✗ KHÔNG NÊN kích hoạt: "${x.cau}" → ${x.top1} (điểm ${x.diem})`);
+}
+
+/*
+ * CHỌN SAI là lỗi CHẶN. DƯỚI SÀN chỉ là nợ, và nợ thì báo chứ không chặn phát hành.
+ *
+ * Luật đã viết sẵn ở đầu file: "ca đúng tụt xuống dưới sàn thì đừng hạ sàn — đó là dấu hiệu
+ * description của skill đó quá mỏng". Tức nó là việc phải sửa, nhưng sửa bằng cách viết mô tả cho
+ * đúng hơn, không phải bằng cách nhồi từ khoá cho qua cửa. Chặn ở đây là ép người ta nhồi.
+ */
+const caThat = ketQua.filter((x) => x.mong !== 'none');
+const chonSai = caThat.filter((x) => x.loai === 'sai');
+const duoiSan = caThat.filter((x) => x.loai === 'duoi-san');
+console.log(`[skills-route] ca thật: ${chonSai.length} CHỌN SAI (chặn) · ${duoiSan.length} dưới sàn (nợ mô tả, không chặn)`);
+for (const x of chonSai) console.log(`  ✗ CHỌN SAI: "${x.cau}" → ${x.top1} (điểm ${x.diem}), mong ${x.mong}`);
+for (const x of duoiSan) console.log(`  ~ dưới sàn: "${x.cau}" (điểm ${x.diem}), mong ${x.mong} — mô tả còn mỏng`);
+
+if (tiLe >= NGUONG && !capLoi.length && noneDat && chonSai.length === 0) {
   console.log('[skills-route] ✓ ĐẠT');
   console.log('[skills-route] Nhắc: đây là phép đo ĐẠI DIỆN trên TỪ NGỮ. Nó bắt được hai mô tả giống nhau;');
   console.log('[skills-route] nó KHÔNG chứng minh model sẽ chọn đúng. Đừng đọc tỉ lệ này thành độ chính xác của agent.');

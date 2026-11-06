@@ -1,9 +1,14 @@
 ---
 name: security_check
-description: Kiểm security BASIC non-destructive (headers/cookie, unauth, authz/IDOR 2 tài khoản, exposure) qua GET read-only trên UAT. Control → PASS/FAIL; exposure → finding (mask PII). Never-auto, cần xác nhận non-prod.
+description: "Kiểm SECURITY cơ bản non-destructive trên UAT: headers/cookie, unauth, AUTHZ/IDOR hai tài khoản, exposure. Chỉ GET read-only."
 ---
 
 # Security Check (Basic, non-destructive)
+
+## Dùng khi nào
+
+Control cho PASS/FAIL; exposure cho finding (mask PII).
+Never-auto, cần xác nhận non-prod trước khi chạy.
 
 ## Purpose
 

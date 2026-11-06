@@ -19,7 +19,7 @@
 
 | Lệnh | Dùng khi | KHÔNG dùng khi |
 |---|---|---|
-| `/start` | Task mới, chưa có `profiles/<TASK>/task.env`. Hỏi 5 điều rồi dựng profile. | Profile đã có — chạy lại chỉ thêm một lượt hỏi. Và nó KHÔNG sinh case. |
+| `/start` | Task mới, chưa có `profiles/<TASK>/task.env`. Hỏi 5 điều rồi dựng profile. | Profile đã có — chạy lại chỉ thêm một lượt hỏi. Và nó KHÔNG đọc đặc tả, KHÔNG sinh case, KHÔNG tự gọi `/phase1`. |
 | `/preflight` | Muốn biết trước một phase có chạy được không: thiếu file, JSON hỏng, chưa có TC canonical. | Thay cho `/gates`: preflight gác ĐẦU VÀO, không gác chất lượng bộ case. |
 | `/discover` | Mở một hệ thống/module chưa biết nó có gì. Bò app bằng script tất định. | Đã có đặc tả đủ dùng. Và bản kê nó trả **không phải oracle** — chụp từ build không chứng minh build đúng. |
 | `/phase1` | Sinh bộ testcase: đọc spec → hỏi hết mơ hồ → Markdown canonical → Excel. | Chỉ cần sửa vài case khi requirement đổi — đó là `/partial-rerun`. |
