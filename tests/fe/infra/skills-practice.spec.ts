@@ -19,6 +19,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { spawnSync } from 'child_process';
 import { mayThu } from './_may_thu';
+import { gateEnv } from './_gate_env';
 
 const REPO = path.resolve(__dirname, '..', '..', '..');
 const CUA = mayThu('SKILLS_PRACTICE_JS', path.join(REPO, 'scripts/qa/skills_practice.js'));
@@ -345,7 +346,7 @@ test.describe('@infra skills:practice — fixture phải TRACK được, không 
    * tên thư mục thật là phần đang được đo. Vá bằng phủ định tường minh trong `.gitignore`.
    */
   test('mọi file fixture mà bộ bài khai đều được git track', () => {
-    const r = spawnSync('git', ['ls-files', 'tests/fixtures/practice'], { cwd: REPO, encoding: 'utf8' });
+    const r = spawnSync('git', ['ls-files', 'tests/fixtures/practice'], { cwd: REPO, encoding: 'utf8', env: gateEnv() });
     test.skip(r.status !== 0, 'không phải repo git ⇒ không phán được');
     const track = new Set(String(r.stdout).split(/\r?\n/).map((x) => x.trim()).filter(Boolean));
     expect(track.size, 'không file nào được track ⇒ ca này RỖNG').toBeGreaterThan(3);
@@ -375,7 +376,7 @@ test.describe('@infra skills:practice — fixture phải TRACK được, không 
   });
 
   test('và cả đáp án cũng phải track', () => {
-    const r = spawnSync('git', ['ls-files', 'tests/fixtures/practice'], { cwd: REPO, encoding: 'utf8' });
+    const r = spawnSync('git', ['ls-files', 'tests/fixtures/practice'], { cwd: REPO, encoding: 'utf8', env: gateEnv() });
     test.skip(r.status !== 0, 'không phải repo git');
     const track = new Set(String(r.stdout).split(/\r?\n/).map((x) => x.trim()).filter(Boolean));
     for (const f of ['spec_5_loi.dapan.json', 'ket_qua.dapan.json', 'hinh_thuc.dapan.json']) {
