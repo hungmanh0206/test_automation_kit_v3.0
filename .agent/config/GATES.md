@@ -7,7 +7,7 @@
 > **T1** chỉ chặn ở cửa ra, lúc đang làm thì cảnh báo và ghi `reports/gate-debt.json` · **T2** không
 > bao giờ chặn. T0 khai tay trong `.agent/config/gate_tiers.json`; không khai thì mặc định T1.
 
-Tổng **156** máy — **112 CHẶN** · 25 SINH (ghi artifact) · 19 BÁO CÁO (chỉ in).
+Tổng **156** máy — **113 CHẶN** · 24 SINH (ghi artifact) · 19 BÁO CÁO (chỉ in).
 
 SINH/BÁO CÁO **không phải gate bị nới** — chúng không kiểm vi phạm. Ví dụ `bugs:checklist` in brief bug
 lịch sử, còn việc CHẶN nằm ở `dim:coverage` (chiều `bug_history` §20).
@@ -69,6 +69,7 @@ lịch sử, còn việc CHẶN nằm ở `dim:coverage` (chiều `bug_history` 
 | T0 | CHẶN | `secret:scan` | quet secret bi commit nham tren cac file DA TRACK trong git. | `scripts/qa/secret_scan.js` | .gitlab-ci.yml · RULE_GLOBAL.md · docs/kit-map.md · .github/workflows · .agent/rules · .agent/skills · tests/fe/infra |
 | T1 | CHẶN | `seed:knowledge`, `seed:knowledge:apply` | Seed Knowledge từ lịch sử Backlog (Suggest-only, DRY-RUN mặc định). | `scripts/qa/seed_knowledge_from_backlog.js` | scripts/qa/README.md · docs/kit-map.md |
 | T1 | CHẶN | `skills:index`, `skills:index:check` | sinh bảng tra skill từ frontmatter của `.agent/skills/**\/SKILL.md`. | `scripts/qa/skills_index.js` | .gitlab-ci.yml · docs/kit-map.md · .github/workflows · tests/fe/infra |
+| T1 | CHẶN | `skills:practice`, `skills:practice:gia` | ĐỌC MỘT SKILL XONG CÓ LÀM RA ĐƯỢC SẢN PHẨM KHÔNG. | `scripts/qa/skills_practice.js` | .agent/skills · tests/fe/infra |
 | T1 | CHẶN | `skills:refcheck` | mọi LINK THẬT trong skill phải trỏ tới file có thật. | `scripts/qa/skills_refcheck.js` | docs/kit-map.md · .github/workflows · tests/fe/infra |
 | T1 | CHẶN | `skills:route:check` | hai skill mô tả giống nhau thì agent KHÔNG có căn cứ để chọn. | `scripts/qa/skills_route.js` | .github/workflows · tests/fe/infra |
 | T1 | CHẶN | `lint:tcid` | MỘT case chỉ được ĐĂNG KÝ VỚI RECORDER ở MỘT file spec. | `scripts/qa/tcid_duplicate_check.js` | **KHÔNG BỀ MẶT NÀO** |
@@ -146,7 +147,6 @@ lịch sử, còn việc CHẶN nằm ở `dim:coverage` (chiều `bug_history` 
 | T2 | SINH | `steps:reverify` | DANH MỤC PHẢN ỨNG VỚI MÀN ĐỔI VÀ VỚI BƯỚC KHÔNG AI DÙNG (v2.8.0 §E, dòng 2 và 4). | `scripts/qa/reuse/steps_reverify.js` | **KHÔNG BỀ MẶT NÀO** |
 | T2 | SINH | `risk` | Risk-Based Testing CÓ THỰC THI (Suggest-only). | `scripts/qa/risk_score.js` | .gitlab-ci.yml · RULE_GLOBAL.md · README.md · USER_GUIDE.md · QUICKSTART.md · scripts/qa/README.md · docs/kit-map.md · .github/workflows · .agent/workflows · .agent/rules · .agent/skills · prompt_templates · exploratory · partial-rerun · .claude/commands · tests/fe/infra |
 | T2 | SINH | `security`, `security:check` | biến phần deterministic của mục 15 thành ĐO THẬT. | `scripts/qa/security_check.js` | .gitlab-ci.yml · RULE_GLOBAL.md · README.md · USER_GUIDE.md · QUICKSTART.md · scripts/qa/README.md · docs/kit-map.md · .github/workflows · .agent/workflows · .agent/rules · .agent/skills · prompt_templates · exploratory · tests/fe/infra |
-| T2 | SINH | `skills:practice`, `skills:practice:gia` | ĐỌC MỘT SKILL XONG CÓ LÀM RA ĐƯỢC SẢN PHẨM KHÔNG. | `scripts/qa/skills_practice.js` | tests/fe/infra |
 | T2 | SINH | `skills:route:live` | ĐO ĐỊNH TUYẾN SKILL BẰNG CHÍNH MODEL, không bằng đếm từ. | `scripts/qa/skills_route_live.js` | tests/fe/infra |
 | T2 | SINH | `spec:extract` | bảng field trong FSD (markdown) → `screens.json` → (tuỳ chọn) `ui_catalog.json`. | `scripts/qa/spec_extract.js` | RULE_GLOBAL.md · docs/kit-map.md · prompt_templates |
 | T2 | SINH | `inventory:gate` | Chống "CI false green" (F1). | `scripts/qa/test_inventory_gate.js` | docs/kit-map.md |
