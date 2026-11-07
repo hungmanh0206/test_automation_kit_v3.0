@@ -1,0 +1,28 @@
+CASE CẦN DỮ LIỆU MỚI — lập kế hoạch dữ liệu test.
+
+  tcId        TC_0088
+  Màn         2.3 Hồ sơ lớp học — Thêm lớp
+  Mục tiêu    Tạo một lớp mới rồi kiểm lưới hiện đúng lớp vừa tạo
+  Môi trường  UAT (dùng chung với 4 người khác), năm học 2026-2027, trường mã 02847561
+
+Ô bắt buộc của form Thêm lớp:
+
+  Mã lớp        chuỗi, <= 20 ký tự, DUY NHẤT trong (trường, năm học)
+  Tên lớp       chuỗi, <= 100 ký tự
+  Khối          chọn từ danh mục (6, 7, 8, 9)
+  Phân hiệu     chọn từ danh mục; chỉ đổi được lúc THÊM MỚI
+  GVCN          chọn từ danh sách nhân sự của trường
+
+MỘT BẢN KẾ HOẠCH CŨ, ĐÃ GÂY SỰ CỐ — để tham khảo cái KHÔNG nên làm:
+
+  Mã lớp:    6A1
+  Tên lớp:   6A1
+  Khối:      6
+  Phân hiệu: Cơ sở chính
+  GVCN:      Nguyễn Thị Lan
+  Dọn:       (không có)
+
+Hai lượt chạy song song của hai người cùng dùng bản trên; lượt sau đỏ ở bước Ghi với thông báo trùng
+mã, và cả hai lượt bị quy là bug sản phẩm. Sau đó không ai biết hàng nào của ai nên không dọn được.
+
+YÊU CẦU: ra bản kế hoạch dữ liệu cho case này.

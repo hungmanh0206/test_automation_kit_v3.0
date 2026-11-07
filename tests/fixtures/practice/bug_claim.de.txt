@@ -1,0 +1,33 @@
+CLAIM ĐÃ QUA BUG CLAIM GATE — viết thân bug để log lên Backlog.
+
+Mọi thứ dưới đây là KẾT LUẬN ĐÃ CHỐT, không phải thứ cần điều tra lại.
+
+  tcId            TC_0147
+  Màn             4.1.7 Hồ sơ đội ngũ — Thêm mới
+  failureLayer    product_bug
+  oracle_ref      BR-DOINGU-023
+  Môi trường      UAT, năm học 2026-2027, cấp THCS, trường mã 02847561
+  Evidence        step3-truoc-khi-ghi.png · step4-sau-khi-ghi.png · step5-luoi-sau-F5.png
+  Rerun           3/3 lượt cùng kết quả
+
+ĐÃ ĐO ĐƯỢC
+
+Bản ghi thứ hai của cùng một phân hiệu KHÔNG chèn được. Thao tác: mở Thêm mới, điền đủ 20 ô bắt buộc,
+chọn Phân hiệu "Cơ sở 2", bấm Ghi. Toast hiện chữ "thành công". Nhưng sau F5 lưới chỉ có 1 hàng, và
+truy vấn DB cho COUNT = 1.
+
+Mã nhân sự dùng: NS-QA-20261107-A. Lần hai dùng NS-QA-20261107-B thì CHÈN ĐƯỢC — tức app không chặn
+theo mã nhân sự.
+
+Đối chứng đã làm: đổi Phân hiệu sang "Cơ sở chính" thì bản ghi thứ hai chèn được. Nên biến phân biệt
+là giá trị ô Phân hiệu, không phải số lượng bản ghi.
+
+Kỳ vọng theo BR-DOINGU-023: mỗi phân hiệu được có nhiều nhân sự; không có ràng buộc duy nhất nào theo
+(nhân sự, phân hiệu).
+
+LẬP LUẬN DÀI (đã nằm ở claim, KHÔNG đưa vào thân bug)
+
+Năm giả thuyết đối thủ đã bị bác: (1) trùng mã nhân sự — bác bằng lần hai đổi mã; (2) ô Phân hiệu bị
+khoá — bác bằng ảnh step3 cho thấy ô mở; (3) thiếu ô bắt buộc khác — bác vì toast không nêu ô nào;
+(4) lưới lọc theo phân hiệu chính nên ẩn hàng — bác bằng COUNT từ DB; (5) phiên hết hạn giữa lượt —
+bác vì các ô khác vẫn lưu được trong cùng phiên.

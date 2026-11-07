@@ -14,6 +14,81 @@
 > `.agent/**`, `tests/support/**` đều là **shared change** (xem `RULE_GLOBAL.md` §Shared Change Gate) —
 > ảnh hưởng mọi story đang chạy. Mỗi mục ghi **vấn đề → cách chữa**, không chỉ liệt kê tính năng.
 
+## v2.10.1 — 2026-11-07 — Bốn nguyên nhân cho một triệu chứng, và lần này ở cửa tôi vừa viết
+
+v2.10.0 khai thẳng `skills:practice` chỉ có **1 trong 5 bài**. Bản này dựng đủ **5/5**, và lượt đo cuối
+cho **✓ ĐẠT**: 2/3 · 3/3 · 3/3 · 3/3 · 3/3 — 15 lượt, 1 587 giây, $6,60, một lô duy nhất nên mọi con số
+đến từ cùng một bản dụng cụ. Báo cáo máy sinh: [`docs/v2.10.1/PRACTICE.md`](docs/v2.10.1/PRACTICE.md).
+
+| bài | skill | chấm bằng |
+|---|---|---|
+| `review-5-loi` | `automation_reviewer` | đáp án nội dung — 5 lỗi cài sẵn, đòi cả từ khoá VÀ số dòng |
+| `doc-ket-qua` | `run_report_reader` | đáp án nội dung — 5 ca FAIL xếp đúng 5 tầng, + tự suy ra ca PASS thiếu ảnh |
+| `bug-than-backlog` | `backlog_bug_reporter` | **cửa thật** `lintBugHeadings` + 4 luật trích từ `RULE_GLOBAL` |
+| `du-lieu-run-id` | `test_data_generator` | luật hình thức neo vào nội dung đề |
+| `dac-ta-ban-phan` | `requirements_analyzer` | luật hình thức neo vào nội dung đề |
+
+### Thứ đáng đọc: một bài trượt 3/3 lượt vì BỘ CHẤM, không vì skill
+
+`bug-than-backlog` trượt 0/5 · 1/5 · 2/5 ở lô đầu. Bốn nguyên nhân **khác nhau** cùng cho một triệu
+chứng *"bài trượt"*, và **cả bốn là lỗi của tôi**:
+
+| Nguyên nhân | Vì sao nó sai | Vá |
+|---|---|---|
+| *"tối đa 4 bước / 3 gạch"* | **không có** luật này ở `RULE_GLOBAL.md`, `core_rules.md` hay chính skill — hai con số đến từ **ghi chú trí nhớ của tôi** | bỏ; gọi cửa thật `lintBugHeadings` (description phải ĐÚNG 4 mục) |
+| *"không được có dòng `TC:`"* | tôi đọc dòng digest mà **không đọc mã**: `bug_reporter.js:719` ghi rõ đó là **marker máy đọc** — mất nó thì mỗi lượt rerun log thêm một bug TRÙNG | đổi thành "marker phải ở **dòng cuối**, không in đậm" |
+| chấm cả câu trả lời | **sai đối tượng**: bắt phải chữ ở đoạn model nói *"đã cố tình để NGOÀI thân bug: năm giả thuyết đối thủ"* — tức nó làm ĐÚNG rồi bị chính câu đó đánh trượt | bóc khối sản phẩm ra trước khi chấm |
+| bộ tách mục vớ dòng thụt lề | **đầu vào rác cho cửa thật**: dòng `(PASS - step3-….png)` nối tiếp bước 3 bị đếm thành "mục thứ 5", cửa thật phán đúng trên đầu vào sai | tiêu đề mục phải ở **cột 0** và mở đầu một đoạn |
+
+Tôi còn suýt tuyên *"skill dạy ngược canonical"* từ một dòng digest, trước khi đọc mã và thấy lý do đo
+được của nó. Đó là lần thứ năm trong đợt này một tiền đề một-nửa sắp thành một kết luận.
+
+### Và một khoảng trống THẬT mà cửa mới tìm ra
+
+Sau khi bộ chấm đúng, vẫn còn một phép kiểm trượt **3/3 lượt**: model viết `NS-QA-20261107-A` **trần**.
+`RULE_GLOBAL §Giọng văn output` đòi id bọc nháy ngược; `backlog_bug_reporter/references/sai-dung.md`
+**không có dòng nào** nói điều đó. Đây là lỗi **tài liệu**, không phải sự bất cẩn của người viết bug.
+
+Thêm cặp ❌/✅ thứ 7, kèm lý do đo được chứ không phải thẩm mỹ: `NS-QA-20261107-A` trần thì DEV copy
+thiếu một ký tự là truy vấn ra 0 hàng rồi kết luận *"không tái hiện được"*. Sau khi thêm, phép kiểm đó
+qua **3/3 lượt**.
+
+Đúng việc `skills:practice` sinh ra để làm: tìm chỗ skill **dạy thiếu** so với luật canonical, bằng model
+thật, không bằng đọc tài liệu.
+
+### Một đề bài hỏi chung mà phép kiểm đòi riêng
+
+`doc-ket-qua` ra 5/5 tầng đúng cả 3 lượt nhưng chỉ 0–1/2 ở phần soát evidence. Đề hỏi *"nêu điều gì lượt
+chạy này KHÔNG trả lời được"*; phép kiểm đòi đúng một thứ — ca PASS nào thiếu ảnh ở bước quyết định.
+Model trả lời **đúng câu được hỏi**. Chỗ phải sửa là **câu hỏi**, không phải hạ phép kiểm — sửa rồi thì
+3/3 lượt đều **6/6**.
+
+### Và một đề bài suýt đo khả năng CHÉP
+
+Bản đầu của `ket_qua.de/reports/phase2-execution.md` có hẳn một mục *"thứ lượt chạy này KHÔNG ghi"* liệt
+kê sẵn điều model phải tự suy ra. Đã bỏ, và thêm ca gác: **tên tầng không được xuất hiện trong thư mục
+đề**, kèm đối chứng rằng phép kiểm bắt đúng cái tên cũ.
+
+### Máy gác thêm
+
+- `skills:practice` **17 → 26 ca** (tổng ca spec mới của dòng v2.10: **82 → 91**)
+- `gom()` **ném** khi số phép kiểm lệch khỏi sổ đáp án — thêm một phép kiểm mà quên khai thì ngưỡng 4/6
+  tự dễ hơn 4/5, và chuyện đó **không hiện trong diff**
+- ca gác đòi mỗi `vi_sao` trong sổ đáp án dài hơn 25 ký tự, và nó bắt được **ba lý do rỗng của chính
+  tôi**: *"cùng luật trên"* · *"luật nói rõ bỏ trailer"* · *"BA chưa viết mục đó"*
+- `--luu` dùng `path.resolve` thay `path.join(REPO, …)`: cờ cũ ghép đường dẫn tuyệt đối vào sau REPO rồi
+  ném `ENOENT` — người đi soi câu trả lời thường lưu ra ngoài repo
+
+### Giới hạn còn lại, không làm tròn
+
+- **5 bài phủ 5 trên 28 skill.** Đây là mẫu, không phải bộ đo đầy đủ.
+- **3 trong 5 bài chấm bằng luật hình thức**, không bằng cửa thật, vì `bug:claim`/`gate:output`/
+  `data:chain:check` đọc **thư mục output của task** chứ không nhận file lẻ. Nên với ba bài đó câu đúng
+  là *"sản phẩm theo đúng luật skill dạy"*, **không** phải *"sản phẩm qua được gate"*.
+- Bài `bug-than-backlog` dùng cửa thật, nhưng phần **tách tiêu đề mục** là xấp xỉ của tôi — luật đọc ghi
+  ngay trong mã, và nó đã sai một lần.
+- `route:live` **69,1%** và hai đích token vẫn như v2.10.0: thiếu **1,63 KB** và **25,5 KB**.
+
 ## v2.10.0 — 2026-11-06 — Bốn lần một lượt đơn lẻ suýt thành kết luận
 
 Bản này đưa ba tiêu chí của bản chấm 04/11 lên: **hướng dẫn cụ thể 4,5 → 5**, **kích hoạt skill 4 →
