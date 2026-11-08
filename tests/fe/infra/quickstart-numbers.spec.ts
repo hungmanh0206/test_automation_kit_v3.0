@@ -26,6 +26,24 @@ const chay = (argv: string[] = []) => {
   return { code: r.status, out: `${r.stdout || ''}${r.stderr || ''}` };
 };
 
+/**
+ * Hai ca dưới cần CÂY GIT và lớp PROJECT. Gói phát hành không có cả hai, nên chúng phải `test.skip`
+ * kèm lý do — KHÔNG đỏ.
+ *
+ * ĐÂY LÀ LẦN THỨ BA cùng một bài học trong repo này, và lần này là của tôi: `release-pipeline.spec.ts:275`
+ * đã ghi sẵn *"spec hạ tầng mới phải chạy thử TRONG GÓI, không chỉ trong repo"*, tôi trích đúng câu đó vào
+ * header của `quickstart_numbers.js` rồi KHÔNG áp cho spec. Lượt dry-run 42438958803 đỏ vì vậy: trong gói
+ * cửa thoát 2 (đúng thiết kế — "không đo được"), spec lại đòi 0.
+ *
+ * Mọi điều kiện bỏ qua phải đứng TRƯỚC lần đọc đầu tiên.
+ */
+function boQuaNeuThieuCay() {
+  test.skip(!fs.existsSync(path.join(REPO, '.agent/config/gitlab_strip.json')),
+    'gói phát hành không mang gitlab_strip.json (lớp PROJECT) — không có mốc để so');
+  const r = spawnSync('git', ['ls-files'], { cwd: REPO, encoding: 'utf8', env: gateEnv() });
+  test.skip(r.status !== 0, 'không có .git (đang chạy trong gói phát hành) — không đếm được cây track');
+}
+
 test.describe.configure({ mode: 'serial' });
 
 test.describe('@infra quickstart:numbers — số dẫn xuất phải do máy sinh', () => {
@@ -35,6 +53,7 @@ test.describe('@infra quickstart:numbers — số dẫn xuất phải do máy si
   });
 
   test('repo hiện tại: ĐẠT, và in ra con số nó đo được', () => {
+    boQuaNeuThieuCay();
     const r = chay(['--check']);
     expect(r.code, r.out).toBe(0);
     expect(r.out, 'phải in số đo, nếu không người đọc không kiểm lại được').toMatch(/\d+ file track · \d+ spec/);
@@ -42,6 +61,7 @@ test.describe('@infra quickstart:numbers — số dẫn xuất phải do máy si
   });
 
   test('ĐỐI CHỨNG DƯƠNG: phá trang thì CHẶN, và `--write` sửa lại ĐÚNG TỪNG BYTE', () => {
+    boQuaNeuThieuCay();
     /*
      * Phá trang THẬT rồi trả lại trong `finally`, cùng khuôn với phép phá "skill MỒ CÔI" ở
      * `gates.spec.ts`. Và phải nghiệm thu phần TRẢ LẠI: một phép phá làm bẩn file đã track rồi không
