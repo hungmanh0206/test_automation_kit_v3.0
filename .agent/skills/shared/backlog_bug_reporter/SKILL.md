@@ -25,9 +25,33 @@ Tạo Backlog child issue/sub-bug khi Phase 2 đã chứng minh fail là product
 |---|---|
 | Gate | Chỉ log khi fail đã execute thật và rerun đủ để loại flaky/setup. |
 | Deduplicate | So sánh bug hiện có bằng TC ID, summary, actual behavior (đọc lại qua `keyword` search — Backlog không có JQL, xem ghi chú trong bug_reporter.js). |
-| Description | Backlog description (plain text) chỉ gồm 4 phần: Tiền điều kiện, Bước, Kết quả hiện tại, Kết quả mong muốn. |
+| Description | Backlog description (plain text) chỉ gồm 4 phần: Tiền điều kiện, Bước, Kết quả hiện tại, Kết quả mong muốn. **Độ dài tối đa từng phần: xem bảng dưới.** |
 | Evidence | Upload ảnh/video (2 bước: `POST /space/attachment` rồi gắn vào issue); cấm `.json/.md/.txt/.log/.html/.csv/trace.zip`. |
 | Local log | Ghi kết quả vào report local. |
+
+
+### Độ dài tối đa từng phần — vượt là phải CẮT
+
+Đây là **yêu cầu của chủ dự án**, nhắc **ba lần** (08/10 · 12/10 · 27/10/2026), lần ba kèm câu *"tôi nhắc
+bao nhiêu lần rồi"*. Trước 07/11/2026 nó **không nằm trong skill này**, nên mỗi phiên lại tự thấy mình đã
+ngắn rồi — `skills:practice` đo được: model đọc đúng skill rồi viết **5 bước**, vì không chỗ nào nói 4.
+
+| Phần | Tối đa |
+|---|---|
+| `Tiền điều kiện` | 1 câu |
+| `Bước` | **4 dòng**, mỗi dòng một thao tác |
+| `Kết quả hiện tại` | **3 gạch** |
+| `Kết quả mong muốn` | 1–2 gạch |
+
+Đếm theo **từng phần**, không đếm toàn thân bug — bản đầu của bộ chấm `skills:practice` đếm cả thân rồi
+chấm sai một sản phẩm đúng.
+
+**Thứ KHÔNG bê vào Backlog** (chỗ của chúng là claim): số đếm toàn UAT làm bằng chứng phạm vi · số lượt
+đo lại · tên bảng/cột DB và tên script recon · lập luận phản chứng và chuyện đã loại giả thuyết nào. Một
+dòng phạm vi ngắn thì được — nó chỉ đường tới nhánh code.
+
+Giữ đúng thứ DEV cần để **mở màn ra và nhìn thấy lỗi**. Dài thì người ta đọc lướt rồi bỏ sót đúng dòng
+quan trọng.
 
 ## Inputs
 

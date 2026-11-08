@@ -299,9 +299,16 @@ test.describe('@infra skills:practice — năm bài, và bộ chấm không đư
     for (const ten of ['bug-than-backlog', 'du-lieu-run-id', 'dac-ta-ban-phan']) {
       const c = ht[ten];
       expect(c, `hinh_thuc.dapan.json thiếu mục ${ten}`).toBeTruthy();
-      expect(c.kiem.length, `${ten}: phải có 5 phép kiểm`).toBe(5);
-      expect(c.nguong, `${ten}: ngưỡng phải < số phép kiểm, nếu không một lượt lệch là trượt cả bài`)
-        .toBeLessThan(c.kiem.length);
+      /*
+       * BẤT BIẾN, không phải con số: bản đầu ghim `toBe(5)` nên lúc thêm C6 cho bài bug nó đỏ vì một
+       * lý do SAI — số phép kiểm không phải thứ cần cố định. Thứ cần cố định là ĐỘ KHÓ: thêm phép kiểm
+       * mà giữ nguyên ngưỡng thì bài TỰ DỄ hơn (4/5 = 80% thành 4/6 = 67%), và chuyện đó không hiện
+       * trong diff. Nên gác tỉ lệ, cộng sàn số phép kiểm để một lượt lệch không quyết cả bài.
+       */
+      expect(c.kiem.length, `${ten}: ít hơn 5 phép kiểm thì một lượt lệch quyết cả bài`).toBeGreaterThanOrEqual(5);
+      expect(c.nguong, `${ten}: ngưỡng phải < số phép kiểm`).toBeLessThan(c.kiem.length);
+      expect(c.nguong / c.kiem.length, `${ten}: ngưỡng ${c.nguong}/${c.kiem.length} làm bài dễ hơn 80% — thêm phép kiểm thì phải nâng ngưỡng`)
+        .toBeGreaterThanOrEqual(0.8);
       for (const k of c.kiem) {
         expect(String(k.vi_sao).length, `${ten}/${k.ma}: thiếu vì sao`).toBeGreaterThan(25);
       }

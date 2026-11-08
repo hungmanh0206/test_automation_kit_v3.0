@@ -6,14 +6,15 @@
   "_chong_tautology": "Mọi phép kiểm neo vào NỘI DUNG của đề bài (mã nhân sự, số mục §, giới hạn ký tự) chứ không neo vào TỪ VỰNG của skill. Nếu neo vào từ vựng thì model chỉ cần nhắc lại skill là đạt.",
 
   "bug-than-backlog": {
-    "nguong": 4,
+    "nguong": 5, "_nguong_len_071126": "4/5 → 5/6 khi thêm C6. Giữ 4 trên 6 là để bài TỰ DỄ hơn (67% so với 80%) — đúng kiểu nới chuẩn mà không ai thấy trong diff.",
     "_ban_dau_sai": "BẢN ĐẦU CỦA BA PHÉP KIỂM NÀY LÀ GIẢ ĐỊNH CỦA TÔI, không phải luật của repo — và nó làm model trượt 3/3 lượt (0/5 · 1/5 · 2/5) trong khi sản phẩm của model ĐÚNG. Đo 07/11/2026: (a) không chỗ nào trong RULE_GLOBAL.md, core_rules.md hay chính skill nói 'tối đa 4 bước / 3 gạch' — hai số đó đến từ ghi chú trí nhớ của tôi; (b) dòng `TC: [<tcId>]` là MARKER MÁY ĐỌC có chủ ý, bug_reporter.js:719 ghi rõ mất nó thì mỗi lượt rerun log thêm một bug TRÙNG; (c) hai phép kiểm chấm cả câu trả lời nên bắt phải chữ ở phần model viết QUANH sản phẩm — model ghi hẳn 'đã cố tình để NGOÀI thân bug' rồi bị chính câu đó đánh trượt. Bản nay gọi CỬA THẬT `lintBugHeadings` cộng bốn luật trích nguyên từ RULE_GLOBAL §Giọng văn output.",
     "kiem": [
       { "ma": "C1", "la": "cửa THẬT `lintBugHeadings` không trả vấn đề nào", "vi_sao": "đây là máy mà `output_gate` dùng để chặn description bug: phải ĐÚNG 4 mục, đúng thứ tự, không mục thừa. Gọi đúng nó thì bài này đo 'qua được cửa', không đo 'giống cái tôi hình dung'." },
       { "ma": "C2", "la": "dòng marker `TC: [TC_0147]` là DÒNG CUỐI và KHÔNG in đậm", "vi_sao": "đây là luật THẬT, lấy từ chú thích của `bug_reporter.js:719`: để ở cuối và không in đậm để người đọc lướt qua được và để `lintBugHeadings` không đếm nó thành mục thứ 5. Mất dòng này thì mỗi lượt rerun log thêm một bug TRÙNG." },
       { "ma": "C3", "la": "mã nhân sự của đề bài nằm trong nháy ngược", "vi_sao": "RULE_GLOBAL §Giọng văn output: chuỗi, mã lỗi và id bọc nháy ngược. Và đây đúng là biến phân biệt của bug này, nên nó phải xuất hiện nguyên văn chứ không bị kể lại." },
       { "ma": "C4", "la": "lập luận dài KHÔNG nằm trong SẢN PHẨM", "vi_sao": "lập luận ở lại claim. Chỉ soi phần thân bug — bản đầu soi cả câu trả lời nên bắt phải chữ ở đoạn model nói nó đã CỐ TÌNH để chúng ra ngoài." },
-      { "ma": "C5", "la": "mang theo SỐ ĐO: `COUNT = 1` và `3/3`", "vi_sao": "RULE_GLOBAL §Giọng văn output: có số thì đưa số. Hai con số này là thứ DEV cần để tái hiện, và chúng neo vào nội dung đề nên không chấm được bằng cách nhắc lại từ vựng skill." }
+      { "ma": "C5", "la": "mang theo SỐ ĐO: `COUNT = 1` và `3/3`", "vi_sao": "RULE_GLOBAL §Giọng văn output: có số thì đưa số. Hai con số này là thứ DEV cần để tái hiện, và chúng neo vào nội dung đề nên không chấm được bằng cách nhắc lại từ vựng skill." },
+      { "ma": "C6", "la": "độ dài TỪNG MỤC trong trần: Tiền điều kiện 1 · Bước 4 · Kết quả hiện tại 3 · Kết quả mong muốn 2", "vi_sao": "yêu cầu của chủ dự án, nhắc BA lần (08/10 · 12/10 · 27/10/2026). Trước 07/11/2026 nó chỉ sống trong ghi chú trí nhớ của tôi chứ KHÔNG trong kit, nên model đọc đúng skill vẫn viết 5 bước — không chỗ nào nói 4. Nay nằm ở SKILL.md §Độ dài tối đa từng phần. Đếm theo TỪNG MỤC: bản đầu đếm cả thân rồi chấm sai một sản phẩm đúng, vì khuôn 4 mục tự nó cần nhiều gạch hơn 3 nếu gộp lại." }
     ]
   },
 
