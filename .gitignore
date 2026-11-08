@@ -294,3 +294,11 @@ _import/
 
 # Bản gợi ý của `gate:audit --write-tiers` — artifact để người đối chiếu rồi gộp tay, không phải nguồn.
 .agent/config/gate_tiers.suggested.json
+
+# Đề bài của `skills:practice` cố ý mang tên thư mục của một lượt chạy THẬT (reports/, test-results/)
+# vì skill `run_report_reader` dạy "artifact nào trả lời được câu gì" — đổi tên đi là mất đúng cái đang đo.
+# Hai dòng này phải phủ định cả THƯ MỤC, không phủ định từng file: gitignore không re-include được file
+# nằm trong một thư mục đã bị loại.
+!tests/fixtures/practice/ket_qua.de/reports/
+!tests/fixtures/practice/ket_qua.de/test-results/
+!tests/fixtures/practice/ket_qua.de/test-results/*.log

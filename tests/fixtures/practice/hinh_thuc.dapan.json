@@ -1,0 +1,41 @@
+{
+  "_la_gi": "Luật chấm cho ba bài mà sản phẩm là một VĂN BẢN chứ không phải một danh sách lỗi: thân bug Backlog, bản kế hoạch dữ liệu, bản phân tích đặc tả.",
+
+  "_mot_gioi_han_phai_khai": "Ba bài này chấm bằng LUẬT HÌNH THỨC đo trên câu trả lời, KHÔNG phải bằng cách chạy cửa thật. Lý do: `bug:claim`, `gate:output`, `data:chain:check` đều đọc thư mục output của task chứ không nhận file lẻ, nên muốn chạy cửa thật thì phải dựng cả một task giả — và một task giả do chính tôi dựng thì nó đo cái tôi dựng, không đo sản phẩm. Nên câu đúng là *\"sản phẩm có theo đúng luật mà skill dạy\"*, KHÔNG phải *\"sản phẩm qua được gate\"*. Bài `review-5-loi` và `doc-ket-qua` thì chấm bằng ĐÁP ÁN nội dung, mạnh hơn.",
+
+  "_chong_tautology": "Mọi phép kiểm neo vào NỘI DUNG của đề bài (mã nhân sự, số mục §, giới hạn ký tự) chứ không neo vào TỪ VỰNG của skill. Nếu neo vào từ vựng thì model chỉ cần nhắc lại skill là đạt.",
+
+  "bug-than-backlog": {
+    "nguong": 4,
+    "_ban_dau_sai": "BẢN ĐẦU CỦA BA PHÉP KIỂM NÀY LÀ GIẢ ĐỊNH CỦA TÔI, không phải luật của repo — và nó làm model trượt 3/3 lượt (0/5 · 1/5 · 2/5) trong khi sản phẩm của model ĐÚNG. Đo 07/11/2026: (a) không chỗ nào trong RULE_GLOBAL.md, core_rules.md hay chính skill nói 'tối đa 4 bước / 3 gạch' — hai số đó đến từ ghi chú trí nhớ của tôi; (b) dòng `TC: [<tcId>]` là MARKER MÁY ĐỌC có chủ ý, bug_reporter.js:719 ghi rõ mất nó thì mỗi lượt rerun log thêm một bug TRÙNG; (c) hai phép kiểm chấm cả câu trả lời nên bắt phải chữ ở phần model viết QUANH sản phẩm — model ghi hẳn 'đã cố tình để NGOÀI thân bug' rồi bị chính câu đó đánh trượt. Bản nay gọi CỬA THẬT `lintBugHeadings` cộng bốn luật trích nguyên từ RULE_GLOBAL §Giọng văn output.",
+    "kiem": [
+      { "ma": "C1", "la": "cửa THẬT `lintBugHeadings` không trả vấn đề nào", "vi_sao": "đây là máy mà `output_gate` dùng để chặn description bug: phải ĐÚNG 4 mục, đúng thứ tự, không mục thừa. Gọi đúng nó thì bài này đo 'qua được cửa', không đo 'giống cái tôi hình dung'." },
+      { "ma": "C2", "la": "dòng marker `TC: [TC_0147]` là DÒNG CUỐI và KHÔNG in đậm", "vi_sao": "đây là luật THẬT, lấy từ chú thích của `bug_reporter.js:719`: để ở cuối và không in đậm để người đọc lướt qua được và để `lintBugHeadings` không đếm nó thành mục thứ 5. Mất dòng này thì mỗi lượt rerun log thêm một bug TRÙNG." },
+      { "ma": "C3", "la": "mã nhân sự của đề bài nằm trong nháy ngược", "vi_sao": "RULE_GLOBAL §Giọng văn output: chuỗi, mã lỗi và id bọc nháy ngược. Và đây đúng là biến phân biệt của bug này, nên nó phải xuất hiện nguyên văn chứ không bị kể lại." },
+      { "ma": "C4", "la": "lập luận dài KHÔNG nằm trong SẢN PHẨM", "vi_sao": "lập luận ở lại claim. Chỉ soi phần thân bug — bản đầu soi cả câu trả lời nên bắt phải chữ ở đoạn model nói nó đã CỐ TÌNH để chúng ra ngoài." },
+      { "ma": "C5", "la": "mang theo SỐ ĐO: `COUNT = 1` và `3/3`", "vi_sao": "RULE_GLOBAL §Giọng văn output: có số thì đưa số. Hai con số này là thứ DEV cần để tái hiện, và chúng neo vào nội dung đề nên không chấm được bằng cách nhắc lại từ vựng skill." }
+    ]
+  },
+
+  "du-lieu-run-id": {
+    "nguong": 4,
+    "kiem": [
+      { "ma": "D1", "la": "`RUN_ID` xuất hiện >= 2 lần", "vi_sao": "mã lớp VÀ tên lớp đều phải unique theo lượt, không chỉ một ô" },
+      { "ma": "D2", "la": "ô Mã lớp mang `RUN_ID` NGAY TRÊN CÙNG MỘT DÒNG", "vi_sao": "chặt hơn luật 'đừng dùng 6A1': bản đầu của phép kiểm này chỉ bắt đúng dòng `Mã lớp: 6A1`, nên một giá trị cố định KHÁC vẫn lọt. Đòi RUN_ID nằm cùng dòng với tên ô thì không còn đường lách." },
+      { "ma": "D3", "la": "có bước DỌN", "vi_sao": "sự cố cũ: không ai biết hàng nào của ai nên không dọn được" },
+      { "ma": "D4", "la": "nói cách TRUY VẾT hàng của lượt này", "vi_sao": "dọn được là nhờ nhận ra hàng của mình" },
+      { "ma": "D5", "la": "tôn trọng giới hạn 20 ký tự của Mã lớp", "vi_sao": "ghép RUN_ID vào dễ vượt giới hạn — đây là cái bẫy của đề" }
+    ]
+  },
+
+  "dac-ta-ban-phan": {
+    "nguong": 4,
+    "kiem": [
+      { "ma": "T1", "la": "xếp §3 (Lưới danh sách) là vùng TRẮNG, cần recon", "vi_sao": "BA để trống hẳn mục đó. Vùng trắng phải được GỌI TÊN là vùng trắng: im lặng bỏ qua nó thì mẫu số coverage thiếu một màn, còn bịa kỳ vọng cho nó thì sinh oracle không có nguồn." },
+      { "ma": "T2", "la": "nêu CẢ §4 và §7 là nghi lỗi thời", "vi_sao": "ghi chú của BA nói rõ hai mục đó viết từ bản 2019" },
+      { "ma": "T3", "la": "chỉ ra vấn đề cấp Phòng GD", "vi_sao": "đã bỏ cấp Phòng GD; §4 và §7 đều dựa vào nó" },
+      { "ma": "T4", "la": ">= 2 câu hỏi còn mở", "vi_sao": "ít nhất: ô nào của nhóm băng thông là bắt buộc, và ai duyệt sau khi bỏ Phòng GD" },
+      { "ma": "T5", "la": "KHÔNG bịa mã `BR-DIEMTRUONG-` ngoài 001/002", "vi_sao": "tài liệu chỉ có hai mã; bịa thêm mã là tạo oracle không có nguồn" }
+    ]
+  }
+}

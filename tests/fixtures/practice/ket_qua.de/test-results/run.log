@@ -1,0 +1,29 @@
+[09:12:03] lượt chạy bắt đầu — 24 case, 1 worker
+[09:12:04] evidence ghi vào evidence/<tcId>/
+[09:14:48] TC_0191 PASS   evidence: step1-mo-man.png
+[09:16:02] TC_0192 PASS   evidence: step1-mo-man.png, step3-sau-khi-ghi.png
+[09:17:35] TC_0193 PASS   evidence: step1-mo-man.png, step4-luoi-sau-F5.png
+[09:19:10] TC_0194 PASS   evidence: step1-mo-man.png
+[09:20:44] TC_0195 PASS   evidence: step1-mo-man.png, step3-sau-khi-ghi.png
+[09:22:19] TC_0196 PASS   evidence: step1-mo-man.png, step2-chon-phan-hieu.png
+[09:23:51] TC_0197 PASS   evidence: step1-mo-man.png
+[09:25:26] TC_0198 PASS   evidence: step1-mo-man.png, step5-xoa-xong.png
+[09:27:02] TC_0199 PASS   evidence: step1-mo-man.png, step3-sau-khi-ghi.png
+[09:28:36] TC_0200 PASS   evidence: step1-mo-man.png, step4-luoi-sau-F5.png
+[09:30:11] TC_0201 FAIL   evidence: step2-nhap-12.png, step4-sau-F5-hien-0.png
+[09:31:40] TC_0202 FAIL   evidence: step1-luoi-trang.png, step1-network-500.png
+[09:33:08] TC_0203 FAIL   evidence: step3.png
+[09:34:33] TC_0204 FAIL   evidence: step1-khong-co-du-lieu.png
+[09:36:01] TC_0205 FAIL   evidence: step1-khong-vao-duoc.png
+[09:37:29] TC_0206 PASS   evidence: step1-mo-man.png, step3-sau-khi-ghi.png
+[09:38:55] TC_0207 PASS   evidence: step1-mo-man.png, step3-sau-khi-ghi.png
+[09:40:21] TC_0208 PASS   evidence: step1-mo-man.png, step4-luoi-sau-F5.png
+[09:41:48] TC_0209 PASS   evidence: step1-mo-man.png, step2-chon-phan-hieu.png
+[09:43:14] TC_0210 PASS   evidence: step1-mo-man.png, step3-sau-khi-ghi.png
+[09:44:40] TC_0211 PASS   evidence: step1-mo-man.png, step5-xoa-xong.png
+[09:46:06] TC_0212 PASS   evidence: step1-mo-man.png, step3-sau-khi-ghi.png
+[09:47:33] TC_0213 PASS   evidence: step1-mo-man.png, step4-luoi-sau-F5.png
+[09:48:59] TC_0214 PASS   evidence: step1-mo-man.png, step3-sau-khi-ghi.png
+[09:49:01] cleanup() gọi — 11 hàng được truyền vào hàm dọn
+[09:49:04] cleanup() trả về không ném lỗi
+[09:49:04] lượt chạy kết thúc — 19 PASS · 5 FAIL

@@ -1,0 +1,36 @@
+{
+  "_de": "ket_qua.de/ — thư mục output của một lượt chạy (reports/ + test-results/)",
+  "_luat_doc": "Với mỗi tcId: tìm mọi chỗ tcId xuất hiện trong câu trả lời; lấy cửa sổ 160 ký tự SAU nó; tên tầng ĐẦU TIÊN xuất hiện trong cửa sổ phải đúng bằng tầng kỳ vọng. Viết luật này TRƯỚC khi chạy lượt nào, để không chỉnh luật theo kết quả. Cửa sổ 160 vì một dòng bảng dài nhất của mẫu là 148 ký tự; model liệt kê CẢ danh sách tầng vẫn không qua được vì tầng đầu tiên sẽ sai.",
+  "tang": [
+    {
+      "tcId": "TC_0201",
+      "tang": "product_bug",
+      "vi_sao": "có oracle_ref độc lập (BR-DIEMTRUONG-004), nhập 12 lưu ra 0, DB xác nhận, rerun 3/3, và KHÔNG request nào >= 400 nên không phải tầng API."
+    },
+    {
+      "tcId": "TC_0202",
+      "tang": "api_bug",
+      "vi_sao": "API trả 500 kèm stack phía server. Lỗi nằm ở tầng API, không phải ở UI render."
+    },
+    {
+      "tcId": "TC_0203",
+      "tang": "script_error",
+      "vi_sao": "nút Lưu CÓ trên màn, nhãn đúng, không khoá — nhưng spec dùng `page.$()` trả null. Lỗi của SCRIPT, không phải của sản phẩm."
+    },
+    {
+      "tcId": "TC_0204",
+      "tang": "setup_failure",
+      "vi_sao": "tiền đề case đòi một điểm trường có lớp gán vào; không dựng được nên lượt chạy KHÔNG chạm tới nút Xoá. Chưa đo được, không phải đo ra sai."
+    },
+    {
+      "tcId": "TC_0205",
+      "tang": "infra",
+      "vi_sao": "ERR_CONNECTION_REFUSED CÙNG LÚC ở 5 case trên cùng màn, và 20 phút sau vào được. Đồng thời nhiều ca là thứ phân biệt `infra` với `flaky` — flaky là chập chờn theo từng ca."
+    }
+  ],
+  "thieu_evidence": {
+    "_vi_sao": "Phải SUY từ `test-results/run.log`: ba ca PASS này chỉ có `step1-mo-man.png`, tức không có ảnh ở BƯỚC QUYẾT ĐỊNH — non-negotiable §4 đòi ảnh ở bước quyết định cho CẢ ca PASS. Đề bài cố ý KHÔNG nói sẵn điều này; bản đầu có một mục liệt kê ra và như vậy model chỉ cần chép, phép đo thành tautology.",
+    "can_neu_duoc": 2,
+    "tcId": ["TC_0191", "TC_0194", "TC_0197"]
+  }
+}

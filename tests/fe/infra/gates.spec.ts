@@ -294,19 +294,43 @@ test.describe('@infra gate:policy — phải THẬT SỰ quét, không no-op', (
      * ĐỐI CHỨNG DƯƠNG, và nó phải dựng bằng cách GỠ ĐƯỜNG NỐI THẬT — không bịa một skill giả, vì skill
      * giả không chứng minh được rằng cửa đọc đúng cây skill thật.
      *
-     * Gỡ hai chỗ nhắc `run_report_reader` (workflow phase2_04 + lệnh /release) ⇒ phải exit 1.
-     * Trả lại ⇒ exit 0. Bản trước chỉ `warns.push`, nên lượt gỡ vẫn exit 0 và lỗi sống im lặng —
-     * đúng cách `run_report_reader` mồ côi suốt từ v2.9.5 tới 30/10/2026.
+     * BẢN TRƯỚC GHIM CỨNG HAI FILE, và nó đã TỰ VÔ HIỆU, bắt được 07/11/2026: bài `doc-ket-qua` của
+     * `skills:practice` khai `skill: 'run_report_reader'`, mà `scripts/` nằm trong vùng quét của cửa —
+     * nên gỡ hai file kia xong, cửa vẫn thấy tên skill ở chỗ thứ ba và vẫn exit 0. Phép phá thành RỖNG
+     * mà vẫn xanh, đúng lớp lỗi mà chính nó được viết ra để chặn.
+     *
+     * Nay nó TỰ TÍNH danh sách: đọc `NOI_GOI` từ chính mã của cửa (một nguồn, không khai lại), quét
+     * đúng những thư mục đó, và gỡ MỌI chỗ nhắc tên. Thêm một đường nối ở đâu thì phép phá theo tới đó.
      */
-    const NOI = [
-      path.join(REPO, '.agent/workflows/phase2_04_report_and_backlog_gate.md'),
-      path.join(REPO, '.claude/commands/release.md'),
-    ];
+    const src = fs.readFileSync(path.join(REPO, 'scripts/qa/policy_source_check.js'), 'utf8');
+    const m = src.match(/const NOI_GOI = \[([^\]]+)\]/);
+    expect(m, 'không đọc được `NOI_GOI` từ mã của cửa ⇒ phép phá này mù').toBeTruthy();
+    const vung = m![1].split(',').map((x) => x.trim().replace(/^['"]|['"]$/g, '')).filter(Boolean);
+    expect(vung.length, 'vùng quét rỗng ⇒ phép phá mù').toBeGreaterThan(2);
+
+    /* Cửa cố ý bỏ chính file của nó ra khỏi vùng quét, nên phép phá cũng phải bỏ — gỡ chữ trong đó
+     * không đổi kết quả, mà lại làm bẩn một file không liên quan. */
+    const TU_THAM_CHIEU = path.join(REPO, 'scripts/qa/policy_source_check.js');
+    const NOI: string[] = [];
+    const gom = (d: string, sau = 0) => {
+      if (sau > 6 || !fs.existsSync(d)) return;
+      for (const e of fs.readdirSync(d, { withFileTypes: true })) {
+        const p = path.join(d, e.name);
+        if (e.isDirectory()) { if (!/node_modules|\.git/.test(e.name)) gom(p, sau + 1); continue; }
+        if (!/\.(md|js|mjs|json|ts|yml|yaml)$/.test(e.name)) continue;
+        if (path.resolve(p) === path.resolve(TU_THAM_CHIEU)) continue;
+        if (fs.readFileSync(p, 'utf8').includes('run_report_reader')) NOI.push(p);
+      }
+    };
+    vung.forEach((r) => gom(path.join(REPO, r)));
+    expect(NOI.length, 'không thấy đường nối nào ⇒ skill đã mồ côi sẵn, phép phá không nói được gì')
+      .toBeGreaterThan(0);
+
     const cu = NOI.map((f) => fs.readFileSync(f, 'utf8'));
     try {
       NOI.forEach((f, i) => fs.writeFileSync(f, cu[i].split('run_report_reader').join('skill_da_go'), 'utf8'));
       const r2 = run(['scripts/qa/policy_source_check.js']);
-      expect(r2.code, `gỡ đường nối mà vẫn exit 0 ⇒ cửa chỉ cảnh báo — ${r2.out}`).toBe(1);
+      expect(r2.code, `gỡ ${NOI.length} đường nối mà vẫn exit 0 ⇒ cửa chỉ cảnh báo — ${r2.out}`).toBe(1);
       expect(r2.out).toMatch(/skill MỒ CÔI/);
       expect(r2.out).toContain('run_report_reader');
     } finally {

@@ -17,7 +17,9 @@
 import { test, expect } from '@playwright/test';
 import * as fs from 'fs';
 import * as path from 'path';
+import { spawnSync } from 'child_process';
 import { mayThu } from './_may_thu';
+import { gateEnv } from './_gate_env';
 
 const REPO = path.resolve(__dirname, '..', '..', '..');
 const CUA = mayThu('SKILLS_PRACTICE_JS', path.join(REPO, 'scripts/qa/skills_practice.js'));
@@ -203,5 +205,182 @@ test.describe('@infra skills:practice — đề bài KHÔNG được là một t
   test('ĐỐI CHỨNG: phép kiểm bắt được đúng cái tên đã gây ra lỗi', () => {
     expect(THU.test('spec_5_loi.spec.ts'), 'tên cũ phải bị bắt, nếu không ca trên rỗng').toBe(true);
     expect(THU.test('spec_5_loi.de.txt'), 'tên nay dùng phải KHÔNG bị bắt').toBe(false);
+  });
+});
+
+test.describe('@infra skills:practice — năm bài, và bộ chấm không được tự khen', () => {
+  /*
+   * Bốn bài thêm ở v2.10.0 chấm bằng LUẬT HÌNH THỨC (`hinh_thuc.dapan.json`) thay vì đáp án nội dung,
+   * vì sản phẩm của chúng là một văn bản. Chỗ dễ hỏng nhất của kiểu chấm đó là TAUTOLOGY: nếu luật neo
+   * vào TỪ VỰNG của skill thì model chỉ cần nhắc lại skill là đạt. Nên mỗi ca dưới đây gác một tính
+   * chất làm bộ chấm còn là một phép đo.
+   */
+  const src = () => fs.readFileSync(CUA, 'utf8');
+  const HT = () => JSON.parse(fs.readFileSync(path.join(FIXTURE, 'hinh_thuc.dapan.json'), 'utf8'));
+  const KQ = () => JSON.parse(fs.readFileSync(path.join(FIXTURE, 'ket_qua.dapan.json'), 'utf8'));
+
+  const MA_BAI = ['review-5-loi', 'doc-ket-qua', 'bug-than-backlog', 'du-lieu-run-id', 'dac-ta-ban-phan'];
+
+  test('đủ 5 bài, mỗi bài một skill KHÁC nhau', () => {
+    const s = src();
+    const i = s.indexOf('const BAI = [');
+    const khoi = s.slice(i, s.indexOf('\n];', i));
+    for (const m of MA_BAI) expect(khoi, `thiếu bài ${m}`).toContain(`ma: '${m}'`);
+
+    const skill = [...khoi.matchAll(/skill: '([a-z_]+)'/g)].map((x) => x[1]);
+    expect(skill.length, 'mỗi bài phải khai đúng một skill').toBe(5);
+    expect(new Set(skill).size, `hai bài cùng skill thì bài thứ hai không đo thêm gì: ${skill.join(', ')}`).toBe(5);
+  });
+
+  test('mọi skill được khai đều CÓ THẬT trong `.agent/skills/`', () => {
+    const s = src();
+    const i = s.indexOf('const BAI = [');
+    const khoi = s.slice(i, s.indexOf('\n];', i));
+    for (const m of [...khoi.matchAll(/skill: '([a-z_]+)'/g)].map((x) => x[1])) {
+      const co = ['phase1', 'phase2', 'shared']
+        .some((g) => fs.existsSync(path.join(REPO, '.agent/skills', g, m, 'SKILL.md')));
+      expect(co, `${m}: không có skill này ⇒ bài đó sẽ KHÔNG PHÁN ĐƯỢC mãi mãi`).toBe(true);
+    }
+  });
+
+  test('mọi fixture được khai đều CÓ THẬT', () => {
+    const s = src();
+    const i = s.indexOf('const BAI = [');
+    const khoi = s.slice(i, s.indexOf('\n];', i));
+    const tu = [...khoi.matchAll(/tu: '([^']+)'/g)].map((x) => x[1]);
+    expect(tu.length, 'năm bài phải khai năm nguồn fixture').toBe(5);
+    for (const t of tu) {
+      expect(fs.existsSync(path.join(FIXTURE, t)), `fixture không tồn tại: ${t}`).toBe(true);
+    }
+  });
+
+  test('`tep` chép được cả THƯ MỤC, vì bài `doc-ket-qua` cần hình dạng thư mục task', () => {
+    const s = src();
+    const i = s.indexOf('function dungGoc(');
+    const than = s.slice(i, s.indexOf('\n}', i));
+    expect(than, 'thiếu nhánh thư mục thì bài doc-ket-qua chép ra một file rỗng').toMatch(/isDirectory\(\)/);
+    expect(than, 'fixture mất mà im lặng thì bài đó chấm trên thư mục trống').toMatch(/không tồn tại/);
+  });
+
+  test('ĐÁP ÁN TẦNG chỉ dùng tên tầng CÓ THẬT trong taxonomy', () => {
+    const tax = JSON.parse(fs.readFileSync(path.join(REPO, '.agent/config/verdict_taxonomy.json'), 'utf8'));
+    const hop = Object.keys(tax.failureLayers);
+    const da = KQ();
+    expect(da.tang.length, 'đề bài có 5 ca FAIL').toBe(5);
+    for (const m of da.tang) {
+      expect(hop, `${m.tcId}: tầng "${m.tang}" không có trong verdict_taxonomy`).toContain(m.tang);
+      expect(String(m.vi_sao).length, `${m.tcId}: thiếu lý do ⇒ đáp án thành lời khai`).toBeGreaterThan(40);
+    }
+    expect(new Set(da.tang.map((x: { tang: string }) => x.tang)).size,
+      'năm ca trùng tầng thì bài này không phân biệt được gì').toBe(5);
+  });
+
+  test('ĐỀ BÀI KHÔNG MỚM ĐÁP ÁN: tên tầng không được xuất hiện trong thư mục đề', () => {
+    /*
+     * Lỗi đã suýt mắc: bản đầu của `phase2-execution.md` có hẳn một mục *"thứ lượt chạy này KHÔNG ghi"*
+     * liệt kê sẵn điều model phải tự suy ra. Để vậy thì model chỉ cần chép, và bài này đo khả năng chép.
+     */
+    const goc = path.join(FIXTURE, 'ket_qua.de');
+    const doc = (d: string): string => fs.readdirSync(d, { withFileTypes: true })
+      .map((e) => (e.isDirectory() ? doc(path.join(d, e.name)) : fs.readFileSync(path.join(d, e.name), 'utf8')))
+      .join('\n');
+    const noi = doc(goc);
+    for (const t of KQ().tang.map((x: { tang: string }) => x.tang)) {
+      expect(noi, `đề bài chứa chữ "${t}" ⇒ model chỉ cần chép`).not.toContain(t);
+    }
+    for (const id of KQ().thieu_evidence.tcId) {
+      expect(noi.includes(id), `${id} phải CÓ trong đề (để suy ra được), nhưng đề không được nói nó thiếu ảnh`).toBe(true);
+    }
+    expect(noi, 'đề không được tự kết luận về bước quyết định').not.toMatch(/bước quyết định/i);
+  });
+
+  test('LUẬT HÌNH THỨC neo vào NỘI DUNG đề, không neo vào từ vựng skill', () => {
+    const ht = HT();
+    for (const ten of ['bug-than-backlog', 'du-lieu-run-id', 'dac-ta-ban-phan']) {
+      const c = ht[ten];
+      expect(c, `hinh_thuc.dapan.json thiếu mục ${ten}`).toBeTruthy();
+      expect(c.kiem.length, `${ten}: phải có 5 phép kiểm`).toBe(5);
+      expect(c.nguong, `${ten}: ngưỡng phải < số phép kiểm, nếu không một lượt lệch là trượt cả bài`)
+        .toBeLessThan(c.kiem.length);
+      for (const k of c.kiem) {
+        expect(String(k.vi_sao).length, `${ten}/${k.ma}: thiếu vì sao`).toBeGreaterThan(25);
+      }
+    }
+    expect(JSON.stringify(ht), 'phải khai thẳng giới hạn: đây KHÔNG phải "qua được gate"')
+      .toMatch(/KHÔNG phải/);
+  });
+
+  test('`gom` CHẶN khi số phép kiểm lệch khỏi đáp án', () => {
+    /*
+     * Chỗ trôi im lặng điển hình: thêm một phép kiểm vào mã mà quên khai trong đáp án, rồi ngưỡng 4
+     * trên 6 phép kiểm thành dễ hơn 4 trên 5 — bài tự nới ra mà không ai thấy trong diff.
+     */
+    const s = src();
+    const i = s.indexOf('function gom(');
+    expect(i, 'không tìm thấy hàm gom').toBeGreaterThan(0);
+    const than = s.slice(i, s.indexOf('\n}', i));
+    expect(than, 'phải so số phép kiểm với đáp án').toMatch(/cfg\.kiem\.length !== ket\.length/);
+    expect(than, 'và phải NÉM, không phải cảnh báo').toMatch(/throw new Error/);
+  });
+
+  test('bài `doc-ket-qua` đọc tầng ĐẦU TIÊN trong cửa sổ, không phải "có chứa"', () => {
+    const s = src();
+    const i = s.indexOf("ma: 'doc-ket-qua'");
+    const than = s.slice(i, s.indexOf("ma: 'bug-than-backlog'", i));
+    expect(than, 'phải sắp theo vị trí rồi lấy cái đầu tiên').toMatch(/sort\(\(a, b\) => a\.at - b\.at\)/);
+    expect(than, '"có chứa" thì model liệt kê cả 8 tầng cho mọi ca là đạt').toMatch(/thay\[0\]\.x === m\.tang/);
+    expect(KQ()._luat_doc, 'luật đọc phải viết TRƯỚC khi đo, và ghi lại').toMatch(/TRƯỚC khi chạy/);
+  });
+});
+
+test.describe('@infra skills:practice — fixture phải TRACK được, không chỉ có trên đĩa', () => {
+  /*
+   * LỖI THẬT, bắt được 07/11/2026 lúc stage: thư mục đề `ket_qua.de/` mang tên thư mục của một lượt
+   * chạy THẬT — `reports/` và `test-results/` — và `.gitignore` chặn đúng hai tên đó (dòng `Reports/`,
+   * `test-results/`), cộng `*.log` chặn `run.log`. Ba file đề sống trên đĩa của tôi và KHÔNG vào repo.
+   *
+   * Phép kiểm "fixture có tồn tại" KHÔNG bắt được chuyện này: trên máy người viết thì nó tồn tại. Chỉ
+   * người clone mới thấy, và họ thấy dưới dạng một bài KHÔNG PHÁN ĐƯỢC mãi mãi.
+   *
+   * Không đổi tên thư mục để lách: `run_report_reader` dạy *"artifact nào trả lời được câu gì"*, nên
+   * tên thư mục thật là phần đang được đo. Vá bằng phủ định tường minh trong `.gitignore`.
+   */
+  test('mọi file fixture mà bộ bài khai đều được git track', () => {
+    const r = spawnSync('git', ['ls-files', 'tests/fixtures/practice'], { cwd: REPO, encoding: 'utf8', env: gateEnv() });
+    test.skip(r.status !== 0, 'không phải repo git ⇒ không phán được');
+    const track = new Set(String(r.stdout).split(/\r?\n/).map((x) => x.trim()).filter(Boolean));
+    expect(track.size, 'không file nào được track ⇒ ca này RỖNG').toBeGreaterThan(3);
+
+    const s = fs.readFileSync(CUA, 'utf8');
+    const i = s.indexOf('const BAI = [');
+    const khoi = s.slice(i, s.indexOf('\n];', i));
+    const tu = [...khoi.matchAll(/tu: '([^']+)'/g)].map((x) => x[1]);
+    expect(tu.length, 'năm bài phải khai năm nguồn fixture').toBe(5);
+
+    const thieu: string[] = [];
+    const duyet = (rel: string) => {
+      const abs = path.join(FIXTURE, rel);
+      if (!fs.existsSync(abs)) { thieu.push(`${rel} (không có trên đĩa)`); return; }
+      if (fs.statSync(abs).isDirectory()) {
+        for (const e of fs.readdirSync(abs)) duyet(path.join(rel, e).replace(/\\/g, '/'));
+        return;
+      }
+      const key = `tests/fixtures/practice/${rel.replace(/\\/g, '/')}`;
+      if (!track.has(key)) thieu.push(key);
+    };
+    tu.forEach((x) => duyet(x));
+
+    expect(thieu, 'file đề KHÔNG track thì người clone không có nó, và bài đó KHÔNG PHÁN ĐƯỢC mãi mãi'
+      + ` — vá bằng phủ định trong .gitignore, đừng đổi tên thư mục để lách: ${thieu.join(', ')}`)
+      .toEqual([]);
+  });
+
+  test('và cả đáp án cũng phải track', () => {
+    const r = spawnSync('git', ['ls-files', 'tests/fixtures/practice'], { cwd: REPO, encoding: 'utf8', env: gateEnv() });
+    test.skip(r.status !== 0, 'không phải repo git');
+    const track = new Set(String(r.stdout).split(/\r?\n/).map((x) => x.trim()).filter(Boolean));
+    for (const f of ['spec_5_loi.dapan.json', 'ket_qua.dapan.json', 'hinh_thuc.dapan.json']) {
+      expect(track.has(`tests/fixtures/practice/${f}`), `${f}: đáp án không track ⇒ bộ chấm vỡ ở bản clone`).toBe(true);
+    }
   });
 });

@@ -93,3 +93,32 @@ Phân tích: như đã trình bày ở trên, dựa trên ba lượt rerun và �
 
 Backlog là chỗ DEV đọc để **sửa**, không phải chỗ đọc để **tin**. Phần thuyết phục thuộc về Bug Claim
 Gate, đã làm xong trước khi issue được mở.
+
+## Mã, id và chuỗi không bọc nháy ngược
+
+Tìm được bằng `skills:practice`, đo 07/11/2026: ba lượt model đọc **đúng** skill này rồi viết thân bug
+**đúng 4 mục**, nhưng cả ba lượt đều viết mã nhân sự trần. `RULE_GLOBAL §Giọng văn output` đòi bọc, mà
+trang này trước đó **không có dòng nào nói điều đó** — nên đây là khoảng trống của tài liệu, không phải
+sự bất cẩn của người viết bug.
+
+❌
+```
+3. Điền đủ 20 ô bắt buộc, Mã nhân sự = NS-QA-20261107-A, Phân hiệu = "Cơ sở 2".
+
+Kết quả: toast hiện thành công, nhưng sau F5 lưới chỉ có 1 hàng. Truy vấn DM_NHAN_SU cho COUNT = 1.
+```
+
+✅
+```
+3. Điền đủ 20 ô bắt buộc, `Mã nhân sự` = `NS-QA-20261107-A`, `Phân hiệu` = `Cơ sở 2`.
+
+Kết quả: toast `thành công`, nhưng sau F5 lưới chỉ có 1 hàng. `DM_NHAN_SU` cho `COUNT = 1`.
+```
+
+Bọc nháy ngược những thứ DEV sẽ **copy để tái hiện**: mã bản ghi, tên ô, tên cột, tên bảng, nguyên văn
+toast, mã lỗi. Lý do không phải thẩm mỹ — `NS-QA-20261107-A` trần dễ bị Backlog render nhập nhằng với
+câu văn, và DEV copy thiếu một ký tự thì truy vấn ra 0 hàng rồi kết luận *"không tái hiện được"*.
+
+**Đừng** bọc cả câu văn: `` `sau F5 lưới chỉ có 1 hàng` `` làm mất đúng tác dụng phân biệt của nháy ngược.
+
+---

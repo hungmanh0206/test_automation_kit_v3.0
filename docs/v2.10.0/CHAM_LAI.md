@@ -43,6 +43,11 @@ không"*. `skills:practice` trả lời bằng model thật, mỗi bài đọc *
 
 - `skills:practice` có **1 trong 5 bài**. Bốn bài còn lại chưa dựng fixture; ba trong bốn cần một thư
   mục task giả vì cửa tương ứng đọc thư mục output chứ không đọc file rời.
+  > **Đã làm xong ở v2.10.1** — đủ 5/5 bài, lượt đo cuối ✓ ĐẠT (2/3 · 3/3 · 3/3 · 3/3 · 3/3):
+  > [`docs/v2.10.1/PRACTICE.md`](../v2.10.1/PRACTICE.md). Số của mục này giữ nguyên vì nó là số của
+  > **bản v2.10.0 đã phát hành** — tag `v2.10.0` không chứa bốn bài đó. Và câu *"ba trong bốn cần thư
+  > mục task giả"* hoá ra **sai**: chỉ `doc-ket-qua` cần, vì chấm sản phẩm bằng luật đo được trên chính
+  > nó thì không phải gọi cửa đọc-thư-mục.
 - **6 trong 7 mẫu khai `vi_sao` thay `kiem_bang`** — lý do thật: cửa của chúng đọc thư mục task hoặc
   cây spec, không nhận file lẻ. Nên "mẫu tự qua máy" đúng với 1/7, không phải 7/7.
 - Nợ 48 output chưa có mẫu. Sổ khai thành số, nhưng nợ vẫn là nợ.

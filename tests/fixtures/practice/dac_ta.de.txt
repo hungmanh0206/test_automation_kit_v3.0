@@ -1,0 +1,50 @@
+ĐẶC TẢ MÀN "ĐIỂM TRƯỜNG" — bản nhận từ BA ngày 12/09/2026.
+
+Phân tích tài liệu này để ra scope, business rule và câu hỏi còn mở cho Phase 1.
+
+════════════════════════════════════════════════════════════════════════════════
+
+§1. MỤC ĐÍCH
+
+Màn Điểm trường cho phép trường khai các điểm trường lẻ của mình (địa chỉ, số phòng,
+có điện, có nước, có Internet).
+
+§2. Ô TRÊN FORM
+
+  Tên điểm trường      bắt buộc, <= 200 ký tự
+  Địa chỉ              bắt buộc
+  Số phòng học         bắt buộc, số nguyên >= 0
+  Có điện              checkbox
+  Có nước sạch         checkbox
+  Có Internet          checkbox — tích vào thì bung thêm nhóm ô băng thông
+
+§3. LƯỚI DANH SÁCH
+
+  (BA chưa viết phần này)
+
+§4. PHÂN QUYỀN
+
+  Cán bộ trường: xem và sửa điểm trường của trường mình.
+  Cán bộ Phòng GD: xem toàn bộ điểm trường trong địa bàn.
+  Cán bộ Sở: xem toàn bộ.
+
+§5. QUY TẮC NGHIỆP VỤ
+
+  BR-DIEMTRUONG-001  Mỗi trường có tối đa 20 điểm trường.
+  BR-DIEMTRUONG-002  Xoá điểm trường đang có lớp gán vào thì bị chặn.
+
+§6. NHÓM Ô BĂNG THÔNG
+
+  Khi "Có Internet" được tích, hiện 8 ô: nhà mạng, loại đường truyền, băng thông tải
+  xuống, băng thông tải lên, số thuê bao, ngày ký hợp đồng, giá/tháng, ghi chú.
+  Ô nào bắt buộc thì tài liệu không nói.
+
+§7. LUỒNG DUYỆT
+
+  Điểm trường sau khi khai phải được Phòng GD duyệt mới có hiệu lực. Quy trình duyệt
+  theo Thông tư 24/2019 — xem mục 4 của thông tư.
+
+════════════════════════════════════════════════════════════════════════════════
+
+GHI CHÚ CỦA BA: "§4 và §7 mình viết từ bản 2019, chưa soát lại sau khi bỏ cấp Phòng GD.
+§1, §2, §5 là bản mới đã chốt với khách."
