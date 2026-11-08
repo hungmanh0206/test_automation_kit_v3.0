@@ -7,7 +7,7 @@
 > **T1** chỉ chặn ở cửa ra, lúc đang làm thì cảnh báo và ghi `reports/gate-debt.json` · **T2** không
 > bao giờ chặn. T0 khai tay trong `.agent/config/gate_tiers.json`; không khai thì mặc định T1.
 
-Tổng **156** máy — **113 CHẶN** · 24 SINH (ghi artifact) · 19 BÁO CÁO (chỉ in).
+Tổng **157** máy — **113 CHẶN** · 25 SINH (ghi artifact) · 19 BÁO CÁO (chỉ in).
 
 SINH/BÁO CÁO **không phải gate bị nới** — chúng không kiểm vi phạm. Ví dụ `bugs:checklist` in brief bug
 lịch sử, còn việc CHẶN nằm ở `dim:coverage` (chiều `bug_history` §20).
@@ -142,6 +142,7 @@ lịch sử, còn việc CHẶN nằm ở `dim:coverage` (chiều `bug_history` 
 | T2 | SINH | `metrics:collect` | thu KPI mỗi lần chạy test → knowledge/metrics/ (tích luỹ theo thời gian). | `scripts/qa/metrics_collect.js` | docs/kit-map.md |
 | T2 | SINH | `perf` | biến mục 16 (Performance/SLA) thành ĐO THẬT, so ngưỡng catalog → verdict. | `scripts/qa/perf_check.js` | RULE_GLOBAL.md · README.md · USER_GUIDE.md · scripts/qa/README.md · docs/kit-map.md · .github/workflows · .agent/workflows · .agent/skills · prompt_templates · tests/fe/infra |
 | T2 | SINH | `perf:report` | dựng báo cáo HTML từ artifact k6 CỦA MỘT LƯỢT CHẠY. CHỈ ĐỌC ĐĨA: | `scripts/qa/perf_report.js` | .agent/skills |
+| T2 | SINH | `quickstart:numbers`, `quickstart:numbers:check` | SINH bảng số đo trong `QUICKSTART.md` thay vì giữ nó bằng tay. | `scripts/qa/quickstart_numbers.js` | .github/workflows · tests/fe/infra |
 | T2 | SINH | `reliability` | Test Reliability Index (TRI) per-testcase + flaky quarantine. | `scripts/qa/reliability_index.js` | .gitlab-ci.yml · scripts/qa/README.md · docs/kit-map.md · .github/workflows · .agent/workflows · .agent/skills · tests/fe/infra |
 | T2 | SINH | `smoke:matrix` | CHẠY BỘ SMOKE QUA NHIỀU TRÌNH DUYỆT × KÍCH THƯỚC, rồi gom BẢNG Ô ĐỎ. | `scripts/qa/reuse/smoke_matrix.js` | tests/fe/infra |
 | T2 | SINH | `steps:reverify` | DANH MỤC PHẢN ỨNG VỚI MÀN ĐỔI VÀ VỚI BƯỚC KHÔNG AI DÙNG (v2.8.0 §E, dòng 2 và 4). | `scripts/qa/reuse/steps_reverify.js` | **KHÔNG BỀ MẶT NÀO** |

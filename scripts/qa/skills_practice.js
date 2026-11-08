@@ -118,8 +118,24 @@ function tachMuc(than) {
   const ra = [];
   for (let i = 0; i < d.length; i += 1) {
     const tho = d[i];
-    const l = tho.trim();
-    if (!l || l.length > 40) continue;
+    let l = tho.trim();
+    if (!l) continue;
+    /*
+     * NHÃN MỤC CÓ THỂ ĐI KÈM NỘI DUNG TRÊN CÙNG MỘT DÒNG — lỗi thứ hai của bộ tách này, đo 07/11/2026.
+     *
+     * Sau khi skill dạy "Tiền điều kiện: tối đa 1 câu", model viết gọn thành
+     * `Tiền điều kiện: UAT, năm học 2026-2027, …` — nhãn và nội dung một dòng, dài hơn 40 ký tự nên
+     * bản trước bỏ qua, và cửa thật phán "description có 3 phần" cho một thân bug có ĐỦ 4 mục. Tức
+     * chính nhát vá làm skill dạy đúng lại làm bộ chấm sai — hai thứ phải sửa cùng nhau.
+     *
+     * Nên: ở cột 0, nếu phần TRƯỚC dấu `:` đầu tiên là một tên mục đã biết thì đó là nhãn mục.
+     */
+    const inline = l.match(/^([^:`]{1,40}):\s*\S/);
+    if (inline && MUC_TRAN[inline[1].trim().toLowerCase()] && !/^\s/.test(tho)) {
+      ra.push(inline[1].trim());
+      continue;
+    }
+    if (l.length > 40) continue;
     /*
      * HAI LUẬT NÀY LÀ BẢN VÁ MỘT LỖI THẬT CỦA CHÍNH BỘ TÁCH, đo 07/11/2026.
      *
@@ -140,6 +156,60 @@ function tachMuc(than) {
     ra.push(l.replace(/[:.]$/, '').trim());
   }
   return ra;
+}
+
+/**
+ * Giới hạn độ dài THEO TỪNG MỤC của thân bug Backlog — trả danh sách mục vi phạm.
+ *
+ * Đây là yêu cầu của chủ dự án, nhắc BA lần (08/10 · 12/10 · 27/10/2026), nay nằm trong
+ * `backlog_bug_reporter/SKILL.md` §Độ dài tối đa từng phần. Trước 07/11/2026 nó chỉ sống trong ghi chú
+ * trí nhớ của tôi, nên model đọc đúng skill vẫn viết 5 bước — không chỗ nào trong kit nói 4.
+ *
+ * ĐẾM THEO MỤC, KHÔNG ĐẾM CẢ THÂN. Bản đầu của bộ chấm này đếm cả thân rồi chấm sai một sản phẩm đúng:
+ * khuôn 4 mục mà skill dạy tự nó cần nhiều gạch hơn 3 nếu gộp hết lại.
+ */
+const MUC_TRAN = {
+  'tiền điều kiện': { tran: 1, don: 'câu/dòng' },
+  'bước': { tran: 4, don: 'dòng' },
+  'kết quả hiện tại': { tran: 3, don: 'gạch' },
+  'kết quả mong muốn': { tran: 2, don: 'gạch' },
+};
+
+function gioiHanMuc(than) {
+  const d = String(than).split(/\r?\n/);
+  const viPham = [];
+  let ten = null;
+  let dem = 0;
+  const chot = () => {
+    if (!ten) return;
+    const c = MUC_TRAN[ten];
+    if (c && dem > c.tran) viPham.push(`${ten}: ${dem} ${c.don} > ${c.tran}`);
+  };
+  for (const tho of d) {
+    const l = tho.trim();
+    const khoa = l.replace(/[:.]$/, '').trim().toLowerCase();
+    if (!/^\s/.test(tho) && MUC_TRAN[khoa]) { chot(); ten = khoa; dem = 0; continue; }
+    /*
+     * Dạng GỘP DÒNG `Tiền điều kiện: <nội dung>` — cùng lý do như trong `tachMuc`. Thiếu nhánh này thì
+     * nhãn mục bị đếm thành NỘI DUNG của mục trước, và mục trước vượt trần oan.
+     */
+    const inline = !/^\s/.test(tho) && l.match(/^([^:`]{1,40}):\s*\S/);
+    if (inline && MUC_TRAN[inline[1].trim().toLowerCase()]) {
+      chot();
+      ten = inline[1].trim().toLowerCase();
+      dem = 1;
+      continue;
+    }
+    if (!ten) continue;
+    if (/^(TC|Tầng)\s*:/i.test(l)) { chot(); ten = null; continue; }
+    /* Dòng NỘI DUNG = gạch, hoặc bước có số, hoặc câu ở cột 0. Dòng thụt lề là phần NỐI TIẾP của dòng
+     * trước — không đếm thêm, vì nó không phải một ý mới. */
+    if (!l) continue;
+    if (/^\s/.test(tho)) continue;
+    if (/^([-*]|\d+[.)])\s/.test(l) || l.length > 0) dem += 1;
+  }
+  chot();
+  return viPham;
 }
 
 const CHI_DAN = 'Chỉ đọc skill trong `.claude/skills/` của thư mục này, đừng tìm tài liệu khác.';
@@ -237,7 +307,14 @@ const BAI = [
         { ma: 'C2', ok: /^TC\s*:\s*\[?TC_0147\]?/.test(cuoi) && !cuoi.includes('**') },
         { ma: 'C3', ok: /`NS-QA-20261107-[AB]`/.test(than) },
         { ma: 'C4', ok: !/giả thuyết|bác bằng|đối thủ/i.test(than) },
-        { ma: 'C5', ok: /COUNT\s*=\s*1/i.test(than) && /3\/3/.test(than) },
+        /*
+         * ĐÃ BỎ phần đòi `3/3`, và nó là lỗi cùng họ với ba lỗi trước của bộ chấm này: số LƯỢT ĐO LẠI
+         * thuộc CLAIM, không thuộc thân bug — chủ dự án khai thẳng nó trong nhóm "thứ KHÔNG bê vào
+         * Backlog". Phép kiểm cũ đi NGƯỢC yêu cầu đó và làm hai lượt trượt oan. Giữ lại đúng con số
+         * DEV cần để tái hiện.
+         */
+        { ma: 'C5', ok: /COUNT\s*=\s*1/i.test(than) },
+        { ma: 'C6', ok: gioiHanMuc(than).length === 0 },
       ]);
     },
   },

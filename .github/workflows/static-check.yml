@@ -46,6 +46,11 @@ jobs:
       - name: Policy 1-nguồn (F3 — RULE_GLOBAL canonical, core_rules là digest có pointer)
         run: npm run gate:policy
 
+      # Bảng số đo QUICKSTART là số DẪN XUẤT nhưng từng giữ bằng tay — nó trôi BA lần trong một đợt
+      # phát hành (919→920→928→929), lần nào cũng chỉ lộ ra sau 10 phút chạy cả bộ. Nay có máy sinh.
+      - name: Bảng số đo QUICKSTART khớp cây thật
+        run: npm run quickstart:numbers:check
+
       - name: Danh mục gate khớp source (bảng lệch = một gate đã đổi mức CHẶN/CẢNH BÁO mà không ai ghi)
         run: npm run gates:index:check
 

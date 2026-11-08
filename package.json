@@ -1,6 +1,6 @@
 {
   "name": "test-automation-kit",
-  "version": "2.10.1",
+  "version": "2.10.2",
   "private": true,
   "engines": {
     "node": ">=22"
@@ -133,6 +133,8 @@
     "course:maturity:check": "node scripts/qa/course_maturity.js --check",
     "writing:lint": "node scripts/qa/writing_lint.js",
     "writing:lint:docs": "node scripts/qa/writing_lint.js --docs",
+    "quickstart:numbers": "node scripts/qa/quickstart_numbers.js --write",
+    "quickstart:numbers:check": "node scripts/qa/quickstart_numbers.js --check",
     "gates:index": "node scripts/qa/gate_index.js --write",
     "gates:index:check": "node scripts/qa/gate_index.js --check",
     "rule": "node scripts/qa/rule_lookup.js",

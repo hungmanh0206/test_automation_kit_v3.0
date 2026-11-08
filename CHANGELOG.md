@@ -14,6 +14,64 @@
 > `.agent/**`, `tests/support/**` đều là **shared change** (xem `RULE_GLOBAL.md` §Shared Change Gate) —
 > ảnh hưởng mọi story đang chạy. Mỗi mục ghi **vấn đề → cách chữa**, không chỉ liệt kê tính năng.
 
+## v2.10.2 — 2026-11-08 — Yêu cầu nhắc ba lần mà chỉ sống trong trí nhớ tôi, không trong kit
+
+Chủ dự án nhắc **ba lần** (08/10 · 12/10 · 27/10/2026) rằng bug tôi viết dài, lần ba kèm câu *"tôi nhắc
+bao nhiêu lần rồi"*, và chốt bằng số: `Tiền điều kiện` 1 câu · `Bước` 4 dòng · `Kết quả hiện tại` 3 gạch ·
+`Kết quả mong muốn` 1–2 gạch. Tới 07/11/2026 bảng đó **không nằm ở đâu trong kit** — chỉ ở ghi chú trí nhớ
+của tôi. Nên mỗi phiên mới lại tự thấy mình đã ngắn rồi.
+
+`skills:practice` đo được đúng điều đó: model đọc **đúng** skill rồi viết **5 bước**, vì không chỗ nào
+trong kit nói 4.
+
+Nay nó nằm ở `backlog_bug_reporter/SKILL.md` §Độ dài tối đa từng phần, kèm danh sách *thứ KHÔNG bê vào
+Backlog* (số đếm toàn UAT · số lượt đo lại · tên bảng/cột DB · lập luận phản chứng).
+
+### Hai bản vá skill, và cả hai có hiệu lực ĐO ĐƯỢC
+
+Phát lại **chính các hàm đang chạy** trong cửa trên những câu trả lời đã lưu — model không đổi, chỉ skill
+và bộ chấm đổi:
+
+| Skill lúc đó dạy gì | Kết quả với bộ chấm 6 phép kiểm |
+|---|---|
+| chưa dạy nháy ngược · chưa dạy giới hạn | 4/6 · 3/6 · 3/6 — trượt **C3 + C6** |
+| **đã** dạy nháy ngược (v2.10.1) | 5/6 · 5/6 · 5/6 — chỉ trượt **C6** |
+| dạy **cả hai** (bản này) | **6/6 · 6/6 · 6/6** ⇒ 3/3 ĐẠT |
+
+Số máy sinh: [`docs/v2.10.2/PRACTICE_BUG.md`](docs/v2.10.2/PRACTICE_BUG.md).
+
+### Bộ chấm phải vá SÁU lần trước khi nói được điều đó
+
+Mỗi lần một nguyên nhân khác, lần nào cũng cho cùng một triệu chứng *"bài trượt"*. Bốn lỗi đầu đã ghi ở
+[v2.10.1](#); bản này thêm hai:
+
+- **Bộ tách mục không hiểu nhãn GỘP DÒNG** `Tiền điều kiện: <nội dung>`. Và đây là chỗ đáng kể nhất của
+  cả đợt: **chính nhát vá làm skill dạy đúng lại làm bộ chấm sai.** Skill dạy *"tối đa 1 câu"* ⇒ model gộp
+  nhãn với nội dung ⇒ bộ tách bỏ qua ⇒ cửa thật `lintBugHeadings` phán *"description có 3 phần"* cho một
+  thân bug có **đủ 4**. Hai thứ phải sửa cùng nhau.
+- **C5 đòi `3/3` trong thân bug**, trong khi số **lượt đo lại** thuộc **claim** — chủ dự án khai thẳng nó
+  trong nhóm *thứ KHÔNG bê vào Backlog*. Phép kiểm đi **ngược** yêu cầu đó và làm hai lượt trượt oan.
+
+Và phép phát lại bản đầu có **bản chép** của `tachMuc`, nên nó đo bản chép và báo *"vẫn 3 phần"* sau khi
+bản thật đã vá. Nay nó lấy chính hàm đang chạy từ nguồn.
+
+### Thêm phép kiểm thì phải nâng ngưỡng
+
+Ngưỡng **4/5 → 5/6**. Giữ 4 trên 6 là để bài **tự dễ hơn** (67% so với 80%) — đúng kiểu nới chuẩn mà không
+ai thấy trong diff. Ca gác nay gác **tỉ lệ `ngưỡng / số phép kiểm ≥ 0,8`** thay vì ghim con số 5: bản đầu
+ghim `toBe(5)` nên lúc thêm C6 nó đỏ vì một lý do **sai** — số phép kiểm không phải thứ cần cố định, độ
+khó mới là.
+
+### Giới hạn, nói thẳng
+
+- Bốn bài kia **không** đo lại trong cùng lượt với bài này. Bộ chấm của chúng không đổi nên số ở
+  [`docs/v2.10.1/PRACTICE.md`](docs/v2.10.1/PRACTICE.md) vẫn đúng — nhưng đây **không** phải một lô liền
+  mạch. Liền mạch thì tốn thêm ~$6 và chỉ mua sự gọn gàng.
+- Phần **tách tiêu đề mục** vẫn là xấp xỉ của tôi, và nó đã sai **hai** lần. Cửa thật chỉ đúng khi đầu
+  vào đúng.
+- Ghi chú trí nhớ đã sửa để trỏ sang skill, kèm luật cho tôi: trước khi dựng một máy gác trên một con số,
+  **tra nguồn trong repo**, đừng dựng từ ký ức.
+
 ## v2.10.1 — 2026-11-07 — Bốn nguyên nhân cho một triệu chứng, và lần này ở cửa tôi vừa viết
 
 v2.10.0 khai thẳng `skills:practice` chỉ có **1 trong 5 bài**. Bản này dựng đủ **5/5**, và lượt đo cuối
