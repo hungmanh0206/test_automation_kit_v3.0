@@ -7,7 +7,7 @@
 > **T1** chỉ chặn ở cửa ra, lúc đang làm thì cảnh báo và ghi `reports/gate-debt.json` · **T2** không
 > bao giờ chặn. T0 khai tay trong `.agent/config/gate_tiers.json`; không khai thì mặc định T1.
 
-Tổng **164** máy — **119 CHẶN** · 25 SINH (ghi artifact) · 20 BÁO CÁO (chỉ in).
+Tổng **165** máy — **119 CHẶN** · 26 SINH (ghi artifact) · 20 BÁO CÁO (chỉ in).
 
 SINH/BÁO CÁO **không phải gate bị nới** — chúng không kiểm vi phạm. Ví dụ `bugs:checklist` in brief bug
 lịch sử, còn việc CHẶN nằm ở `dim:coverage` (chiều `bug_history` §20).
@@ -156,6 +156,7 @@ lịch sử, còn việc CHẶN nằm ở `dim:coverage` (chiều `bug_history` 
 | T2 | SINH | `security`, `security:check` | biến phần deterministic của mục 15 thành ĐO THẬT. | `scripts/qa/security_check.js` | .gitlab-ci.yml · RULE_GLOBAL.md · README.md · USER_GUIDE.md · QUICKSTART.md · scripts/qa/README.md · docs/kit-map.md · .github/workflows · .agent/workflows · .agent/rules · .agent/skills · prompt_templates · exploratory · tests/fe/infra |
 | T2 | SINH | `skills:route:live` | ĐO ĐỊNH TUYẾN SKILL BẰNG CHÍNH MODEL, không bằng đếm từ. | `scripts/qa/skills_route_live.js` | tests/fe/infra |
 | T2 | SINH | `spec:extract` | bảng field trong FSD (markdown) → `screens.json` → (tuỳ chọn) `ui_catalog.json`. | `scripts/qa/spec_extract.js` | RULE_GLOBAL.md · docs/kit-map.md · prompt_templates |
+| T2 | SINH | `tc:doi-chieu` | đối chiếu bộ testcase của kit với BỘ NGƯỜI VIẾT, ở mức FIELD. | `scripts/qa/tc_doi_chieu.js` | tests/fe/infra |
 | T2 | SINH | `inventory:gate` | Chống "CI false green" (F1). | `scripts/qa/test_inventory_gate.js` | docs/kit-map.md |
 | T2 | SINH | `token:audit` | ĐO ĐỘNG: một lượt chạy thật đã tiêu token vào đâu. | `scripts/qa/token_audit.js` | RULE_GLOBAL.md · docs/kit-map.md · tests/fe/infra |
 | T2 | BÁO CÁO | `docs:health` | trả lời "tài liệu tôi đang đọc có còn đúng không" bằng MỘT LỆNH. | `scripts/phase1/docs_health.js` | prompt_templates |

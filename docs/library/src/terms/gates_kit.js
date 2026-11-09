@@ -150,7 +150,7 @@ const TERMS_GATE3 = [
   src:'scripts/qa/scope_anchor.js', rel:['g-dimension_coverage','c-canonical','g-preflight_gate'] },
 { id:'g-gate_index', t:'gates:index', cat:'gate',
   def:'Sinh DANH MỤC GATE của kit từ chính source. Trả lời được "kit có bao nhiêu gate, mỗi cái CHẶN gì, gọi ở đâu".',
-  detail:'Quét source rồi suy mức từ code: exit 1 là CHẶN · ghi artifact là SINH · chỉ in là BÁO CÁO. Bảng hiện tại: 164 máy — 119 CHẶN, 25 SINH, 20 BÁO CÁO. Bản --check chặn khi bảng lệch source.',
+  detail:'Quét source rồi suy mức từ code: exit 1 là CHẶN · ghi artifact là SINH · chỉ in là BÁO CÁO. Bảng hiện tại: 165 máy — 119 CHẶN, 26 SINH, 20 BÁO CÁO. Bản --check chặn khi bảng lệch source.',
   why:'Kit có hơn 30 npm script dạng gate và gần 60 file trong scripts/qa/, nhưng không chỗ nào trả lời được câu trên. Hệ quả không phải bất tiện: luận đề của kit là "luật cần MÁY", mà máy không LIỆT KÊ ĐƯỢC thì không kiểm toán được. Không ai biết một gate đã âm thầm tụt thành cảnh báo, hay đã mất nơi gọi.',
   how:['npm run gates:index để sinh lại bảng.','npm run gates:index:check để chặn khi bảng lệch source.'],
   cmd:'npm run gates:index   ·   npm run gates:index:check',
@@ -164,6 +164,13 @@ const TERMS_GATE3 = [
   why:'Đặt adapter trong .agent/skills làm 7 ca infra của kit đỏ (skills-shim, skills-route, /start) vì chúng không được đăng ký trong INDEX.md và shim. V9.1 dời ra ngoài để sửa tận gốc; cửa này giữ cho nó không quay lại.',
   how:['npm run extension:check'],
   src:'scripts/qa/extension_integrity_check.js', rel:['g-skills_index','c-forcing-function'] },
+
+{ id:'g-tc_doi_chieu', t:'tc:doi-chieu', cat:'gate',
+  def:'Đối chiếu bộ testcase của kit với BỘ NGƯỜI VIẾT (929 case, 21 sheet) ở mức FIELD — trả về danh sách field bộ người kiểm mà bộ kit không nhắc tới.',
+  detail:'Khớp ở mức FIELD, không theo nhóm và không theo tổng số case. Trích field từ quy ước `#N <tên>` của bộ hệ thống, chuẩn hoá bỏ dấu, rồi tìm trong bộ .md canonical. TỪ CHỐI PHÁN khi sheet có dưới 50% case trỏ `#N`, khi không đọc được workbook, hoặc khi mã ca không khớp mẫu. Ghi tích luỹ knowledge/metrics/tc-doi-chieu.json.',
+  why:'Chủ dự án nêu kit chưa đo được "bao nhiêu trường hợp quan trọng bị bỏ sót". Ground truth CÓ THẬT và nằm trên đĩa. HAI cách khớp sai đã thử và BỊ BÁC bằng số: ① theo tên NHÓM — hai bộ chia nhóm TRỰC GIAO (khối field vs hành động), chỉ 2/12 tên trùng, khớp kiểu này báo "10/12 nhóm không có case" là báo động giả · ② theo TỔNG SỐ CASE — bộ người phủ 1 cấp, bộ kit phủ 5 cấp. Và quy ước `#N` là của RIÊNG vài sheet (đo: 72% · 21% · 2% · 0 case), nên lượt đầu chưa có cửa từ-chối-phán đã in "PHỦ FIELD 1/24" cho sheet Lớp — đủ để không ai tin công cụ nữa. Kết quả đo được trên sheet Hồ sơ trường: 65/87 field được phủ, 22 field cần rà.',
+  how:['npm run tc:doi-chieu -- --sheet "Hồ sơ trường" --bo outputs/CSDL/tasks/CSDL-9001/test-cases/ho_so_truong.md'],
+  src:'scripts/qa/tc_doi_chieu.js', rel:['g-bug_outcome','g-tc_review'] },
 
 { id:'g-bug_outcome', t:'bug:outcome', cat:'gate',
   def:'SỔ KẾT CỤC của claim bug, gộp MỌI task — và lời khai thẳng về bốn tỉ lệ: cái nào tính được, cái nào không và vì sao.',
