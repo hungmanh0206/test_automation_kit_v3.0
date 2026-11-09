@@ -50,15 +50,14 @@ const REPO = iGoc >= 0 && process.argv[iGoc + 1]
 const JSONRA = process.argv.includes('--json');
 
 /*
- * Bản sao THỨ BA của `boChuThich` trong cây (hai bản kia ở `version_check.js` và `recon_passive.js`).
- * Ghi nhận chứ không gộp ở đây: gộp một helper dùng chung là thay đổi chạm vào hai cửa đang xanh, nên
- * nó xứng đáng có lượt nghiệm thu riêng thay vì đi ké một cửa mới.
+ * 09/11/2026 — dùng chung `lib/js_source.js`. Lượt viết cửa này cố ý CHÉP rồi ghi nhận món nợ, vì gộp
+ * là thay đổi chạm vào hai cửa đang xanh; đây là lượt trả nợ đó.
+ *
+ * Bản ở `version_check.js` thì KHÔNG gộp, và đó là quyết định có lý do chứ không phải bỏ sót: phép
+ * kiểm `⑦ chạy được trong gói` dựng một cây chỉ có ĐÚNG MỘT file là `version_check.js`, nên nếu nó
+ * `require` sang file anh em thì cửa CHẾT HẲN trong cây đó. Bản sao ấy là chịu lực.
  */
-function boChuThich(s) {
-  return s
-    .replace(/\/\*[\s\S]*?\*\//g, (m) => m.replace(/[^\n]/g, ' '))
-    .replace(/(^|[^:])\/\/[^\n]*/g, (m) => m.replace(/[^\n]/g, ' '));
-}
+const { boChuThich } = require(path.join(__dirname, 'lib', 'js_source'));
 
 const viPham = [];
 const chuaPhan = [];

@@ -37,8 +37,15 @@ const REPO = path.resolve(__dirname, '..', '..');
  * đầu của tôi `require('./recon_passive.js')` ⇒ cửa **chết hẳn** (`Cannot find module`) trong cây đó.
  * Đó là lần thứ năm trong phiên này cùng một họ lỗi: chạy ở repo, chết trong gói.
  *
- * Nên bản sao ở đây là có chủ ý. Để nó không âm thầm trôi khỏi bản gốc, `version-changelog.spec.ts` có
- * một phép kiểm đòi hai bản cho CÙNG kết quả trên cùng bộ mẫu — chép mà không có máy so thì mới là nợ.
+ * Nên bản sao ở đây là có chủ ý.
+ *
+ * ĐÍNH CHÍNH 09/11/2026. Câu trước ở đây viết rằng `version-changelog.spec.ts` "có một phép kiểm đòi
+ * hai bản cho CÙNG kết quả". Grep toàn bộ spec: KHÔNG CÓ. Phép kiểm ấy chưa bao giờ được viết — và
+ * một đối chứng được KHAI mà không TỒN TẠI thì tệ hơn không có, vì người đọc tin chỗ đó đang được
+ * canh nên không đi canh nữa.
+ *
+ * Nay nó có thật: `js-source-mot-nguon.spec.ts` chạy CẢ HAI bản trên cùng bộ mẫu và đòi kết quả
+ * giống hệt. Vì thế hàm này được `module.exports` — không phải để ai dùng, mà để ĐO ĐƯỢC.
  */
 function boChuThich(s) {
   return s
@@ -408,5 +415,5 @@ function main() {
   process.exit(1);
 }
 
-module.exports = { SEMVER, SHARED_PATHS };
+module.exports = { SEMVER, SHARED_PATHS, boChuThich };
 if (require.main === module) main();
