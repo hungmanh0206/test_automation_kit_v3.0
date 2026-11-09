@@ -73,8 +73,37 @@ test.describe('@infra extension — `tests/unit` chạy bằng node --test, KHÔ
     expect(/\.(test)\.(js)$/.test(ds[0]), 'phải khớp testMatch mặc định của Playwright').toBe(true);
   });
 
-  test('và chúng chạy được bằng runner ĐÚNG', () => {
-    const r = spawnSync(process.execPath, ['--test', 'tests/unit/'],
+  /*
+   * ĐO 09/11/2026 trên CI (lượt 42579298605, Node 22): `node --test tests/unit/` ĐỎ với
+   * `Cannot find module '.../tests/unit'`. Node 22 coi positional là FILE; Node 26 trên máy tôi coi
+   * là THƯ MỤC nên xanh. `.nvmrc` ghim **22** và `engines` khai **">=22"**, nên lệnh ấy vi phạm
+   * chính hợp đồng repo tự khai. Tài liệu gốc bản V10 (`V4_AUDIT_AND_COMPARISON.md`) vốn LIỆT KÊ
+   * TỪNG FILE — chính tôi đổi thành thư mục lúc nối npm script.
+   *
+   * Và máy gác cũ ở đây chép lại ĐÚNG giả định đó: nó tự viết `['--test', 'tests/unit/']` rồi chạy
+   * bằng `process.execPath` — tức bằng Node của máy đang chạy. Nó không thể đỏ ở nơi nó cần đỏ.
+   */
+  test('lệnh LIỆT KÊ từng file, không truyền THƯ MỤC — và liệt kê ĐỦ', () => {
+    /* Ca này cố ý KHÔNG chạy lệnh: chạy thì vẫn bằng Node của máy đang chạy, nên không phân biệt
+     * được gì. Nó đọc HÌNH DẠNG lệnh — thứ duy nhất ở đây độc lập với bản Node. */
+    const lenh = String(PKG.scripts['extension:test'] || '');
+    const files = fs.readdirSync(path.join(REPO, 'tests', 'unit'))
+      .filter((f) => /\.test\.(js|ts|mjs)$/.test(f));
+    expect(files.length, 'không file unit nào ⇒ ca này RỖNG').toBeGreaterThan(0);
+
+    const thieu = files.filter((f) => !lenh.includes(`tests/unit/${f}`));
+    expect(thieu, 'file unit không được liệt kê ⇒ nó IM LẶNG không chạy ở CI').toEqual([]);
+
+    expect(lenh, 'truyền THƯ MỤC cho `node --test` chỉ chạy được từ Node ~24; .nvmrc ghim 22')
+      .not.toMatch(/--test\s+\S*tests\/unit\/?(\s|$)/);
+  });
+
+  test('và ĐÚNG lệnh npm ấy chạy xanh — không phải một bản chép tay', () => {
+    /* Trước đây ca này tự viết lại lệnh, nên spec và npm script trôi khỏi nhau mà không ai thấy.
+     * Nay nó lấy argv TỪ package.json: hai bên không còn cách nào lệch. */
+    const argv = String(PKG.scripts['extension:test'] || '').split(/\s+/).filter(Boolean);
+    expect(argv[0], 'ca này chỉ đọc được lệnh bắt đầu bằng `node`').toBe('node');
+    const r = spawnSync(process.execPath, argv.slice(1),
       { cwd: REPO, encoding: 'utf8', env: gateEnv() });
     expect(r.status, `${r.stdout}${r.stderr}`).toBe(0);
     expect(`${r.stdout}`, 'phải in số ca đã chạy').toMatch(/# pass \d+|pass \d+/);

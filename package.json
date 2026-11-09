@@ -138,7 +138,7 @@
     "extension:check": "node scripts/qa/extension_integrity_check.js",
     "extension:route": "node scripts/qa/extension_router.js",
     "extension:benchmark": "node scripts/qa/extension_benchmark.js",
-    "extension:test": "node --test tests/unit/",
+    "extension:test": "node --test tests/unit/extension_router.test.js tests/unit/extension_benchmark.test.js",
     "extension:baseline": "node scripts/qa/v4_baseline_integrity.js",
     "extension:verify": "node scripts/qa/v4_verify.js",
     "gates:index": "node scripts/qa/gate_index.js --write",
