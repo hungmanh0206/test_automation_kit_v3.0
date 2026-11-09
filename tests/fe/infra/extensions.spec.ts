@@ -39,8 +39,17 @@ test.describe('@infra extension — 5 cửa mới phải có đường chạy', 
      * `npm run extension:*`. Lúc nhập về, KHÔNG lệnh nào tồn tại — V4 cố ý gỡ chúng khỏi
      * `package.json` mà không sửa tài liệu, nên người làm theo nhận "Missing script".
      */
-    const docs = ['ENHANCED_V3_RELEASE_NOTES.md', 'KIT_A_INTEGRATION.md']
-      .map((f) => fs.readFileSync(path.join(REPO, f), 'utf8')).join('\n');
+    /*
+     * 09/11/2026: bốn file ghi chú của bản nhập về từng nằm ở GỐC repo — tôi để chúng ở đó lúc nhập,
+     * làm gốc phình từ 6 lên 10 file trong khi 6 file kia đều là bề mặt chính thức của kit. Chủ dự án
+     * hỏi thẳng vì sao. Nay chúng ở `docs/v2.11.0/` cùng báo cáo đo của đợt này.
+     */
+    const docs = ['docs/v2.11.0/ENHANCED_V3_RELEASE_NOTES.md', 'docs/v2.11.0/KIT_A_INTEGRATION.md']
+      .map((f) => {
+        const p = path.join(REPO, f);
+        expect(fs.existsSync(p), `${f} không còn ở đây ⇒ ca này đọc hư không, KHÔNG phải đạt`).toBe(true);
+        return fs.readFileSync(p, 'utf8');
+      }).join('\n');
     const nhac = [...docs.matchAll(/npm run (extension:[a-z]+)/g)].map((m) => m[1]);
     expect(nhac.length, 'không tài liệu nào nhắc lệnh extension ⇒ ca này RỖNG').toBeGreaterThan(0);
     const thieu = [...new Set(nhac)].filter((c) => !(c in PKG.scripts));
@@ -142,5 +151,43 @@ test.describe('@infra extension — baseline lõi', () => {
     expect(src, 'phải chuẩn hoá cả CR lẻ, không chỉ CRLF').toMatch(/replace\(\/\\r\\n\?\/g/);
     expect(src, 'nhị phân KHÔNG được chuẩn hoá — utf8 phá nát byte').toMatch(/NHI_PHAN/);
     expect(src, 'phải chấp nhận khớp ở một trong hai dạng').toMatch(/fs\.readFileSync\(full\)\) !== h/);
+  });
+
+  test('`extension:check` CŨNG băm nội dung — cùng lỗi, và CI KHÔNG bắt được nó', () => {
+    /*
+     * Cửa thứ HAI cùng lớp hỏng, tìm ra 09/11/2026 sau khi `git checkout` materialise lại cây theo
+     * `core.autocrlf=true`: `extension:check` báo `source reference modified` cho CẢ NĂM adapter.
+     * Đo: **5/5 khác biệt chỉ là xuống dòng** (936 · 129 · 258 · 204 · 145 cặp CRLF), **0 khác thật**.
+     *
+     * Nguy hơn cửa trên một bậc: CI chạy Linux nên cây luôn LF ⇒ ở đó nó LUÔN XANH. Không lượt CI nào
+     * bắt được, chỉ máy Windows mới đỏ — và một cửa chỉ sai ở nơi không ai đo là cửa sẽ bị tắt. Đây
+     * cũng là lý do phép kiểm này đọc MÃ chứ không chạy cửa: chạy nó trên runner Linux thì xanh dù
+     * bản vá có bị gỡ.
+     */
+    const src = fs.readFileSync(path.join(REPO, 'scripts/qa/extension_integrity_check.js'), 'utf8');
+    expect(src, 'phải chuẩn hoá cả CR lẻ trước khi băm').toMatch(/replace\(\/\\r\\n\?\/g/);
+    expect(src, 'phải chấp nhận khớp ở một trong hai dạng').toMatch(/digest\(_raw\) *!== *entry\.source_sha256/);
+  });
+
+  test('ĐỐI CHỨNG: `extension:check` VẪN bắt được đổi NỘI DUNG thật', () => {
+    /*
+     * Cặp với ca trên. Chuẩn hoá xuống dòng mà làm mất luôn khả năng phát hiện sửa nội dung thì bản vá
+     * đã biến cửa thành đồ trang trí — và hai ca này là cách duy nhất phân biệt "bỏ đúng nhiễu" với
+     * "bỏ hết". Phá THẬT, không đọc mã.
+     */
+    const ref = path.join(REPO, '.agent/extensions/kit-a/source-references/rbt-manual-testing/SOURCE_GUIDE.md');
+    const goc = fs.readFileSync(ref);
+    const truoc = chay('scripts/qa/extension_integrity_check.js');
+    expect(truoc.code, `phải XANH trước khi phá, nếu không ca này vô nghĩa:\n${truoc.out}`).toBe(0);
+    try {
+      fs.writeFileSync(ref, Buffer.concat([goc, Buffer.from('\nmột dòng KHÔNG có trong mốc\n', 'utf8')]));
+      const sau = chay('scripts/qa/extension_integrity_check.js');
+      expect(sau.code, 'thêm một dòng thật mà cửa VẪN XANH ⇒ nó không còn gác gì').not.toBe(0);
+      expect(sau.out, 'và phải gọi đích danh adapter nào').toContain('rbt_workflow_extension');
+    } finally {
+      fs.writeFileSync(ref, goc);
+    }
+    expect(fs.readFileSync(ref).equals(goc), 'phải hoàn lại ĐÚNG TỪNG BYTE').toBe(true);
+    expect(chay('scripts/qa/extension_integrity_check.js').code, 'và xanh lại sau khi hoàn').toBe(0);
   });
 });

@@ -22,7 +22,23 @@ for (const entry of manifest.extensions) {
  const a=fs.readFileSync(file,'utf8');
  if (!a.includes('RULE_GLOBAL.md') || !a.includes('canonical') || !a.includes('does not grant permission to skip gates')) fail('missing precedence '+entry.skill);
  if (!a.includes('SOURCE_GUIDE.md')) fail('missing source reference '+entry.skill);
- if (digest(fs.readFileSync(source))!==entry.source_sha256) fail('source reference modified '+entry.skill);
+ /*
+  * CHUẨN HOÁ XUỐNG DÒNG TRƯỚC KHI BĂM (09/11/2026).
+  *
+  * Lượt đầu băm BYTE THÔ. Với `core.autocrlf=true` — mặc định của Git trên Windows — mọi checkout
+  * mới materialise các file này ở CRLF, nên cửa báo `source reference modified` cho CẢ NĂM adapter
+  * trong khi KHÔNG BYTE NỘI DUNG NÀO đổi. Đo 09/11/2026: 5/5 khác biệt chỉ là xuống dòng (936 · 129
+  * · 258 · 204 · 145 cặp CRLF), 0 khác thật.
+  *
+  * Tệ hơn `v4_baseline_integrity` một bậc: CI chạy Linux (LF) nên nó LUÔN XANH ở đó — CI không có
+  * cách nào bắt được, chỉ máy Windows mới đỏ. Một cửa chỉ sai ở nơi không ai đo là cửa sẽ bị tắt.
+  *
+  * Vẫn so ở CẢ HAI dạng: mốc được chốt ở LF, nhưng nếu về sau có mốc chốt ở CRLF thì nó vẫn khớp.
+  * Và phần NỘI DUNG vẫn bị gác nguyên vẹn — sửa một chữ là đỏ, như trước.
+  */
+ const _raw=fs.readFileSync(source);
+ const _lf=Buffer.from(_raw.toString('utf8').replace(/\r\n?/g,'\n'),'utf8');
+ if (digest(_lf)!==entry.source_sha256 && digest(_raw)!==entry.source_sha256) fail('source reference modified '+entry.skill);
  const bad=[path.join(original,entry.phase,entry.skill,'SKILL.md'),path.join(shimRoot,entry.skill,'SKILL.md'),path.join(shimRoot,entry.phase,entry.skill,'SKILL.md')];
  for(const p of bad) if(fs.existsSync(p)) fail('extension leaked into canonical skill tree: '+path.relative(root,p));
  console.log('OK:',entry.skill);

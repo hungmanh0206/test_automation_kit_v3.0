@@ -14,6 +14,77 @@
 > `.agent/**`, `tests/support/**` đều là **shared change** (xem `RULE_GLOBAL.md` §Shared Change Gate) —
 > ảnh hưởng mọi story đang chạy. Mỗi mục ghi **vấn đề → cách chữa**, không chỉ liệt kê tính năng.
 
+## v2.11.0 — 2026-11-09 — Nhập extension Kit A, và một bài học về NƠI phép đo được chạy
+
+Bản "enhanced v10" nhập về là **thuần cộng**: 74 file mới, 0 file lõi bị sửa. Thiết kế đó tránh vỡ
+baseline, nhưng kit này **tự mô tả chính nó bằng số**, nên "chỉ cộng thêm" là đủ để làm những con số ấy
+trôi: `scripts/qa/*.js` **131 → 136** trong khi `GATES.md` vẫn khai **157**; **5** script mới không npm
+script nào trỏ tới (rơi vào danh sách **mồ côi**); **4** lệnh `npm run extension:*` mà hai tài liệu gốc
+bảo chạy thì **không lệnh nào tồn tại**; `tests/unit` dùng `node:test` nhưng khớp `testMatch` **mặc
+định** của Playwright.
+
+Nay: 6 npm script · 3 cửa vào `static-check` (**33 → 36**) · `GATES.md` **162** · README/kit-map/thư
+viện/QUICKSTART sinh lại · **7 ca spec** gác đúng những chỗ bản nhập về không tự gác được.
+
+### Ba lỗi thật, cả ba có phép phá
+
+| | Vấn đề | Chữa |
+|---|---|---|
+| ① | `v4_baseline_integrity` báo **264/931** trên Windows **khi không có gì đổi**. Đo lại cả 667 file "khác": **667/667 chỉ khác xuống dòng**. Cửa sinh ra *để chứng minh lõi không đổi* lại báo **72% lõi đã đổi**, và làm chính tuyên bố *"931/931 byte-identical"* của V10 **không tái lập được** trên Windows | chuẩn hoá cả **CR lẻ**, giữ nguyên byte cho **nhị phân** *(bản vá đầu của tôi chuẩn hoá xuyên utf8 và phá nát 11 ảnh + 1 `.tgz`)*, chấp nhận khớp ở **một trong hai dạng** vì **mốc tự nó trộn hai quy ước** — 3 file băm CRLF, 928 băm LF. Thêm `--chot`. Nay **931/931** |
+| ② | `gate-env.spec.ts:55` khẳng định `ra.PATH` **đúng cách viết hoa** ⇒ đỏ **giả** khi chạy từ PowerShell (biến tên `Path`). Mỉa mai: file ấy tồn tại **để chặn đúng loại lỗi đó** | lọc khoá không phân biệt hoa thường; **10/10 ở cả hai môi trường** |
+| ③ | Playwright **nạp** `tests/unit` và thực thi thân `node:test` **trong worker của nó** — 18 dòng ✔ lẫn vào báo cáo, trong khi Playwright thu **0 ca** | `**/unit/**` vào `desktopIgnore`, cùng lý do `support/` đã nằm đó |
+
+### Độ chuyên sâu miền — và đo nó thay vì tin nó
+
+5 pack + 5 adapter của V10 nhắc QEMIS/Telerik/phân hiệu/EMIS **đúng 0 lần**, còn `knowledge/` ship đúng
+`.gitkeep` + `SCHEMA.md`. Kit là **một tủ hồ sơ rỗng với những ngăn rất tốt**.
+
+Thêm `enhancements/v10/packs/qemis.md`: **10 bẫy**, mỗi bẫy neo vào một sự cố **đã trả giá**, kèm hợp
+đồng output ép `nguyen_nhan_doi_thu` rỗng ⇒ **cấm** kết luận `product_bug`.
+
+**Bốn lượt A/B, ba lượt đầu không dùng được** (ghi đủ ở `docs/v2.11.0/DO_LUONG_PACK.md`): nhánh **đối
+chứng cầm sẵn đáp án** trong `templates/` của chính skill · đề quá dễ, **hai nhánh cùng chạm trần** · bộ
+chấm **đo cách diễn đạt** và chấm oan **3/4** câu trả lời **tốt nhất** của nhánh đối chứng.
+
+| Bẫy | Có pack | Không pack |
+|---|---|---|
+| `biểu EMIS là ảnh chụp` — **suy ra được** (đối chứng) | 3/3 | **3/3** |
+| `lưới chỉ hiện phân hiệu chính` — **tùy tiện** | **3/3** | **1/3** |
+
+**n=3 mỗi nhánh, chưa đủ kết luận thống kê** — không có tuyên bố *"pack tốt hơn X%"*. Áp vào pack **chỉ
+ở mức đo được**: mục 8 đánh dấu *"model tự suy được"*, **chín mục còn lại ghi rõ CHƯA ĐO**. Kết quả đi
+ngược bản năng viết tài liệu: **viết thêm cho đầy làm pack kém đi**.
+
+### Hai nâng cấp nhắm vào ĐỘ TIN CỦA KẾT LUẬN, không vào năng lực
+
+- **`tests/fe/infra/_pha.ts`** — 49 file có phép phá, **0 file dùng chung khuôn**. Nay khuôn ép **sáu
+  điều kiện, thiếu một là NÉM**: cửa phải **xanh trước** · phép biến đổi phải **thật sự đổi byte** · phá
+  rồi phải **đỏ** · đỏ vì **đúng lý do** · hoàn lại **đúng từng byte** · **cửa không được ghi lên file
+  đang đo**. `thayChuoi` **ném ngay** khi không tìm thấy chuỗi, thay vì `replace` trả nguyên bản im lặng
+  — đúng nguyên nhân hai **phép phá RỖNG** đã gặp. **6 ca tự kiểm.**
+- **`skills:practice` tự khai độ phân giải** — in `n` và **dải**; `n=1` thì nói thẳng *"CHƯA ĐO ĐƯỢC ĐỘ
+  PHÂN GIẢI"*. Dải bằng 0 cũng là thông tin.
+
+Ngược lại, có **một chỗ bỏ bớt ép để đúng hơn**: ca gác baseline ban đầu đòi `exit 0` (931/931), nhưng
+mốc phủ cả tài liệu nên **mọi lượt sinh lại `GATES.md` đều làm nó đỏ**. Một cửa đỏ ở mọi lượt phát triển
+là tiếng ồn, và tiếng ồn thì bị tắt. Đổi thành *"cửa phải in tỉ lệ và gọi tên file trôi"*.
+
+### Và bài học đắt nhất của bản này: phép đo chạy Ở ĐÂU
+
+`npm run extension:test` tôi viết là `node --test tests/unit/` — **truyền thư mục**. Node 22 coi
+positional là **file**, nên CI đỏ với `Cannot find module '.../tests/unit'`; Node **26** trên máy tôi coi
+là thư mục nên **xanh**. `.nvmrc` ghim **22** và `engines` khai `">=22"`, nên lệnh ấy **vi phạm chính hợp
+đồng repo tự khai**. Tài liệu gốc V10 vốn **liệt kê từng file** — chính tôi đổi nó đi.
+
+Máy gác **không mù**: trên Node 22 nó **đã đỏ** ở lượt dry-run phát hành. Lỗ hổng thật là **tôi chỉ chạy
+nó trên Node 26**. Nên nay có **hai ca khác chất**: một ca **tái hiện** (đỏ ở nơi lỗi tồn tại) và một ca
+**đọc hình dạng lệnh** — ép mọi file `tests/unit/*.test.*` phải được **liệt kê** (không liệt kê = **im
+lặng không chạy**) và cấm truyền thư mục. Chỉ cái thứ hai làm phép đo **cục bộ** dự đoán được CI.
+
+Thêm một điều phải ghi: job dừng ở bước đỏ đầu tiên, và `extension:test` là **bước 11**, nên **~25 cửa
+phía sau chưa hề chạy** ở lượt đỏ ấy. *"2 failing checks"* nói **nhẹ hơn thực tế**. Lượt xanh trọn vẹn
+sau bản vá: **43/43 bước, 0 bỏ qua**.
+
 ## v2.10.2 — 2026-11-08 — Yêu cầu nhắc ba lần mà chỉ sống trong trí nhớ tôi, không trong kit
 
 Chủ dự án nhắc **ba lần** (08/10 · 12/10 · 27/10/2026) rằng bug tôi viết dài, lần ba kèm câu *"tôi nhắc

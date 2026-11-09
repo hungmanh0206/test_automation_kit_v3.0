@@ -341,6 +341,54 @@ test.describe('@infra version:check ⑨ — số phiên bản viết tay phải 
       expect(r.code, 'CHANGELOG là sổ lịch sử, không phải bề mặt trạng-thái-hiện-tại').toBe(0);
     });
   });
+
+  /*
+   * ⑨b — LOCKFILE (09/11/2026).
+   *
+   * ⑨ chỉ soi văn xuôi `Phiên bản kit: X.Y.Z`, nên `package-lock.json` nằm ngoài tầm. Đo 09/11/2026:
+   * nó khai `2.9.7` trong khi `package.json` đã qua v2.10.0 · v2.10.1 · v2.10.2 — **trôi ba đợt phát
+   * hành** mà không lượt nào đỏ, vì không lệnh nào so hai con số ấy với nhau. Cùng lớp hỏng ⑨ sinh ra
+   * để chặn, chỉ khác bề mặt: một con số dẫn xuất được tin mà không ai hỏi nó lấy từ đâu.
+   */
+  const lockJson = (v: string | null) => JSON.stringify(
+    v === null
+      ? { name: 'x', lockfileVersion: 3, packages: { '': { name: 'x' } } }
+      : { name: 'x', version: v, lockfileVersion: 3, packages: { '': { name: 'x', version: v } } },
+    null, 2,
+  );
+
+  test('⑨b ĐỐI CHỨNG DƯƠNG: lockfile khai số CŨ ⇒ CHẶN, nêu đích danh cả hai con số', () => {
+    const d = cay('2.9.9', { 'package-lock.json': lockJson('1.0.0') });
+    const r = chayTrongCay(d);
+    expect(r.code, r.out).toBe(1);
+    expect(r.out, 'phải nêu đích danh file').toContain('package-lock.json');
+    expect(r.out).toContain('1.0.0');
+    expect(r.out).toContain('2.9.9');
+    fs.rmSync(d, { recursive: true, force: true });
+  });
+
+  test('⑨b ĐỐI CHỨNG ÂM: khớp `package.json` ⇒ ĐẠT, và lockfile ĐƯỢC TÍNH vào số bản sao', () => {
+    /* Hai cây chỉ khác nhau ở chỗ CÓ lockfile hay không — nếu số đếm không nhúc nhích thì ⑨b đang
+     * không đo gì, và "ĐẠT" ở ca trên chỉ là may. */
+    const khong = chayTrongCay(cay('2.9.9', { 'docs/trang.html': '<p>Phiên bản kit: <b>2.9.9</b>.</p>\n' }));
+    const co = chayTrongCay(cay('2.9.9', {
+      'docs/trang.html': '<p>Phiên bản kit: <b>2.9.9</b>.</p>\n',
+      'package-lock.json': lockJson('2.9.9'),
+    }));
+    expect(co.code, co.out).toBe(0);
+    const dem = (s: string) => Number((s.match(/⑨ (\d+) bản sao viết tay/) || [, '0'])[1]);
+    expect(dem(khong.out), 'cây không lockfile phải đếm 1 (chỉ bề mặt văn xuôi)').toBe(1);
+    expect(dem(co.out), 'thêm lockfile mà số đếm KHÔNG đổi ⇒ ⑨b không đo gì').toBeGreaterThan(dem(khong.out));
+  });
+
+  test('⑨b lockfile KHÔNG khai `version` ⇒ "CHƯA GÁC GÌ", không im lặng cho qua', () => {
+    /* Cùng doctrine ⑦/⑨/⑩: "không đo được" KHÔNG thành "đo ra 0". */
+    const d = cay('2.9.9', { 'package-lock.json': lockJson(null) });
+    const r = chayTrongCay(d);
+    expect(r.code, 'không có gì để so thì cũng không có gì để chặn').toBe(0);
+    expect(r.out).toMatch(/package-lock\.json. không khai trường .version. ⇒ ⑨b CHƯA GÁC GÌ/);
+    fs.rmSync(d, { recursive: true, force: true });
+  });
 });
 
 /*

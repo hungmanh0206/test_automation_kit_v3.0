@@ -308,6 +308,36 @@ function main() {
       m = re.exec(noi);
     }
   }
+  /*
+   * ⑨b BẢN SAO MÁY CỦA SỐ PHIÊN BẢN — `package-lock.json` (thêm 09/11/2026).
+   *
+   * ⑨ chỉ soi văn xuôi `Phiên bản kit: X.Y.Z`, nên lockfile nằm ngoài tầm. Đo 09/11/2026: nó khai
+   * `2.9.7` trong khi `package.json` đã qua v2.10.0 · v2.10.1 · v2.10.2 — **trôi ba đợt phát hành
+   * mà không ai thấy**, vì không lệnh nào so hai con số ấy với nhau. Đúng lớp hỏng ⑨ sinh ra để
+   * chặn, chỉ khác bề mặt.
+   *
+   * Không CHẶN gói: `npm ci` không đỏ vì chuyện này (ba đợt vừa rồi xanh là bằng chứng). Nhưng nó là
+   * số DẪN XUẤT đang sai, và số dẫn xuất sai thì có ngày ai đó đọc nó.
+   */
+  const lockPath = path.join(REPO, 'package-lock.json');
+  if (version && fs.existsSync(lockPath)) {
+    let lock = null;
+    try { lock = JSON.parse(fs.readFileSync(lockPath, 'utf8')); } catch (e) { lock = null; }
+    if (!lock) warnings.push('`package-lock.json` không đọc được ⇒ ⑨b CHƯA GÁC GÌ (không phải đạt).');
+    else {
+      const cho = [['version', lock.version], ['packages[""].version', lock.packages && lock.packages[''] && lock.packages[''].version]]
+        .filter(([, v]) => typeof v === 'string');
+      if (!cho.length) warnings.push('`package-lock.json` không khai trường `version` ⇒ ⑨b CHƯA GÁC GÌ (không phải đạt).');
+      for (const [ten, v] of cho) {
+        if (v !== version) {
+          problems.push(`package-lock.json \`${ten}\` = \`${v}\` nhưng \`package.json\` là \`${version}\`. `
+            + 'Lockfile là bản sao MÁY của số phiên bản; nó trôi âm thầm vì không lệnh nào so hai số ấy.');
+        }
+      }
+      soChoVer += cho.length;
+    }
+  }
+
   if (!soChoVer) warnings.push('không bề mặt nào khai `Phiên bản kit: X.Y.Z` ⇒ phép kiểm ⑨ CHƯA GÁC GÌ ở lượt này (không phải đạt).');
   else console.log(`[version] ⑨ ${soChoVer} bản sao viết tay của số phiên bản, nguồn \`package.json\` = ${version}`);
 
