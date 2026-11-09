@@ -107,6 +107,7 @@
     "backlog:bug-report:dry-run": "node scripts/integrations/backlog/bug_reporter.js --dry-run",
     "lint:locator": "node scripts/qa/locator_lint.js",
     "lint:tcid": "node scripts/qa/tcid_duplicate_check.js",
+    "lint:env": "node scripts/qa/env_assumptions.js",
     "lint:locator:enforce": "node scripts/qa/locator_lint.js --enforce",
     "matrix:coverage": "node scripts/qa/matrix_coverage.js",
     "matrix:coverage:enforce": "node scripts/qa/matrix_coverage.js --enforce",
