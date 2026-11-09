@@ -109,12 +109,13 @@ function looksLikeMeasurement(s) {
  * đủ dài VÀ số lần dùng bị ĐẾM RA: một lối thoát không ai đếm thì nó thành lối đi chính.
  */
 const mienNeo = [];
+const chuaPhanHanDung = [];
 const NEO = (cfg.falsification && cfg.falsification.neoArtifact) || {};
 /** Token trông như đường dẫn: có đuôi file, và không phải là một lệnh npm. */
 /* Đuôi phải BẮT ĐẦU BẰNG CHỮ: nếu không, `uat-2026.11.09` (mã build) bị đọc thành một đường dẫn. */
 const MAU_DUONG_DAN = /(?:^|[\s'"`(=])([A-Za-z0-9_@][A-Za-z0-9_@./-]*\.[A-Za-z][A-Za-z0-9]{1,4})(?=$|[\s'"`),.;])/g;
 
-function neoArtifact(s, goc) {
+function neoArtifact(s, goc, moc) {
   if (!NEO.batBuoc) return { dat: true };
   const chuoi = typeof s === 'string' ? s : '';
   const iMien = chuoi.indexOf(NEO.tienToMien);
@@ -127,8 +128,40 @@ function neoArtifact(s, goc) {
     return { dat: true, mien: true };
   }
   const ds = [...chuoi.matchAll(MAU_DUONG_DAN)].map((m) => m[1]);
-  const coThat = ds.filter((d) => fs.existsSync(path.join(goc, d)) || fs.existsSync(path.join(rc.REPO_ROOT, d)));
-  if (coThat.length) return { dat: true, neo: coThat[0] };
+  const duongThat = ds
+    .map((d) => [d, path.join(goc, d), path.join(rc.REPO_ROOT, d)])
+    .map(([d, a, b]) => [d, fs.existsSync(a) ? a : (fs.existsSync(b) ? b : null)])
+    .filter(([, p]) => p);
+  if (duongThat.length) {
+    /*
+     * HẠN DÙNG (tăng 2, 09/11/2026). Neo vào file CÓ THẬT chặn được claim BỊA, chưa chặn được claim
+     * DÙNG LẠI ĐỒ CŨ: một probe chạy 11 ngày trước vẫn là file có thật, nhưng nó đo một build khác.
+     * Mốc lấy từ `max(reruns[].at)` vì `reruns` nằm trong khối băm bằng chứng — không sửa ngược được
+     * sau `--chot`, khác với mtime của file claim vốn sờ vào là đổi.
+     *
+     * Chỉ chặn chiều CŨ HƠN. Artifact mới hơn mốc là chuyện bình thường: điều tra tiếp sau khi rerun.
+     */
+    if (!(NEO.maxTuoiNgay > 0) || !Number.isFinite(moc)) {
+      return { dat: true, neo: duongThat[0][0], chuaPhanHan: true };
+    }
+    const qua = duongThat
+      .map(([d, p]) => {
+        let mt = NaN;
+        try { mt = fs.statSync(p).mtimeMs; } catch (e) { mt = NaN; }
+        return [d, Number.isFinite(mt) ? (moc - mt) / 86400000 : NaN];
+      })
+      .filter(([, ngay]) => Number.isFinite(ngay) && ngay > NEO.maxTuoiNgay);
+    if (qua.length === duongThat.length) {
+      const [d, ngay] = qua[0];
+      return {
+        dat: false,
+        viSao: `trỏ tới \`${d}\` nhưng file đó CŨ HƠN lượt rerun gần nhất ${Math.round(ngay)} ngày `
+          + `(mức cho phép ${NEO.maxTuoiNgay}) — một artifact cũ vẫn là file có thật, nhưng nó đo một build khác. `
+          + `Đo lại, hoặc khai \`${NEO.tienToMien} <lý do>\``,
+      };
+    }
+    return { dat: true, neo: duongThat[0][0] };
+  }
   return {
     dat: false,
     viSao: ds.length
@@ -337,9 +370,13 @@ function validate(claim, file) {
     } else {
       /* Thư mục kết quả của task: `<taskOut>/reports/bug-claims/X.json` ⇒ lùi ba cấp. */
       const gocTask = path.resolve(path.dirname(file || '.'), '..', '..');
-      const neo = neoArtifact(mea, gocTask);
+      /* Mốc hạn dùng: lượt rerun GẦN NHẤT. `reruns[].at` là bắt buộc và nằm trong khối băm. */
+      const mocRerun = Math.max(...(Array.isArray(claim.reruns) ? claim.reruns : [])
+        .map((r) => Date.parse((r && r.at) || '')).filter(Number.isFinite), -Infinity);
+      const neo = neoArtifact(mea, gocTask, mocRerun);
       if (!neo.dat) at(`${w} \`measurement\` ${neo.viSao}`);
       else if (neo.mien) mienNeo.push(`${path.basename(file || '?')} ${w}`);
+      else if (neo.chuaPhanHan) chuaPhanHanDung.push(`${path.basename(file || '?')} ${w}`);
     }
     if (!nonEmpty(f && f.result)) at(`${w} thiếu \`result\` — phản chứng đó bị loại bằng kết quả gì`);
   });
@@ -535,6 +572,10 @@ function main() {
   if (mienNeo.length) {
     /* Lối thoát không ai đếm thì nó thành lối đi chính. Con số này phải ở trong tầm mắt. */
     console.log(`  ⚠ ${mienNeo.length} phép đo dùng lối thoát \`${NEO.tienToMien}\` — không neo được artifact: ${mienNeo.join(' · ')}`);
+  }
+  if (chuaPhanHanDung.length) {
+    /* "Không đo được" KHÔNG thành "đo ra đạt" — cùng doctrine ⑦/⑨/⑩ của `version:check`. */
+    console.log(`  ⚠ ${chuaPhanHanDung.length} phép đo CHƯA PHÁN ĐƯỢC HẠN DÙNG (thiếu mốc rerun hoặc chưa bật \`maxTuoiNgay\`): ${chuaPhanHanDung.join(' · ')}`);
   }
   process.exit(0);
 }

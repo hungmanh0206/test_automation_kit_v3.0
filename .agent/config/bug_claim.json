@@ -37,7 +37,11 @@
       "_vi_sao_co_loi_thoat": "Có phép đo thật mà không sinh ra file: đọc ngày sửa một tài liệu, hỏi DEV, so hai dòng trong spec. Cấm tiệt thì người ta sẽ bịa một ĐƯỜNG DẪN thay vì bịa một CÂU — tệ hơn, vì đường dẫn trông như bằng chứng. Nên có lối thoát, nhưng nó phải KHAI LÝ DO và bị ĐẾM: một lối thoát không ai đếm thì nó thành lối đi chính.",
       "batBuoc": true,
       "tienToMien": "khong-do-duoc:",
-      "minLyDoMienChars": 25
+      "minLyDoMienChars": 25,
+      "maxTuoiNgay": 7,
+      "_vi_sao_co_han_dung": "Neo vào một file CÓ THẬT mới chặn được claim bịa, chưa chặn được claim DÙNG LẠI ĐỒ CŨ. Một probe chạy 11 ngày trước vẫn là file có thật, nhưng nó đo một build khác — và tiền lệ đã có: một artifact khám phá cũ 11 ngày suýt làm lệch một kết luận. Nên artifact không được CŨ HƠN lượt rerun gần nhất quá maxTuoiNgay ngày.",
+      "_vi_sao_moc_la_rerun": "Mốc lấy từ `max(reruns[].at)` chứ KHÔNG từ mtime của file claim: `reruns` nằm trong khối băm bằng chứng nên không sửa ngược được sau `--chot`, còn mtime của claim thì sờ vào là đổi. Mốc gác được phải là mốc không tự tay dịch được.",
+      "_vi_sao_chi_chan_mot_chieu": "Artifact MỚI HƠN mốc thì không chặn: điều tra tiếp sau khi rerun là chuyện bình thường. Chỉ chặn chiều CŨ HƠN, đúng cái hỏng cần chặn."
     },
     "minHypothesisChars": 10,
     "minMeasurementChars": 20,
