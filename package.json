@@ -71,6 +71,7 @@
     "bug:claim:new": "node scripts/qa/bug_claim.js",
     "bug:claim:report": "node scripts/qa/bug_claim.js --report",
     "bug:outcome": "node scripts/qa/bug_outcome.js",
+    "tc:doi-chieu": "node scripts/qa/tc_doi_chieu.js",
     "bug:outcome:ghi": "node scripts/qa/bug_outcome.js --ghi",
     "bug:outcome:enforce": "node scripts/qa/bug_outcome.js --enforce",
     "bug:claim:chot": "node scripts/qa/bug_claim.js --chot",
