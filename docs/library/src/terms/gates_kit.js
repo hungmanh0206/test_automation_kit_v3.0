@@ -150,7 +150,7 @@ const TERMS_GATE3 = [
   src:'scripts/qa/scope_anchor.js', rel:['g-dimension_coverage','c-canonical','g-preflight_gate'] },
 { id:'g-gate_index', t:'gates:index', cat:'gate',
   def:'Sinh DANH MỤC GATE của kit từ chính source. Trả lời được "kit có bao nhiêu gate, mỗi cái CHẶN gì, gọi ở đâu".',
-  detail:'Quét source rồi suy mức từ code: exit 1 là CHẶN · ghi artifact là SINH · chỉ in là BÁO CÁO. Bảng hiện tại: 162 máy — 117 CHẶN, 25 SINH, 20 BÁO CÁO. Bản --check chặn khi bảng lệch source.',
+  detail:'Quét source rồi suy mức từ code: exit 1 là CHẶN · ghi artifact là SINH · chỉ in là BÁO CÁO. Bảng hiện tại: 163 máy — 118 CHẶN, 25 SINH, 20 BÁO CÁO. Bản --check chặn khi bảng lệch source.',
   why:'Kit có hơn 30 npm script dạng gate và gần 60 file trong scripts/qa/, nhưng không chỗ nào trả lời được câu trên. Hệ quả không phải bất tiện: luận đề của kit là "luật cần MÁY", mà máy không LIỆT KÊ ĐƯỢC thì không kiểm toán được. Không ai biết một gate đã âm thầm tụt thành cảnh báo, hay đã mất nơi gọi.',
   how:['npm run gates:index để sinh lại bảng.','npm run gates:index:check để chặn khi bảng lệch source.'],
   cmd:'npm run gates:index   ·   npm run gates:index:check',
@@ -164,6 +164,13 @@ const TERMS_GATE3 = [
   why:'Đặt adapter trong .agent/skills làm 7 ca infra của kit đỏ (skills-shim, skills-route, /start) vì chúng không được đăng ký trong INDEX.md và shim. V9.1 dời ra ngoài để sửa tận gốc; cửa này giữ cho nó không quay lại.',
   how:['npm run extension:check'],
   src:'scripts/qa/extension_integrity_check.js', rel:['g-skills_index','c-forcing-function'] },
+
+{ id:'g-env_assumptions', t:'lint:env', cat:'gate',
+  def:'Bắt KHẲNG ĐỊNH PHỤ THUỘC MÔI TRƯỜNG: phép kiểm xanh ở nơi nó chạy và đỏ ở nơi nó không chạy.',
+  detail:'Ba luật quyết được: ① biến môi trường đúng chữ hoa trên một BẢN SAO env (process.env tra không phân biệt hoa thường, {...process.env} thì CÓ) · ② truyền THƯ MỤC cho node --test (Node 22 coi positional là FILE; .nvmrc ghim 22) · ③ băm BYTE THÔ file văn bản mà không chuẩn hoá xuống dòng. Bỏ chú thích VÀ bỏ nội dung chuỗi trước khi khớp, nếu không nó bắt chính fixture trong spec gác nó. Lối thoát env-ok: phải KÈM LÝ DO >= 5 ký tự.',
+  why:'Bốn sự cố trong MỘT phiên 09/11/2026, không cái nào là thiếu kiến thức. Cửa KHÔNG chặn thêm ai — nó làm câu "xanh nghĩa là đúng" trở thành ĐÚNG. Nghiệm thu bằng cách dựng lại bản TRƯỚC KHI VÁ của từng sự cố bằng git show rồi thả cửa vào: 3/3 bị bắt, đúng dòng, đúng lý do. Luật ④ (spec hạ tầng đọc file không đi theo gói) KHÔNG quyết được bằng lint — lượt thử cho 3/3 dương tính giả — nên cửa khai thẳng KHÔNG PHÁN ĐƯỢC và trỏ sang release:verify.',
+  how:['npm run lint:env','node scripts/qa/env_assumptions.js --goc <cây khác>'],
+  src:'scripts/qa/env_assumptions.js', rel:['g-gate_index','g-version_check'] },
 
 { id:'g-extension_router', t:'extension:route', cat:'gate',
   def:'Định tuyến TƯ VẤN, tất định, từ câu yêu cầu sang một trong năm adapter Kit A. Không bao giờ cho phép thực thi.',

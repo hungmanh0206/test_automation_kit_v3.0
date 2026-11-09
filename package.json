@@ -107,6 +107,7 @@
     "backlog:bug-report:dry-run": "node scripts/integrations/backlog/bug_reporter.js --dry-run",
     "lint:locator": "node scripts/qa/locator_lint.js",
     "lint:tcid": "node scripts/qa/tcid_duplicate_check.js",
+    "lint:env": "node scripts/qa/env_assumptions.js",
     "lint:locator:enforce": "node scripts/qa/locator_lint.js --enforce",
     "matrix:coverage": "node scripts/qa/matrix_coverage.js",
     "matrix:coverage:enforce": "node scripts/qa/matrix_coverage.js --enforce",
@@ -244,12 +245,12 @@
     "axe-core": "^4.12.1",
     "axios": "^1.21.0",
     "exceljs": "^4.4.0",
-    "googleapis": "^188.0.0",
+    "googleapis": "^189.0.0",
     "tedious": "^20.3.8"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
-    "@playwright/test": "^1.64.1",
+    "@playwright/test": "^1.65.0",
     "@types/node": "^26.6.6",
     "eslint": "^10.13.0",
     "lighthouse": "^13.6.0",
