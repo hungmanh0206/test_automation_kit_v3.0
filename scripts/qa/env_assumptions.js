@@ -289,4 +289,12 @@ if (JSONRA) {
     console.log('  Lối thoát: dòng nào THẬT SỰ cần hành vi đó thì ghi `env-ok: <lý do>` ngay trên nó.');
   }
 }
-process.exit(viPham.length ? 1 : 0);
+/*
+ * VIẾT ĐƯỜNG RA CHO `gate_index` ĐỌC ĐƯỢC. Bản đầu viết `process.exit(viPham.length ? 1 : 0)`, và
+ * `levelOf()` không nhận ra dạng đó nên dán nhãn **BÁO CÁO** cho một cửa CHẶN THẬT — nhãn sai theo
+ * đúng chiều nguy hiểm: người đọc danh mục tưởng chỗ này chỉ in ra cho vui.
+ *
+ * Sửa ở ĐÂY chứ không nới regex của `gate_index`: cửa ấy đọc 137 script, nới nó là đổi nhãn của cả
+ * danh mục để chiều một file. Và dạng này dù sao cũng rõ nghĩa hơn.
+ */
+if (viPham.length) process.exit(1);
