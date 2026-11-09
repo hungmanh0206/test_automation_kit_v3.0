@@ -58,6 +58,11 @@ jobs:
       - name: Extension Kit A — unit test (node --test)
         run: npm run extension:test
 
+      # Khẳng định XANH ở nơi nó chạy và ĐỎ ở nơi nó không chạy — 4 sự cố trong 1 phiên (09/11/2026).
+      # Đo ngược lại lịch sử: 3/3 sự cố tái dựng từ git ĐỀU bị bắt, đúng dòng, đúng lý do.
+      - name: Khẳng định phụ thuộc môi trường (lint:env)
+        run: npm run lint:env
+
       - name: Bảng số đo QUICKSTART khớp cây thật
         run: npm run quickstart:numbers:check
 
