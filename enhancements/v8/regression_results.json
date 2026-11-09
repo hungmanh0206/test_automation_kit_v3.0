@@ -1,0 +1,27 @@
+[
+  {
+    "command": "node enhancements/v5/tests.js",
+    "exit_code": 0,
+    "output_tail": "V5 safety/contract unit tests: 9/9 PASS\n"
+  },
+  {
+    "command": "node enhancements/v5/benchmark.js",
+    "exit_code": 0,
+    "output_tail": "{\n  \"suite\": \"curated lexical regression, NOT semantic AI benchmark\",\n  \"total\": 123,\n  \"exact\": 123,\n  \"exact_accuracy\": 1,\n  \"precision\": 1,\n  \"recall\": 1,\n  \"failures\": [],\n  \"limitations\": [\n    \"Cases are hand-curated and may overlap router vocabulary\",\n    \"No external model called\",\n    \"No token/latency measurement\",\n    \"Not a held-out production evaluation\"\n  ]\n}\n"
+  },
+  {
+    "command": "node enhancements/v6/mutation_tests.js",
+    "exit_code": 0,
+    "output_tail": "{\n  \"result\": \"PASS\",\n  \"cases\": 13,\n  \"limitations\": \"No actual browser run or semantic oracle validation\"\n}\n"
+  },
+  {
+    "command": "node enhancements/v7/tests.js",
+    "exit_code": 0,
+    "output_tail": "TAP version 13\n# Subtest: all stages complete\nok 1 - all stages complete\n  ---\n  duration_ms: 2.993578\n  type: 'test'\n  ...\n# Subtest: out-of-order transition blocked\nok 2 - out-of-order transition blocked\n  ---\n  duration_ms: 0.211288\n  type: 'test'\n  ...\n# Subtest: missing required input blocked\nok 3 - missing required input blocked\n  ---\n  duration_ms: 0.151458\n  type: 'test'\n  ...\n# Subtest: unresolved ambiguity blocked\nok 4 - unresolved ambiguity blocked\n  ---\n  duration_ms: 0.174412\n  type: 'test'\n  ...\n# Subtest: orphan testcase blocked\nok 5 - orphan testcase blocked\n  ---\n  duration_ms: 0.260481\n  type: 'test'\n  ...\n# Subtest: missing expected result blocked\nok 6 - missing expected result blocked\n  ---\n  duration_ms: 0.16671\n  type: 'test'\n  ...\n# Subtest: review rejection blocked\nok 7 - review rejection blocked\n  ---\n  duration_ms: 0.20674\n  type: 'test'\n  ...\n# Subtest: missing evidence manifest hash blocked\nok 8 - missing evidence manifest hash blocked\n  ---\n  duration_ms: 0.283265\n  type: 'test'\n  ...\n# Subtest: false PASS blocked\nok 9 - false PASS blocked\n  ---\n  duration_ms: 0.513842\n  type: 'test'\n  ...\n# Subtest: PASS without evidence blocked\nok 10 - PASS without evidence blocked\n  ---\n  duration_ms: 0.542605\n  type: 'test'\n  ...\n# Subtest: planner is advisory and scoped\nok 11 - planner is advisory and scoped\n  ---\n  duration_ms: 0.59921\n  type: 'test'\n  ...\n# Subtest: planner rejects unknown stage\nok 12 - planner rejects unknown stage\n  ---\n  duration_ms: 0.138358\n  type: 'test'\n  ...\n# Subtest: completed workflow cannot advance\nok 13 - completed workflow cannot advance\n  ---\n  duration_ms: 0.277808\n  type: 'test'\n  ...\n1..13\n# tests 13\n# suites 0\n# pass 13\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 17.455283\n"
+  },
+  {
+    "command": "python enhancements/v8/verify_core.py",
+    "exit_code": 0,
+    "output_tail": "Core SHA-256: 931/931 unchanged\n"
+  }
+]

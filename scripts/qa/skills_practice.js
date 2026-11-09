@@ -55,6 +55,8 @@ const RA = co('ra', null);
 /* Lưu CÂU TRẢ LỜI thô. Không có nó thì khi một bài trượt, không phân biệt được 'skill mỏng'
  * với 'bộ chấm của tôi khắt khe' — và kết luận sai ở đây sẽ dẫn tới sửa nhầm skill. */
 const LUU = co('luu', null);
+/* Nhánh đối chứng của phép đo A/B: KHÔNG chép pack chuyên sâu vào thư mục làm bài. */
+const KHONG_PACK = flag('khong-pack');
 
 /* ── Bộ bài ────────────────────────────────────────────────────────────────────────────────────
  *
@@ -77,9 +79,13 @@ const LUU = co('luu', null);
 const HINH_THUC = () => JSON.parse(fs.readFileSync(path.join(FIXTURE, 'hinh_thuc.dapan.json'), 'utf8'));
 
 /** Gom N phép kiểm thành verdict theo ngưỡng ĐÃ KHAI trong đáp án (không phải ngưỡng chọn sau khi đo). */
-function gom(ten, ket) {
-  const cfg = HINH_THUC()[ten];
-  if (!cfg) throw new Error(`hinh_thuc.dapan.json thiếu mục "${ten}"`);
+function gom(ten, ket, soKhac) {
+  /* `soKhac`: sổ đáp án RIÊNG của một bài (vd bài theo pack miền). Phép gác "số phép kiểm phải khớp
+   * sổ" và ngưỡng vẫn lấy từ sổ, nên không có đường nới chuẩn mà không hiện trong diff. */
+  const cfg = soKhac
+    ? JSON.parse(fs.readFileSync(path.join(FIXTURE, soKhac), 'utf8'))
+    : HINH_THUC()[ten];
+  if (!cfg) throw new Error(`thiếu sổ đáp án cho "${ten}"`);
   if (cfg.kiem.length !== ket.length) {
     throw new Error(`"${ten}": đáp án khai ${cfg.kiem.length} phép kiểm, bộ chấm chạy ${ket.length} — một bên đã trôi`);
   }
@@ -320,6 +326,93 @@ const BAI = [
   },
 
   {
+    /*
+     * BÀI A/B — đo PACK, không đo skill. Chạy hai nhánh trên CÙNG đề, cùng skill, cùng bộ chấm:
+     *   node scripts/qa/skills_practice.js --bai qemis-trieu-chung --lan 3
+     *   node scripts/qa/skills_practice.js --bai qemis-trieu-chung --lan 3 --khong-pack
+     * Con số đáng đọc là KHOẢNG CÁCH giữa hai nhánh. Bằng 0 nghĩa là pack không thêm gì.
+     *
+     * Đề cố ý KHÔNG nhắc "mixed content", "http" hay "giao thức" ở phần triệu chứng, nhưng để lại đủ
+     * dữ kiện để suy ra (địa chỉ `https://`, trang mất định dạng mà CHỮ vẫn đúng, 5 ca cùng một màn
+     * trong khi 13 ca màn khác PASS, đã loại đổi spec/dữ liệu/bản triển khai). Gài để không thể suy ra
+     * thì nhánh không-pack cầm chắc thua, và phép đo A/B mất nghĩa.
+     */
+    /*
+     * BÀI A/B — đo PACK, không đo skill. Hai nhánh cùng đề, cùng skill, cùng bộ chấm:
+     *   node scripts/qa/skills_practice.js --bai qemis-bieu-emis --lan 3
+     *   node scripts/qa/skills_practice.js --bai qemis-bieu-emis --lan 3 --khong-pack
+     *
+     * BẢN THỨ TƯ, sau BA lượt hỏng (docs/v2.11.0/DO_LUONG_PACK.md). Ba thứ đã sửa:
+     *   · ĐỀ BÀI mang sẵn hợp đồng JSON ⇒ cả hai nhánh cùng có cấu trúc, pack chỉ thêm GIẢ THUYẾT MIỀN.
+     *   · Bốn phép kiểm đầu chấm TRƯỜNG — tất định, không phụ thuộc cách diễn đạt. Ba lượt trước chấm
+     *     văn xuôi bằng regex và chấm oan câu trả lời TỐT NHẤT của nhánh đối chứng.
+     *   · Bẫy chọn theo đo: 'ảnh chụp' / 'không tính lại' / 'NGAY_SUA' đều 0 lần trong thư mục làm bài,
+     *     khác hai đề trước vốn rò qua templates/ của chính skill.
+     */
+    ma: 'qemis-bieu-emis',
+    skill: 'run_report_reader',
+    pack: 'enhancements/v10/packs/qemis.md',
+    soDapAn: 'qemis_bieu.dapan.json',
+    tep: [{ tu: 'qemis_bieu_emis.de.txt', thanh: 'bao-cao.txt' }],
+    de: 'Đọc `bao-cao.txt` và trả lời đúng theo hợp đồng JSON ghi trong đó. '
+      + 'Nếu có file `qemis.md` trong thư mục này thì đọc nó. ' + CHI_DAN,
+    cham(traLoi) {
+      const so = JSON.parse(fs.readFileSync(path.join(FIXTURE, 'qemis_bieu.dapan.json'), 'utf8'));
+      /* Bóc khối JSON LỚN NHẤT trong câu trả lời; không có thì mọi phép kiểm cấu trúc đều trượt. */
+      let o = null;
+      for (const m of String(traLoi).matchAll(/\{[\s\S]*?\n\}/g)) {
+        try { const x = JSON.parse(m[0]); if (x && typeof x === 'object' && 'nguyen_nhan_doi_thu' in x) o = x; } catch (e) { /* bỏ qua */ }
+      }
+      const truong = ['trieu_chung', 'nguyen_nhan_doi_thu', 'phep_phan_biet', 'tang_loi', 'oracle_ref', 'mau_so'];
+      const ds = o && Array.isArray(o.nguyen_nhan_doi_thu) ? o.nguyen_nhan_doi_thu.map((x) => String(x)) : [];
+      const chap = so.nguyen_nhan_that.chap_nhan;
+      return gom('qemis-bieu-emis', [
+        { ma: 'E1', ok: !!o && truong.every((k) => k in o) },
+        { ma: 'E2', ok: ds.length >= 2 },
+        { ma: 'E3', ok: !!o && typeof o.phep_phan_biet === 'string' && o.phep_phan_biet.trim().length >= 20 },
+        { ma: 'E4', ok: !!o && String(o.tang_loi || '').toLowerCase() !== 'product_bug' },
+        { ma: 'E5', ok: ds.some((x) => chap.some((c) => x.toLowerCase().includes(String(c).toLowerCase()))) },
+      ], 'qemis_bieu.dapan.json');
+    },
+  },
+  {
+    /*
+     * BÀI A/B THỨ HAI — bẫy TÙY TIỆN, đối lại bài `qemis-bieu-emis` vốn là bẫy SUY RA ĐƯỢC.
+     *
+     * Đo 09/11/2026 trên bài suy-ra-được: 15/15 so 15/15, khoảng cách ĐÚNG BẰNG 0 — model tự suy ra
+     * "biểu là ảnh chụp" mà không cần pack. Nên muốn biết một pack tri thức miền có đáng tồn tại
+     * không, phải đo trên thứ KHÔNG suy ra nổi: lưới lớp mặc định chỉ hiện phân hiệu chính.
+     *
+     * Dùng `ui_debug_agent` chứ không `run_report_reader`, vì template của cái sau có nhắc "phân hiệu"
+     * đúng một lần — đủ để nhánh đối chứng rò. Đo trước khi chọn, không đoán.
+     */
+    ma: 'qemis-luoi-lop',
+    skill: 'ui_debug_agent',
+    pack: 'enhancements/v10/packs/qemis.md',
+    soDapAn: 'qemis_luoi.dapan.json',
+    tep: [{ tu: 'qemis_luoi_lop.de.txt', thanh: 'bao-cao.txt' }],
+    de: 'Đọc `bao-cao.txt` và trả lời đúng theo hợp đồng JSON ghi trong đó. '
+      + 'Nếu có file `qemis.md` trong thư mục này thì đọc nó. ' + CHI_DAN,
+    cham(traLoi) {
+      const so = JSON.parse(fs.readFileSync(path.join(FIXTURE, 'qemis_luoi.dapan.json'), 'utf8'));
+      let o = null;
+      for (const m of String(traLoi).matchAll(/\{[\s\S]*?\n\}/g)) {
+        try { const x = JSON.parse(m[0]); if (x && typeof x === 'object' && 'nguyen_nhan_doi_thu' in x) o = x; } catch (e) { /* bỏ qua */ }
+      }
+      const truong = ['trieu_chung', 'nguyen_nhan_doi_thu', 'phep_phan_biet', 'tang_loi', 'oracle_ref', 'mau_so'];
+      const ds = o && Array.isArray(o.nguyen_nhan_doi_thu) ? o.nguyen_nhan_doi_thu.map((x) => String(x)) : [];
+      const chap = so.nguyen_nhan_that.chap_nhan;
+      return gom('qemis-luoi-lop', [
+        { ma: 'E1', ok: !!o && truong.every((k) => k in o) },
+        { ma: 'E2', ok: ds.length >= 2 },
+        { ma: 'E3', ok: !!o && typeof o.phep_phan_biet === 'string' && o.phep_phan_biet.trim().length >= 20 },
+        { ma: 'E4', ok: !!o && String(o.tang_loi || '').toLowerCase() !== 'product_bug' },
+        { ma: 'E5', ok: ds.some((x) => chap.some((c) => x.toLowerCase().includes(String(c).toLowerCase()))) },
+      ], 'qemis_luoi.dapan.json');
+    },
+  },
+
+  {
     ma: 'du-lieu-run-id',
     skill: 'test_data_generator',
     tep: [{ tu: 'du_lieu.de.txt', thanh: 'case.txt' }],
@@ -391,6 +484,64 @@ function dungGoc(bai) {
     if (fs.statSync(nguonT).isDirectory()) fs.cpSync(nguonT, dichT, { recursive: true });
     else fs.copyFileSync(nguonT, dichT);
   }
+  /*
+   * NHÁNH A/B: `bai.pack` là tài liệu CHUYÊN SÂU tuỳ chọn. Chạy kèm `--khong-pack` thì KHÔNG chép nó,
+   * và đó là nhánh đối chứng.
+   *
+   * VÌ SAO CÓ NHÁNH NÀY: `benchmark_protocol.md` của bản V10 nhập về đòi đúng phép đo này — *"same
+   * model, same requirements, A/B prompts, minimum 3 trials"* — rồi tự ghi **"not a completed
+   * benchmark"**. Viết một pack rồi tuyên nó làm chất lượng tốt hơn, mà không chạy nhánh KHÔNG pack,
+   * là tự khai chứ không phải đo.
+   *
+   * GIỚI HẠN PHẢI KHAI: phép đo này đo **tri thức có tới được model hay không**, KHÔNG đo khả năng suy
+   * luận. Nếu pack chứa sẵn câu trả lời thì nhánh có-pack thắng là đương nhiên; con số đáng đọc là
+   * KHOẢNG CÁCH giữa hai nhánh — nó bằng 0 nghĩa là pack không thêm gì.
+   */
+  if (bai.pack && !KHONG_PACK) {
+    const nguonP = path.join(REPO, bai.pack);
+    if (!fs.existsSync(nguonP)) thoat2(`pack không tồn tại: ${bai.pack}`);
+    const dichP = path.join(goc, path.basename(bai.pack));
+    fs.copyFileSync(nguonP, dichP);
+  }
+  /*
+   * ĐỐI CHỨNG KHÔNG ĐƯỢC CHỨA SẴN ĐÁP ÁN — máy gác này ra đời từ một phép đo HỎNG của chính tôi,
+   * 09/11/2026.
+   *
+   * Lượt A/B đầu cho "có pack 18/18 · không pack 17/18" và tôi suýt công bố *"khoảng cách ≈ 0"*. Đi
+   * kiểm thì `dungGoc` chép CẢ thư mục skill, kể cả `templates/`, và
+   * `run_report_reader/templates/bang-phan-loai-loi.md` chứa nguyên văn đáp án — *"host dev phát
+   * http:// tuyệt đối nên trình duyệt chặn Mixed Content"*. Nhánh "đối chứng" đã cầm sẵn đáp án, nên
+   * con số ấy không đo gì cả.
+   *
+   * Dấu hiệu duy nhất là model nhả ra đúng cách hành văn tôi nhận ra. Một phép đo chỉ được cứu bằng
+   * việc tình cờ đọc kỹ thì lần sau nó sẽ không được cứu.
+   *
+   * Nên: sổ đáp án khai `tu_khoa_phan_biet` — những cụm mà CHỈ người có tri thức mới viết ra. Ở nhánh
+   * đối chứng, cụm nào xuất hiện sẵn trong thư mục làm bài thì THOÁT 2, không ra số.
+   */
+  if (bai.soDapAn && KHONG_PACK) {
+    const so = JSON.parse(fs.readFileSync(path.join(FIXTURE, bai.soDapAn), 'utf8'));
+    const cam = so.tu_khoa_phan_biet || [];
+    if (!cam.length) thoat2(`sổ ${bai.soDapAn} chưa khai \`tu_khoa_phan_biet\` ⇒ không gác được rò đáp án`);
+    const dinh = [];
+    const quet = (d) => {
+      for (const e of fs.readdirSync(d, { withFileTypes: true })) {
+        const p = path.join(d, e.name);
+        if (e.isDirectory()) { quet(p); continue; }
+        let noi = '';
+        try { noi = fs.readFileSync(p, 'utf8'); } catch (err) { continue; }
+        for (const k of cam) {
+          if (new RegExp(k, 'i').test(noi)) dinh.push(`${path.relative(goc, p).replace(/\\/g, '/')} ⊃ "${k}"`);
+        }
+      }
+    };
+    quet(goc);
+    if (dinh.length) {
+      thoat2('NHÁNH ĐỐI CHỨNG ĐÃ CHỨA ĐÁP ÁN — con số sẽ không đo gì cả',
+        dinh.slice(0, 5).join(' · '));
+    }
+  }
+
   return goc;
 }
 
@@ -450,6 +601,10 @@ function motLuot(bai, goc) {
     for (let i = 1; i <= LAN; i += 1) {
       const r = await motLuot(bai, goc);
       const cham = r.chayDuoc ? bai.cham(r.traLoi) : { dat: null, chiTiet: `LƯỢT KHÔNG CHẠY (${r.ketCuc})` };
+      /* Rút SỐ phép kiểm đạt ra khỏi chuỗi chi tiết, để tính dải. Không parse được thì để undefined —
+       * thà thiếu dải còn hơn bịa một con số. */
+      const mDiem = String(cham.chiTiet || '').match(/(\d+)\s*\/\s*\d+\s*(?:phép kiểm|lỗi|tầng)/);
+      if (mDiem) cham.diem = Number(mDiem[1]);
       soSach.push({ bai: bai.ma, skill: bai.skill, lan: i, ...r, ...cham });
       if (LUU) {
         /* `path.resolve` chứ KHÔNG `path.join(REPO, …)`: join nối đường dẫn TUYỆT ĐỐI vào sau REPO và
@@ -493,7 +648,23 @@ ${r.traLoi}
     const dat = cua.filter((x) => x.dat).length;
     const ok = cua.length > 0 && dat / cua.length >= 2 / 3;
     if (!ok) truot += 1;
-    console.log(`[practice] ${bai.ma} (${bai.skill}): ${dat}/${cua.length} lượt đạt ⇒ ${ok ? 'ĐẠT' : 'TRƯỢT'}`);
+    /*
+     * U2 — SỐ ĐO PHẢI TỰ KHAI ĐỘ PHÂN GIẢI.
+     *
+     * In mỗi verdict trần là mời người đọc kết luận từ một lượt. Số đo của chính cửa này: cùng một bài,
+     * cùng bộ chấm, hai lượt cho 2/5 rồi 5/5 (06/11/2026); `skills:route:live` lệch 8,8 điểm giữa hai
+     * lượt của CÙNG một trạng thái. Nên mọi con số ngẫu nhiên phải đi kèm n và DẢI — thiếu dải thì
+     * người đọc không biết con số ấy có nghĩa tới đâu.
+     *
+     * Dải bằng 0 cũng là thông tin: nó nói phép đo ổn định, chứ không phải nó may.
+     */
+    const diem = cua.map((x) => (typeof x.diem === 'number' ? x.diem : (x.dat ? 1 : 0)));
+    const lo = Math.min(...diem);
+    const hi = Math.max(...diem);
+    const daiStr = cua.length < 2
+      ? 'n=1 ⇒ CHƯA ĐO ĐƯỢC ĐỘ PHÂN GIẢI, đừng kết luận từ con số này'
+      : `n=${cua.length} · dải ${lo}–${hi}${hi === lo ? ' (ổn định)' : ` · biên độ ${hi - lo}`}`;
+    console.log(`[practice] ${bai.ma} (${bai.skill}): ${dat}/${cua.length} lượt đạt ⇒ ${ok ? 'ĐẠT' : 'TRƯỢT'} · ${daiStr}`);
   }
 
   if (RA) {

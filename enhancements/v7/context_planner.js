@@ -1,0 +1,7 @@
+#!/usr/bin/env node
+'use strict';
+const {STAGES}=require('./workflow');
+const MAP={requirements:['requirements_analyzer'],ambiguity:['requirements_analyzer'],risk:['risk_scorer'],testcase:['tc_design_guide'],review:['tc_reviewer'],automation:['qa_automation_engineer'],execution:['qa_automation_engineer'],evidence:['qa_automation_engineer'],verdict:['tc_reviewer'],report:['release_summary']};
+const REFERENCES={requirements:['requirement_analysis'],ambiguity:['ambiguity_policy'],risk:['risk_policy'],testcase:['test_design'],review:['review_policy'],automation:['playwright_rules'],execution:['execution_rules'],evidence:['evidence_rules'],verdict:['oracle_rules'],report:['reporting_rules']};
+function plan(stage,extensions=[]){if(!STAGES.includes(stage))throw Error('Unknown stage');if(!Array.isArray(extensions))throw Error('extensions must be array');return {stage,policy_authority:'RULE_GLOBAL.md',always_load:['CLAUDE.md'],on_demand_skills:MAP[stage],on_demand_reference_topics:REFERENCES[stage],extension_candidates:[...new Set(extensions.filter(x=>typeof x==='string'&&x.trim()))],load_full_rule_global_only_if_required:true,execution_authorized:false,notes:'Advisory plan. Paths and token savings require runtime instrumentation; do not skip mandatory policy.'};}
+module.exports={plan};if(require.main===module){try{console.log(JSON.stringify(plan(process.argv[2],process.argv.slice(3)),null,2));}catch(e){console.error(e.message);process.exitCode=1;}}

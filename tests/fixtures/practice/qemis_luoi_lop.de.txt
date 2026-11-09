@@ -1,0 +1,47 @@
+BÁO CÁO CA FAIL — TASK-DEMO — 09/11/2026 10:41
+
+TC_0412 — Lưới "Hồ sơ lớp học" không hiện đủ số lớp của trường
+
+Màn     : 2.3 Hồ sơ lớp học
+Trường  : mã 02847561 · năm học 2026-2027 · cấp THCS
+Kỳ vọng : (ô Kết quả mong đợi của case) "Lưới hiện đủ các lớp của trường trong năm học đang chọn."
+
+────────────────────────────────────────────────────────────────────────
+
+ĐÃ ĐO ĐƯỢC
+
+1. Truy vấn DB chỉ-đọc, lọc `MA_TRUONG = '02847561'` và `MA_NAM_HOC = 2026`: **12 hàng**.
+   Mã lớp: `6A1 6A2 6B1 6B2 7A1 7A2 7B1 8A1 8A2 8B1 9A1 9B1`.
+
+2. Lưới trên màn, sau khi mở màn và KHÔNG chạm vào ô lọc nào: **7 hàng**.
+   Bảy hàng đó: `6A1 6A2 7A1 7A2 8A1 8A2 9A1`.
+
+3. Ô lọc trên màn đều ở trạng thái mặc định; ảnh `step2-o-loc-mac-dinh.png` cho thấy
+   không ô nào được điền.
+
+4. Phân trang: lưới tự khai "7 bản ghi", 1 trang. Không có trang 2.
+
+5. Rerun 3/3 lượt, cùng kết quả.
+
+6. Đổi sang trường khác (mã 02847999, cũng cấp THCS): DB 9 hàng, lưới hiện 9 hàng. Khớp.
+
+7. DEV xác nhận không có bản triển khai nào lên UAT trong tuần này.
+
+────────────────────────────────────────────────────────────────────────
+
+YÊU CẦU
+
+Trả về MỘT khối JSON theo đúng hợp đồng dưới đây, không thêm trường:
+
+```json
+{
+  "trieu_chung": "...",
+  "nguyen_nhan_doi_thu": ["...", "..."],
+  "phep_phan_biet": "thao tác cụ thể sẽ làm để loại các nguyên nhân kia",
+  "tang_loi": "product_bug | api_bug | script_error | setup_failure | infra | flaky | CHUA_PHAN_DUOC",
+  "oracle_ref": "... hoặc null",
+  "mau_so": "hai con số đang so có cùng mẫu số không, và mẫu số đó là gì"
+}
+```
+
+Sau khối JSON có thể giải thích thêm bằng văn xuôi nếu muốn.

@@ -1,0 +1,55 @@
+{
+  "_de": "qemis_bieu_emis.de.txt — biểu EMIS hiện 142, SQL đếm 147, lệch 5.",
+  "_cau_tra_loi_dung": "Biểu EMIS là ẢNH CHỤP: nó hiện giá trị ĐÃ LƯU, không tính lại khi mở màn. Năm hồ sơ chênh lệch đều tạo SAU lần chốt biểu gần nhất. Phép phân biệt: đọc `NGAY_SUA` của bản ghi biểu rồi so với `NGAY_TAO` của 5 hồ sơ kia — đề cố ý nói rõ lượt chạy KHÔNG đọc hai cột đó. `NGAY_SUA` trước 03/11 ⇒ KHÔNG phải lỗi sản phẩm, phải chốt lại biểu rồi đo lại.",
+  "_vi_sao_bai_nay_PHAN_BIET_DUOC": "Bẫy này không xuất hiện ở đâu trong thư mục làm bài: quét `run_report_reader` cho 'ảnh chụp', 'không tính lại', 'NGAY_SUA' đều ra 0. Khác hai đề trước, vốn rò qua `templates/bang-phan-loai-loi.md`.",
+  "_cham_the_nao": "Bốn phép kiểm đầu chấm TRƯỜNG của khối JSON — tất định, không phụ thuộc cách diễn đạt. Đúng MỘT phép kiểm (E5) chấm nội dung, và nó so với danh sách cách-viết-chấp-nhận-được khai sẵn ở đây, không so bằng regex tôi nghĩ ra lúc chấm. Đây là bản sửa sau ba lượt A/B hỏng vì bộ chấm đo chính tả (xem docs/v2.11.0/DO_LUONG_PACK.md).",
+  "tu_khoa_phan_biet": [
+    "ảnh chụp",
+    "không tính lại",
+    "số đã lưu",
+    "snapshot"
+  ],
+  "_tu_khoa_la_gi": "Quét ở nhánh `--khong-pack`: cụm nào có sẵn trong thư mục làm bài thì phép đo đã rò ⇒ THOÁT 2, không ra số.",
+  "nguyen_nhan_that": {
+    "_la_gi": "Các cách viết CHẤP NHẬN ĐƯỢC của nguyên nhân thật. E5 đạt khi `nguyen_nhan_doi_thu` chứa ít nhất một cái.",
+    "chap_nhan": [
+      "ảnh chụp",
+      "snapshot",
+      "không tính lại",
+      "không tự tính",
+      "đã lưu",
+      "lưu sẵn",
+      "chốt",
+      "cache"
+    ],
+    "_vi_sao_bo_NGAY_SUA": "Đề BÁO SẴN cột NGAY_SUA (mục 8) nên nó không phải cụm chỉ-người-biết-mới-viết; và nó là BẰNG CHỨNG ĐI KIỂM, không phải nguyên nhân. Nêu tên một cột không bằng nêu được rằng biểu là ảnh chụp. Máy gác rò-đáp-án bắt đúng chỗ này."
+  },
+  "kiem": [
+    {
+      "ma": "E1",
+      "la": "trả về khối JSON đọc được, có đủ 6 trường của hợp đồng",
+      "vi_sao": "hợp đồng nằm trong ĐỀ BÀI nên cả hai nhánh đều có. Đây là phần cấu trúc — chấm được tất định, và nó là nền để mọi phép kiểm sau không phải đoán ý."
+    },
+    {
+      "ma": "E2",
+      "la": "`nguyen_nhan_doi_thu` là mảng có >= 2 phần tử",
+      "vi_sao": "một giả thuyết duy nhất nghĩa là vớ lấy cái đầu tiên nghĩ ra. Đây đúng là lớp lỗi đắt nhất của dự án này."
+    },
+    {
+      "ma": "E3",
+      "la": "`phep_phan_biet` khác rỗng và nêu một thao tác cụ thể",
+      "vi_sao": "giả thuyết không kèm phép phân biệt vẫn chỉ là phỏng đoán."
+    },
+    {
+      "ma": "E4",
+      "la": "`tang_loi` KHÔNG phải `product_bug`",
+      "vi_sao": "đây là kết luận có hệ quả thật: gán product_bug ở đây đẩy sang DEV một hành vi đúng theo thiết kế. `CHUA_PHAN_DUOC` là câu trả lời đúng khi chưa đọc `NGAY_SUA`."
+    },
+    {
+      "ma": "E5",
+      "la": "`nguyen_nhan_doi_thu` chứa nguyên nhân THẬT (theo danh sách `nguyen_nhan_that.chap_nhan`)",
+      "vi_sao": "phép kiểm nội dung DUY NHẤT, và nó so với danh sách khai TRƯỚC khi chạy, không so bằng regex nghĩ ra lúc chấm."
+    }
+  ],
+  "nguong": 4
+}

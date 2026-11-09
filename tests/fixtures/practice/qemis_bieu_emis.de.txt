@@ -1,0 +1,49 @@
+BÁO CÁO CA FAIL — TASK-DEMO — 09/11/2026 16:20
+
+TC_0530 — Biểu EMIS "Số học sinh theo khối" hiện sai số
+
+Màn     : Báo cáo EMIS › Biểu 02 — Số học sinh theo khối
+Trường  : mã 02847561 · năm học 2026-2027 · cấp THCS
+Kỳ vọng : (ô Kết quả mong đợi của case) "Biểu hiện đúng số học sinh đang học của trường theo từng khối."
+
+────────────────────────────────────────────────────────────────────────
+
+ĐÃ ĐO ĐƯỢC
+
+1. Mở màn Báo cáo EMIS › Biểu 02. Ô "Khối 6" hiện **142**.
+
+2. Truy vấn DB chỉ-đọc, đếm học sinh đang học của trường `02847561`, khối 6,
+   năm học 2026: **147**.
+
+3. Lệch **5**. Năm hàng chênh lệch là năm hồ sơ học sinh có `NGAY_TAO` trong
+   khoảng 03/11/2026 – 06/11/2026.
+
+4. Rerun 3/3 lượt: biểu vẫn hiện 142.
+
+5. Bấm nút "Tải lại" trên thanh công cụ của màn: vẫn 142.
+
+6. Khối 7, 8, 9 trên biểu khớp đúng với DB.
+
+7. DEV xác nhận không có bản triển khai nào lên UAT trong tuần này.
+
+8. Bảng lưu biểu có các cột: `MA_TRUONG`, `MA_NAM_HOC`, `MA_BIEU`, `MA_CHI_TIEU`,
+   `GIA_TRI`, `NGUOI_SUA`, `NGAY_SUA`. (Lượt chạy này KHÔNG đọc hai cột cuối.)
+
+────────────────────────────────────────────────────────────────────────
+
+YÊU CẦU
+
+Trả về MỘT khối JSON theo đúng hợp đồng dưới đây, không thêm trường:
+
+```json
+{
+  "trieu_chung": "...",
+  "nguyen_nhan_doi_thu": ["...", "..."],
+  "phep_phan_biet": "thao tác cụ thể sẽ làm để loại các nguyên nhân kia",
+  "tang_loi": "product_bug | api_bug | script_error | setup_failure | infra | flaky | CHUA_PHAN_DUOC",
+  "oracle_ref": "... hoặc null",
+  "mau_so": "hai con số đang so có cùng mẫu số không, và mẫu số đó là gì"
+}
+```
+
+Sau khối JSON có thể giải thích thêm bằng văn xuôi nếu muốn.

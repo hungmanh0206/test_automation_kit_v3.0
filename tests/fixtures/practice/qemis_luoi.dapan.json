@@ -1,0 +1,50 @@
+{
+  "_de": "qemis_luoi_lop.de.txt — DB 12 lớp, lưới hiện 7, không ai đặt bộ lọc.",
+  "_cau_tra_loi_dung": "Lưới lớp mặc định CHỈ HIỆN PHÂN HIỆU CHÍNH, nên 12 và 7 khác mẫu số. 5 lớp vắng thuộc phân hiệu thứ hai. Phép phân biệt: đếm 12 hàng theo phân hiệu, hoặc đổi ô chọn phân hiệu rồi đếm lại. Trường đối chứng ở mục 6 khớp vì nó chỉ có một phân hiệu — một đối chứng khớp KHÔNG chứng minh app đúng.",
+  "_vi_sao_bai_nay_DO_DUNG_THU_CAN_DO": "Đây là bẫy TÙY TIỆN: không suy ra được từ báo cáo, chỉ biết nếu được nói cho biết. Khác bài qemis-bieu-emis (biểu là ảnh chụp) vốn SUY RA ĐƯỢC — và lượt đo 09/11 cho 15/15 so 15/15, khoảng cách đúng bằng 0. Bài này mới đo được thứ một pack tri thức miền có thể cho.",
+  "_cham_the_nao": "Giống bài biểu EMIS: bốn phép kiểm chấm TRƯỜNG, đúng một phép kiểm chấm nội dung so với danh sách khai trước.",
+  "tu_khoa_phan_biet": [
+    "phân hiệu",
+    "cơ sở chính",
+    "điểm trường"
+  ],
+  "_tu_khoa_la_gi": "Quét ở nhánh --khong-pack. Bài này dùng skill ui_debug_agent vì run_report_reader có nhắc \"phân hiệu\" trong templates/ — đo được 1 lần, đủ để rò.",
+  "nguyen_nhan_that": {
+    "_la_gi": "Cách viết chấp nhận được của nguyên nhân thật.",
+    "chap_nhan": [
+      "phân hiệu",
+      "cơ sở chính",
+      "chi nhánh",
+      "campus",
+      "điểm trường"
+    ]
+  },
+  "kiem": [
+    {
+      "ma": "E1",
+      "la": "trả về khối JSON đọc được, có đủ 6 trường của hợp đồng",
+      "vi_sao": "hợp đồng nằm trong ĐỀ BÀI nên cả hai nhánh đều có. Đây là phần cấu trúc — chấm được tất định, và nó là nền để mọi phép kiểm sau không phải đoán ý."
+    },
+    {
+      "ma": "E2",
+      "la": "`nguyen_nhan_doi_thu` là mảng có >= 2 phần tử",
+      "vi_sao": "một giả thuyết duy nhất nghĩa là vớ lấy cái đầu tiên nghĩ ra. Đây đúng là lớp lỗi đắt nhất của dự án này."
+    },
+    {
+      "ma": "E3",
+      "la": "`phep_phan_biet` khác rỗng và nêu một thao tác cụ thể",
+      "vi_sao": "giả thuyết không kèm phép phân biệt vẫn chỉ là phỏng đoán."
+    },
+    {
+      "ma": "E4",
+      "la": "`tang_loi` KHÔNG phải `product_bug`",
+      "vi_sao": "gán product_bug ở đây đẩy sang DEV một hành vi ĐÚNG THEO THIẾT KẾ — đúng lớp lỗi đắt nhất của dự án này."
+    },
+    {
+      "ma": "E5",
+      "la": "`nguyen_nhan_doi_thu` chứa nguyên nhân THẬT (phân hiệu / cơ sở chính)",
+      "vi_sao": "phép kiểm nội dung DUY NHẤT, so với danh sách khai TRƯỚC khi chạy."
+    }
+  ],
+  "nguong": 4
+}

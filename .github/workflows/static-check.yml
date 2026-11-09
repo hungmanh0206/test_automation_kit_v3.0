@@ -48,6 +48,16 @@ jobs:
 
       # Bảng số đo QUICKSTART là số DẪN XUẤT nhưng từng giữ bằng tay — nó trôi BA lần trong một đợt
       # phát hành (919→920→928→929), lần nào cũng chỉ lộ ra sau 10 phút chạy cả bộ. Nay có máy sinh.
+      # Extension Kit A: ba cửa NHANH và tất định. `extension:baseline` CỐ Ý không ở đây — nó so với
+      # một ảnh chụp đông cứng, nên mọi thay đổi lõi CHÍNH ĐÁNG cũng làm nó đỏ; vai trò đó đã có
+      # `version:check`. Chạy nó lúc nhập extension và lúc nghi ngờ.
+      - name: Extension Kit A — cấu trúc, định tuyến, unit test
+        run: npm run extension:check
+      - name: Extension Kit A — benchmark định tuyến tất định
+        run: npm run extension:benchmark
+      - name: Extension Kit A — unit test (node --test)
+        run: npm run extension:test
+
       - name: Bảng số đo QUICKSTART khớp cây thật
         run: npm run quickstart:numbers:check
 

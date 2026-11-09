@@ -1,0 +1,47 @@
+{
+  "version": "1.0",
+  "note": "Artifact contract checks only; semantic correctness requires human/LLM independent reviewer.",
+  "dimensions": [
+    {
+      "id": "correctness",
+      "weight": 25
+    },
+    {
+      "id": "completeness",
+      "weight": 15
+    },
+    {
+      "id": "risk_coverage",
+      "weight": 15
+    },
+    {
+      "id": "traceability",
+      "weight": 15
+    },
+    {
+      "id": "evidence",
+      "weight": 15
+    },
+    {
+      "id": "schema",
+      "weight": 10
+    },
+    {
+      "id": "hallucination_control",
+      "weight": 5
+    }
+  ],
+  "mandatory_fields": [
+    "skill",
+    "requirement_ids",
+    "testcases",
+    "evidence",
+    "verdict"
+  ],
+  "allowed_verdicts": [
+    "PASS",
+    "FAIL",
+    "INCONCLUSIVE",
+    "NOT_EXECUTED"
+  ]
+}

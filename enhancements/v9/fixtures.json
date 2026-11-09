@@ -1,0 +1,383 @@
+[
+  {
+    "id": "valid-artifact",
+    "kind": "artifact",
+    "payload": {
+      "requirement_ids": [
+        "R1"
+      ],
+      "testcases": [
+        {
+          "id": "TC1",
+          "requirement_id": "R1",
+          "steps": [
+            "Open page"
+          ],
+          "expected": "Page appears"
+        }
+      ],
+      "verdict": "PASS",
+      "evidence": [
+        "evidence.png"
+      ],
+      "execution_verified": true,
+      "skill": "benchmark-value"
+    },
+    "expected_accept": true
+  },
+  {
+    "id": "missing-evidence",
+    "kind": "artifact",
+    "payload": {
+      "requirement_ids": [
+        "R1"
+      ],
+      "testcases": [
+        {
+          "id": "TC1",
+          "requirement_id": "R1",
+          "steps": [
+            "Open page"
+          ],
+          "expected": "Page appears"
+        }
+      ],
+      "verdict": "PASS",
+      "evidence": [],
+      "execution_verified": true,
+      "skill": "benchmark-value"
+    },
+    "expected_accept": false
+  },
+  {
+    "id": "execution-not-verified",
+    "kind": "artifact",
+    "payload": {
+      "requirement_ids": [
+        "R1"
+      ],
+      "testcases": [
+        {
+          "id": "TC1",
+          "requirement_id": "R1",
+          "steps": [
+            "Open page"
+          ],
+          "expected": "Page appears"
+        }
+      ],
+      "verdict": "PASS",
+      "evidence": [
+        "evidence.png"
+      ],
+      "execution_verified": false,
+      "skill": "benchmark-value"
+    },
+    "expected_accept": false
+  },
+  {
+    "id": "orphan-testcase",
+    "kind": "artifact",
+    "payload": {
+      "requirement_ids": [
+        "R1"
+      ],
+      "testcases": [
+        {
+          "id": "TC1",
+          "requirement_id": "R404",
+          "steps": [
+            "Open page"
+          ],
+          "expected": "Page appears"
+        }
+      ],
+      "verdict": "PASS",
+      "evidence": [
+        "evidence.png"
+      ],
+      "execution_verified": true,
+      "skill": "benchmark-value"
+    },
+    "expected_accept": false
+  },
+  {
+    "id": "missing-expected",
+    "kind": "artifact",
+    "payload": {
+      "requirement_ids": [
+        "R1"
+      ],
+      "testcases": [
+        {
+          "id": "TC1",
+          "requirement_id": "R1",
+          "steps": [
+            "Open page"
+          ],
+          "expected": ""
+        }
+      ],
+      "verdict": "PASS",
+      "evidence": [
+        "evidence.png"
+      ],
+      "execution_verified": true,
+      "skill": "benchmark-value"
+    },
+    "expected_accept": false
+  },
+  {
+    "id": "missing-steps",
+    "kind": "artifact",
+    "payload": {
+      "requirement_ids": [
+        "R1"
+      ],
+      "testcases": [
+        {
+          "id": "TC1",
+          "requirement_id": "R1",
+          "steps": [],
+          "expected": "Page appears"
+        }
+      ],
+      "verdict": "PASS",
+      "evidence": [
+        "evidence.png"
+      ],
+      "execution_verified": true,
+      "skill": "benchmark-value"
+    },
+    "expected_accept": false
+  },
+  {
+    "id": "invalid-verdict",
+    "kind": "artifact",
+    "payload": {
+      "requirement_ids": [
+        "R1"
+      ],
+      "testcases": [
+        {
+          "id": "TC1",
+          "requirement_id": "R1",
+          "steps": [
+            "Open page"
+          ],
+          "expected": "Page appears"
+        }
+      ],
+      "verdict": "SUCCESS",
+      "evidence": [
+        "evidence.png"
+      ],
+      "execution_verified": true,
+      "skill": "benchmark-value"
+    },
+    "expected_accept": false
+  },
+  {
+    "id": "no-testcases",
+    "kind": "artifact",
+    "payload": {
+      "requirement_ids": [
+        "R1"
+      ],
+      "testcases": [],
+      "verdict": "PASS",
+      "evidence": [
+        "evidence.png"
+      ],
+      "execution_verified": true,
+      "skill": "benchmark-value"
+    },
+    "expected_accept": false
+  },
+  {
+    "id": "no-requirements",
+    "kind": "artifact",
+    "payload": {
+      "requirement_ids": [],
+      "testcases": [
+        {
+          "id": "TC1",
+          "requirement_id": "R1",
+          "steps": [
+            "Open page"
+          ],
+          "expected": "Page appears"
+        }
+      ],
+      "verdict": "PASS",
+      "evidence": [
+        "evidence.png"
+      ],
+      "execution_verified": true,
+      "skill": "benchmark-value"
+    },
+    "expected_accept": false
+  },
+  {
+    "id": "valid-requirements",
+    "kind": "workflow",
+    "payload": {
+      "requirement_ids": [
+        "R1"
+      ],
+      "source": "spec.md"
+    },
+    "expected_accept": true,
+    "stage": "requirements"
+  },
+  {
+    "id": "empty-source",
+    "kind": "workflow",
+    "payload": {
+      "requirement_ids": [
+        "R1"
+      ],
+      "source": ""
+    },
+    "expected_accept": false,
+    "stage": "requirements"
+  },
+  {
+    "id": "valid-ambiguity",
+    "kind": "workflow",
+    "payload": {
+      "resolved": true,
+      "notes": "clarified"
+    },
+    "expected_accept": true,
+    "stage": "ambiguity"
+  },
+  {
+    "id": "unresolved-ambiguity",
+    "kind": "workflow",
+    "payload": {
+      "resolved": false,
+      "notes": "pending"
+    },
+    "expected_accept": false,
+    "stage": "ambiguity"
+  },
+  {
+    "id": "valid-testcase",
+    "kind": "workflow",
+    "payload": {
+      "cases": [
+        {
+          "id": "T1",
+          "requirement_id": "R1",
+          "expected_result": "Visible"
+        }
+      ]
+    },
+    "expected_accept": true,
+    "stage": "testcase"
+  },
+  {
+    "id": "missing-expected-result",
+    "kind": "workflow",
+    "payload": {
+      "cases": [
+        {
+          "id": "T1",
+          "requirement_id": "R1",
+          "expected_result": ""
+        }
+      ]
+    },
+    "expected_accept": false,
+    "stage": "testcase"
+  },
+  {
+    "id": "valid-review",
+    "kind": "workflow",
+    "payload": {
+      "approved": true,
+      "reviewer": "QA"
+    },
+    "expected_accept": true,
+    "stage": "review"
+  },
+  {
+    "id": "unapproved-review",
+    "kind": "workflow",
+    "payload": {
+      "approved": false,
+      "reviewer": "QA"
+    },
+    "expected_accept": false,
+    "stage": "review"
+  },
+  {
+    "id": "valid-execution",
+    "kind": "workflow",
+    "payload": {
+      "run_id": "run1",
+      "status": "FAIL"
+    },
+    "expected_accept": true,
+    "stage": "execution"
+  },
+  {
+    "id": "invalid-execution",
+    "kind": "workflow",
+    "payload": {
+      "run_id": "run1",
+      "status": "GREEN"
+    },
+    "expected_accept": false,
+    "stage": "execution"
+  },
+  {
+    "id": "valid-evidence-manifest",
+    "kind": "workflow",
+    "payload": {
+      "items": [
+        {
+          "path": "trace.zip",
+          "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        }
+      ]
+    },
+    "expected_accept": true,
+    "stage": "evidence"
+  },
+  {
+    "id": "invalid-evidence-hash",
+    "kind": "workflow",
+    "payload": {
+      "items": [
+        {
+          "path": "trace.zip",
+          "sha256": "bad"
+        }
+      ]
+    },
+    "expected_accept": false,
+    "stage": "evidence"
+  },
+  {
+    "id": "valid-verdict",
+    "kind": "workflow",
+    "payload": {
+      "result": "INCONCLUSIVE",
+      "oracle": "requirements"
+    },
+    "expected_accept": true,
+    "stage": "verdict"
+  },
+  {
+    "id": "invalid-verdict-contract",
+    "kind": "workflow",
+    "payload": {
+      "result": "MAYBE",
+      "oracle": "requirements"
+    },
+    "expected_accept": false,
+    "stage": "verdict"
+  }
+]
