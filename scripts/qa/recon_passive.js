@@ -75,11 +75,14 @@ const CON_NGHE = /\bpage\s*\.\s*on\s*\(\s*['"`](response|request|requestfinished
  * không cần nội dung. Và nó bắt buộc: chính file này nhắc `fetch`/`axios` trong phần đầu, không làm
  * trắng thì nó tự chặn mình theo đường khác.
  */
-function boChuThich(s) {
-  return s
-    .replace(/\/\*[\s\S]*?\*\//g, (m) => m.replace(/[^\n]/g, ' '))
-    .replace(/(^|[^:])\/\/[^\n]*/g, (m) => m.replace(/[^\n]/g, ' '));
-}
+/*
+ * 09/11/2026 — chuyển vào `lib/js_source.js`. Ba bản giống hệt từng byte trong cây là ba chỗ để trôi
+ * khỏi nhau, và khi chúng trôi thì ba cửa đọc cùng một file ra ba kết quả khác nhau.
+ *
+ * Vẫn RE-EXPORT ở dưới: `policy_source_check.js` nhập nó từ đây, và đổi đường nhập của một cửa đang
+ * xanh là việc không cần thiết trong cùng một lượt dọn.
+ */
+const { boChuThich } = require(path.join(__dirname, 'lib', 'js_source'));
 function chiLaMa(s) {
   return boChuThich(s)
     .replace(/(['"`])(?:\\.|(?!\1)[^\\\n])*\1/g, (m) => m[0] + ' '.repeat(Math.max(0, m.length - 2)) + m[0]);
