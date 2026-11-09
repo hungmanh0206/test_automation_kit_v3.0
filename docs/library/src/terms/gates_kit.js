@@ -150,7 +150,7 @@ const TERMS_GATE3 = [
   src:'scripts/qa/scope_anchor.js', rel:['g-dimension_coverage','c-canonical','g-preflight_gate'] },
 { id:'g-gate_index', t:'gates:index', cat:'gate',
   def:'Sinh DANH MỤC GATE của kit từ chính source. Trả lời được "kit có bao nhiêu gate, mỗi cái CHẶN gì, gọi ở đâu".',
-  detail:'Quét source rồi suy mức từ code: exit 1 là CHẶN · ghi artifact là SINH · chỉ in là BÁO CÁO. Bảng hiện tại: 163 máy — 118 CHẶN, 25 SINH, 20 BÁO CÁO. Bản --check chặn khi bảng lệch source.',
+  detail:'Quét source rồi suy mức từ code: exit 1 là CHẶN · ghi artifact là SINH · chỉ in là BÁO CÁO. Bảng hiện tại: 164 máy — 119 CHẶN, 25 SINH, 20 BÁO CÁO. Bản --check chặn khi bảng lệch source.',
   why:'Kit có hơn 30 npm script dạng gate và gần 60 file trong scripts/qa/, nhưng không chỗ nào trả lời được câu trên. Hệ quả không phải bất tiện: luận đề của kit là "luật cần MÁY", mà máy không LIỆT KÊ ĐƯỢC thì không kiểm toán được. Không ai biết một gate đã âm thầm tụt thành cảnh báo, hay đã mất nơi gọi.',
   how:['npm run gates:index để sinh lại bảng.','npm run gates:index:check để chặn khi bảng lệch source.'],
   cmd:'npm run gates:index   ·   npm run gates:index:check',
@@ -164,6 +164,13 @@ const TERMS_GATE3 = [
   why:'Đặt adapter trong .agent/skills làm 7 ca infra của kit đỏ (skills-shim, skills-route, /start) vì chúng không được đăng ký trong INDEX.md và shim. V9.1 dời ra ngoài để sửa tận gốc; cửa này giữ cho nó không quay lại.',
   how:['npm run extension:check'],
   src:'scripts/qa/extension_integrity_check.js', rel:['g-skills_index','c-forcing-function'] },
+
+{ id:'g-bug_outcome', t:'bug:outcome', cat:'gate',
+  def:'SỔ KẾT CỤC của claim bug, gộp MỌI task — và lời khai thẳng về bốn tỉ lệ: cái nào tính được, cái nào không và vì sao.',
+  detail:'Tách HAI câu hỏi khác nhau: ① kit TỰ BẮT bao nhiêu claim sai trước khi nói thành lời (từ status withdrawn + phép kiểm nào bắt được) · ② BÊN NGOÀI phán thế nào (từ nhãn ket_cuc: accepted · rejected · by_design · duplicate · cannot_verify). Ghi nhãn bằng --ghi, bắt buộc --nguon, và nhãn NGƯỢC với claim thì bắt buộc --vi-sao. --enforce chặn khi claim đã log quá 14 ngày mà chưa có nhãn. Ghi tích luỹ vào knowledge/metrics/bug-outcomes.json.',
+  why:'Chủ dự án nêu kit chưa có tỉ lệ false PASS / false bug / missed bug / inconclusive. Đo 09/11/2026 trên dữ liệu thật: 141 claim · 119 đã log · 0/119 có nhãn · 113 quá 14 ngày. Vấn đề không phải thiếu công cụ tính mà là SỔ BỎ RƠI LỚP ÂM — không ai tính được tỉ lệ sai từ một cuốn sổ chỉ chép phần đúng. Luật lớn nhất của máy: KHÔNG BAO GIỜ in một tỉ lệ mà không in mẫu số của nó; "8% trên 2 claim có nhãn trong 40 đã log" không phải tỉ lệ của dự án. Và nó nói thẳng false PASS + missed bug KHÔNG tính được từ sổ claim, kèm nguồn thay thế.',
+  how:['npm run bug:outcome','npm run bug:outcome:ghi -- TC_001 --nhan rejected --nguon "DEV A" --vi-sao "đúng thiết kế theo FSD 4.2"','npm run bug:outcome:enforce'],
+  src:'scripts/qa/bug_outcome.js', rel:['g-bug_claim','g-env_assumptions'] },
 
 { id:'g-env_assumptions', t:'lint:env', cat:'gate',
   def:'Bắt KHẲNG ĐỊNH PHỤ THUỘC MÔI TRƯỜNG: phép kiểm xanh ở nơi nó chạy và đỏ ở nơi nó không chạy.',
