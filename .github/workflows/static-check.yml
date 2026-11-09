@@ -10,12 +10,28 @@ on:
 jobs:
   static:
     runs-on: ubuntu-latest
+    # ĐO CẢ HAI ĐẦU CỦA `engines` (09/11/2026).
+    #
+    # Trước: CI chỉ chạy 22, máy chủ dự án chạy 26 ⇒ KHÔNG AI ĐO BẢN ĐANG ĐƯỢC DÙNG. `engines` khai
+    # ">=22" nên 26 nằm trong lời hứa mà không nằm trong phép đo.
+    #
+    # Vì sao KHÔNG bỏ 22 để chuyển hẳn sang 26: lỗi `node --test <thư mục>` ngày 09/11 XANH trên 26
+    # và ĐỎ trên 22 — chính lượt CI chạy 22 là thứ bắt được nó. Bỏ sàn đi là bỏ luôn phép đo đã cứu
+    # mình, và luật ② của `lint:env` mất căn cứ tồn tại.
+    #
+    # Vì sao chỉ ma trận ở ĐÂY: `heavy-gates` và `task-execute` phần lớn không phụ thuộc bản Node, và
+    # chúng vốn đã lâu. Nhân đôi chúng là trả giá mà không mua thêm thông tin.
+    strategy:
+      fail-fast: false   # một bản đỏ không được che mất kết quả của bản kia
+      matrix:
+        node: [22, 26]
+    name: static (node ${{ matrix.node }})
     steps:
       - uses: actions/checkout@v7
 
       - uses: actions/setup-node@v7
         with:
-          node-version: 22
+          node-version: ${{ matrix.node }}
           cache: npm
 
       - name: Install deps

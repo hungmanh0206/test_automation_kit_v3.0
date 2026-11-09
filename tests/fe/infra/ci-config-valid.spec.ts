@@ -246,3 +246,54 @@ test.describe('@infra cấu hình CI — hỏng là KHÔNG phép kiểm nào ch�
     }
   });
 });
+
+test.describe('@infra CI — `engines` phải được ĐO ở cả hai đầu, không chỉ được khai', () => {
+  /*
+   * ĐO 09/11/2026. `engines` khai `">=22"`, CI chỉ chạy **22**, và máy chủ dự án chạy **26** — tức
+   * bản đang được dùng hằng ngày KHÔNG AI ĐO, còn `">=22"` là một lời hứa không ai kiểm ở đầu trên.
+   *
+   * Và chiều ngược lại cũng có giá: lỗi `node --test <thư mục>` ngày 09/11 XANH trên 26, ĐỎ trên 22 —
+   * chính lượt CI chạy 22 bắt được nó. Nên luật không phải "dùng bản mới nhất", mà là **đo cả hai
+   * đầu của chính lời hứa mình khai**.
+   *
+   * Ca này gác để ma trận không bị gỡ trong im lặng: gỡ nó đi thì một trong hai đầu lại thành lời
+   * hứa suông, và lần sau sẽ không ai biết điều đó đã xảy ra.
+   */
+  const sanTuEngines = (): number => {
+    const e = String((JSON.parse(fs.readFileSync(path.join(REPO, 'package.json'), 'utf8')).engines || {}).node || '');
+    const m = e.match(/(\d+)/);
+    expect(m, '`engines.node` không khai được sàn ⇒ ca này đo hư không').not.toBeNull();
+    return Number(m![1]);
+  };
+
+  test('ma trận của `static-check` phủ SÀN của `engines`, và có ít nhất hai bản', () => {
+    const wf = fs.readFileSync(path.join(REPO, '.github', 'workflows', 'static-check.yml'), 'utf8');
+    const m = wf.match(/node:\s*\[([^\]]+)\]/);
+    expect(m, 'không thấy ma trận `node: [...]` — một đầu của `engines` đang không được đo').not.toBeNull();
+    const ds = m![1].split(',').map((x) => Number(x.trim())).filter(Number.isFinite);
+    expect(ds.length, 'ma trận một bản thì không gọi là đo hai đầu').toBeGreaterThanOrEqual(2);
+    expect(ds, `sàn \`engines\` là ${sanTuEngines()} nhưng ma trận không chạy bản đó`).toContain(sanTuEngines());
+  });
+
+  test('`fail-fast` phải TẮT — một bản đỏ không được che kết quả của bản kia', () => {
+    /*
+     * Mặc định của GitHub là `fail-fast: true`: bản 22 đỏ thì bản 26 bị huỷ giữa chừng. Khi đó ta
+     * biết "có lỗi" nhưng KHÔNG biết nó là lỗi của riêng một bản hay của cả hai — mà đó đúng là câu
+     * hỏi duy nhất mà ma trận này sinh ra để trả lời.
+     */
+    const wf = fs.readFileSync(path.join(REPO, '.github', 'workflows', 'static-check.yml'), 'utf8');
+    expect(wf).toMatch(/fail-fast:\s*false/);
+  });
+
+  test('`.nvmrc` nằm TRONG ma trận — nếu không, bản dùng để đóng gói không ai đo', () => {
+    /*
+     * `release.yml` và `integration-check.yml` đọc `.nvmrc`. Bản dựng ra gói phát hành mà không nằm
+     * trong ma trận thì chính nó là đầu không được đo.
+     */
+    const nvm = Number(fs.readFileSync(path.join(REPO, '.nvmrc'), 'utf8').trim());
+    const wf = fs.readFileSync(path.join(REPO, '.github', 'workflows', 'static-check.yml'), 'utf8');
+    const ds = (wf.match(/node:\s*\[([^\]]+)\]/) || [, ''])[1].split(',').map((x) => Number(x.trim()));
+    expect(Number.isFinite(nvm), '`.nvmrc` không đọc được ⇒ ca này đo hư không').toBe(true);
+    expect(ds, `\`.nvmrc\` ghim ${nvm} — bản dùng để đóng gói phải nằm trong ma trận`).toContain(nvm);
+  });
+});
