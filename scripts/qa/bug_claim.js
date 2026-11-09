@@ -93,6 +93,52 @@ function looksLikeMeasurement(s) {
   return cfg.falsification.measurementMustMatchOneOf.some((p) => new RegExp(p).test(s));
 }
 
+/*
+ * NEO PHÉP ĐO VÀO MỘT ARTIFACT CÓ THẬT (09/11/2026).
+ *
+ * `looksLikeMeasurement` ở trên chấm CHÍNH TẢ. Đo được: một claim HOÀN TOÀN BỊA — ba phép đo phản
+ * chứng là văn xuôi nghĩ ra tại chỗ, không lượt chạy nào xảy ra — qua cửa với `OK, 1 claim hợp lệ`.
+ * Câu "chạy lại phép đếm 5 lần, cả 5 lần đều ra 12 hàng" đủ 20 ký tự và có chữ số, thế là xong.
+ *
+ * Không máy nào xác minh được một phép đo ĐÃ XẢY RA, trừ khi nó ĐỂ LẠI DẤU VẾT. Nên phép đo phải trỏ
+ * tới một file có thật trong cây kết quả của chính task — thứ chỉ tồn tại nếu lượt chạy đã xảy ra.
+ *
+ * LỐI THOÁT, và vì sao nó phải tồn tại: có phép đo thật mà không sinh file (đọc ngày sửa một tài
+ * liệu, so hai dòng trong spec). Cấm tiệt thì người ta bịa một ĐƯỜNG DẪN thay vì bịa một CÂU — tệ
+ * hơn, vì đường dẫn trông như bằng chứng. Nên cho phép `khong-do-duoc: <lý do>`, nhưng lý do phải
+ * đủ dài VÀ số lần dùng bị ĐẾM RA: một lối thoát không ai đếm thì nó thành lối đi chính.
+ */
+const mienNeo = [];
+const NEO = (cfg.falsification && cfg.falsification.neoArtifact) || {};
+/** Token trông như đường dẫn: có đuôi file, và không phải là một lệnh npm. */
+/* Đuôi phải BẮT ĐẦU BẰNG CHỮ: nếu không, `uat-2026.11.09` (mã build) bị đọc thành một đường dẫn. */
+const MAU_DUONG_DAN = /(?:^|[\s'"`(=])([A-Za-z0-9_@][A-Za-z0-9_@./-]*\.[A-Za-z][A-Za-z0-9]{1,4})(?=$|[\s'"`),.;])/g;
+
+function neoArtifact(s, goc) {
+  if (!NEO.batBuoc) return { dat: true };
+  const chuoi = typeof s === 'string' ? s : '';
+  const iMien = chuoi.indexOf(NEO.tienToMien);
+  if (iMien >= 0) {
+    const lyDo = chuoi.slice(iMien + NEO.tienToMien.length).trim();
+    if (lyDo.length < NEO.minLyDoMienChars) {
+      return { dat: false, viSao: `\`${NEO.tienToMien}\` phải KÈM LÝ DO ≥ ${NEO.minLyDoMienChars} ký tự — `
+        + 'một lối thoát không đòi lý do thì nó là công tắc tắt cửa' };
+    }
+    return { dat: true, mien: true };
+  }
+  const ds = [...chuoi.matchAll(MAU_DUONG_DAN)].map((m) => m[1]);
+  const coThat = ds.filter((d) => fs.existsSync(path.join(goc, d)) || fs.existsSync(path.join(rc.REPO_ROOT, d)));
+  if (coThat.length) return { dat: true, neo: coThat[0] };
+  return {
+    dat: false,
+    viSao: ds.length
+      ? `trỏ tới ${ds.map((d) => `\`${d}\``).join(', ')} nhưng KHÔNG file nào có thật trong cây kết quả của task `
+        + '— một phép đo đã xảy ra thì để lại dấu vết'
+      : 'không trỏ tới ARTIFACT nào có thật. Một câu có chữ số không chứng minh phép đo đã xảy ra — '
+        + `claim bịa qua cửa này được. Trỏ vào file lượt chạy sinh ra, hoặc khai \`${NEO.tienToMien} <lý do>\``,
+  };
+}
+
 /**
  * Băm KHỐI BẰNG CHỨNG của một claim — nền của luật gốc của A: "lịch sử retest là phần DUY NHẤT được thêm
  * vào bug sau khi đã log".
@@ -271,8 +317,29 @@ function validate(claim, file) {
     const w = `\`falsified[${i}]\``;
     if (!nonEmpty(f && f.category)) at(`${w} thiếu \`category\``);
     if (!atLeast(f && f.hypothesis, cfg.falsification.minHypothesisChars)) at(`${w} \`hypothesis\` quá ngắn`);
-    if (!looksLikeMeasurement(f && f.measurement)) {
-      at(`${w} \`measurement\` chưa dẫn PHÉP ĐO — cần số, lệnh, endpoint hoặc đường dẫn file`);
+    /*
+     * NEO-ARTIFACT THAY THẾ KHỚP-CHÍNH-TẢ, không cộng thêm.
+     *
+     * Đo bằng đối chứng 09/11/2026: để hai phép kiểm chồng nhau thì CẢ BỐN biến thể đều bị chặn, kể
+     * cả biến neo artifact THẬT — vì `measurementMustMatchOneOf` không có đuôi ảnh, nên một câu trỏ
+     * đúng vào `evidence/.../buoc-ghi.png` vẫn bị kêu là "chưa dẫn phép đo". Và lối thoát
+     * `khong-do-duoc:` thì bị đòi "trông như phép đo" — vô nghĩa, vì nó tồn tại đúng cho trường hợp
+     * KHÔNG đo thành file được.
+     *
+     * Trỏ vào một file CÓ THẬT là bằng chứng mạnh hơn "trong câu có chữ số", nên nó thay thế. Danh
+     * sách mẫu cũ vẫn giữ cho đường `batBuoc: false` — gỡ nó đi là bỏ phép kiểm ở cấu hình chưa bật.
+     */
+    const mea = f && f.measurement;
+    if (!NEO.batBuoc) {
+      if (!looksLikeMeasurement(mea)) at(`${w} \`measurement\` chưa dẫn PHÉP ĐO — cần số, lệnh, endpoint hoặc đường dẫn file`);
+    } else if (!atLeast(mea, cfg.falsification.minMeasurementChars)) {
+      at(`${w} \`measurement\` quá ngắn (cần ≥ ${cfg.falsification.minMeasurementChars} ký tự)`);
+    } else {
+      /* Thư mục kết quả của task: `<taskOut>/reports/bug-claims/X.json` ⇒ lùi ba cấp. */
+      const gocTask = path.resolve(path.dirname(file || '.'), '..', '..');
+      const neo = neoArtifact(mea, gocTask);
+      if (!neo.dat) at(`${w} \`measurement\` ${neo.viSao}`);
+      else if (neo.mien) mienNeo.push(`${path.basename(file || '?')} ${w}`);
     }
     if (!nonEmpty(f && f.result)) at(`${w} thiếu \`result\` — phản chứng đó bị loại bằng kết quả gì`);
   });
@@ -465,6 +532,10 @@ function main() {
   const scope = mc.checked ? `, đối chiếu ${mc.total} case trong testcase-status.json` : ', chưa có testcase-status.json để đối chiếu';
   const gf = mc.grandfathered ? ` Bỏ qua ${mc.grandfathered} case đã có bug key (đã log trước khi có gate này).` : '';
   console.log(`[bug-claim] OK — ${nActive} claim hợp lệ, ${nWithdrawn} đã rút${scope}.${gf}`);
+  if (mienNeo.length) {
+    /* Lối thoát không ai đếm thì nó thành lối đi chính. Con số này phải ở trong tầm mắt. */
+    console.log(`  ⚠ ${mienNeo.length} phép đo dùng lối thoát \`${NEO.tienToMien}\` — không neo được artifact: ${mienNeo.join(' · ')}`);
+  }
   process.exit(0);
 }
 

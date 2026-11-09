@@ -52,7 +52,7 @@ function claimDat(extra: Record<string, unknown> = {}) {
     falsified: NHOM_PHAN_CHUNG.map((category) => ({
       category,
       hypothesis: `Có thể nguyên nhân thật thuộc nhóm ${category} chứ không phải lỗi sản phẩm`,
-      measurement: 'đọc lại GET /api/hoc-sinh/123 sau 2 lượt, response trả email "abc" — ảnh outputs/x/evidence/01.png',
+      measurement: "đọc lại GET /api/hoc-sinh/123 sau 2 lượt, kết quả ở evidence/phan-chung/01.png",
       result: 'đã loại, lỗi vẫn còn',
     })),
     retest: [],
@@ -65,6 +65,15 @@ function cayTam(claims: Record<string, unknown>[]): { d: string; env: NodeJS.Pro
   const d = fs.mkdtempSync(path.join(os.tmpdir(), 'retest-'));
   const claimDir = path.join(d, 'tasks/TASK-1/reports/bug-claims');
   fs.mkdirSync(claimDir, { recursive: true });
+  /*
+   * 09/11/2026 — `bug:claim` nay đòi mỗi `measurement` NEO vào một artifact CÓ THẬT, vì một claim mà
+   * cả ba phản chứng là văn xuôi nghĩ ra tại chỗ từng qua cửa. Spec này không nói về luật đó, nhưng
+   * claim mẫu của nó phải hợp lệ theo hợp đồng mới — nếu không, mọi ca ở đây đỏ vì một lý do KHÁC với
+   * thứ chúng định kiểm, và lúc ấy chúng không còn đo được gì.
+   */
+  const anh = path.join(d, 'tasks/TASK-1/evidence/phan-chung/01.png');
+  fs.mkdirSync(path.dirname(anh), { recursive: true });
+  fs.writeFileSync(anh, Buffer.from('89504e470d0a1a0a', 'hex'));
   claims.forEach((c, i) => fs.writeFileSync(path.join(claimDir, `c${i}.json`), JSON.stringify(c, null, 2), 'utf8'));
   return { d, env: { ...gateEnv(), PROJECT_OUTPUT_DIR: d, TASK_KEY: 'TASK-1' } };
 }

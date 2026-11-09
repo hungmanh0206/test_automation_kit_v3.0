@@ -35,6 +35,8 @@ function mkTask(): { root: string; claims: string; results: string } {
   const results = path.join(task, 'test-results');
   fs.mkdirSync(claims, { recursive: true });
   fs.mkdirSync(results, { recursive: true });
+  /* Hợp đồng mới: phản chứng phải neo vào artifact CÓ THẬT, nên cây mẫu phải có chúng. */
+  dungArtifact(root);
   return { root, claims, results };
 }
 
@@ -52,12 +54,30 @@ const validClaim = () => ({
   layer_probe: 'GET /api/v1/orders/1774127 tra paid_amount=4000000, UI cung hien the nen lech o BE',
   instrument: { control_type: 'cell bang', read_method: 'doc textContent theo chi so cot lay tu th' },
   fixture_path: 'api',
+  /*
+   * CẬP NHẬT 09/11/2026 — mỗi `measurement` nay phải NEO vào một artifact có thật của lượt chạy.
+   *
+   * Ba câu cũ ở đây đều là văn xuôi có chữ số, và chúng qua cửa. Đo được: một claim mà CẢ BA phản
+   * chứng là văn xuôi nghĩ ra tại chỗ — không lượt chạy nào xảy ra — vẫn cho `OK, 1 claim hợp lệ`.
+   * Nên fixture này đổi theo hợp đồng MỚI, không phải nới ra cho qua: nó nay phải trỏ vào file mà
+   * `mkTask()` thật sự tạo.
+   */
   falsified: [
-    { category: 'doc_outdated', hypothesis: 'FSD co the cu hon build', measurement: 'tài liệu nguồn version API page 233701377 tra v35 ngay 12/09/2026', result: 'FSD moi hon build' },
-    { category: 'instrument', hypothesis: 'Doc nham cell vi bang co cot an', measurement: 'doi chieu chi so cot tu th: 7/11, doc lai bang GET /transactions', result: 'hai nguon cung gia tri' },
-    { category: 'fixture', hypothesis: 'Deal dung khong tu nhien', measurement: 'tao qua UI OPS luong Next-Finish-Confirm, order_id=88213', result: 'fixture di dung luong app' },
+    { category: 'doc_outdated', hypothesis: 'FSD co the cu hon build', measurement: 'doi chieu FSD voi build, ket qua o evidence/fsd-version/v35.png', result: 'FSD moi hon build' },
+    { category: 'instrument', hypothesis: 'Doc nham cell vi bang co cot an', measurement: 'doi chieu chi so cot tu th 7/11, doc lai bang evidence/doi-chieu-cot/lan-2.png', result: 'hai nguon cung gia tri' },
+    { category: 'fixture', hypothesis: 'Deal dung khong tu nhien', measurement: 'tao qua UI OPS luong Next-Finish-Confirm, buoc ghi o evidence/fixture-ui/confirm.png', result: 'fixture di dung luong app' },
   ],
 });
+
+/** Những artifact mà `validClaim()` trỏ tới — phải CÓ THẬT, nếu không claim hợp lệ cũng bị chặn. */
+const NEO_CUA_VALID = ['fsd-version/v35.png', 'doi-chieu-cot/lan-2.png', 'fixture-ui/confirm.png'];
+function dungArtifact(root: string): void {
+  for (const p of NEO_CUA_VALID) {
+    const f = path.join(root, 'tasks', 'CLAIM-TEST', 'evidence', p);
+    fs.mkdirSync(path.dirname(f), { recursive: true });
+    fs.writeFileSync(f, Buffer.from('89504e470d0a1a0a', 'hex'));
+  }
+}
 
 const writeClaim = (dir: string, name: string, obj: unknown) => fs.writeFileSync(path.join(dir, `${name}.json`), JSON.stringify(obj, null, 2), 'utf8');
 
@@ -100,18 +120,62 @@ test.describe('@infra bug:claim — kiểm chứng phải đi trước lời nó
     expect(r.out).toContain('instrument');
   });
 
-  test('phản chứng không dẫn PHÉP ĐO thì CHẶN', () => {
+  test('phản chứng không NEO vào artifact có thật thì CHẶN', () => {
     /*
-     * Đây là chỗ chống làm-cho-có. Máy đếm được ba nhóm nhưng không đọc được ý định, nên nó đòi mỗi
-     * phản chứng phải dẫn số, lệnh, endpoint hoặc đường dẫn file. Bịa một phép đo khó hơn bịa một câu.
+     * ĐÍNH CHÍNH TIỀN ĐỀ, 09/11/2026. Chú thích cũ ở đây viết: *"Bịa một phép đo khó hơn bịa một
+     * câu."* — và nó SAI. Đo được: một claim mà CẢ BA phản chứng là văn xuôi nghĩ ra tại chỗ (không
+     * lượt chạy nào xảy ra, không file nào được sinh) qua cửa với `OK, 1 claim hợp lệ`. Vì phép kiểm
+     * cũ chỉ đòi ≥20 ký tự và có một chữ số — nó chấm CHÍNH TẢ, không chấm phép đo.
+     *
+     * Hợp đồng mới: phép đo phải trỏ tới một file CÓ THẬT trong cây kết quả của task — thứ chỉ tồn
+     * tại nếu lượt chạy đã xảy ra. Không máy nào xác minh được một phép đo đã xảy ra bằng cách khác;
+     * mọi cách khác đều là kiểm HÌNH THỨC, và hình thức thì bịa được.
      */
     const t = mkTask();
     const c = validClaim();
-    c.falsified[1].measurement = 'toi da kiem tra lai va thay dung roi';
+    c.falsified[1].measurement = 'toi da kiem tra lai nhieu lan va thay dung roi, 5 lan deu the';
     writeClaim(t.claims, 'TC_001', c);
     const r = run(t.root);
-    expect(r.code).toBe(1);
-    expect(r.out).toContain('PHÉP ĐO');
+    expect(r.code, 'câu này có chữ số và đủ dài — phép kiểm cũ cho qua').toBe(1);
+    expect(r.out).toContain('ARTIFACT');
+  });
+
+  test('ĐỐI CHỨNG: trỏ tới file KHÔNG tồn tại cũng CHẶN — và nói ra tên file', () => {
+    /*
+     * Cặp với ca trên. Nếu chỉ đòi "có dạng đường dẫn" thì bịa một ĐƯỜNG DẪN dễ hơn bịa một câu, và
+     * đường dẫn còn trông giống bằng chứng hơn. Khác biệt duy nhất giữa hai ca là file có thật hay không.
+     */
+    const t = mkTask();
+    const c = validClaim();
+    c.falsified[1].measurement = 'doi chieu lai, ket qua o evidence/khong-he-ton-tai/lan-9.png';
+    writeClaim(t.claims, 'TC_001', c);
+    const r = run(t.root);
+    expect(r.code, r.out).toBe(1);
+    expect(r.out).toContain('khong-he-ton-tai/lan-9.png');
+  });
+
+  test('lối thoát `khong-do-duoc:` KÈM LÝ DO thì qua, và BỊ ĐẾM RA', () => {
+    /*
+     * Có phép đo thật mà không sinh file: đọc ngày sửa một tài liệu, so hai dòng trong spec. Cấm tiệt
+     * thì người ta bịa một đường dẫn thay vì bịa một câu — tệ hơn. Nhưng lối thoát không ai đếm thì
+     * nó thành lối đi chính, nên cửa phải IN RA số lần dùng.
+     */
+    const t = mkTask();
+    const c = validClaim();
+    c.falsified[0].measurement = 'khong-do-duoc: doc ngay sua cua FSD tren Google Sheet, thao tac khong sinh file nao';
+    writeClaim(t.claims, 'TC_001', c);
+    const r = run(t.root);
+    expect(r.code, r.out).toBe(0);
+    expect(r.out, 'dùng lối thoát mà không ai đếm thì nó thành lối đi chính').toMatch(/1 phép đo dùng lối thoát/);
+  });
+
+  test('ĐỐI CHỨNG: lối thoát KHÔNG lý do thì CHẶN', () => {
+    const t = mkTask();
+    const c = validClaim();
+    c.falsified[0].measurement = 'khong-do-duoc: x';
+    writeClaim(t.claims, 'TC_001', c);
+    const r = run(t.root);
+    expect(r.code, 'lối thoát không đòi lý do thì nó là công tắc tắt cửa').toBe(1);
   });
 
   test('fixture dựng thẳng DB thì CHẶN', () => {

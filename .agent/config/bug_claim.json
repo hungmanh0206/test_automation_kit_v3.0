@@ -31,6 +31,14 @@
       "instrument": "Dụng cụ đọc sai. Tiền lệ: JS set value ghi xuyên input disabled nên đẻ bug ma; lọc toast theo class nên đọc thiếu chữ, gây CSDL-28776 bị Rejected rồi tái phạm lần 2.",
       "fixture": "Fixture dựng không tự nhiên. Tiền lệ: pipeline nhân bản không đại diện cho pipeline thật; data set thẳng DB thay vì đi qua app."
     },
+    "neoArtifact": {
+      "_why": "Đo 09/11/2026: điền một claim HOÀN TOÀN BỊA — ba phép đo phản chứng là văn xuôi nghĩ ra tại chỗ, không lượt chạy nào xảy ra, không file nào được sinh — và cửa trả về 'OK, 1 claim hợp lệ'. Vì measurementMustMatchOneOf chấm CHÍNH TẢ: đủ 20 ký tự và có một chữ số là qua. Câu 'chạy lại phép đếm 5 lần, cả 5 lần đều ra 12 hàng' qua cửa mà chưa ai chạy lần nào.",
+      "_vi_sao_neo_artifact": "Không máy nào xác minh được một phép đo ĐÃ XẢY RA, trừ khi nó để lại dấu vết. Mọi cách khác đều là kiểm HÌNH THỨC, và hình thức thì bịa được. Nên phép đo phải trỏ tới một file CÓ THẬT trong thư mục kết quả của chính task này — thứ chỉ tồn tại nếu lượt chạy đã xảy ra.",
+      "_vi_sao_co_loi_thoat": "Có phép đo thật mà không sinh ra file: đọc ngày sửa một tài liệu, hỏi DEV, so hai dòng trong spec. Cấm tiệt thì người ta sẽ bịa một ĐƯỜNG DẪN thay vì bịa một CÂU — tệ hơn, vì đường dẫn trông như bằng chứng. Nên có lối thoát, nhưng nó phải KHAI LÝ DO và bị ĐẾM: một lối thoát không ai đếm thì nó thành lối đi chính.",
+      "batBuoc": true,
+      "tienToMien": "khong-do-duoc:",
+      "minLyDoMienChars": 25
+    },
     "minHypothesisChars": 10,
     "minMeasurementChars": 20,
     "measurementMustMatchOneOf": [
