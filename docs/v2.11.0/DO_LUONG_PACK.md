@@ -1,6 +1,6 @@
-# Đo tác dụng của prompt pack — ba lượt, và cả ba KHÔNG DÙNG ĐƯỢC
+# Đo tác dụng của prompt pack — bốn lượt, ba lượt đầu KHÔNG DÙNG ĐƯỢC
 
-Ghi ngày **09/11/2026**. Đây là bản ghi một phép đo **thất bại**, giữ lại vì nó đắt hơn kết quả.
+Ghi ngày **09/11/2026**. Ba lượt đầu hỏng, mỗi lượt một lý do khác. Giữ lại vì chúng đắt hơn kết quả — và vì lượt thứ tư chỉ dùng được nhờ sửa đúng ba lý do ấy.
 
 ## Định làm gì
 
@@ -62,6 +62,54 @@ căn cứ để gán product_bug"*; `P5` đòi cụm *"khác mẫu số"* nên t
 
 Và nhánh đối chứng **vẫn rò**: `templates/bang-phan-loai-loi.md` có nhắc *"phân hiệu"* — máy gác không
 bắt vì sổ chỉ khai `"phân hiệu chính"`, không khai `"phân hiệu"` trần.
+
+
+## Lượt 4 — DÙNG ĐƯỢC
+
+Ba thứ đã sửa, và mỗi thứ sửa đúng một lý do hỏng ở trên:
+
+| Sửa | Chữa lỗi nào |
+|---|---|
+**Hợp đồng JSON nằm trong ĐỀ BÀI** | cả hai nhánh cùng có cấu trúc ⇒ pack chỉ còn thêm **giả thuyết miền**, không thêm hình thức |
+**Bốn phép kiểm chấm TRƯỜNG, đúng một chấm NỘI DUNG** | lượt 3 chấm văn xuôi bằng regex và chấm oan 3/4 |
+**Danh sách cách-viết khai TRƯỚC khi chạy** | hết chuyện nghĩ ra regex lúc đang chấm |
+**Máy gác rò quét thư mục làm bài** | lượt 1 rò qua `templates/`; nó còn bắt tôi lần thứ hai khi tôi khai `NGAY_SUA` là cụm-chỉ-người-biết trong khi đề **in sẵn** |
+**Chọn skill bằng đo** | `run_report_reader` nhắc "phân hiệu" **1 lần** ⇒ đổi sang `ui_debug_agent` (**0 lần**) |
+
+### Hai bài, và bài thứ nhất là ĐỐI CHỨNG
+
+| Bẫy | Loại | E5 **có pack** | E5 **không pack** |
+|---|---|---|---|
+`biểu EMIS là ảnh chụp` | **suy ra được** | 3/3 | **3/3** |
+`lưới chỉ hiện phân hiệu chính` | **tùy tiện** | **3/3** | **1/3** |
+
+Tổng điểm hai nhánh gần bằng nhau (bài 2: 14/15 so 13/15) vì phần **cấu trúc** chiếm đa số và cả hai
+đều làm tốt — một lượt có-pack còn trượt E1 vì JSON hỏng, chuyện chẳng liên quan tri thức. **Tín hiệu
+nằm đúng ở ô nội dung.**
+
+### Giới hạn, nói thẳng
+
+- **n=3 mỗi nhánh. Chưa đủ để kết luận thống kê.** Không được viết "pack làm tốt hơn X%".
+- Cái làm con số này đọc được là **bài đối chứng**: cùng bộ chấm, cùng cách dựng, nhưng bẫy suy-ra-được
+  cho **3/3 ở cả hai nhánh**. Nếu bỏ bài đối chứng, 3/3 so 1/3 có thể chỉ là bộ chấm thiên vị.
+- Phép đo này đo **tri thức có tới được model không**, KHÔNG đo khả năng suy luận.
+
+### Hệ quả — và nó đổi chính pack tôi viết
+
+> **Pack phải MỎNG ĐI và TÙY TIỆN HƠN.**
+
+| Giữ — không suy nổi | Bỏ hoặc hạ cấp — model tự làm được |
+|---|---|
+lưới chỉ hiện phân hiệu chính · `.auth` sống 25 phút và dùng chung · số thứ tự đỏ = ô bắt buộc · xoá học sinh 4 bước · form Thêm mới ở frame CUỐI · combo đặt bằng API không bắn postback · ô khoá ghi đè qua `ClientState` | Mixed Content khi vào bằng https · biểu EMIS là ảnh chụp · "hai số không khớp thì hỏi mẫu số trước" |
+
+Đây là kết quả đi ngược bản năng viết tài liệu: **viết thêm cho đầy làm pack kém đi**, vì phần model tự
+biết chỉ tốn token mà không đổi đầu ra.
+
+## Tổng kết chi phí
+
+~**$14** cho bốn lượt. Thu về: **một phép đo dùng được**, **một máy gác rò đáp án** (đã bắt tôi hai
+lần), **một luật thiết kế pack**, và **một cơ chế chấm** — ép bên sinh trả đối tượng có cấu trúc rồi
+chấm trường — vốn là nền của engine kiểm verdict về sau.
 
 ## Điều học được, và nó đáng hơn con số
 

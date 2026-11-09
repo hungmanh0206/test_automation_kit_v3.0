@@ -101,7 +101,11 @@ không bắt buộc, còn ô bắt buộc thật thì đang bỏ trống.
 
 ---
 
-## 8. Biểu EMIS là **ảnh chụp**, không phải truy vấn sống
+## 8. Biểu EMIS là **ảnh chụp**, không phải truy vấn sống  ⟨ĐÃ ĐO: model tự suy được⟩
+
+> **Mục này KHÔNG cần nạp cho model.** Đo 09/11/2026 bằng A/B (`skills:practice --bai qemis-bieu-emis`):
+> phép kiểm nội dung đạt **3/3 ở CẢ hai nhánh**, có pack và không pack — tức model tự suy ra. Giữ lại
+> cho **người** đọc; với model thì nó chỉ tốn token. Các mục khác **chưa đo**, đừng suy rộng ra.
 
 **Triệu chứng.** Số trên biểu lệch với `SELECT` vừa chạy.
 
@@ -159,6 +163,11 @@ Bàn giao cho các cửa canonical của kit (`bug:claim`, `gate:output`, taxono
 vọng ⇒ `OBSERVATION`, không phải `FAIL`. Triệu chứng khớp mục 5 ⇒ `infra`, **không log Backlog**.
 
 ## Context loading policy
+
+**Luật chọn mục, rút từ số đo chứ không từ cảm tính:** bẫy nào **suy ra được từ chính báo cáo** thì
+model tự làm — nạp vào chỉ tốn token mà không đổi đầu ra. Bẫy nào **tùy tiện** (một quy ước của sản
+phẩm, không đoán nổi) mới là thứ pack này đáng tồn tại. Đo được tới nay: mục 8 thuộc nhóm đầu (3/3 ở
+cả hai nhánh); mục 6 thuộc nhóm sau (**3/3 có pack · 1/3 không pack**). Chín mục còn lại **chưa đo**.
 
 Load pack này **chỉ khi** đang làm việc trên QEMIS/CSDL và đã có triệu chứng cụ thể. Với lượt chạy
 trơn tru thì không cần. Không auto-load cùng năm pack kia.
