@@ -31,6 +31,22 @@ const REPO = path.resolve(__dirname, '..', '..');
 /* ── Lớp GENERIC: những gì ĐƯỢC mang đi ────────────────────────────────────────────────────────────────── */
 const KEEP_DIRS = [
   '.agent/rules', '.agent/skills', '.agent/workflows',
+  /*
+   * `.agent/extensions` + `tests/unit` — BỔ SUNG 09/11/2026, và lý do đo được chứ không suy.
+   *
+   * Gói chở TOÀN BỘ `scripts/`, nên nó mang theo `extension_integrity_check.js` · `extension_router.js`
+   * · `extension_benchmark.js` · `v4_baseline_integrity.js` · `v4_verify.js`, và `package.json` trong
+   * gói có đủ 6 lệnh `npm run extension:*`. Nhưng DỮ LIỆU của chúng thì không đi theo: manifest, adapter,
+   * source-reference (`.agent/extensions`, 14 file) và bộ unit test (`tests/unit`, 2 file).
+   *
+   * Hệ quả đo được ở lượt dry-run 42583190607: NĂM lệnh giao đi là chạy-là-chết, và 6 ca spec đỏ trong
+   * gói. Gói tự mâu thuẫn với chính nó TRƯỚC khi tôi viết spec — spec chỉ làm nó lộ ra.
+   *
+   * Hai cách sửa đều nhất quán: chở dữ liệu, hoặc gỡ 6 lệnh khỏi `package.json` của gói. Chọn cách đầu
+   * vì adapter là SKILL tuỳ chọn cho người nhận, cùng loại với `.agent/skills` vốn đã đi theo gói — và
+   * vì 16 file thì rẻ hơn nhiều so với việc cắt mất một năng lực.
+   */
+  '.agent/extensions', 'tests/unit',
   'scripts', 'prompt_templates', 'partial-rerun', 'exploratory',
   /*
    * BỔ SUNG 10/10/2026 — đo bằng `comm` giữa `git ls-files` và `tar -tzf` của chính gói, không đọc code
