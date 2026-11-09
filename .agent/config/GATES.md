@@ -36,7 +36,7 @@ lịch sử, còn việc CHẶN nằm ở `dim:coverage` (chiều `bug_history` 
 | T1 | CHẶN | `exit:gate` | BA CỬA RA (v2.7.0 §A2). | `scripts/qa/exit_gate.js` | .agent/skills · prompt_templates · .claude/commands · tests/fe/infra |
 | T1 | CHẶN | `expansion:audit` | ĐO ĐỘ PHỦ 5 TRỤC trên MỌI task đã execute, để quyết định siết gate bằng SỐ. | `scripts/qa/expansion_audit.js` | RULE_GLOBAL.md · .claude/commands · tests/fe/infra |
 | T1 | CHẶN | `extension:benchmark` | Deterministic smoke benchmark, NOT an LLM quality benchmark. | `scripts/qa/extension_benchmark.js` | .github/workflows |
-| T1 | CHẶN | `extension:check` | Optional Kit A adapters must NOT change the B canonical skill inventory. | `scripts/qa/extension_integrity_check.js` | .github/workflows |
+| T1 | CHẶN | `extension:check` | Optional Kit A adapters must NOT change the B canonical skill inventory. | `scripts/qa/extension_integrity_check.js` | .github/workflows · tests/fe/infra |
 | T1 | CHẶN | `extension:route` | Advisory deterministic routing. Never executes tools, changes artifacts, or overrides gates. | `scripts/qa/extension_router.js` | **KHÔNG BỀ MẶT NÀO** |
 | T1 | CHẶN | `frontmatter:check` | file định nghĩa agent/skill phải THẬT SỰ NẠP ĐƯỢC (v2.9.6). | `scripts/qa/frontmatter_check.js` | tests/fe/infra |
 | T1 | CHẶN | `full:suite`, `full:suite:check` | SỔ GHI LƯỢT CHẠY CẢ BỘ, và cửa chặn đóng gói khi sổ đã cũ. | `scripts/qa/full_suite_ledger.js` | docs/kit-map.md · .github/workflows · tests/fe/infra |
