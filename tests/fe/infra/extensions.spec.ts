@@ -12,6 +12,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { spawnSync } from 'child_process';
 import { gateEnv } from './_gate_env';
+import { canTaiLieu } from './_trong_repo';
 
 const REPO = path.resolve(__dirname, '..', '..', '..');
 const PKG = JSON.parse(fs.readFileSync(path.join(REPO, 'package.json'), 'utf8'));
@@ -43,13 +44,14 @@ test.describe('@infra extension — 5 cửa mới phải có đường chạy', 
      * 09/11/2026: bốn file ghi chú của bản nhập về từng nằm ở GỐC repo — tôi để chúng ở đó lúc nhập,
      * làm gốc phình từ 6 lên 10 file trong khi 6 file kia đều là bề mặt chính thức của kit. Chủ dự án
      * hỏi thẳng vì sao. Nay chúng ở `docs/v2.11.0/` cùng báo cáo đo của đợt này.
+     *
+     * Và gói KHÔNG mang `docs/` (ngoài ảnh USER_GUIDE) — có chủ ý: đó là biên bản của repo, không phải
+     * thứ người nhận cần. Nên ca này chỉ phán được TRONG REPO. Bỏ qua KÈM LÝ DO, không cho xanh:
+     * `verify_release` đếm số skip, nên nó không lặng lẽ phình lên.
      */
-    const docs = ['docs/v2.11.0/ENHANCED_V3_RELEASE_NOTES.md', 'docs/v2.11.0/KIT_A_INTEGRATION.md']
-      .map((f) => {
-        const p = path.join(REPO, f);
-        expect(fs.existsSync(p), `${f} không còn ở đây ⇒ ca này đọc hư không, KHÔNG phải đạt`).toBe(true);
-        return fs.readFileSync(p, 'utf8');
-      }).join('\n');
+    const DS = ['docs/v2.11.0/ENHANCED_V3_RELEASE_NOTES.md', 'docs/v2.11.0/KIT_A_INTEGRATION.md'];
+    for (const f of DS) canTaiLieu(REPO, f, 'lệnh mà tài liệu bản nhập về dạy phải tồn tại');
+    const docs = DS.map((f) => fs.readFileSync(path.join(REPO, f), 'utf8')).join('\n');
     const nhac = [...docs.matchAll(/npm run (extension:[a-z]+)/g)].map((m) => m[1]);
     expect(nhac.length, 'không tài liệu nào nhắc lệnh extension ⇒ ca này RỖNG').toBeGreaterThan(0);
     const thieu = [...new Set(nhac)].filter((c) => !(c in PKG.scripts));
