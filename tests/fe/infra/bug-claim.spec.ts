@@ -214,6 +214,93 @@ test.describe('@infra bug:claim — kiểm chứng phải đi trước lời nó
     expect(r.code, r.out).toBe(0);
   });
 
+  /*
+   * ORACLE PHẢI ĐỐI CHIẾU ĐƯỢC VỚI NGUỒN (tăng 3, 09/11/2026).
+   *
+   * `oracle.quote` KHAI là trích nguyên văn, nhưng cửa chỉ kiểm ĐỘ DÀI ≥ 15 — một câu bịa 40 ký tự
+   * qua cửa y như một câu trích thật. Và oracle là chỗ nguy hiểm nhất để lời khai lọt: TOÀN BỘ kết
+   * luận bug treo trên nó, nên sai oracle thì mọi bước sau đúng quy trình mà vẫn sai.
+   *
+   * Bộ ca dưới đây LẤY CÂU TRÍCH TỪ CHÍNH BẢN GHI THẬT trong `knowledge/domain`, không ghi cứng chuỗi:
+   * ghi cứng thì ngày nào đó nội dung BR đổi là ca này đỏ oan, và người ta sẽ sửa ca thay vì sửa claim.
+   */
+  const brThat = (): { id: string; trich: string } => {
+    const thu = path.join(REPO, 'knowledge', 'domain');
+    const ds = fs.readdirSync(thu).filter((f) => f.endsWith('.json'));
+    for (const f of ds) {
+      let b: Record<string, unknown>;
+      try { b = JSON.parse(fs.readFileSync(path.join(thu, f), 'utf8')); } catch { continue; }
+      const id = String(b.id || '');
+      const rule = String(b.rule || '');
+      if (/^BR-[A-Z0-9]+-\d+$/.test(id) && rule.length >= 80) {
+        return { id, trich: rule.slice(10, 70).trim() };
+      }
+    }
+    throw new Error('không bản ghi BR nào đủ dài để trích ⇒ cả nhóm ca này đo hư không');
+  };
+
+  test('ORACLE: câu trích CÓ THẬT trong bản ghi nguồn ⇒ ĐẠT', () => {
+    const { id, trich } = brThat();
+    const t = mkTask();
+    const c = validClaim();
+    c.oracle = { type: 'BR', ref: `${id} §1`, quote: trich };
+    writeClaim(t.claims, 'TC_001', c);
+    const r = run(t.root);
+    expect(r.code, r.out).toBe(0);
+  });
+
+  test('ORACLE: câu BỊA, cùng `ref` đó ⇒ CHẶN và gọi tên bản ghi nguồn', () => {
+    /* Khác ca trên ĐÚNG một thứ: nội dung câu trích. Nếu cả hai cùng đạt thì cửa không đo gì. */
+    const { id } = brThat();
+    const t = mkTask();
+    const c = validClaim();
+    c.oracle = { type: 'BR', ref: `${id} §1`, quote: 'Hệ thống phải luôn hiển thị đủ mọi bản ghi trong mọi hoàn cảnh' };
+    writeClaim(t.claims, 'TC_001', c);
+    const r = run(t.root);
+    expect(r.code, r.out).toBe(1);
+    expect(r.out).toContain('KHÔNG có trong');
+    expect(r.out, 'phải gọi tên bản ghi nguồn đã tra').toMatch(/\.json/);
+  });
+
+  test('ORACLE: khác DẤU, HOA-THƯỜNG và khoảng trắng vẫn ĐẠT — luật là "có thật", không phải "từng byte"', () => {
+    /*
+     * `knowledge/domain` trộn hai quy ước (đo 09/11/2026: 43 bản có dấu, 102 bản không dấu). So nguyên
+     * byte sẽ chặn oan claim trích đúng nhưng gõ khác dấu — và chặn oan một claim ĐÚNG là cách nhanh
+     * nhất để người ta tắt cửa.
+     */
+    const { id, trich } = brThat();
+    const t = mkTask();
+    const c = validClaim();
+    c.oracle = { type: 'BR', ref: id, quote: `  ${trich.toUpperCase().replace(/ +/g, '   ')}  ` };
+    writeClaim(t.claims, 'TC_001', c);
+    const r = run(t.root);
+    expect(r.code, r.out).toBe(0);
+  });
+
+  test('ORACLE: mã BR KHÔNG có trong nguồn ⇒ "CHƯA ĐỐI CHIẾU ĐƯỢC", KHÔNG im lặng cho qua', () => {
+    /*
+     * Gói phát hành chở `knowledge/` rỗng, nên ở đó cửa này không bao giờ tra được. Im lặng cho qua
+     * thì người đọc tưởng oracle đã được đối chiếu — cùng doctrine ⑦/⑨/⑩ của `version:check`.
+     */
+    const t = mkTask();
+    const c = validClaim();
+    c.oracle = { type: 'BR', ref: 'BR-KHONGCOTHAT-999', quote: 'Một câu dài hơn mười lăm ký tự để qua phép kiểm độ dài' };
+    writeClaim(t.claims, 'TC_001', c);
+    const r = run(t.root);
+    expect(r.code, 'không tra được thì cũng không có gì để chặn').toBe(0);
+    expect(r.out).toMatch(/CHƯA ĐỐI CHIẾU ĐƯỢC/);
+    expect(r.out).toContain('BR-KHONGCOTHAT-999');
+  });
+
+  test('ORACLE: `ref` không mang mã BR (FSD/FIGMA…) ⇒ khai CHƯA ĐỐI CHIẾU, không chặn', () => {
+    /* Kit không giữ bản sao FSD/Figma, nên những nguồn đó chưa đối chiếu máy được. Phải nói ra. */
+    const t = mkTask();
+    writeClaim(t.claims, 'TC_001', validClaim());   // validClaim dùng FSD 4.2.3
+    const r = run(t.root);
+    expect(r.code, r.out).toBe(0);
+    expect(r.out).toMatch(/CHƯA ĐỐI CHIẾU ĐƯỢC/);
+  });
+
   test('ĐỐI CHỨNG: lối thoát KHÔNG lý do thì CHẶN', () => {
     const t = mkTask();
     const c = validClaim();
