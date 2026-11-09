@@ -36,10 +36,10 @@ Nguồn: `RULE_GLOBAL.md` (35 mục có nội dung) · 163 gate · 185 spec hạ
 | Parallel Story Safety | `report` | `ambiguity-gate.spec.ts` · `autofix.spec.ts` · `backlog-bug-images.spec.ts` +52 |
 | Phase-Separated Story Execution | `merge:execution-status` · `canonical:drift` · `check` · `expected:check` · `load` · `gate:policy` · `ledger:check` · `risk` · `sync:canonical` · `report` | `canonical-drift.spec.ts` · `expansion-gates.spec.ts` · `manual-run-gate.spec.ts` +145 |
 | Task-Scoped Automation Code | `report` | `ambiguity-gate.spec.ts` · `autofix.spec.ts` · `backlog-bug-images.spec.ts` +52 |
-| Shared Change Gate | `dim:coverage` · `domain:check` · `rule` · `secret:scan` | `config-presence.spec.ts` · `dimension-threshold.spec.ts` · `dimension-wiring.spec.ts` +55 |
+| Shared Change Gate | `dim:coverage` · `domain:check` · `rule` · `secret:scan` | `config-presence.spec.ts` · `dimension-threshold.spec.ts` · `dimension-wiring.spec.ts` +56 |
 | Automation Promote Review | `report` | `ambiguity-gate.spec.ts` · `autofix.spec.ts` · `backlog-bug-images.spec.ts` +52 |
 | Analysis & Ambiguity Gate (Phase 1 — đọc kỹ, hỏi trước khi gen) | `rule` · `report` | `api-card.spec.ts` · `automation-review.spec.ts` · `backlog-bug-images.spec.ts` +81 |
-| Chiều coverage (Phase 1 — khai phạm vi, gắn tag, có máy đếm) | `dim:coverage` · `domain:check` · `rule` | `config-presence.spec.ts` · `dimension-threshold.spec.ts` · `dimension-wiring.spec.ts` +51 |
+| Chiều coverage (Phase 1 — khai phạm vi, gắn tag, có máy đếm) | `dim:coverage` · `domain:check` · `rule` | `config-presence.spec.ts` · `dimension-threshold.spec.ts` · `dimension-wiring.spec.ts` +52 |
 | 7 trục mở rộng quanh case + luật đóng vòng (Phase 2 — có máy đứng sau) | `authz:expand` · `check` · `xsurf:diff` · `design:gate` · `discover` · `expansion:audit` · `expansion:plan` · `ui:contract` · `fixture:matrix` · `lane` · `leak:report` · `load` · `mutation:check` · `oracle:calc` · `probe:persist` · `risk` · `rule` · `self-review` · `spec:extract` · `spec:gap` · `report` | `authz-expand.spec.ts` · `autofix.spec.ts` · `bug-claim.spec.ts` +160 |
 | Execute Results | `rule` · `report` | `api-card.spec.ts` · `automation-review.spec.ts` · `backlog-bug-images.spec.ts` +81 |
 | Phân tầng lỗi FE hay BE — bắt buộc kiểm API trước khi kết luận | `load` | `agent-routing.spec.ts` · `auth-session-lock.spec.ts` · `automation-review.spec.ts` +48 |
@@ -52,7 +52,7 @@ Nguồn: `RULE_GLOBAL.md` (35 mục có nội dung) · 163 gate · 185 spec hạ
 | Push execution | `merge:execution-status` | `canonical-drift.spec.ts` · `expansion-gates.spec.ts` · `manual-run-gate.spec.ts` +2 |
 | Workflow | `report` | `ambiguity-gate.spec.ts` · `autofix.spec.ts` · `backlog-bug-images.spec.ts` +52 |
 | Chi phí một lượt chạy — đếm SỐ LƯỢT, không đếm độ dài | `prompt:budget` · `rerun:failed` · `token:audit` | `agent-routing.spec.ts` · `discovery-cli.spec.ts` · `load-map.spec.ts` +9 |
-| References | `rule` | `api-card.spec.ts` · `automation-review.spec.ts` · `backlog-bug-images.spec.ts` +40 |
+| References | `rule` | `api-card.spec.ts` · `automation-review.spec.ts` · `backlog-bug-images.spec.ts` +41 |
 
 ## Mục luật CHƯA nối được gate bằng tên lệnh (6)
 

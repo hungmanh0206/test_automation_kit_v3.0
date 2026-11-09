@@ -110,6 +110,58 @@ function looksLikeMeasurement(s) {
  */
 const mienNeo = [];
 const chuaPhanHanDung = [];
+const chuaPhanOracle = [];
+
+/*
+ * ĐỐI CHIẾU `oracle.quote` VỚI BẢN GHI NGUỒN (tăng 3, 09/11/2026).
+ *
+ * `oracle.quote` KHAI là trích nguyên văn, nhưng cửa chỉ kiểm ĐỘ DÀI ≥ 15. Một câu bịa 40 ký tự qua
+ * cửa y như một câu trích thật — cùng lớp defect với `looksLikeMeasurement` trước khi neo artifact:
+ * một LỜI KHAI VỀ XUẤT XỨ chỉ được kiểm bằng HÌNH DẠNG. Và oracle là chỗ nguy hiểm nhất để lời khai
+ * lọt, vì TOÀN BỘ kết luận bug treo trên nó: sai oracle thì mọi thứ phía sau đúng quy trình mà vẫn sai.
+ *
+ * BỎ DẤU KHI SO, có lý do đo được: `knowledge/domain` trộn hai quy ước — 43 bản CÓ DẤU, 102 bản
+ * KHÔNG DẤU. So nguyên byte sẽ chặn oan claim trích đúng nhưng gõ khác dấu, và chặn oan một claim
+ * đúng là cách nhanh nhất để người ta tắt cửa. Bản chất luật là "câu trích CÓ THẬT trong nguồn",
+ * không phải "giống từng byte".
+ */
+const CHUAN = (s) => String(s == null ? '' : s)
+  .normalize('NFD').replace(/[̀-ͯ]/g, '')
+  .replace(/đ/g, 'd').replace(/Đ/g, 'D')
+  .toLowerCase().replace(/\s+/g, ' ').trim();
+
+function vanBanNguon(ban) {
+  const truong = (cfg.oracleTypes.doiChieuNguon || {}).truongVanBan || [];
+  const phan = [];
+  for (const t of truong) {
+    const v = ban[t];
+    if (typeof v === 'string') phan.push(v);
+    else if (Array.isArray(v)) phan.push(JSON.stringify(v));
+    else if (v && typeof v === 'object') phan.push(JSON.stringify(v));
+  }
+  return phan.join('\n');
+}
+
+/** `khop` ⇒ trích đúng · `lech` ⇒ không có trong nguồn · `chua-phan` ⇒ không có nguồn để đối chiếu. */
+function doiChieuNguon(o) {
+  const C = cfg.oracleTypes.doiChieuNguon || {};
+  if (!C.batBuoc) return { trangThai: 'chua-phan', viSao: 'đối chiếu nguồn chưa bật' };
+  const ma = String(o.ref || '').match(new RegExp(C.mauMa));
+  if (!ma) return { trangThai: 'chua-phan', viSao: `\`oracle.ref\` không chứa mã dạng ${C.mauMa} nên không tra được bản ghi nguồn` };
+  const thu = path.join(rc.REPO_ROOT, C.thuMuc);
+  if (!fs.existsSync(thu)) return { trangThai: 'chua-phan', viSao: `không có \`${C.thuMuc}\` trong cây này (gói phát hành chở knowledge/ rỗng)` };
+  let ds = [];
+  try { ds = fs.readdirSync(thu).filter((f) => f.endsWith('.json')); } catch (e) { ds = []; }
+  for (const f of ds) {
+    let ban;
+    try { ban = JSON.parse(fs.readFileSync(path.join(thu, f), 'utf8')); } catch (e) { continue; }
+    if (CHUAN(ban.id) !== CHUAN(ma[0])) continue;
+    return CHUAN(vanBanNguon(ban)).includes(CHUAN(o.quote))
+      ? { trangThai: 'khop', nguon: f }
+      : { trangThai: 'lech', nguon: f };
+  }
+  return { trangThai: 'chua-phan', viSao: `không có bản ghi \`${ma[0]}\` trong \`${C.thuMuc}\`` };
+}
 const NEO = (cfg.falsification && cfg.falsification.neoArtifact) || {};
 /** Token trông như đường dẫn: có đuôi file, và không phải là một lệnh npm. */
 /* Đuôi phải BẮT ĐẦU BẰNG CHỮ: nếu không, `uat-2026.11.09` (mã build) bị đọc thành một đường dẫn. */
@@ -304,6 +356,15 @@ function validate(claim, file) {
   if (!nonEmpty(o.ref)) at('thiếu `oracle.ref` — neo cụ thể, ví dụ BR-12 hoặc FSD §4.1.1');
   if (!atLeast(o.quote, cfg.oracleTypes.minQuoteChars)) {
     at(`\`oracle.quote\` phải TRÍCH nguyên văn từ nguồn, tối thiểu ${cfg.oracleTypes.minQuoteChars} ký tự`);
+  } else {
+    const dc = doiChieuNguon(o);
+    if (dc.trangThai === 'lech') {
+      at(`\`oracle.quote\` KHÔNG có trong \`${dc.nguon}\` — nó khai là TRÍCH NGUYÊN VĂN, nhưng đối chiếu `
+        + 'với bản ghi nguồn thì không tìm thấy câu đó. Một câu bịa 40 ký tự qua cửa y như một câu trích '
+        + 'thật nếu chỉ đếm độ dài, mà toàn bộ kết luận bug treo trên oracle.');
+    } else if (dc.trangThai === 'chua-phan') {
+      chuaPhanOracle.push(`${path.basename(file || '?')} — ${dc.viSao}`);
+    }
   }
 
   const minVal = cfg.field.minExpectedActualChars;
@@ -572,6 +633,10 @@ function main() {
   if (mienNeo.length) {
     /* Lối thoát không ai đếm thì nó thành lối đi chính. Con số này phải ở trong tầm mắt. */
     console.log(`  ⚠ ${mienNeo.length} phép đo dùng lối thoát \`${NEO.tienToMien}\` — không neo được artifact: ${mienNeo.join(' · ')}`);
+  }
+  if (chuaPhanOracle.length) {
+    /* Oracle không đối chiếu được thì phải NÓI RA — "không đo được" không thành "đo ra đạt". */
+    console.log(`  ⚠ ${chuaPhanOracle.length} claim CHƯA ĐỐI CHIẾU ĐƯỢC \`oracle.quote\` với nguồn: ${chuaPhanOracle.join(' · ')}`);
   }
   if (chuaPhanHanDung.length) {
     /* "Không đo được" KHÔNG thành "đo ra đạt" — cùng doctrine ⑦/⑨/⑩ của `version:check`. */

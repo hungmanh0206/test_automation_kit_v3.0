@@ -15,6 +15,15 @@
     "_why": "Oracle phải là nguồn ĐỘC LẬP với app. Lấy app làm expected là tautology, RULE_GLOBAL đã cấm. Danh sách này để không ai khai 'theo tôi thấy' rồi qua gate.",
     "allowed": ["BR", "FSD", "FIGMA", "MAPPING", "SM", "UI", "PM", "SWAGGER", "TAI_LIEU"],
     "minQuoteChars": 15,
+   "doiChieuNguon": {
+    "_why": "Đo 09/11/2026: `oracle.quote` KHAI là trích nguyên văn từ nguồn, nhưng cửa chỉ kiểm ĐỘ DÀI >= 15. Một câu bịa 40 ký tự qua cửa y như một câu trích thật. Cùng lớp defect với looksLikeMeasurement trước khi neo artifact: một LỜI KHAI VỀ XUẤT XỨ chỉ được kiểm bằng HÌNH DẠNG. Và oracle là chỗ nguy hiểm nhất để lời khai lọt, vì toàn bộ kết luận bug treo trên nó.",
+    "_vi_sao_bo_dau_khi_so": "Nguồn trong knowledge/domain trộn hai quy ước: đo 09/11/2026 có 43 bản CÓ DẤU và 102 bản KHÔNG DẤU. So nguyên byte sẽ chặn oan claim trích đúng nhưng gõ khác dấu, mà chặn oan một claim đúng là cách nhanh nhất để người ta tắt cửa. Bản chất luật là 'câu trích CÓ THẬT trong nguồn', không phải 'giống từng byte'.",
+    "_vi_sao_chua_phan_duoc_chu_khong_bo_qua": "Không tìm thấy bản ghi nguồn thì KHÔNG được im lặng cho qua — gói phát hành chở knowledge/ rỗng nên ở đó cửa này không bao giờ chạy được. Phải khai ra, cùng doctrine ⑦/⑨/⑩ của version:check.",
+    "batBuoc": true,
+    "thuMuc": "knowledge/domain",
+    "mauMa": "BR-[A-Z0-9]+-[0-9]+",
+    "truongVanBan": ["rule", "applies_when", "examples"]
+   },
     "_note": "oracle.quote là đòn bẩy chống nói chung chung: phải TRÍCH nguyên văn câu trong nguồn, không tóm tắt lại."
   },
 
