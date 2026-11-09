@@ -169,6 +169,51 @@ test.describe('@infra bug:claim — kiểm chứng phải đi trước lời nó
     expect(r.out, 'dùng lối thoát mà không ai đếm thì nó thành lối đi chính').toMatch(/1 phép đo dùng lối thoát/);
   });
 
+  /*
+   * HẠN DÙNG CỦA ARTIFACT (tăng 2, 09/11/2026).
+   *
+   * Neo vào file CÓ THẬT chặn được claim BỊA, nhưng chưa chặn được claim DÙNG LẠI ĐỒ CŨ: một probe
+   * chạy 11 ngày trước vẫn là file có thật, mà nó đo một build khác. Tiền lệ đã có.
+   *
+   * Hai ca dưới đây khác nhau ĐÚNG MỘT THỨ: mtime của cùng một file. Nếu chỉ có ca dương thì "cửa đã
+   * chặn" không phân biệt được "bắt đồ cũ" với "chặn mọi artifact".
+   */
+  const doiTuoi = (root: string, rel: string, lech: number) => {
+    const f = path.join(root, 'tasks', 'CLAIM-TEST', 'evidence', rel);
+    const t = (Date.parse('2026-09-16T09:22:00Z') + lech) / 1000;
+    fs.utimesSync(f, t, t);
+  };
+
+  test('artifact CŨ HƠN lượt rerun gần nhất quá hạn ⇒ CHẶN, nói rõ cũ bao nhiêu ngày', () => {
+    const t = mkTask();
+    doiTuoi(t.root, NEO_CUA_VALID[1], -30 * 86400000);   // cũ hơn mốc 30 ngày
+    writeClaim(t.claims, 'TC_001', validClaim());
+    const r = run(t.root);
+    expect(r.code, r.out).toBe(1);
+    expect(r.out).toContain('CŨ HƠN');
+    expect(r.out, 'phải gọi tên file, không chỉ nói "có file cũ"').toContain(NEO_CUA_VALID[1]);
+  });
+
+  test('ĐỐI CHỨNG: cùng file đó, chỉ dịch mtime vào trong hạn ⇒ ĐẠT', () => {
+    const t = mkTask();
+    doiTuoi(t.root, NEO_CUA_VALID[1], -2 * 86400000);    // cũ hơn mốc 2 ngày, trong hạn 7
+    writeClaim(t.claims, 'TC_001', validClaim());
+    const r = run(t.root);
+    expect(r.code, r.out).toBe(0);
+  });
+
+  test('ĐỐI CHỨNG: artifact MỚI HƠN mốc KHÔNG bị chặn — điều tra tiếp sau rerun là bình thường', () => {
+    /*
+     * Chặn cả chiều mới hơn là hiểu sai vấn đề: phép đo phản chứng thường làm SAU khi rerun xong.
+     * Ca này giữ cho luật chỉ gác đúng chiều nó định gác.
+     */
+    const t = mkTask();
+    doiTuoi(t.root, NEO_CUA_VALID[1], +60 * 86400000);
+    writeClaim(t.claims, 'TC_001', validClaim());
+    const r = run(t.root);
+    expect(r.code, r.out).toBe(0);
+  });
+
   test('ĐỐI CHỨNG: lối thoát KHÔNG lý do thì CHẶN', () => {
     const t = mkTask();
     const c = validClaim();
