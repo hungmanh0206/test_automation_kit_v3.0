@@ -7,7 +7,7 @@
 > **T1** chỉ chặn ở cửa ra, lúc đang làm thì cảnh báo và ghi `reports/gate-debt.json` · **T2** không
 > bao giờ chặn. T0 khai tay trong `.agent/config/gate_tiers.json`; không khai thì mặc định T1.
 
-Tổng **157** máy — **113 CHẶN** · 25 SINH (ghi artifact) · 19 BÁO CÁO (chỉ in).
+Tổng **162** máy — **117 CHẶN** · 25 SINH (ghi artifact) · 20 BÁO CÁO (chỉ in).
 
 SINH/BÁO CÁO **không phải gate bị nới** — chúng không kiểm vi phạm. Ví dụ `bugs:checklist` in brief bug
 lịch sử, còn việc CHẶN nằm ở `dim:coverage` (chiều `bug_history` §20).
@@ -35,6 +35,9 @@ lịch sử, còn việc CHẶN nằm ở `dim:coverage` (chiều `bug_history` 
 | T1 | CHẶN | `exec:tally`, `exec:tally:check` | số trong `execution-summary.md` phải TRUY được về một sổ verdict có tên. | `scripts/qa/exec_summary_tally.js` | .agent/skills · tests/fe/infra |
 | T1 | CHẶN | `exit:gate` | BA CỬA RA (v2.7.0 §A2). | `scripts/qa/exit_gate.js` | .agent/skills · prompt_templates · .claude/commands · tests/fe/infra |
 | T1 | CHẶN | `expansion:audit` | ĐO ĐỘ PHỦ 5 TRỤC trên MỌI task đã execute, để quyết định siết gate bằng SỐ. | `scripts/qa/expansion_audit.js` | RULE_GLOBAL.md · .claude/commands · tests/fe/infra |
+| T1 | CHẶN | `extension:benchmark` | Deterministic smoke benchmark, NOT an LLM quality benchmark. | `scripts/qa/extension_benchmark.js` | .github/workflows |
+| T1 | CHẶN | `extension:check` | Optional Kit A adapters must NOT change the B canonical skill inventory. | `scripts/qa/extension_integrity_check.js` | .github/workflows |
+| T1 | CHẶN | `extension:route` | Advisory deterministic routing. Never executes tools, changes artifacts, or overrides gates. | `scripts/qa/extension_router.js` | **KHÔNG BỀ MẶT NÀO** |
 | T1 | CHẶN | `frontmatter:check` | file định nghĩa agent/skill phải THẬT SỰ NẠP ĐƯỢC (v2.9.6). | `scripts/qa/frontmatter_check.js` | tests/fe/infra |
 | T1 | CHẶN | `full:suite`, `full:suite:check` | SỔ GHI LƯỢT CHẠY CẢ BỘ, và cửa chặn đóng gói khi sổ đã cũ. | `scripts/qa/full_suite_ledger.js` | docs/kit-map.md · .github/workflows · tests/fe/infra |
 | T1 | CHẶN | `golden:check`, `golden:snapshot` | BỘ DỮ LIỆU VÀNG cho parser canonical, và HAI PHÉP ĐẾM ĐỘC LẬP (v2.7.0 §A10.4 + §A10.5). | `scripts/qa/golden_check.js` | .gitlab-ci.yml · RULE_GLOBAL.md · .github/workflows · tests/fe/infra |
@@ -77,6 +80,7 @@ lịch sử, còn việc CHẶN nằm ở `dim:coverage` (chiều `bug_history` 
 | T1 | CHẶN | `token:session`, `token:phase1` | ĐO PHẦN LUÔN NẠP, ĐÚNG NHƯ HARNESS THẤY NÓ. | `scripts/qa/token_session.js` | tests/fe/infra |
 | T1 | CHẶN | `trace:matrix` | sinh ma trận REQ → TC → AUTO → EXEC → BUG dạng artifact. | `scripts/qa/traceability_matrix.js` | docs/kit-map.md · .agent/workflows · .agent/skills · prompt_templates · tests/fe/infra |
 | T1 | CHẶN | `ui:conformance` | "visual oracle" tự động. | `scripts/qa/ui_conformance_check.js` | prompt_templates |
+| T1 | CHẶN | `extension:baseline` | lõi kit có đổi so với MỐC NHẬP extension không. | `scripts/qa/v4_baseline_integrity.js` | .github/workflows |
 | T1 | CHẶN | `release:verify` | CHỨNG MINH bản phát hành chạy được từ con số 0. Đây là thước đo chính của cả luồng CD, | `scripts/qa/verify_release.js` | README.md · docs/kit-map.md · .github/workflows · .agent/skills · tests/fe/infra |
 | T1 | CHẶN | `version:check` | CHẶN phát hành thiếu sót. | `scripts/qa/version_check.js` | README.md · docs/kit-map.md · .github/workflows · tests/fe/infra |
 | T1 | CHẶN | `writing:lint`, `writing:lint:docs` | output phải đọc như QA viết, không như máy viết. | `scripts/qa/writing_lint.js` | RULE_GLOBAL.md · .github/workflows · prompt_templates · tests/fe/infra |
@@ -169,6 +173,7 @@ lịch sử, còn việc CHẶN nằm ở `dim:coverage` (chiều `bug_history` 
 | T2 | BÁO CÁO | `steps:suggest` | CHỈ RA CÂU BƯỚC NÀO NÊN VIẾT LẠI, VÀ VIẾT LẠI THẾ NÀO (v2.8.0 §K). | `scripts/qa/reuse/steps_suggest.js` | tests/fe/infra |
 | T2 | BÁO CÁO | `select:tests` | Intelligent Test Selection từ git diff. | `scripts/qa/select_tests.js` | docs/kit-map.md · tests/fe/infra |
 | T2 | BÁO CÁO | `results:summary` | đọc `results.json` của Playwright, in BẢN TÓM TẮT có TRẦN DÒNG. | `scripts/qa/summarize_results.js` | docs/kit-map.md · .agent/workflows · .agent/rules · .agent/skills · prompt_templates · tests/fe/infra |
+| T2 | BÁO CÁO | `extension:verify` | const {spawnSync}=require('child_process'),path=require('path'); | `scripts/qa/v4_verify.js` | **KHÔNG BỀ MẶT NÀO** |
 | T2 | BÁO CÁO | `report` | const { spawnSync } = require('child_process'); | `scripts/show_report.js` | .gitlab-ci.yml · RULE_GLOBAL.md · CLAUDE.md · README.md · USER_GUIDE.md · scripts/qa/README.md · docs/kit-map.md · .github/workflows · .agent/workflows · .agent/rules · .agent/skills · prompt_templates · exploratory · partial-rerun · manual-run · .claude/commands · tests/fe/infra |
 | T2 | BÁO CÁO | `task:which` | XÁC ĐỊNH TASK_KEY cho một lượt chạy slash command. | `scripts/utils/task_hien_tai.js` | README.md · USER_GUIDE.md · QUICKSTART.md · .claude/commands |
 

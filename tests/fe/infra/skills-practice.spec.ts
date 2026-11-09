@@ -219,7 +219,8 @@ test.describe('@infra skills:practice — năm bài, và bộ chấm không đư
   const HT = () => JSON.parse(fs.readFileSync(path.join(FIXTURE, 'hinh_thuc.dapan.json'), 'utf8'));
   const KQ = () => JSON.parse(fs.readFileSync(path.join(FIXTURE, 'ket_qua.dapan.json'), 'utf8'));
 
-  const MA_BAI = ['review-5-loi', 'doc-ket-qua', 'bug-than-backlog', 'du-lieu-run-id', 'dac-ta-ban-phan'];
+  const MA_BAI = ['review-5-loi', 'doc-ket-qua', 'bug-than-backlog', 'du-lieu-run-id', 'dac-ta-ban-phan',
+    'qemis-bieu-emis', 'qemis-luoi-lop'];
 
   test('đủ 5 bài, mỗi bài một skill KHÁC nhau', () => {
     const s = src();
@@ -228,8 +229,30 @@ test.describe('@infra skills:practice — năm bài, và bộ chấm không đư
     for (const m of MA_BAI) expect(khoi, `thiếu bài ${m}`).toContain(`ma: '${m}'`);
 
     const skill = [...khoi.matchAll(/skill: '([a-z_]+)'/g)].map((x) => x[1]);
-    expect(skill.length, 'mỗi bài phải khai đúng một skill').toBe(5);
-    expect(new Set(skill).size, `hai bài cùng skill thì bài thứ hai không đo thêm gì: ${skill.join(', ')}`).toBe(5);
+    expect(skill.length, 'mỗi bài phải khai đúng một skill').toBe(MA_BAI.length);
+
+    /*
+     * DUY NHẤT CHỈ ÁP CHO BÀI ĐO SKILL — bản đầu ghim `toBe(5)` cho cả hai dòng, nên lúc thêm bài A/B
+     * `qemis-trieu-chung` nó đỏ vì một lý do SAI. Luật thật là: *"hai bài cùng skill thì bài thứ hai
+     * không đo thêm gì"*. Bài có `pack` KHÔNG đo skill — nó đo **tài liệu chuyên sâu**, bằng cách chạy
+     * CÙNG skill ở hai nhánh có/không pack. Dùng chung skill ở đó là bắt buộc, không phải trùng lặp.
+     */
+    /* CHUẨN HOÁ XUỐNG DÒNG trước khi tách: repo dùng CRLF nên mẫu neo `\n` không khớp gì cả. */
+    const khoiLF = khoi.replace(/\r\n/g, '\n');
+    const moc = [...khoiLF.matchAll(/\n    ma: '([a-z0-9-]+)'/g)];
+    expect(moc.length, 'không tách được bài nào ⇒ phép kiểm này RỖNG').toBe(MA_BAI.length);
+    const doSkill: string[] = [];
+    moc.forEach((m, k) => {
+      const thanBai = khoiLF.slice(m.index!, k + 1 < moc.length ? moc[k + 1].index! : khoiLF.length);
+      if (!/\bpack:\s*'/.test(thanBai)) {
+        const sk = thanBai.match(/skill: '([a-z_]+)'/);
+        if (sk) doSkill.push(sk[1]);
+      }
+    });
+    expect(doSkill.length, 'không còn bài ĐO SKILL nào ⇒ phép kiểm này RỖNG').toBeGreaterThan(0);
+    expect(new Set(doSkill).size,
+      `hai bài ĐO SKILL cùng skill thì bài thứ hai không đo thêm gì: ${doSkill.join(', ')}`)
+      .toBe(doSkill.length);
   });
 
   test('mọi skill được khai đều CÓ THẬT trong `.agent/skills/`', () => {
@@ -248,7 +271,7 @@ test.describe('@infra skills:practice — năm bài, và bộ chấm không đư
     const i = s.indexOf('const BAI = [');
     const khoi = s.slice(i, s.indexOf('\n];', i));
     const tu = [...khoi.matchAll(/tu: '([^']+)'/g)].map((x) => x[1]);
-    expect(tu.length, 'năm bài phải khai năm nguồn fixture').toBe(5);
+    expect(tu.length, `mỗi bài phải khai một nguồn fixture (${MA_BAI.length} bài)`).toBe(MA_BAI.length);
     for (const t of tu) {
       expect(fs.existsSync(path.join(FIXTURE, t)), `fixture không tồn tại: ${t}`).toBe(true);
     }
@@ -362,7 +385,9 @@ test.describe('@infra skills:practice — fixture phải TRACK được, không 
     const i = s.indexOf('const BAI = [');
     const khoi = s.slice(i, s.indexOf('\n];', i));
     const tu = [...khoi.matchAll(/tu: '([^']+)'/g)].map((x) => x[1]);
-    expect(tu.length, 'năm bài phải khai năm nguồn fixture').toBe(5);
+    const soBai = (khoi.replace(/\r\n/g, '\n').match(/\n    ma: '/g) || []).length;
+    expect(soBai, 'không đếm được bài nào ⇒ phép kiểm này RỖNG').toBeGreaterThan(0);
+    expect(tu.length, `mỗi bài phải khai một nguồn fixture (${soBai} bài)`).toBe(soBai);
 
     const thieu: string[] = [];
     const duyet = (rel: string) => {
@@ -389,5 +414,53 @@ test.describe('@infra skills:practice — fixture phải TRACK được, không 
     for (const f of ['spec_5_loi.dapan.json', 'ket_qua.dapan.json', 'hinh_thuc.dapan.json']) {
       expect(track.has(`tests/fixtures/practice/${f}`), `${f}: đáp án không track ⇒ bộ chấm vỡ ở bản clone`).toBe(true);
     }
+  });
+});
+
+test.describe('@infra U2 — số đo ngẫu nhiên phải tự khai ĐỘ PHÂN GIẢI', () => {
+  /*
+   * Cửa nào gọi model thì con số của nó là một MẪU, không phải một hằng. Số đo của chính kit:
+   * cùng một bài cùng bộ chấm cho 2/5 rồi 5/5 (06/11/2026); `skills:route:live` lệch 8,8 điểm giữa hai
+   * lượt của CÙNG một trạng thái. In một con số trần là mời người đọc kết luận từ một lượt — và chuyện
+   * đó đã suýt xảy ra 5 lần chỉ trong một phiên.
+   */
+  const src = () => fs.readFileSync(CUA, 'utf8');
+
+  test('verdict mỗi bài đi kèm `n` và DẢI', () => {
+    const s = src();
+    expect(s, 'phải tính dải, không chỉ in verdict').toMatch(/Math\.min\(\.\.\.diem\)/);
+    expect(s).toMatch(/Math\.max\(\.\.\.diem\)/);
+    expect(s, 'phải in n').toMatch(/n=\$\{cua\.length\}/);
+    expect(s, 'dải bằng 0 cũng là thông tin — phải nói rõ là ỔN ĐỊNH').toMatch(/ổn định/);
+  });
+
+  test('n=1 KHÔNG được in như một con số có nghĩa', () => {
+    expect(src(), 'một lượt thì chưa đo được độ phân giải, và phải nói thẳng')
+      .toMatch(/CHƯA ĐO ĐƯỢC ĐỘ PHÂN GIẢI/);
+  });
+
+  test('mẫu rút điểm chạy đúng trên MỌI định dạng chi tiết đang có, và không rút bừa', () => {
+    /*
+     * Neo vào các chuỗi THẬT mà bốn bộ chấm đang sinh ra. Một mẫu chỉ hợp với một bộ chấm thì ngày
+     * thêm bài thứ năm nó im lặng trả `undefined`, và dải biến mất mà không ai thấy.
+     */
+    const s = src();
+    const m = s.match(/const mDiem = String\(cham\.chiTiet \|\| ''\)\.match\((\/.+?\/)\);/);
+    expect(m, 'không tìm thấy mẫu rút điểm').toBeTruthy();
+    // eslint-disable-next-line no-eval
+    const re: RegExp = eval(m![1]);
+
+    const that = [
+      ['5/5 phép kiểm (ngưỡng 4)', '5'],
+      ['4/5 phép kiểm (ngưỡng 4) · trượt E5', '4'],
+      ['4/5 lỗi có cả từ khoá VÀ số dòng: L1-hard-sleep', '4'],
+      ['5/5 tầng đúng · ca thiếu ảnh bước quyết định nêu được 3/2 ⇒ 6/6', '5'],
+    ];
+    for (const [chuoi, mong] of that) {
+      const r = chuoi.match(re);
+      expect(r && r[1], `không rút được điểm từ: ${chuoi}`).toBe(mong);
+    }
+    expect('LƯỢT KHÔNG CHẠY (success)'.match(re), 'lượt KHÔNG CHẠY thì không được rút ra số nào')
+      .toBeNull();
   });
 });

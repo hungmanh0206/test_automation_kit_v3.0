@@ -1,0 +1,44 @@
+{
+  "version": "1.1.1",
+  "base": "Kit B 2.10.2",
+  "strategy": "opt-in isolated adapters outside canonical skill trees; no B core modification",
+  "extensions": [
+    {
+      "source": "rbt-manual-testing",
+      "phase": "phase1",
+      "skill": "rbt_workflow_extension",
+      "source_sha256": "1b4e0caf1509fd7f4760df7fa697442b4b5c48beddbb7fdfa62ad1d183cd7ee8",
+      "adapter_path": ".agent/extensions/kit-a/adapters/phase1/rbt_workflow_extension/SKILL.md"
+    },
+    {
+      "source": "coverage-traceability",
+      "phase": "phase1",
+      "skill": "coverage_audit_extension",
+      "source_sha256": "b1c180a3eaaed9eaa571b1e642d19ef8c982a18d693ba429bcdbb7bbbe6d6367",
+      "adapter_path": ".agent/extensions/kit-a/adapters/phase1/coverage_audit_extension/SKILL.md"
+    },
+    {
+      "source": "manual-test-executor",
+      "phase": "phase2",
+      "skill": "manual_execution_extension",
+      "source_sha256": "75928037baf8c233b3ba0acd32b7918ad577b92500008874cf8bc31476d47be5",
+      "adapter_path": ".agent/extensions/kit-a/adapters/phase2/manual_execution_extension/SKILL.md"
+    },
+    {
+      "source": "framework-architect",
+      "phase": "shared",
+      "skill": "framework_portability_extension",
+      "source_sha256": "bbf4281fa646aca81cbd0cb8046ae69517005eefc9491b827624e833480493d9",
+      "adapter_path": ".agent/extensions/kit-a/adapters/shared/framework_portability_extension/SKILL.md"
+    },
+    {
+      "source": "smart-locator-agent",
+      "phase": "phase2",
+      "skill": "locator_portability_extension",
+      "source_sha256": "6591f62f171a0ad97401f904628413a783685248f9ee40e55f3b26de6df6bf92",
+      "adapter_path": ".agent/extensions/kit-a/adapters/phase2/locator_portability_extension/SKILL.md"
+    }
+  ],
+  "source_reference_note": "Adapted to Kit B policy; not byte-identical to Kit A originals. Original archives remain separate.",
+  "loading_mode": "explicit_via_extension_router_only"
+}

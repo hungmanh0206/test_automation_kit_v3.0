@@ -43,7 +43,17 @@ const probeIgnore = PROBE ? [] : ['**/*.probe.spec.*'];
 
 // Dùng CHUNG cho MỌI project desktop — quên ignore ở 1 engine là mobile-web/load/support bị phủ chéo.
 // (`load/` hiện cũng không khớp testMatch `*.spec.*`, giữ ignore làm lớp chắn dự phòng.)
-const desktopIgnore = ['**/mobile-web/**', '**/load/**', '**/support/**', ...probeIgnore];
+/*
+ * `unit/` chạy bằng `node --test` (npm run extension:test), KHÔNG phải Playwright.
+ *
+ * Nó khớp `testMatch` mặc định (`*.test.js`) và nằm dưới `testDir`, nên Playwright NẠP file rồi
+ * `node:test` thực thi ngay trong worker — đo 09/11/2026: lượt nhắm thẳng in ra 18 dòng ✔ của node:test
+ * rồi exit 1 vì Playwright thu được 0 ca của riêng nó. Hệ quả ở lượt cả bộ: bộ unit test chạy LẠI một
+ * lần nữa và lẫn vào báo cáo Playwright.
+ *
+ * Cùng lý do `support/` đã nằm trong danh sách này.
+ */
+const desktopIgnore = ['**/mobile-web/**', '**/load/**', '**/support/**', '**/unit/**', ...probeIgnore];
 const desktop = (name, device, extra = {}) => ({ name, testIgnore: desktopIgnore, use: { ...devices[device] }, ...extra });
 
 /*

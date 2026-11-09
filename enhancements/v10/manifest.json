@@ -1,0 +1,43 @@
+{
+  "version": "10.0.0",
+  "loading_mode": "explicit_advisory_only",
+  "canonical_authority": "RULE_GLOBAL.md",
+  "model_calls": false,
+  "packs": [
+    {
+      "id": "rbt",
+      "path": "enhancements/v10/packs/rbt.md",
+      "extension": "rbt_workflow_extension",
+      "owner": "tc_design_guide",
+      "origin": "rbt-manual-testing"
+    },
+    {
+      "id": "coverage",
+      "path": "enhancements/v10/packs/coverage.md",
+      "extension": "coverage_audit_extension",
+      "owner": "tc_reviewer",
+      "origin": "coverage-traceability"
+    },
+    {
+      "id": "manual",
+      "path": "enhancements/v10/packs/manual.md",
+      "extension": "manual_execution_extension",
+      "owner": "qa_automation_engineer",
+      "origin": "manual-test-executor"
+    },
+    {
+      "id": "framework",
+      "path": "enhancements/v10/packs/framework.md",
+      "extension": "framework_portability_extension",
+      "owner": "qa_automation_engineer",
+      "origin": "framework-architect"
+    },
+    {
+      "id": "locator",
+      "path": "enhancements/v10/packs/locator.md",
+      "extension": "locator_portability_extension",
+      "owner": "locator_healing_agent",
+      "origin": "smart-locator-agent"
+    }
+  ]
+}

@@ -1,0 +1,195 @@
+{
+  "scope": "Deterministic validator contracts only; not model skill quality, not real test evidence",
+  "cases": 23,
+  "correct": 23,
+  "negative_rejected": 15,
+  "negative_accepted": 0,
+  "positive_rejected": 0,
+  "positive_accepted": 8,
+  "results": [
+    {
+      "id": "valid-artifact",
+      "kind": "artifact",
+      "expected_accept": true,
+      "actual_accept": true,
+      "correct": true,
+      "reason": ""
+    },
+    {
+      "id": "missing-evidence",
+      "kind": "artifact",
+      "expected_accept": false,
+      "actual_accept": false,
+      "correct": true,
+      "reason": "PASS requires evidence"
+    },
+    {
+      "id": "execution-not-verified",
+      "kind": "artifact",
+      "expected_accept": false,
+      "actual_accept": false,
+      "correct": true,
+      "reason": "PASS requires execution_verified=true"
+    },
+    {
+      "id": "orphan-testcase",
+      "kind": "artifact",
+      "expected_accept": false,
+      "actual_accept": false,
+      "correct": true,
+      "reason": "testcases[0] orphan requirement"
+    },
+    {
+      "id": "missing-expected",
+      "kind": "artifact",
+      "expected_accept": false,
+      "actual_accept": false,
+      "correct": true,
+      "reason": "testcases[0] missing expected"
+    },
+    {
+      "id": "missing-steps",
+      "kind": "artifact",
+      "expected_accept": false,
+      "actual_accept": false,
+      "correct": true,
+      "reason": "testcases[0] missing steps"
+    },
+    {
+      "id": "invalid-verdict",
+      "kind": "artifact",
+      "expected_accept": false,
+      "actual_accept": false,
+      "correct": true,
+      "reason": "invalid verdict"
+    },
+    {
+      "id": "no-testcases",
+      "kind": "artifact",
+      "expected_accept": false,
+      "actual_accept": false,
+      "correct": true,
+      "reason": "testcases must be nonempty array"
+    },
+    {
+      "id": "no-requirements",
+      "kind": "artifact",
+      "expected_accept": false,
+      "actual_accept": false,
+      "correct": true,
+      "reason": "requirement_ids must be nonempty array; testcases[0] orphan requirement"
+    },
+    {
+      "id": "valid-requirements",
+      "kind": "workflow",
+      "expected_accept": true,
+      "actual_accept": true,
+      "correct": true,
+      "reason": ""
+    },
+    {
+      "id": "empty-source",
+      "kind": "workflow",
+      "expected_accept": false,
+      "actual_accept": false,
+      "correct": true,
+      "reason": "Missing requirements: source"
+    },
+    {
+      "id": "valid-ambiguity",
+      "kind": "workflow",
+      "expected_accept": true,
+      "actual_accept": true,
+      "correct": true,
+      "reason": ""
+    },
+    {
+      "id": "unresolved-ambiguity",
+      "kind": "workflow",
+      "expected_accept": false,
+      "actual_accept": false,
+      "correct": true,
+      "reason": "Ambiguity unresolved"
+    },
+    {
+      "id": "valid-testcase",
+      "kind": "workflow",
+      "expected_accept": true,
+      "actual_accept": true,
+      "correct": true,
+      "reason": ""
+    },
+    {
+      "id": "missing-expected-result",
+      "kind": "workflow",
+      "expected_accept": false,
+      "actual_accept": false,
+      "correct": true,
+      "reason": "Testcase contract violation"
+    },
+    {
+      "id": "valid-review",
+      "kind": "workflow",
+      "expected_accept": true,
+      "actual_accept": true,
+      "correct": true,
+      "reason": ""
+    },
+    {
+      "id": "unapproved-review",
+      "kind": "workflow",
+      "expected_accept": false,
+      "actual_accept": false,
+      "correct": true,
+      "reason": "Testcase review not approved"
+    },
+    {
+      "id": "valid-execution",
+      "kind": "workflow",
+      "expected_accept": true,
+      "actual_accept": true,
+      "correct": true,
+      "reason": ""
+    },
+    {
+      "id": "invalid-execution",
+      "kind": "workflow",
+      "expected_accept": false,
+      "actual_accept": false,
+      "correct": true,
+      "reason": "Invalid execution status"
+    },
+    {
+      "id": "valid-evidence-manifest",
+      "kind": "workflow",
+      "expected_accept": true,
+      "actual_accept": true,
+      "correct": true,
+      "reason": ""
+    },
+    {
+      "id": "invalid-evidence-hash",
+      "kind": "workflow",
+      "expected_accept": false,
+      "actual_accept": false,
+      "correct": true,
+      "reason": "Evidence manifest invalid"
+    },
+    {
+      "id": "valid-verdict",
+      "kind": "workflow",
+      "expected_accept": true,
+      "actual_accept": true,
+      "correct": true,
+      "reason": ""
+    },
+    {
+      "id": "invalid-verdict-contract",
+      "kind": "workflow",
+      "expected_accept": false,
+      "actual_accept": false,
+      "correct": true,
+      "reason": "Invalid verdict"
+    }
+  ]
+}

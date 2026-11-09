@@ -1,0 +1,13 @@
+'use strict';
+const {test}=require('node:test');
+const assert=require('node:assert/strict');
+const {route,ROUTES}=require('../../scripts/qa/extension_router');
+test('every registered extension has route',()=>assert.equal(ROUTES.length,5));
+test('unmatched request never authorizes execution',()=>{const r=route('hello');assert.equal(r.unmatched,true);assert.equal(r.execution_authorized,false)});
+test('RBT missing requirements is blocked',()=>{const r=route('FULL RBT');assert.equal(r.matches[0].status,'BLOCKED_PREREQUISITES');assert.deepEqual(r.matches[0].missing_prerequisites,['requirements_available'])});
+test('RBT with prerequisites still requires gate review',()=>{const r=route('FULL RBT',{requirements_available:true});assert.equal(r.matches[0].status,'READY_FOR_REVIEW');assert.equal(r.execution_authorized,false);assert.ok(r.matches[0].required_gates.includes('testcase_review'))});
+test('manual execution without browser and approval blocked',()=>{const r=route('manual execution');assert.equal(r.matches[0].missing_prerequisites.length,2);assert.equal(r.verdict,'NOT_EXECUTED')});
+test('framework design is not runner execution',()=>{const r=route('Appium architecture',{target_framework_specified:true});assert.equal(r.matches[0].status,'READY_FOR_REVIEW');assert.equal(r.execution_authorized,false)});
+test('multiple matching extensions remain independent',()=>{const r=route('RBT coverage and traceability');assert.equal(r.matches.length,2)});
+test('empty request fails closed',()=>assert.throws(()=>route('  ')));
+test('all route IDs exist in extension manifest',()=>{const fs=require('node:fs');const path=require('node:path');const m=require('../../.agent/extensions/kit-a/manifest.json');for(const r of ROUTES)assert.ok(m.extensions.some(e=>e.skill===r.id))});

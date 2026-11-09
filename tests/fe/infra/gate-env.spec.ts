@@ -52,7 +52,23 @@ test.describe('@infra gateEnv — tiến trình con không được thừa kế 
   test('ĐỐI CHỨNG ÂM: biến KHÔNG nằm trong danh sách phải SỐNG SÓT', () => {
     const ra = voiEnv({ MOT_BIEN_VO_HAI_DE_DO: 'con-nguyen' }, () => gateEnv());
     expect(ra.MOT_BIEN_VO_HAI_DE_DO, 'lọc mà xoá sạch thì nó không chứng minh được gì').toBe('con-nguyen');
-    expect(ra.PATH, 'gỡ PATH thì `node` con không chạy nổi — lọc sai hướng').toBeTruthy();
+    /*
+     * TÌM KHOÁ BẤT KỂ HOA THƯỜNG, và đây là một lỗi THẬT của chính file này — mỉa mai ở chỗ nó tồn tại
+     * để chặn đúng loại lỗi đó (xem header: *"kết quả phụ thuộc môi trường chạy, nên 'xanh' không còn
+     * nghĩa"*).
+     *
+     * `process.env` trên Windows truy cập KHÔNG phân biệt hoa thường, nhưng `{ ...process.env }` tạo ra
+     * object THƯỜNG, và object thường thì phân biệt. Chạy từ PowerShell/cmd biến tên `Path`, nên
+     * `ra.PATH` là `undefined` ⇒ ca này ĐỎ. Tái hiện 09/11/2026: truyền env có `Path` mà không có
+     * `PATH` ⇒ đúng 1 failed tại dòng này.
+     *
+     * Và nó là ĐỎ GIẢ: đo được rằng chỉ với `Path`, tiến trình con VẪN chạy được
+     * (`spawn('git', ['--version'])` ra `git version 2.55.0.windows.5`). Thứ cần khẳng định là **đường
+     * tìm lệnh còn sống**, không phải **cách viết hoa của tên biến**.
+     */
+    const khoaPath = Object.keys(ra).filter((k) => /^path$/i.test(k));
+    expect(khoaPath.length, 'gỡ PATH thì `node` con không chạy nổi — lọc sai hướng').toBeGreaterThan(0);
+    expect(ra[khoaPath[0]], `\`${khoaPath[0]}\` còn tên mà rỗng ruột thì cũng như gỡ mất`).toBeTruthy();
   });
 
   test('khai tường minh vẫn THẮNG: `gateEnv({ CI })` là đường đo nhánh CI', () => {
