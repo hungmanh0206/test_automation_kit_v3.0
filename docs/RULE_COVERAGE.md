@@ -18,7 +18,7 @@ Ví dụ cụ thể: `secret:scan` chặn theo mục Security mà mục đó kh�
 không nhắc tên. Đã đo trên bản máy của `gate:policy`: đòi luật canonical nhắc TÊN mọi lệnh thì **19/24
 script báo oan**. Nên con số `chưa nối được` ở dưới là **việc cần rà**, không phải một lỗ đã chứng minh.
 
-Nguồn: `RULE_GLOBAL.md` (35 mục có nội dung) · 165 gate · 187 spec hạ tầng.
+Nguồn: `RULE_GLOBAL.md` (35 mục có nội dung) · 166 gate · 188 spec hạ tầng.
 
 ## Mục luật ĐÃ nối được gate (29)
 
