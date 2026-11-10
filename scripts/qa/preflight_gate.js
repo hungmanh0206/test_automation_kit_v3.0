@@ -14,7 +14,7 @@
  *
  * Dùng CLI:
  *   node scripts/qa/preflight_gate.js --mode generic          # CI/static: config integrity
- *   node scripts/qa/preflight_gate.js --mode phase2 --task <TASK_KEY>
+ *   node scripts/qa/preflight_gate.js --mode phase3 --task <TASK_KEY>
  *   thêm --require a,b (bắt buộc thêm) · --allow-missing x,y (hạ xuống cảnh báo) · --qa-approved (bỏ qua có log)
  * Dùng module: const { runPreflight } = require('./preflight_gate'); const { problems, warnings } = runPreflight({ mode, task });
  * Exit: 0 = đạt (hoặc --qa-approved) · 1 = có CHẶN · 2 = lỗi dùng sai.
@@ -39,22 +39,36 @@ const MANIFEST = {
     parse: ['knowledge/index.json', '.agent/config/risk_model.example.json', '.agent/config/dashboard.branding.example.json', '.agent/config/verdict_taxonomy.json'],
     recommend: ['.agent/config/risk_model.json', 'knowledge/index.json'],
   },
+  /*
+   * TÊN MODE = SỐ PHASE CỦA LỆNH, đổi 10/11/2026. Trước đó `phase1` ở đây nghĩa là "trước khi sinh
+   * case" còn `phase2` nghĩa là "trước khi execute" — trong khi `handoff.json` đã dùng `phase2` cho
+   * sinh case và `phase3` cho execute. Cùng một chuỗi, hai nghĩa, ở hai file cùng được một hàm đọc.
+   *
+   * Hệ quả đo được: `--mode phase3` bị từ chối là "mode không hỗ trợ", nên nhánh bàn giao của phase
+   * execute KHÔNG BAO GIỜ chạy thật. Spec của nó gọi thẳng `checkHandoff()` nên đi vòng qua chỗ kiểm
+   * mode và vẫn xanh suốt — một cửa xanh vì nó không bao giờ được gọi.
+   */
   phase1: {
     require: ['.agent/config/project_context.md'],
     parse: ['knowledge/index.json', '.agent/config/risk_model.example.json'],
     recommend: ['.agent/config/risk_model.json', 'knowledge/index.json'],
   },
-  /* rerun dùng cùng manifest với phase2 — nó cũng execute, chỉ khác phạm vi. */
-  rerun: {
-    require: [],
-    parse: ['.agent/config/verdict_taxonomy.json'],
-    recommend: [],
-  },
   phase2: {
+    require: ['.agent/config/project_context.md'],
+    parse: ['knowledge/index.json', '.agent/config/risk_model.example.json'],
+    recommend: ['.agent/config/risk_model.json', 'knowledge/index.json'],
+  },
+  phase3: {
     require: ['.agent/config/project_context.md'],
     parse: ['knowledge/index.json'],
     recommend: ['.agent/config/risk_model.json', 'knowledge/index.json'],
     taskTestcase: true,
+  },
+  /* phase4 dùng cùng manifest với phase3 — nó cũng execute, chỉ khác phạm vi. */
+  phase4: {
+    require: [],
+    parse: ['.agent/config/verdict_taxonomy.json'],
+    recommend: [],
   },
   publish: {
     require: [],
@@ -158,7 +172,7 @@ function checkHandoff(repoRoot, { mode, taskDir }) {
  */
 function runPreflight({ mode = 'generic', task = '', extraRequire = [], allowMissing = [], projectOutputDir = process.env.PROJECT_OUTPUT_DIR || '' } = {}) {
   const cfg = MANIFEST[mode];
-  if (!cfg) return { error: `mode "${mode}" không hỗ trợ (generic|phase1|phase2|publish|rerun)`, problems: [], warnings: [] };
+  if (!cfg) return { error: `mode "${mode}" không hỗ trợ (${Object.keys(MANIFEST).join('|')}). Tên cũ đã đổi theo số phase của lệnh: phase1→phase2 (sinh case), phase2→phase3 (execute), rerun→phase4.`, problems: [], warnings: [] };
   const problems = [];
   const warnings = [];
   const allow = new Set(allowMissing);
@@ -198,12 +212,12 @@ function runPreflight({ mode = 'generic', task = '', extraRequire = [], allowMis
    * tài liệu, và `scope_anchor` chỉ nói được "CHƯA GÁC ĐƯỢC". Một lượt Phase 1 im lặng bỏ Bước 0 trông y
    * như một lượt đã làm đủ.
    */
-  if (mode === 'phase1' && task && projectOutputDir) {
+  if (mode === 'phase2' && task && projectOutputDir) {
     const reqDir = abs(path.join(projectOutputDir, 'tasks', task, 'requirements'));
     const sm = path.join(reqDir, 'system_map.json');
     const batBuoc = process.env.DISCOVERY_REQUIRED === '1';
     if (!fs.existsSync(sm)) {
-      const msg = 'phase1: chưa có `requirements/system_map.json` (Bước 0 — `npm run discover`). Thiếu nó thì mẫu số coverage là danh mục agent tự liệt kê từ tài liệu, và màn/API không có trong tài liệu sẽ không ai test.';
+      const msg = 'phase2: chưa có `requirements/system_map.json` (Bước 0 — `npm run discover`). Thiếu nó thì mẫu số coverage là danh mục agent tự liệt kê từ tài liệu, và màn/API không có trong tài liệu sẽ không ai test.';
       if (batBuoc) problems.push(`DISCOVERY_REQUIRED=1 ⇒ ${msg}`);
       else warnings.push(msg);
     } else {
@@ -214,11 +228,11 @@ function runPreflight({ mode = 'generic', task = '', extraRequire = [], allowMis
       const ngay = Math.floor((Date.now() - fs.statSync(sm).mtimeMs) / 86400000);
       const nguong = Number(process.env.DISCOVERY_MAX_AGE_DAYS || 14);
       if (ngay > nguong) {
-        warnings.push(`phase1: \`requirements/system_map.json\` đã ${ngay} ngày (ngưỡng ${nguong}). Bản đồ của build trước vẫn parse được và vẫn đủ màn — nó chỉ mô tả một app KHÁC. Chạy \`npm run discover -- --mode delta\` để biết đã đổi gì.`);
+        warnings.push(`phase2: \`requirements/system_map.json\` đã ${ngay} ngày (ngưỡng ${nguong}). Bản đồ của build trước vẫn parse được và vẫn đủ màn — nó chỉ mô tả một app KHÁC. Chạy \`npm run discover -- --mode delta\` để biết đã đổi gì.`);
       }
       const isf = path.join(reqDir, 'injection_surface.json');
       if (!fs.existsSync(isf)) {
-        warnings.push('phase1: có `system_map.json` mà thiếu `requirements/injection_surface.json` ⇒ `dim:coverage` không gác được phủ injection, chiều security quay về chấm bằng regex trên văn bản.');
+        warnings.push('phase2: có `system_map.json` mà thiếu `requirements/injection_surface.json` ⇒ `dim:coverage` không gác được phủ injection, chiều security quay về chấm bằng regex trên văn bản.');
       }
     }
 
@@ -232,7 +246,7 @@ function runPreflight({ mode = 'generic', task = '', extraRequire = [], allowMis
      */
     const clarif = abs(path.join(projectOutputDir, 'tasks', task, 'reports', 'phase1-clarifications.md'));
     if (!fs.existsSync(clarif)) {
-      warnings.push('phase1: chưa có `reports/phase1-clarifications.md` ⇒ cổng mơ hồ CHƯA ĐƯỢC GÁC. '
+      warnings.push('phase2: chưa có `reports/phase1-clarifications.md` ⇒ cổng mơ hồ CHƯA ĐƯỢC GÁC. '
         + '`npm run ambiguity:gate` không có gì để đối chiếu, nên nó im — và im lặng đó không đồng nghĩa với "không có điểm mơ hồ".');
     }
   }

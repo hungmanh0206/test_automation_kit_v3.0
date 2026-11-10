@@ -9,7 +9,7 @@ Thiếu mã task → `npm run task:which -- $ARGUMENTS`; thoát 2 = KHÔNG PHÁN
 Chạy cửa vào:
 
 ```bash
-node scripts/qa/preflight_gate.js --mode phase2 --task $ARGUMENTS
+node scripts/qa/preflight_gate.js --mode phase3 --task $ARGUMENTS
 ```
 
 Đổi `--mode` theo việc đang làm: `phase1` · `phase2` · `publish` · `generic` (CI/static).

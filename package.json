@@ -74,6 +74,7 @@
     "tc:doi-chieu": "node scripts/qa/tc_doi_chieu.js",
     "exec:proof": "node scripts/qa/exec_proof.js",
     "write:proof": "node scripts/qa/write_proof.js",
+    "setup:proof": "node scripts/qa/setup_proof.js",
     "bug:outcome:ghi": "node scripts/qa/bug_outcome.js --ghi",
     "bug:outcome:enforce": "node scripts/qa/bug_outcome.js --enforce",
     "bug:claim:chot": "node scripts/qa/bug_claim.js --chot",

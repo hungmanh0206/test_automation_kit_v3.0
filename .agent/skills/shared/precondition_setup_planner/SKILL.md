@@ -174,7 +174,7 @@ Chỉ `needs_hook`/`needs_account`/`needs_sandbox` là "capability gap" đi vào
 
 | Máy | Gác gì |
 |---|---|
-| `npm run preflight -- --mode phase2 --task <KEY>` | tiền điều kiện khai mà input/config chưa đủ ⇒ CHẶN trước khi chạy, thay vì để case đỏ rồi mới biết |
+| `npm run preflight -- --mode phase3 --task <KEY>` | tiền điều kiện khai mà input/config chưa đủ ⇒ CHẶN trước khi chạy, thay vì để case đỏ rồi mới biết |
 | `npm run gate:output` | case `BLOCKED_SETUP` không nêu capability còn thiếu |
 
 > Phần **chọn method** (factory/hook/fixture/mock) KHÔNG có máy kiểm vì nó phụ thuộc capability của app,

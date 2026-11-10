@@ -303,7 +303,7 @@ Nhân mô hình `output_gate` ra TOÀN kit — biến bước quan trọng mọi
 > **Architecture hardening (`scripts/utils/`, offline):** `lib/testcase/` (canonical TestCase: parseMarkdown/parseXlsx/validate — 1 parser), `test_context.js` (thin execution-context), `evidence/{sanitize,manifest}.js` (PII mask + evidence index/exists-check), `auth/{session_cache,auth_strategy}.js` + `tests/fe/support/auth/opsAuth.ts` (reuse session né throttle), `cleanup/cleanup_manifest.js` (orphan RUN_ID reconcile), `runtime_config.d.ts` (typed).
 
 ```bash
-node scripts/qa/preflight_gate.js --mode phase2 --task <KEY>   # G1: đủ input trước execute
+node scripts/qa/preflight_gate.js --mode phase3 --task <KEY>   # G1: đủ input trước execute
 npm run design:gate -- --dir <test-cases/> --with-rows        # G5: structural+completeness (+row-quality)
 npm run self-review -- --task <KEY>                            # G9: checklist gộp trước finalize
 ```

@@ -23,7 +23,7 @@ nêu một máy không chặn, thì bản Lite đã mất phần gác đó và t
 **1. Nguồn và phạm vi.** `TASK_KEY` + `PROJECT_OUTPUT_DIR` có mặt; đọc testcase canonical LOCAL
 (`test-cases/*.md`), không dựa hội thoại cũ. Trôi so với bản xuất thì kéo Sheet về `from-sheet/*.xlsx`
 rồi đọc bản đó.
-**Máy gác:** `npm run preflight -- --mode phase2 --task <TASK_KEY>` (thiếu input hoặc chưa có testcase
+**Máy gác:** `npm run preflight -- --mode phase3 --task <TASK_KEY>` (thiếu input hoặc chưa có testcase
 canonical = CHẶN) và `npm run canonical:drift`.
 
 **2. Oracle độc lập.** Mỗi case phải có `Kết quả mong đợi` cụ thể — giá trị, URL, hoặc element theo spec.
@@ -58,7 +58,7 @@ CẤM dùng `.json`, `.md`, `.txt`, `.log`, `.html`, `.csv`, `trace.zip` làm ev
 
 ## Chạy
 
-1. `npm run preflight -- --mode phase2 --task <TASK_KEY>` . Đỏ thì dừng, đừng execute.
+1. `npm run preflight -- --mode phase3 --task <TASK_KEY>` . Đỏ thì dừng, đừng execute.
 2. Đọc `test-cases/*.md`. Viết ÍT script phủ NHIỀU case, gom theo nhóm tiền điều kiện.
 3. Chạy. Ghi kết quả vào `<TASK_OUTPUT_DIR>/test-results/testcase-status.json`, mỗi case:
    `tcId`, `status`, `comment`, `evidence[]`, và `steps[]` (mỗi step có `status` và

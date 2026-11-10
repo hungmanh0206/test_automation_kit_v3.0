@@ -52,7 +52,7 @@ test-automation-kit/
 │   ├── integrations/   # backlog/ (bug + fetch tài liệu nguồn/Figma) · google_doc/ · google_sheet/ (legacy)
 │   └── qa/   # công cụ QA chạy thật: dashboard, accessibility, perf, security, load, risk_score/gate, ui_conformance
 ├── tests/
-│   ├── fe/infra/        # 189 spec KIỂM CHÍNH KIT (gate tự kiểm) — chạy offline, vào CI
+│   ├── fe/infra/        # 190 spec KIỂM CHÍNH KIT (gate tự kiểm) — chạy offline, vào CI
 │   ├── support/setup/   # setup layer dùng chung (factory/hook/fixture/mock/cleanup/contract)
 │   ├── support/setup/db/  # DB Verification Layer (§23) — đọc bản ghi để KHOANH TẦNG lỗi UI vs BE
 │   │                      #   read-only tuyệt đối; so sánh theo NGHĨA (money/instant/text)
@@ -219,7 +219,7 @@ Chúng chỉ bọc **điểm vào của một luồng công việc**.
 | Chọn test theo diff + risk/flaky | `npm run select:tests -- [--include-risky 3] [--risk-first]` |
 | Risk register (RBT) | `npm run risk` |
 | Risk gate (cảnh báo / chặn CI) | `npm run risk:gate` · `npm run risk:gate:enforce` |
-| Preflight — input/config đủ (G1) | `npm run preflight` · `node scripts/qa/preflight_gate.js --mode phase2 --task <TASK_KEY>` |
+| Preflight — input/config đủ (G1) | `npm run preflight` · `node scripts/qa/preflight_gate.js --mode phase3 --task <TASK_KEY>` |
 | Design gate — thiết kế TC (G5) | `npm run design:gate -- --dir <test-cases/> --with-rows` |
 | **Chiều coverage — bộ TC có trống hẳn một LOẠI câu hỏi không?** | `TASK_ENV=… npm run dim:coverage` · `-- --enforce`. Bộ TC có **hai trục**: *module* = test **ở đâu**, *chiều* = hỏi **loại câu hỏi nào** (validate · hiển thị · công thức · BE conformance · guard · bảo mật · perf · change-impact). Phủ kín module mà trống một chiều thì bộ **vẫn trông đầy đủ** — đo trên một bộ 530 case thật: §6 E2E **0 case**, §17 change-impact **0–1**, case hiển thị **≈12%** dù mục đó BẮT BUỘC. Cách gác: khai `requirements/dimension_manifest.json` (chiều nào `required`/`n/a` **kèm lý do**; khai `n/a` trái artifact có thật = CHẶN) → mỗi case gắn **tag chiều** trong tiêu đề (`[Positive][Display] …`) → gate đếm theo tag. Nội dung 15 chiều: [`prompt_templates/phase2/dimensions/`](../prompt_templates/phase2/dimensions/) · quy ước tag: prompt gen §0b · luật canonical: [RULE_GLOBAL §Chiều coverage](../RULE_GLOBAL.md) |
 | Output gate — execute / gen-testcase (G2/G4/G6) | `npm run gate:output -- --status <status.json>` · `npm run gate:gen-testcase -- --dir <test-cases/>` |

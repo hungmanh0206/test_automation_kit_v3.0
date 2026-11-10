@@ -155,7 +155,7 @@ test.describe('@infra env:scope — không có gì để đo thì NÓI THẾ', (
 /*
  * CHỖ NỐI VÀO PREFLIGHT. `env:scope` quét cả repo nên không vào CI được (CI không có `.env` lẫn
  * `profiles/` ⇒ nó trả "KHÔNG PHÁN ĐƯỢC"). Nên luật phải có một chỗ THẬT SỰ bắn, và chỗ đó là
- * `preflight_gate.js --mode phase2`: chạy trên máy có profile, ngay trước execute, đã biết TASK_KEY.
+ * `preflight_gate.js --mode phase3`: chạy trên máy có profile, ngay trước execute, đã biết TASK_KEY.
  *
  * Không có nhóm ca này thì chỗ nối là code không ai gác: ai đó gỡ dòng gọi `kiemGhimCapHoc` ra khỏi
  * `runPreflight` thì mọi ca ở trên vẫn xanh, và cửa lặng lẽ thành đồ trang trí. Đúng khe đã ghi trong

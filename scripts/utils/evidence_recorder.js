@@ -246,9 +246,39 @@ class Case {
      * TÊN BƯỚC biến mất khỏi file kết quả, chỉ còn trên console. Người đọc report sau đó thấy một dãy
      * số đo không biết đang đo cái gì. Tên bước là thứ nói "đang kiểm điều gì", comment là "đo được gì"
      * — hai vai khác nhau, phải giữ cả hai. */
-    this.steps.push({ name: sanitize(name), status, comment: sanitize(comment), evidence: [rel] }); // #3: mask PII lỡ quên
+    this.steps.push({
+      name: sanitize(name), status, comment: sanitize(comment), evidence: [rel],
+      ...(opts.tienDe ? { tienDe: true } : {}),
+    }); // #3: mask PII lỡ quên
     if (this.rec.log) console.log(`   [step ${idx}] ${status} — ${name} → ${path.basename(file)}`);
     return status;
+  }
+
+  /**
+   * Ghi BẰNG CHỨNG TIỀN ĐỀ: trạng thái mà case GIẢ ĐỊNH là đã có, được kiểm THẬT trước khi đo.
+   *
+   * Dùng: `await ca.tienDe(page, 'Báo cáo đầu năm ở trạng thái Chưa gửi', { assert: () => …, highlight: … })`
+   *
+   * ────────────────────────────────────────────────────────────────────────────────────────────────
+   * VÌ SAO Ở ĐÂY, KHÔNG PHẢI Ở GATE ĐỌC SPEC
+   *
+   * Chủ dự án nêu điều #2: *"chưa chứng minh Agent … dựng đúng state"*. Tôi đã thử đo bằng cách ĐỌC
+   * SPEC, hai lần, và cả hai đều sai:
+   *   · bản chặt (đòi `expect` ngay trong `beforeAll`) gắn cờ **267/303 case** của CSDL-4008 — tố oan,
+   *     vì khối dựng gọi helper trong `lib/` và CHÍNH helper mới là chỗ ném lỗi;
+   *   · bản nới (đi theo đường nhập, chấp nhận `throw` ở bất kỳ lib nào) gắn cờ **0** — vô nghĩa, vì
+   *     gần như lib nào cũng có một `throw` ở đâu đó.
+   * Một phép đo cho ra 267 hoặc 0 tuỳ cách viết regex thì nó đang đo chính regex, không đo tiền đề.
+   *
+   * Thứ KHÔNG đọc được từ mã nguồn: trạng thái ấy có THẬT lúc chạy hay không. Chỉ lượt chạy mới biết,
+   * nên chỉ lượt chạy mới ghi được. Hàm này là chỗ ghi.
+   *
+   * KHÔNG tự chấm case: nó là một step như mọi step, có ảnh, có status. Tiền đề hỏng ⇒ step FAILED ⇒
+   * `finish()` thấy có step fail và case thành FAILED — rồi người đọc thấy ngay tầng lỗi là tiền đề,
+   * không phải sản phẩm. Đó đúng là điều `BLOCKED_SETUP` sinh ra để nói.
+   */
+  async tienDe(page, moTa, opts = {}) {
+    return this.step(page, `TIỀN ĐỀ · ${moTa}`, { ...opts, tienDe: true });
   }
 
   /** Kết thúc case: status tổng (mặc định = FAILED nếu có step FAILED). Evidence cấp case = ảnh step lỗi (nếu có) hoặc step cuối. */

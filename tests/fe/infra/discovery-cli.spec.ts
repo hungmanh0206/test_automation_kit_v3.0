@@ -397,7 +397,7 @@ test.describe('@infra §B2 `scope_anchor` — mẫu số phủ route TRONG PHẠ
   });
 });
 
-test.describe('@infra §B11 `preflight --mode phase1` — cảnh báo, chặn được khi dự án muốn', () => {
+test.describe('@infra §B11 `preflight --mode phase2` — cảnh báo, chặn được khi dự án muốn', () => {
   const PF = path.join(REPO, 'scripts/qa/preflight_gate.js');
 
   function taskTam(co: { sm?: boolean; isf?: boolean; cu?: boolean }) {
@@ -417,7 +417,7 @@ test.describe('@infra §B11 `preflight --mode phase1` — cảnh báo, chặn đ
   }
 
   function chayPF(pod: string, env: Record<string, string> = {}) {
-    const r = spawnSync(process.execPath, [PF, '--mode', 'phase1', '--task', 'T1'], {
+    const r = spawnSync(process.execPath, [PF, '--mode', 'phase2', '--task', 'T1'], {
       cwd: REPO, encoding: 'utf8', env: { ...gateEnv(), PROJECT_OUTPUT_DIR: pod, ...env },
     });
     return { code: r.status, out: `${r.stdout || ''}${r.stderr || ''}` };

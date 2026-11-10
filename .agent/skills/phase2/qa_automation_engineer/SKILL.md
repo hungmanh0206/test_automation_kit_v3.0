@@ -108,7 +108,7 @@ Gọi chúng theo thứ tự, và đọc exit code chứ không đọc dòng tó
 
 | Máy | Gác gì | Mức |
 |---|---|---|
-| `npm run preflight -- --mode phase2 --task <KEY>` | thiếu input, config hỏng, chưa có testcase canonical | CHẶN trước khi chạy |
+| `npm run preflight -- --mode phase3 --task <KEY>` | thiếu input, config hỏng, chưa có testcase canonical | CHẶN trước khi chạy |
 | `npm run auto:review:enforce` | hard-sleep, vacuous-url/count, console-log, cred-literal, no-assert | CHẶN ở file đã track |
 | `npm run lint:locator` | locator dễ vỡ không có marker kèm lý do | cảnh báo · `:enforce` CHẶN |
 | `npm run gate:output` | comment dính khối, thiếu evidence, step thiếu `status` | CHẶN trước khi push |

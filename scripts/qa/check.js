@@ -126,7 +126,7 @@ function gateTrongTienTrinh(taskKey, taskOutputDir, phase) {
   try {
     /* eslint-disable-next-line global-require */
     const preflight = require(path.join(__dirname, 'preflight_gate'));
-    const r = preflight.runPreflight({ mode: phase === 2 ? 'phase2' : 'generic', task: taskKey });
+    const r = preflight.runPreflight({ mode: phase === 2 ? 'phase3' : 'generic', task: taskKey });
     kq.push(engine.toResult('preflight', {
       problems: r.problems || [], warnings: r.warnings || [], severity: engine.SEVERITY.P0,
     }));

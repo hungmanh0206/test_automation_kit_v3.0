@@ -2,6 +2,8 @@ import { test, expect } from '@playwright/test';
 import fs from 'fs';
 import os from 'os';
 import path from 'path';
+import { spawnSync } from 'child_process';
+import { gateEnv } from './_gate_env';
 
 /*
  * @infra — BÀN GIAO GIỮA PHASE (H1 của token-diet).
@@ -55,6 +57,29 @@ test.describe('@infra bàn giao giữa phase — cảnh báo, không chặn', ()
     }
     expect(Object.keys(CFG.phase)).toEqual(['phase2', 'publish', 'phase3', 'phase4']);
     expect(CFG._truoc_la_canh_bao, 'quyết định mức CẢNH BÁO phải ghi trong config kèm lý do').toMatch(/CẢNH BÁO/);
+  });
+
+  test('MỖI phase khai trong handoff.json phải là một `--mode` mà preflight NHẬN', () => {
+    /*
+     * ĐÃ LỌT MỘT LẦN, 10/11/2026 — và cả file spec này vẫn xanh suốt.
+     *
+     * `handoff.json` đổi sang phase2/publish/phase3/phase4, nhưng `MANIFEST` của preflight vẫn là
+     * phase1/phase2/publish/rerun. Cùng chuỗi `phase2`, hai nghĩa khác nhau ở hai file mà MỘT hàm
+     * đọc. Hệ quả: `preflight --mode phase3` bị từ chối là "mode không hỗ trợ", nên nhánh bàn giao
+     * của phase execute KHÔNG BAO GIỜ chạy thật.
+     *
+     * Vì sao mọi ca ở trên không bắt được: chúng gọi thẳng `checkHandoff(...)`, tức đi vòng qua đúng
+     * chỗ hỏng. Một phép kiểm gọi tắt vào hàm thì nó kiểm HÀM, không kiểm ĐƯỜNG VÀO.
+     */
+    const r = spawnSync(process.execPath, [path.join(REPO, 'scripts/qa/preflight_gate.js'), '--mode', 'khong-ton-tai'],
+      { cwd: REPO, encoding: 'utf8', env: gateEnv() });
+    const out = `${r.stdout || ''}${r.stderr || ''}`;
+    const m = out.match(/không hỗ trợ \(([^)]+)\)/);
+    expect(m, `preflight không in danh sách mode — ca này mất nguồn:\n${out}`).not.toBeNull();
+    const nhan = m![1].split('|').map((x) => x.trim());
+    for (const p of Object.keys(CFG.phase)) {
+      expect(nhan, `handoff.json khai phase "${p}" mà preflight không nhận \`--mode ${p}\` ⇒ nhánh bàn giao của nó không bao giờ chạy`).toContain(p);
+    }
   });
 
   test('① phase trước CHƯA có bàn giao: kêu, và nói rõ vì sao hội thoại cũ không dùng được', () => {
