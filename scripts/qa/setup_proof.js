@@ -165,6 +165,11 @@ console.log('    · Đã thử đo bằng cách ĐỌC SPEC và bỏ: bản ch�
 console.log('      trong lib/ mới là chỗ ném lỗi), bản nới gắn cờ 0. Số đổi theo regex thì nó đang đo regex.');
 console.log('    · Mức BÁO CÁO, không chặn: `tienDe()` mới có nên mọi task cũ đều 0%.');
 
+/* Dòng cho BÓ GATE đọc — xem chú thích cùng loại ở `exec_proof.js`. */
+if (r.khongGhi.length) {
+  console.log(`~ setup:proof — ${r.khongGhi.length} case giả định một trạng thái mà KHÔNG artifact nào cho phép kiểm lại tiền đề (CẦN REVIEW)`);
+}
+
 /* Ghi sổ đo để lượt sau so được — cùng chỗ với `exec:proof`. */
 const so = path.join(REPO, 'knowledge', 'metrics', 'setup-proof.json');
 try {

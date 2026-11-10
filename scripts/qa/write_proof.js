@@ -180,6 +180,11 @@ console.log('      X%" là NÓI QUÁ — đó đúng là cách một con số th
 console.log('    · Vì sao luật này tồn tại: `packs/qemis.md` mục 1 — toast "thành công" KHÔNG chứng minh');
 console.log('      đã ghi; đã gặp NĂM cơ chế khác nhau cùng cho đúng triệu chứng đó.');
 
+/* Dòng cho BÓ GATE đọc — xem chú thích cùng loại ở `exec_proof.js`. */
+if (yeu.length) {
+  console.log(`~ write:proof — ${yeu.length} case GHI nằm trong spec KHÔNG có đường nghiệm thu độc lập (CẦN REVIEW)`);
+}
+
 const so = path.join(REPO, 'knowledge', 'metrics', 'write-proof.json');
 try {
   fs.mkdirSync(path.dirname(so), { recursive: true });

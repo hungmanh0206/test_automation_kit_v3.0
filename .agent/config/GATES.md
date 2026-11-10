@@ -7,7 +7,7 @@
 > **T1** chỉ chặn ở cửa ra, lúc đang làm thì cảnh báo và ghi `reports/gate-debt.json` · **T2** không
 > bao giờ chặn. T0 khai tay trong `.agent/config/gate_tiers.json`; không khai thì mặc định T1.
 
-Tổng **169** máy — **120 CHẶN** · 29 SINH (ghi artifact) · 20 BÁO CÁO (chỉ in).
+Tổng **170** máy — **121 CHẶN** · 29 SINH (ghi artifact) · 20 BÁO CÁO (chỉ in).
 
 SINH/BÁO CÁO **không phải gate bị nới** — chúng không kiểm vi phạm. Ví dụ `bugs:checklist` in brief bug
 lịch sử, còn việc CHẶN nằm ở `dim:coverage` (chiều `bug_history` §20).
@@ -107,6 +107,7 @@ lịch sử, còn việc CHẶN nằm ở `dim:coverage` (chiều `bug_history` 
 | T1 | CHẶN (có cờ --enforce) | `explore:check`, `explore:check:enforce`, `explore:close` | MÁY cho nhánh exploratory: kiểm phiên + đóng vòng học. | `scripts/qa/explore_session.js` | exploratory · .claude/commands |
 | T1 | CHẶN (có cờ --enforce) | `fixture:matrix` | TRỤC 4 + 5: **nhánh/biến thể** × **trạng thái kế cận** (42/69 bug của CSDL-24395). | `scripts/qa/fixture_matrix.js` | RULE_GLOBAL.md · docs/kit-map.md · prompt_templates |
 | T1 | CHẶN (có cờ --enforce) | `gates:index`, `gates:index:check` | sinh DANH MỤC GATE của kit từ chính source, không viết tay. | `scripts/qa/gate_index.js` | .gitlab-ci.yml · docs/kit-map.md · .github/workflows · tests/fe/infra |
+| T1 | CHẶN (có cờ --enforce) | `gate:reachable`, `gate:reachable:enforce` | mỗi MÁY có nằm trên một ĐƯỜNG CHẠY THẬT không? | `scripts/qa/gate_reachable.js` | README.md · .github/workflows · tests/fe/infra |
 | T1 | CHẶN (có cờ --enforce) | `howto:check`, `howto:index`, `howto:find` | quản lý 2 store trả lời câu hỏi "LÀM SAO tới được đó": | `scripts/qa/howto_store.js` | docs/kit-map.md · prompt_templates |
 | T1 | CHẶN (có cờ --enforce) | `lighthouse` | điểm Performance / Accessibility / SEO / Best-practices thật, chạy qua CDP. | `scripts/qa/lighthouse_check.js` | USER_GUIDE.md · scripts/qa/README.md · docs/kit-map.md · .github/workflows · .agent/skills · prompt_templates · tests/fe/infra |
 | T1 | CHẶN (có cờ --enforce) | `load` | wrapper MỎNG cho k6 (Loại B: load/stress/soak nhiều VU). Loại A (single-user) dùng perf_check.js. | `scripts/qa/load_check.js` | RULE_GLOBAL.md · README.md · USER_GUIDE.md · QUICKSTART.md · scripts/qa/README.md · docs/kit-map.md · .github/workflows · .agent/workflows · .agent/rules · .agent/skills · prompt_templates · exploratory · partial-rerun · manual-run · .claude/commands · tests/fe/infra |

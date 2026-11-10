@@ -78,7 +78,7 @@ const boards = [
       { icon: 'CH', c: C.info, title: 'change/regen/', body: 'Partial rerun diff, impact, approved merge' },
       { icon: 'MD', c: C.danger, title: 'task.md', body: 'Status board và decision log' },
     ],
-    outputs: ['Không lẫn story', 'Không ghi đè TASK_KEY khác', 'Excel là baseline (gen/publish)', 'Sheet = nguồn execute mặc định', 'Re-publish qua partial rerun'],
+    outputs: ['Không lẫn story', 'Không ghi đè TASK_KEY khác', 'Excel là baseline (gen/publish)', 'Markdown canonical = nguồn execute mặc định', 'Re-publish qua partial rerun'],
   },
   {
     file: 'phase2-quality-gate.png', eyebrow: 'Phase', number: '2', title: 'Phase 2 · /phase2', role: 'Sinh testcase',
@@ -89,7 +89,7 @@ const boards = [
       { icon: 'DIM', c: C.info, title: '2.2 Khai CHIỀU coverage', body: 'dimension_manifest: required / n/a KÈM lý do' },
       { icon: 'TC', c: C.info, title: '2.3 Generate testcase', body: 'Group business flow; tag chiều trong tiêu đề; RBT density' },
       { icon: 'DEP', gate: true, title: 'GATE: DIM COVERAGE', body: 'Thiếu chiều required = CHẶN; n/a trái artifact = CHẶN' },
-      { icon: 'XL', c: C.success, title: '2.4 Export Excel', body: 'Excel SoT khi gen/publish (execute từ Sheet)' },
+      { icon: 'XL', c: C.success, title: '2.4 Export Excel', body: 'Excel là bản xuất khi gen/publish; execute đọc Markdown' },
       { icon: 'QA', c: C.amber, title: '2.5 QA review + risk gate', body: 'Coverage, risk depth, expected, gap' },
       { icon: 'OK', gate: true, title: 'GATE: QA APPROVAL', body: 'Chỉ publish khi Excel đã approve' },
       { icon: 'PB', c: C.ink, title: '2.6 Publish Google Sheet', body: 'Sheet-tab theo nhóm chức năng' },
@@ -98,9 +98,9 @@ const boards = [
   },
   {
     file: 'phase3-execution-loop.png', eyebrow: 'Phase', number: '3', title: 'Phase 3 · /phase3', role: 'Execute',
-    inputs: ['Testcase từ Google Sheet (mặc định)', 'Test account', 'App/API URL', 'Playwright'],
+    inputs: ['Testcase từ test-cases/*.md (mặc định)', 'Test account', 'App/API URL', 'Playwright'],
     steps: [
-      { icon: 'PL', c: C.success, title: '3.1 Tải từ Sheet', body: 'Kéo testcase về canonical local qua Drive MCP' },
+      { icon: 'PL', c: C.success, title: '3.1 Đọc Markdown canonical', body: 'test-cases/*.md; kéo Sheet về chỉ khi lượt đó opt-in' },
       { icon: 'PRE', c: C.info, title: '3.2 Resolve preconditions', body: 'UI/API/factory/fixture/hook' },
       { icon: 'DB', gate: true, title: 'DB: UAT READ-ONLY', body: 'Verify read-only qua guarded client; không dựng state' },
       { icon: 'RUN', c: C.ink, title: '3.3 Run FE/API', body: 'Playwright execute thật' },
@@ -151,7 +151,7 @@ const boards = [
       { icon: 'EX', c: C.ink, title: 'S.7 Exploratory', body: '/explore · nhánh phụ, never-auto' },
       { icon: 'NF', c: C.amber, title: 'S.8 Non-functional', body: 'perf/security/load/accessibility/risk' },
     ],
-    outputs: ['Không dùng nhầm /phase4', 'Publish cần QA approve', 'Execute mặc định từ Sheet', 'Partial rerun cho source change', 'Exploratory/Non-functional là nhánh phụ opt-in'],
+    outputs: ['Không dùng nhầm /phase4', 'Publish cần QA approve', 'Execute mặc định từ Markdown canonical', 'Partial rerun cho source change', 'Exploratory/Non-functional là nhánh phụ opt-in'],
   },
   {
     file: 'advanced-capabilities.png', number: 'A+', title: 'Năng lực nâng cao', role: 'Non-functional · Learning · Nhánh phụ',

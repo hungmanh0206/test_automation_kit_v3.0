@@ -39,6 +39,8 @@
     "dep:graph": "node scripts/qa/dependency_graph.js",
     "quality:decision": "node scripts/qa/quality_decision.js",
     "gate:policy": "node scripts/qa/policy_source_check.js",
+    "gate:reachable": "node scripts/qa/gate_reachable.js",
+    "gate:reachable:enforce": "node scripts/qa/gate_reachable.js --enforce",
     "json:check": "node scripts/qa/json_check.js",
     "deps:check": "node scripts/qa/deps_check.js",
     "case:paths": "node scripts/qa/case_paths.js",

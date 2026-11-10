@@ -53,16 +53,45 @@ const MAU = /([A-Za-z0-9_.@/-]*(?:\d{2}_[a-z][a-z0-9_]*|run_[a-z0-9_]+_template)
  * co lại tự nhiên, nhưng vẫn bắt được cú tụt về 4. */
 const SAN_DUONG_DAN = 40;
 
+/*
+ * DANH SÁCH FILE: git trước, ĐI BỘ CÂY khi không có `.git`.
+ *
+ * ĐÃ TỪNG CHẾT Ở ĐÂY. Người review giải nén gói phát hành rồi chạy cửa này: nó thoát 2 với lý do
+ * "không chạy được `git ls-files`". Đúng là KHÔNG PHÁN ĐƯỢC chứ không phải "đạt giả" — nhưng hệ quả
+ * vẫn là một bước audit KHÔNG chạy được trên chính thứ kit đem giao.
+ *
+ * Và đây là lớp hồi quy ĐÃ CÓ TÊN trong kit: `verify_release.js` giữ sẵn một danh sách "script từng
+ * crash khi KHÔNG có .git" (`secret:scan`, `ci:scope`). Cửa này chỉ là chưa được thêm vào đó. Nay nó
+ * tự đi bộ cây, và tên nó nằm trong danh sách ấy.
+ *
+ * Đi bộ cây KHÔNG tương đương `git ls-files`: nó thấy cả file chưa track. Chấp nhận được, vì câu hỏi
+ * của cửa này là "đường dẫn được trỏ tới có TỒN TẠI không", chứ không phải "có được track không".
+ */
 function dsFile() {
   try {
-    return execFileSync('git', ['ls-files', '-z'], { cwd: REPO, encoding: 'utf8' })
+    return execFileSync('git', ['ls-files', '-z'], { cwd: REPO, encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] })
       .split('\0').filter(Boolean);
-  } catch (e) { return null; }
+  } catch (e) { /* không có .git — đi bộ cây */ }
+
+  const BO = new Set(['node_modules', '.git', 'outputs', 'dist', 'test-results', 'vendor', 'playwright-report']);
+  const ra = [];
+  const di = (thuMuc, tien) => {
+    let es = [];
+    try { es = fs.readdirSync(thuMuc, { withFileTypes: true }); } catch (err) { return; }
+    for (const e of es) {
+      if (BO.has(e.name)) continue;
+      const rel = tien ? `${tien}/${e.name}` : e.name;
+      if (e.isDirectory()) di(path.join(thuMuc, e.name), rel);
+      else ra.push(rel);
+    }
+  };
+  di(REPO, '');
+  return ra.length ? ra : null;
 }
 
 const tatCa = dsFile();
 if (!tatCa) {
-  console.log('[workflow-refs] KHÔNG PHÁN ĐƯỢC — không chạy được `git ls-files` (thiếu `.git`?).');
+  console.log('[workflow-refs] KHÔNG PHÁN ĐƯỢC — không liệt kê được file nào (cả `git ls-files` lẫn đi bộ cây đều rỗng).');
   console.log('  Đây KHÔNG phải là đạt: không có danh sách file thì không kiểm được đường dẫn nào.');
   process.exit(2);
 }

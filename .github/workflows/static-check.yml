@@ -179,6 +179,11 @@ jobs:
         run: npm run router:check
 
       # Đổi tên một workflow mà quên chỗ trỏ tới nó: lệnh vẫn "chạy" nhưng đọc hư không.
+      # Một máy có spec xanh mà không lệnh/workflow/CI nào gọi thì nó không gác gì.
+      # Mức BÁO CÁO: cửa in số và thoát 0; bản :enforce mới chặn.
+      - name: Máy nào KHÔNG nằm trên đường chạy nào (gate:reachable)
+        run: npm run gate:reachable
+
       - name: Đường dẫn workflow/template được trỏ tới đều TỒN TẠI (workflow:refs)
         run: npm run workflow:refs
 

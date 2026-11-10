@@ -11,9 +11,10 @@
     "node_modules/**",
     "outputs/**",
     ".git/**",
-    "tests/fe/infra/rule-consistency.spec.ts"
+    "tests/fe/infra/rule-consistency.spec.ts",
+    "partial-rerun/**"
   ],
-  "_mien_tru_vi_sao": "Đây là vùng LỊCH SỬ: chúng kể lại luật từng như thế nào, nên chúng PHẢI được quyền nhắc câu cũ. Chặn chúng là bắt lịch sử nói dối. Riêng `tests/fe/infra/rule-consistency.spec.ts` miễn vì lý do khác: nó là BỘ KIỂM của chính máy này, nên bắt buộc phải chứa câu vi phạm làm đối chứng dương. Không miễn thì gate tự chặn bộ kiểm của nó — và cách chữa duy nhất còn lại là xoá đối chứng, tức làm gate thành đồ trang trí. Phát hiện ra chuyện này đúng lúc stage spec: gate đếm theo `git ls-files`, nên lúc file chưa track thì nó chưa nằm trong phạm vi.",
+  "_mien_tru_vi_sao": "Đây là vùng LỊCH SỬ: chúng kể lại luật từng như thế nào, nên chúng PHẢI được quyền nhắc câu cũ. Chặn chúng là bắt lịch sử nói dối. Riêng `tests/fe/infra/rule-consistency.spec.ts` miễn vì lý do khác: nó là BỘ KIỂM của chính máy này, nên bắt buộc phải chứa câu vi phạm làm đối chứng dương. Không miễn thì gate tự chặn bộ kiểm của nó — và cách chữa duy nhất còn lại là xoá đối chứng, tức làm gate thành đồ trang trí. Phát hiện ra chuyện này đúng lúc stage spec: gate đếm theo `git ls-files`, nên lúc file chưa track thì nó chưa nằm trong phạm vi. · partial-rerun/** miễn trừ cho NGUON-TESTCASE-EXECUTE: nhánh đó execute từ Sheet một cách CÓ CHỦ Ý, vì nó chạy ngay sau khi QA sửa tay trên Sheet — đúng ca opt-in mà canonical mô tả.",
   "mien_tru_dong": [
     {
       "file": "prompt_templates/phase3/01_run_phase3.md",
@@ -90,6 +91,38 @@
         "tests/fe/infra/**/*.ts"
       ],
       "_vi_sao_can": "HAI BỀ MẶT CỦA KIT NÓI NGƯỢC NHAU SUỐT HƠN HAI TUẦN. `GATES.md` khai `expected:check` là cửa CHẶN (đúng), còn `.agent/skills/phase2/automation_reviewer/SKILL.md` khai \"không máy nào so expected với bản trước\" và đề xuất dựng gate bằng `git diff` (sai cả hai vế). `anti_patterns.md` thì đúng là có máy nhưng bỏ mất điều kiện phải chụp mốc trước. Một người đọc skill sẽ chấm tay một chỗ đã có máy, và tệ hơn: sẽ đi dựng lại một gate đã đo là đường cụt."
+    },
+    {
+      "ma": "NGUON-TESTCASE-EXECUTE",
+      "ten": "Nguồn testcase lúc execute: Markdown canonical là MẶC ĐỊNH",
+      "canonical": {
+        "file": "RULE_GLOBAL.md",
+        "muc": "## Outputs → bảng Testcase publish (Google Sheet)",
+        "tom_tat": "Phase execute đọc test-cases/*.md (TESTCASE_SOURCE=md, mặc định) vì đọc Markdown rẻ token hơn hẳn. sheet và excel là OPT-IN cho lượt cần đúng bộ QA vừa sửa tay."
+      },
+      "pham_vi": [
+        "RULE_GLOBAL.md",
+        "CLAUDE.md",
+        "USER_GUIDE.md",
+        "README.md",
+        "QUICKSTART.md",
+        "docs/CHEATSHEET.md",
+        "docs/kit-map.md",
+        ".agent/rules/**/*.md",
+        ".agent/skills/**/*.md",
+        ".agent/workflows/**/*.md",
+        ".claude/commands/**/*.md",
+        "prompt_templates/**/*.md",
+        "docs/library/src/**/*.js",
+        "scripts/**/*.mjs"
+      ],
+      "cam": {
+        "bat": "ngu[ồo]ns+execute|executes+m[ặa]c đ[ịi]nh t[ừu]s+Sheet|Testcase t[ừu] Google Sheet|Sheets*=s*ngu[ồo]n|k[ée]o (testcase|b[ộo] case|TC)[^.]{0,24}t[ừu] Google Sheet|m[ặa]c đ[ịi]nh k[ée]o t[ừu] Google Sheet",
+        "tha_khi_cung_dong_co": "Markdown|test-cases/*.md|TESTCASE_SOURCE=md|là b[ải]n xu[ấa]t|opt-in",
+        "_vi_sao_tha": "Ba nhóm chữ tha là ba cách nói ĐÚNG canonical: nêu Markdown là nguồn, nêu TESTCASE_SOURCE=md, hoặc nói rõ Sheet/Excel là opt-in. Một dòng mang bất kỳ cái nào trong đó thì nó đang dạy đúng, dù có nhắc Sheet.",
+        "_do_truoc_khi_them": "Mẫu đầu tiên chỉ đòi \"mặc định\" + \"Sheet\" trên cùng dòng: gắn cờ 17 chỗ, 12 trong đó là DƯƠNG TÍNH GIẢ (mặc định publish, dry-run, trạng thái Not Run, gridline Excel). Một mẫu sai 70% thì không dùng làm cửa được. Mẫu hiện tại neo quanh mệnh đề NGUỒN EXECUTE và còn 8 chỗ, tất cả đều vi phạm thật."
+      },
+      "_vi_sao": "Người review 11/11/2026: \"Tài liệu tổng quan execute có nơi yêu cầu lấy testcase từ Markdown, nơi khác lại yêu cầu XLSX đã tải từ Google Sheet. Với Agent, sự không nhất quán này có thể dẫn đến execute sai phiên bản testcase.\" Đo lại: thư viện ghi TESTCASE_SOURCE=sheet là mặc định — NGƯỢC HẲN canonical. Và sync_canonical.js đã ghi đúng lớp lỗi này từ 12/10/2026 mà chưa ai dọn, nên nó cần MÁY chứ không cần thêm một lần dọn tay."
     }
   ]
 }

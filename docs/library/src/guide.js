@@ -33,7 +33,7 @@ const FLOW_STEPS = [
     gate:'Đây là điểm dừng có chủ ý, không phải thời gian chết: dùng để dựng precondition và chuẩn bị fixture.' },
 
   { n:'5', k:'phase2', title:'Phase 3 — Execute', who:'AI Agent + QA',
-    goal:'Kéo testcase từ Google Sheet, dựng tiền điều kiện, chạy thật, thu evidence.',
+    goal:'Đọc Markdown canonical, dựng tiền điều kiện, chạy thật, thu evidence.',
     out:['Playwright results','evidence ảnh/video','execution-summary.md','testcase-status.json','expansion-plan.md'],
     cmd:'/phase3 <TASK_KEY>   (gate: /preflight <TASK_KEY>)',
     gate:'preflight_gate phải xanh trước. Execute KHÔNG chỉ bám chữ trong case — phải mở rộng 5 trục quanh nó theo risk band.' },
@@ -135,7 +135,7 @@ const CHECKLISTS = [
 const ARCH_LAYERS = [
   { k:'Phase 2 — sinh testcase', c:'#4F46E5', d:'Đọc requirement/design/API rồi sinh testcase Markdown + Excel + coverage report + Setup Strategy contract (PRE-NN) + Precondition Execution Matrix. Markdown là source of truth cho nội dung case; Excel là bản xuất bắt buộc của bước gen.' },
   { k:'Testcase Publish (Google Sheet)', c:'#4338CA', d:'Step riêng sau /phase2: khi QA đã xác nhận Excel thì tạo/cập nhật case trên Google Sheet, nhóm bằng folder 2 cấp, TC ID ở automationKey. Mặc định dry-run.' },
-  { k:'Phase 3 — execute', c:'#2A6FDB', d:'Đọc testcase từ nguồn canonical (mặc định kéo từ Google Sheet), chạy Precondition Resolution Pass, sinh/cập nhật Playwright spec, execute thật rồi thu evidence.' },
+  { k:'Phase 3 — execute', c:'#2A6FDB', d:'Đọc testcase từ Markdown canonical (mặc định; `sheet`/`excel` là opt-in khi QA vừa sửa tay trên Sheet), chạy Precondition Resolution Pass, sinh/cập nhật Playwright spec, execute thật rồi thu evidence.' },
   { k:'Setup Layer', c:'#0E9AA7', d:'tests/support/setup/ — factory, hook, fixture, mock, cleanup, contract dùng chung để dựng tiền điều kiện. Không dựng state bằng DB; DB chỉ read-only verify qua guarded client.' },
   { k:'Rerun', c:'#1F8A5B', d:'Chạy lại case fail hoặc bug Backlog đã fix. Không dùng để đồng bộ tài liệu nguồn mới.' },
   { k:'Partial Rerun', c:'#7C5CD6', d:'Nhánh phụ độc lập xử lý thay đổi tài liệu nguồn và execute subset bị ảnh hưởng. Không được gọi từ Main Flow.' },
@@ -253,7 +253,7 @@ const CMD_GROUPS = [
     ['npm run merge:execution-status -- --task <KEY>','Ghép kết quả execute vào bộ canonical']
   ]},
   { g:'Kit: tự kiểm toán & phát hành', items:[
-    ['npm run gates:index  ·  npm run gates:index:check','Danh mục gate tự sinh — 169 máy, 120 CHẶN; :check chặn khi bảng lệch source'],
+    ['npm run gates:index  ·  npm run gates:index:check','Danh mục gate tự sinh — 170 máy, 121 CHẶN; :check chặn khi bảng lệch source'],
     ['npm run rule -- <mục>  ·  npm run rule:toc','Tra RULE_GLOBAL theo mục (287 token) thay vì đọc cả file (12,8k)'],
     ['npm run version:check','Chặn phát hành thiếu số phiên bản; kiểm khớp tag'],
     ['npm run package:kit','Đóng gói dist/ CHỈ lớp GENERIC — không để lọt secret hay oracle của dự án khác'],
