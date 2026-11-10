@@ -288,6 +288,84 @@ test.describe('@infra bug:claim — kiểm chứng phải đi trước lời nó
     expect(r.code, r.out).toBe(0);
   });
 
+  /*
+   * NGUỒN THỨ HAI — `requirements/*.md` CỦA CHÍNH TASK (10/11/2026).
+   *
+   * Đo trên CSDL-4008: 4 claim trỏ `BR-EMIS-034`/`BR-EMIS-042`, cửa báo "không có bản ghi … trong
+   * knowledge/domain", và TÔI ĐÃ BÁO CÁO ĐIỀU ĐÓ CHO CHỦ DỰ ÁN NHƯ MỘT PHÁT HIỆN. Sai: cả hai rule
+   * tồn tại, trạng thái `confirmed`, trong `requirements/spec_digest_TH.md`, trích NGUYÊN VĂN.
+   *
+   * Dự án dùng HAI HỌ MÃ: `BR-EMISDN-*` (27 bản ghi ở `knowledge/domain`) và `BR-EMIS-*` (71 mã khai
+   * trong bản tóm tắt đặc tả của task). Một cửa chỉ biết một nguồn sẽ gọi "không tồn tại" cho mọi
+   * thứ nằm ở nguồn kia.
+   */
+  const themYeuCau = (root: string, ten: string, noi: string) => {
+    const d = path.join(root, 'tasks', 'CLAIM-TEST', 'requirements');
+    fs.mkdirSync(d, { recursive: true });
+    fs.writeFileSync(path.join(d, ten), noi, 'utf8');
+  };
+
+  test('ORACLE: mã sống trong `requirements/*.md` của task ⇒ KHỚP, không phải "không tồn tại"', () => {
+    const t = mkTask();
+    themYeuCau(t.root, 'spec_digest.md',
+      '| BR-TASK-099 | confirmed | "Xuất Excel đúng mẫu, giữ nguyên mã số và thứ tự dòng." | NS |\n');
+    const c = validClaim();
+    c.oracle = { type: 'BR', ref: 'requirements/spec_digest.md · BR-TASK-099 (confirmed)', quote: 'Xuất Excel đúng mẫu, giữ nguyên mã số và thứ tự dòng.' };
+    writeClaim(t.claims, 'TC_001', c);
+    const r = run(t.root);
+    expect(r.code, r.out).toBe(0);
+  });
+
+  test('ORACLE: TRA HẾT file, không dừng ở file ĐẦU TIÊN chứa mã', () => {
+    /*
+     * Bản đầu `return` ngay ở file đầu tiên nhắc mã. Đo trên CSDL-4008/TC_165: cả ba đoạn trích đều
+     * CÓ trong `spec_digest_TH.md`, nhưng một file khác cũng nhắc mã đó và được duyệt trước ⇒ cửa tố
+     * oan. **Dừng ở bằng chứng đầu tiên tìm thấy là cách chắc chắn để kết luận sai.**
+     */
+    const t = mkTask();
+    themYeuCau(t.root, 'a_nhac_ma_thoi.md', 'Xem thêm BR-TASK-099 ở bản tóm tắt đặc tả.\n');
+    themYeuCau(t.root, 'b_co_cau_that.md', '| BR-TASK-099 | confirmed | "Giữ nguyên mã số và thứ tự dòng khi xuất." |\n');
+    const c = validClaim();
+    c.oracle = { type: 'BR', ref: 'BR-TASK-099', quote: 'Giữ nguyên mã số và thứ tự dòng khi xuất.' };
+    writeClaim(t.claims, 'TC_001', c);
+    const r = run(t.root);
+    expect(r.code, r.out).toBe(0);
+  });
+
+  test('ORACLE: TRÍCH GHÉP hai nguồn trong một ô ⇒ MỘT đoạn khớp là đủ', () => {
+    /*
+     * Dạng thật ở CSDL-4008: `BR-X: "…câu của rule…" — Ô kỳ vọng bước 5: "…câu của case…"`. Phép so
+     * "cả chuỗi phải nằm trong nguồn" LUÔN trượt với dạng này ⇒ cửa gọi là "lệch", tức tố oan.
+     * Đây KHÔNG phải nới: câu bịa vẫn không khớp đoạn nào — ca ĐỐI CHỨNG ngay dưới gác điều đó.
+     */
+    const t = mkTask();
+    themYeuCau(t.root, 'spec_digest.md', '| BR-TASK-099 | confirmed | "Giữ nguyên mã số và thứ tự dòng khi xuất." |\n');
+    const c = validClaim();
+    c.oracle = {
+      type: 'BR',
+      ref: 'BR-TASK-099',
+      quote: 'BR-TASK-099: "Giữ nguyên mã số và thứ tự dòng khi xuất." — Ô kỳ vọng bước 5: "Tiêu đề file nêu đúng biểu"',
+    };
+    writeClaim(t.claims, 'TC_001', c);
+    const r = run(t.root);
+    expect(r.code, r.out).toBe(0);
+  });
+
+  test('ĐỐI CHỨNG: trích ghép mà KHÔNG đoạn nào có trong nguồn ⇒ vẫn CHẶN', () => {
+    const t = mkTask();
+    themYeuCau(t.root, 'spec_digest.md', '| BR-TASK-099 | confirmed | "Giữ nguyên mã số và thứ tự dòng khi xuất." |\n');
+    const c = validClaim();
+    c.oracle = {
+      type: 'BR',
+      ref: 'BR-TASK-099',
+      quote: 'BR-TASK-099: "Hệ thống phải luôn hiển thị đủ mọi bản ghi" — Ô kỳ vọng: "Không bao giờ được phép thiếu dòng"',
+    };
+    writeClaim(t.claims, 'TC_001', c);
+    const r = run(t.root);
+    expect(r.code, 'không đoạn nào khớp thì vẫn phải chặn — nếu không thì nới thành vô hiệu').toBe(1);
+    expect(r.out).toContain('KHÔNG có trong');
+  });
+
   test('ORACLE: mã BR KHÔNG có trong nguồn ⇒ "CHƯA ĐỐI CHIẾU ĐƯỢC", KHÔNG im lặng cho qua', () => {
     /*
      * Gói phát hành chở `knowledge/` rỗng, nên ở đó cửa này không bao giờ tra được. Im lặng cho qua
