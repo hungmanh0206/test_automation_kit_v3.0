@@ -49,11 +49,11 @@ case.
 ```mermaid
 flowchart TD
     Kit(["Test Automation Kit"])
-    Kit --> B0["Bước 0<br/>khám phá hệ thống"]
-    B0 --> P1
-    Kit --> P1["Phase 1<br/>sinh testcase + Excel"]
-    Kit --> P2["Phase 2<br/>execute automation"]
-    Kit --> RR["Rerun<br/>verify bug đã fix"]
+    Kit --> P1["Phase 1 · /phase1<br/>profile + khám phá hệ thống"]
+    P1 --> P2
+    Kit --> P2["Phase 2 · /phase2<br/>sinh testcase + Excel"]
+    Kit --> P3["Phase 3 · /phase3<br/>execute automation"]
+    Kit --> P4["Phase 4 · /phase4<br/>verify bug đã fix"]
     Kit --> SS["Shared Services<br/>Google Sheet, Backlog, Excel, config"]
     Kit --> PR["Partial Rerun<br/>xử lý đổi tài liệu"]
     Kit --> OUT["Outputs<br/>artifact theo task"]
@@ -61,11 +61,11 @@ flowchart TD
 
 | Lớp | Làm gì |
 |---|---|
-| **Bước 0** | Bò app bằng script tất định, trả bản đồ màn, danh mục API, vùng mù tài liệu. Mẫu số coverage của Phase 1 lấy từ đây, nên màn không có trong tài liệu vẫn vào phạm vi. Mọi bản ghi là `observed`, không phải oracle |
-| **Phase 1** | Đọc requirement, sinh testcase Markdown canonical, xuất Excel, chấm coverage |
-| **Publish** | Sau khi QA duyệt, đẩy Excel lên Google Sheet qua Drive MCP |
-| **Phase 2** | Dựng tiền điều kiện qua setup layer, execute Playwright, thu evidence, đồng bộ cột `Result` |
-| **Rerun** | Chạy lại case của bug đã fix. Không dùng để đồng bộ tài liệu mới |
+| **Phase 1** · `/phase1` | Tạo profile task, rồi bò app bằng script tất định: bản đồ màn, danh mục API, vùng mù tài liệu. Mẫu số coverage của Phase 2 lấy từ đây, nên màn không có trong tài liệu vẫn vào phạm vi. Mọi bản ghi là `observed`, không phải oracle |
+| **Phase 2** · `/phase2` | Đọc requirement, sinh testcase Markdown canonical, xuất Excel, chấm coverage |
+| **Publish** · `/publish` | Sau khi QA duyệt, đẩy Excel lên Google Sheet qua Drive MCP |
+| **Phase 3** · `/phase3` | Dựng tiền điều kiện qua setup layer, execute Playwright, thu evidence, đồng bộ cột `Result` |
+| **Phase 4** · `/phase4` | Chạy lại case của bug đã fix. Không dùng để đồng bộ tài liệu mới |
 | **Partial Rerun** | Nhánh phụ xử lý tài liệu đổi. Xoá nhánh này thì luồng chính vẫn chạy |
 | **Setup Layer** | `tests/support/setup/`: factory, hook, fixture, mock, cleanup, contract. Không dựng state bằng DB |
 
@@ -81,16 +81,18 @@ test-automation-kit/
 │   │                        GATES.md (danh mục 169 máy gác, tự sinh)
 │   │                        db.conventions.json  quy ước DB + bản đồ cột ↔ nhãn theo màn
 │   │                        locators.schema.json schema cho knowledge/locators/
-│   ├── workflows/           phase1_* · phase2_* · rerun_* — mỗi flow 1 file entry + các bước
-│   ├── skills/              26 skill theo vai trò; INDEX.md là danh mục (tự sinh)
+│   ├── workflows/           16 file đánh số PHẲNG 01–16 theo đúng thứ tự chạy, không mang tiền tố phase
+│   ├── skills/              28 skill theo vai trò; INDEX.md là danh mục (tự sinh)
 │   └── rules/               core_rules · playwright_fe · playwright_api · locator
-├── prompt_templates/
-│   ├── 01_run_phase2.md      điểm vào Phase 1
-│   ├── 01_run_phase3.md      điểm vào Phase 2
-│   ├── 01_run_phase4.md
-│   ├── phase1/              01 chuẩn bị → 02 sinh testcase → 02b định dạng → 03 test data → 04 publish
-│   │   └── dimensions/      22 chương CHIỀU coverage — mở đúng chiều task cần, không nạp cả bộ
-│   └── phase2/              04 execute FE → 05 execute API → 06 triage → 07 flaky → 08 log bug
+├── prompt_templates/        mỗi phase MỘT thư mục; file 01_ là điểm vào. Không có phase1/ vì
+│                            /phase1 chạy bằng script, không có prompt template nào
+│   ├── phase2/              01 điểm vào → 02 chuẩn bị → 03 sinh testcase → 04 định dạng →
+│   │                        05 test data → 06 publish → 07 manual → 08 cross-module
+│   │   └── dimensions/      22 chương CHIỀU coverage. Số là MÃ MỤC §N trong 03_gen_testcases.md,
+│   │                        KHÔNG phải thứ tự — mở đúng chiều task cần, không nạp cả bộ
+│   ├── phase3/              01 điểm vào → 02 execute FE → 03 lite → 04 execute API →
+│   │                        05 triage → 06 flaky → 07 log bug
+│   └── phase4/              01 điểm vào (rerun)
 ├── partial-rerun/           nhánh phụ khi requirement đổi: prepare review → apply approved
 ├── exploratory/             nhánh phụ never-auto, phiên dò rủi ro có charter
 ├── manual-run/              nhánh phụ never-auto, chạy tay case khai [manual]

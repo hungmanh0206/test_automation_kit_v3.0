@@ -28,15 +28,15 @@ const boards = [
     file: 'main-flow.png', number: '1', title: 'QA Workflow', role: 'Team QA',
     inputs: ['Backlog Story', 'tài liệu nguồn Requirement', 'Figma Design', 'Swagger/OpenAPI', 'Excel baseline'],
     steps: [
-      { icon: 'IN', c: C.info, title: '1.1 Requirement intake', body: 'Backlog, tài liệu nguồn, Figma, Swagger' },
-      { icon: 'AI', c: C.info, title: '1.2 AI generate testcase', body: 'Sinh testcase và test data draft' },
+      { icon: 'IN', c: C.info, title: '1.1 Phase 1 — chuẩn bị', body: '/phase1: tạo profile rồi bò app lấy bản đồ màn và API' },
+      { icon: 'AI', c: C.info, title: '1.2 Phase 2 — sinh testcase', body: '/phase2: đọc đặc tả, hỏi hết mơ hồ, sinh case + data' },
       { icon: 'XL', c: C.success, title: '1.3 Markdown canonical', body: 'Nguồn sự thật; Excel và Sheet là bản xuất' },
       { icon: 'OK', gate: true, title: 'GATE: QA CONFIRMATION', body: 'Approve trước khi publish lên Google Sheet' },
       { icon: 'PB', c: C.amber, title: '1.4 Auto Publish Sheet', body: 'Upload qua Drive MCP; sheet-tab theo nhóm chức năng' },
-      { icon: 'EX', c: C.info, title: '1.5 Execute', body: 'Phase 2 đọc test-cases/*.md ở local' },
+      { icon: 'EX', c: C.info, title: '1.5 Phase 3 — execute', body: '/phase3 đọc test-cases/*.md ở local' },
       { icon: 'TE', c: C.success, title: '1.6 Đồng bộ Result lên Sheet', body: 'Pass/Fail + evidence lưu local' },
-      { icon: 'BG', c: C.danger, title: '1.7 Triage & Backlog bug', body: 'Rerun xác nhận + evidence' },
-      { icon: 'RR', c: C.success, title: '1.8 Dev fix & Re-run', body: 'Attach evidence, update report' },
+      { icon: 'BG', c: C.danger, title: '1.7 Triage & Backlog bug', body: '/phase4 xác nhận + evidence' },
+      { icon: 'RR', c: C.success, title: '1.8 Phase 4 — rerun sau fix', body: '/phase4: attach evidence, update report' },
     ],
     outputs: ['Excel (gen/publish)', 'Google Sheet (1 tab/nhóm)', 'Cột Result cập nhật', 'Evidence ảnh/video'],
   },
@@ -73,7 +73,7 @@ const boards = [
     steps: [
       { icon: 'RQ', c: C.info, title: 'requirements/', body: 'Backlog, tài liệu nguồn, Figma, Swagger snapshot' },
       { icon: 'TC', c: C.success, title: 'test-cases/', body: 'Markdown + Excel (SoT gen/publish) + from-sheet/' },
-      { icon: 'RP', c: C.amber, title: 'reports/', body: 'Phase 1, execution, publish summary' },
+      { icon: 'RP', c: C.amber, title: 'reports/', body: 'phase1-summary (sinh case), execution, publish' },
       { icon: 'EV', c: C.ink, title: 'test-results/', body: 'Screenshot, video, trace, response' },
       { icon: 'CH', c: C.info, title: 'change/regen/', body: 'Partial rerun diff, impact, approved merge' },
       { icon: 'MD', c: C.danger, title: 'task.md', body: 'Status board và decision log' },
@@ -81,31 +81,31 @@ const boards = [
     outputs: ['Không lẫn story', 'Không ghi đè TASK_KEY khác', 'Excel là baseline (gen/publish)', 'Sheet = nguồn execute mặc định', 'Re-publish qua partial rerun'],
   },
   {
-    file: 'phase1-quality-gate.png', number: '1', title: 'Phase 1', role: 'Testcase generation',
+    file: 'phase2-quality-gate.png', eyebrow: 'Phase', number: '2', title: 'Phase 2 · /phase2', role: 'Sinh testcase',
     inputs: ['Backlog/tài liệu nguồn', 'Figma', 'Swagger/OpenAPI', 'Business Rules', 'Existing testcase nếu có'],
     steps: [
-      { icon: 'SRC', c: C.info, title: '1.1 AI đọc source', body: 'Requirement, rule, design, API' },
+      { icon: 'SRC', c: C.info, title: '2.1 AI đọc source', body: 'Requirement, rule, design, API' },
       { icon: 'AMB', gate: true, title: 'GATE: AMBIGUITY', body: 'Mơ hồ Critical/High → hỏi trước, chặn sinh TC' },
-      { icon: 'DIM', c: C.info, title: '1.2 Khai CHIỀU coverage', body: 'dimension_manifest: required / n/a KÈM lý do' },
-      { icon: 'TC', c: C.info, title: '1.3 Generate testcase', body: 'Group business flow; tag chiều trong tiêu đề; RBT density' },
+      { icon: 'DIM', c: C.info, title: '2.2 Khai CHIỀU coverage', body: 'dimension_manifest: required / n/a KÈM lý do' },
+      { icon: 'TC', c: C.info, title: '2.3 Generate testcase', body: 'Group business flow; tag chiều trong tiêu đề; RBT density' },
       { icon: 'DEP', gate: true, title: 'GATE: DIM COVERAGE', body: 'Thiếu chiều required = CHẶN; n/a trái artifact = CHẶN' },
-      { icon: 'XL', c: C.success, title: '1.4 Export Excel', body: 'Excel SoT khi gen/publish (execute từ Sheet)' },
-      { icon: 'QA', c: C.amber, title: '1.5 QA review + risk gate', body: 'Coverage, risk depth, expected, gap' },
+      { icon: 'XL', c: C.success, title: '2.4 Export Excel', body: 'Excel SoT khi gen/publish (execute từ Sheet)' },
+      { icon: 'QA', c: C.amber, title: '2.5 QA review + risk gate', body: 'Coverage, risk depth, expected, gap' },
       { icon: 'OK', gate: true, title: 'GATE: QA APPROVAL', body: 'Chỉ publish khi Excel đã approve' },
-      { icon: 'PB', c: C.ink, title: '1.6 Publish Google Sheet', body: 'Sheet-tab theo nhóm chức năng' },
+      { icon: 'PB', c: C.ink, title: '2.6 Publish Google Sheet', body: 'Sheet-tab theo nhóm chức năng' },
     ],
     outputs: ['Testcase Markdown', 'Excel (SoT gen/publish)', 'Coverage summary', 'Google Sheet publish summary'],
   },
   {
-    file: 'phase2-execution-loop.png', number: '2', title: 'Phase 2', role: 'Execution',
+    file: 'phase3-execution-loop.png', eyebrow: 'Phase', number: '3', title: 'Phase 3 · /phase3', role: 'Execute',
     inputs: ['Testcase từ Google Sheet (mặc định)', 'Test account', 'App/API URL', 'Playwright'],
     steps: [
-      { icon: 'PL', c: C.success, title: '2.1 Tải từ Sheet', body: 'Kéo testcase về canonical local qua Drive MCP' },
-      { icon: 'PRE', c: C.info, title: '2.2 Resolve preconditions', body: 'UI/API/factory/fixture/hook' },
+      { icon: 'PL', c: C.success, title: '3.1 Tải từ Sheet', body: 'Kéo testcase về canonical local qua Drive MCP' },
+      { icon: 'PRE', c: C.info, title: '3.2 Resolve preconditions', body: 'UI/API/factory/fixture/hook' },
       { icon: 'DB', gate: true, title: 'DB: UAT READ-ONLY', body: 'Verify read-only qua guarded client; không dựng state' },
-      { icon: 'RUN', c: C.ink, title: '2.3 Run FE/API', body: 'Playwright execute thật' },
-      { icon: 'EV', c: C.amber, title: '2.4 Capture evidence', body: 'Ảnh/video (trace/log chỉ để debug local)' },
-      { icon: 'CL', c: C.info, title: '2.5 Classify + đồng bộ Sheet', body: 'Pass/Fail/Pending + evidence' },
+      { icon: 'RUN', c: C.ink, title: '3.3 Run FE/API', body: 'Playwright execute thật' },
+      { icon: 'EV', c: C.amber, title: '3.4 Capture evidence', body: 'Ảnh/video (trace/log chỉ để debug local)' },
+      { icon: 'CL', c: C.info, title: '3.5 Classify + đồng bộ Sheet', body: 'Pass/Fail/Pending + evidence' },
     ],
     outputs: ['Cột Result trên Sheet', 'Evidence lưu local', 'setup_failure nếu chặn'],
   },
@@ -114,7 +114,7 @@ const boards = [
     inputs: ['Fail candidate', 'Expected result', 'Actual result', 'Evidence', 'Rerun result'],
     steps: [
       { icon: 'EX', c: C.info, title: 'B.1 Execute thật', body: 'Không phải skip hoặc thiếu bước' },
-      { icon: 'RR', c: C.ink, title: 'B.2 Rerun xác nhận', body: 'Loại flaky/setup/data issue' },
+      { icon: 'RR', c: C.ink, title: 'B.2 /phase4 xác nhận', body: 'Loại flaky/setup/data issue' },
       { icon: 'ER', c: C.success, title: 'B.3 Expected rõ', body: 'Theo Excel/requirement/API/design' },
       // Evidence CHỈ là ảnh/video. Bản cũ ghi "Ảnh/video/log/trace" — dạy NGƯỢC lại non-negotiable
       // (CLAUDE.md rule 4 + RULE_GLOBAL §Evidence cấm .log/trace.zip làm evidence, `output_gate` chặn thật),
@@ -142,16 +142,16 @@ const boards = [
     file: 'phase-selection.png', number: 'S', title: 'Prompt Map', role: 'Run đúng nhánh',
     inputs: ['Story mới', 'Excel đã approve', 'Cần execute', 'Bug/case đã fix', 'Tài liệu nguồn đổi'],
     steps: [
-      { icon: 'P1', c: C.info, title: 'S.1 Story mới', body: '/phase2 · phase2/01_run_phase2.md' },
+      { icon: 'P2', c: C.info, title: 'S.1 Story mới', body: '/phase2 · phase2/01_run_phase2.md' },
       { icon: 'PUB', c: C.success, title: 'S.2 Excel approved', body: '/publish · phase2/06_auto_publish_backlog.md' },
-      { icon: 'P2', c: C.amber, title: 'S.3 Execute', body: '/phase3 · phase3/01_run_phase3.md' },
+      { icon: 'P3', c: C.amber, title: 'S.3 Execute', body: '/phase3 · phase3/01_run_phase3.md' },
       { icon: 'RR', c: C.ink, title: 'S.4 Bug/case đã fix', body: '/phase4 · phase4/01_run_phase4.md' },
       { icon: 'PR', c: C.info, title: 'S.5 Source changed', body: '/partial-rerun · prepare review' },
       { icon: 'CL', c: C.danger, title: 'S.6 Excel đổi sau publish', body: 'Re-publish (ghi đè Sheet); run_testcase_cleanup.md chỉ để unlink Backlog' },
       { icon: 'EX', c: C.ink, title: 'S.7 Exploratory', body: '/explore · nhánh phụ, never-auto' },
       { icon: 'NF', c: C.amber, title: 'S.8 Non-functional', body: 'perf/security/load/accessibility/risk' },
     ],
-    outputs: ['Không dùng nhầm Re-run', 'Publish cần QA approve', 'Execute mặc định từ Sheet', 'Partial rerun cho source change', 'Exploratory/Non-functional là nhánh phụ opt-in'],
+    outputs: ['Không dùng nhầm /phase4', 'Publish cần QA approve', 'Execute mặc định từ Sheet', 'Partial rerun cho source change', 'Exploratory/Non-functional là nhánh phụ opt-in'],
   },
   {
     file: 'advanced-capabilities.png', number: 'A+', title: 'Năng lực nâng cao', role: 'Non-functional · Learning · Nhánh phụ',
@@ -159,7 +159,7 @@ const boards = [
     steps: [
       { icon: 'AMB', gate: true, title: 'Ambiguity Gate', body: 'Mơ hồ Critical/High → hỏi + chặn sinh TC' },
       { icon: 'RBT', c: C.info, title: 'Risk Scorer', body: 'npm run risk → register; gate depth theo band' },
-      // UI Conformance là bước BẮT BUỘC của Phase 2 khi bộ có case hiển thị (design_gate chặn nếu thiếu
+      // UI Conformance là bước BẮT BUỘC của phase execute khi bộ có case hiển thị (design_gate chặn nếu thiếu
       // catalog), nhưng sơ đồ cũ không có nó — người xem tưởng đây chỉ là nhóm năng lực opt-in.
       { icon: 'CONF', c: C.danger, title: 'UI Conformance', body: 'ui_conformance_check — kiểm kê cột/field vs tài liệu' },
       { icon: 'A11Y', c: C.info, title: 'Accessibility', body: 'npm run accessibility — axe-core' },
@@ -250,7 +250,7 @@ body{font-family:'Be Vietnam Pro',system-ui,'Segoe UI',sans-serif;-webkit-font-s
 <body>
 <div class="board" id="board">
   <aside class="phase">
-    <div class="eyebrow-row"><span class="eyebrow">Phase</span><span class="num">${esc(b.number)}</span></div>
+    <div class="eyebrow-row"><span class="eyebrow">${esc(b.eyebrow || 'Sơ đồ')}</span><span class="num">${esc(b.number)}</span></div>
     <div class="p-title">${esc(b.title)}</div>
     <span class="p-accent"></span>
     <div class="p-role">${esc(b.role)}</div>

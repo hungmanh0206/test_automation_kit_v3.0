@@ -227,7 +227,7 @@ Mỗi ô `Tiền điều kiện` phải mang tag `[<method>]` — `api`, `factor
 
 ### 3.3 Review bộ case: cửa quyết định
 
-![Review chất lượng sau khi sinh case](docs/user-guide-images/phase1-quality-gate.png)
+![Review chất lượng sau khi sinh case](docs/user-guide-images/phase2-quality-gate.png)
 
 Mở: `task.md`, `reports/phase1-summary.md`, `test-cases/*.md`
 
@@ -258,7 +258,7 @@ Coverage cao mà còn gap Critical/High thì **không PASS**.
 
 ### 3.4 `/phase3` — execute
 
-![Vòng execute và phân tích kết quả](docs/user-guide-images/phase2-execution-loop.png)
+![Vòng execute và phân tích kết quả](docs/user-guide-images/phase3-execution-loop.png)
 
 **Chạy:**
 
