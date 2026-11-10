@@ -282,10 +282,79 @@ class Case {
   }
 
   /** Kết thúc case: status tổng (mặc định = FAILED nếu có step FAILED). Evidence cấp case = ảnh step lỗi (nếu có) hoặc step cuối. */
+  /**
+   * Step nào là XẤU: đã chạy và sai, HOẶC chưa chạy được vì bị chặn.
+   *
+   * `laFail()` KHÔNG đủ ở đây. Nó chuẩn hoá qua taxonomy, mà `BLOCKED` → `BLOCKED_SETUP` — một
+   * trạng thái "chưa thực thi", không phải `FAIL`. Đó chính là lỗ: case có step BLOCKED mà người gọi
+   * không tự khai verdict thì rơi vào nhánh `steps.length ? 'PASSED' : 'TODO'` và vào sổ là PASSED.
+   */
+  static _stepXau(s) {
+    const v = chuanHoaVerdict(s && s.status);
+    return v === 'FAIL' || v === 'BLOCKED_SETUP' || v === 'SKIP_SETUP' || v === 'SKIP';
+  }
+
   async finish(overallStatus, opts = {}) {
     // opts.evidence: file cấp CASE thêm vào (vd video mô tả cả chuỗi thao tác — ảnh tĩnh không tả nổi).
     const anyFail = this.steps.some((s) => laFail(s.status));
-    const status = overallStatus || (anyFail ? 'FAILED' : (this.steps.length ? 'PASSED' : 'TODO'));
+    let status = overallStatus || (anyFail ? 'FAILED' : (this.steps.length ? 'PASSED' : 'TODO'));
+
+    /*
+     * ──────────────────────────────────────────────────────────────────────────────────────────────
+     * GỘP VERDICT: KHÔNG ghi PASS khi còn step XẤU, trừ khi khai được đã PHỤC HỒI và xác minh lại.
+     *
+     * LỖ HỔNG ĐÃ MỞ TỚI 11/11/2026, ở ngay dòng trên. `laFail()` chỉ nhận `FAIL`, mà `BLOCKED` chuẩn
+     * hoá thành `BLOCKED_SETUP` — "chưa thực thi", không phải fail. Nên case có step BLOCKED mà người
+     * gọi không tự khai verdict rơi vào nhánh `steps.length ? 'PASSED'` và vào sổ là **PASSED**.
+     * CSDL-4008 ra 0/284 ca dính, nhưng chỉ vì spec ở đó luôn khai verdict tay — dữ liệu sạch KHÔNG
+     * chứng minh lỗ đã bịt.
+     *
+     * HAI ĐƯỜNG ĐỀU BỊT, vì chúng hỏng khác nhau:
+     *   · không khai verdict ⇒ trước đây thành PASSED. Nay LAN trạng thái xấu nhất của step lên.
+     *   · khai thẳng `finish('PASSED')` trong khi còn step xấu ⇒ trước đây im lặng chấp nhận. Nay bị
+     *     HẠ xuống trạng thái xấu nhất, kèm ghi chú nói rõ đã hạ và vì sao.
+     *
+     * VÌ SAO HẠ CHỨ KHÔNG NÉM: ném sẽ cắt ngang lượt chạy và làm mất verdict của mọi case sau — đúng
+     * lớp "lượt chết cụt" kit đã trả giá. Sổ phải ghi được điều đã xảy ra, kể cả khi nó xấu.
+     *
+     * ĐƯỜNG THOÁT DUY NHẤT là `opts.phucHoi`: một câu nói rõ đã phục hồi bằng cách nào và đã xác minh
+     * lại ở bước nào. Có sàn độ dài, cùng khuôn với `minLyDoMienChars` của `bug_claim` — một chữ "ok"
+     * không phải lời khai.
+     */
+    const xau = this.steps.filter((s) => Case._stepXau(s));
+    if (xau.length && chuanHoaVerdict(status) === 'PASS') {
+      const phucHoi = String(opts.phucHoi || '').trim();
+      if (phucHoi.length >= 25) {
+        opts.comment = `${opts.comment || ''}\nPHỤC HỒI: ${phucHoi} (step xấu: ${xau.map((s) => `${s.name}=${s.status}`).join(' · ')})`.trim();
+      } else if (xau.some((s) => laFail(s.status)) && !opts.failureLayer) {
+        /*
+         * STEP FAILED + khai PASS + không khai tầng lỗi ⇒ NÉM, và đây là ngoại lệ có lý do.
+         *
+         * Hai luật gặp nhau ở đây: luật mới nói "không PASS khi còn step xấu", luật cũ nói "FAIL phải
+         * khai failureLayer". Hạ xuống FAILED thì luật cũ ném ngay dòng dưới, với một thông điệp nói
+         * về FAILED trong khi tác giả tưởng mình đang khai PASSED — đọc xong không biết sửa gì.
+         *
+         * Và KHÔNG được tự gán tầng lỗi thay tác giả: taxonomy CỐ Ý không có tầng "chưa phân tầng",
+         * nên mọi giá trị tôi điền vào đều là một lời khẳng định về NGUYÊN NHÂN mà không ai đo.
+         *
+         * Vì sao ném ở đây mà không ném ở nhánh BLOCKED: step FAILED + khai PASS là một MÂU THUẪN
+         * trong chính spec, không phải một tình huống chạy. Nó phải lộ ra ngay chỗ viết sai. Còn
+         * BLOCKED là chuyện có thật lúc chạy, nên nó được ghi vào sổ chứ không làm chết lượt.
+         */
+        throw new Error(`${this.tcId}: khai PASS trong khi step "${xau.find((s) => laFail(s.status)).name}" FAILED. `
+          + 'Chọn một trong hai: khai `failureLayer` để case thành FAILED đúng tầng, hoặc khai `phucHoi` '
+          + '(≥25 ký tự) nói rõ đã phục hồi bằng cách nào và xác minh lại ở bước nào.');
+      } else {
+        const te = xau.map((s) => chuanHoaVerdict(s.status));
+        const haXuong = te.includes('FAIL') ? 'FAILED' : (te.includes('BLOCKED_SETUP') ? 'BLOCKED_SETUP' : te[0]);
+        const vi = `GỘP VERDICT: HẠ từ "${status}" xuống "${haXuong}" — còn ${xau.length} step xấu `
+          + `(${xau.map((s) => `${s.name}=${s.status}`).join(' · ')}) mà không khai \`phucHoi\`. `
+          + 'PASS chỉ được ghi khi nói rõ đã phục hồi bằng cách nào và xác minh lại ở bước nào (tối thiểu 25 ký tự).';
+        if (this.rec && this.rec.log) console.log(`   [verdict] ${this.tcId}: ${vi}`);
+        opts.comment = `${opts.comment || ''}\n${vi}`.trim();
+        status = haXuong;
+      }
+    }
     const failEv = this.steps.find((s) => laFail(s.status));
     const caseEv = [...((failEv || this.steps[this.steps.length - 1] || {}).evidence || []), ...[].concat(opts.evidence || [])];
 

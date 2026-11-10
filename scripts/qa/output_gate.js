@@ -165,6 +165,34 @@ function gateTestExecution(doc, { fix = false } = {}) {
     // 3) Step status: mọi step phải có status (không để trống → "TO DO" rối).
     const stepsNoStatus = steps.filter((s) => !String(s.status || '').trim()).length;
     if (steps.length && stepsNoStatus) problems.push(`${id}: ${stepsNoStatus}/${steps.length} step THIẾU status (mỗi step phải PASS/FAIL)`);
+
+    /*
+     * 3b) GỘP VERDICT — PASS chính thức KHÔNG được đứng trên một step xấu (11/11/2026).
+     *
+     * `evidence_recorder.finish()` đã bịt đường ghi, nhưng sổ này còn nhận bản ghi từ đường KHÁC:
+     * merge tay, bản archive chép lại, spec tự ghi JSON. Cửa đọc phải tự kiểm, nếu không thì luật chỉ
+     * đúng với những ai đi qua recorder — và chỗ không đi qua recorder mới là chỗ dễ sai nhất.
+     *
+     * Vì sao `BLOCKED` phải tính là xấu ngang `FAIL`: taxonomy xếp nó vào "chưa thực thi". Một case
+     * ghi PASS trong khi một bước CHƯA CHẠY ĐƯỢC là khai đã kiểm một thứ chưa ai kiểm.
+     *
+     * ĐƯỜNG THOÁT: comment nêu rõ đã PHỤC HỒI và xác minh lại. Nhận cả chữ do recorder sinh
+     * (`PHỤC HỒI:`) lẫn chữ người viết tay, miễn có nói tới việc chạy lại/xác minh lại bước đó.
+     */
+    const PASS_CHINH_THUC = /^(pass|passed)$/i.test(String(t.status || '').trim());
+    if (PASS_CHINH_THUC && steps.length) {
+      const stepXau = steps.filter((s) => {
+        const v = canonStatus(s.status) || String(s.status || '').trim().toUpperCase();
+        return v === 'FAIL' || v === 'BLOCKED_SETUP' || v === 'SKIP_SETUP' || v === 'SKIP';
+      });
+      const khaiPhucHoi = /PHỤC HỒI:|phục hồi|xác minh lại|chạy lại (và|rồi) (đạt|pass)/i.test(String(t.comment || ''));
+      if (stepXau.length && !khaiPhucHoi) {
+        problems.push(`${id}: ghi PASS trong khi ${stepXau.length}/${steps.length} step còn XẤU `
+          + `(${stepXau.slice(0, 3).map((s) => `${s.name || 'step'}=${s.status}`).join(' · ')}${stepXau.length > 3 ? ' …' : ''}) `
+          + 'mà comment KHÔNG khai đã phục hồi. PASS đứng trên một bước chưa chạy được là khai đã kiểm '
+          + 'một thứ chưa ai kiểm — hạ verdict, hoặc nói rõ đã phục hồi bằng cách nào và xác minh lại ở bước nào.');
+      }
+    }
     /*
      * EVIDENCE THEO STEP — ĐỔI 22/10/2026 (mức B). Trước: MỌI step của MỌI case phải có ảnh riêng.
      * Nay: chỉ case SẮP THÀNH BUG mới phải có chuỗi từng bước.
