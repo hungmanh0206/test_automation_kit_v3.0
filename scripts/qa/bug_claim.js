@@ -143,12 +143,83 @@ function vanBanNguon(ban) {
   return phan.join('\n');
 }
 
+/*
+ * NGUỒN THỨ HAI: `requirements/*.md` CỦA CHÍNH TASK (10/11/2026).
+ *
+ * Đo trên CSDL-4008: 4 claim trỏ `BR-EMIS-034` / `BR-EMIS-042`, và cửa báo "không có bản ghi … trong
+ * knowledge/domain". ĐÚNG THEO CHỮ, nhưng SAI VỀ NGHĨA — nó khiến người đọc tưởng oracle không truy
+ * được. Thực tế cả hai rule TỒN TẠI, trạng thái `confirmed`, trong `requirements/spec_digest_TH.md`
+ * của chính task, và câu trích là NGUYÊN VĂN.
+ *
+ * Dự án dùng HAI HỌ MÃ cho hai nguồn khác nhau: `BR-EMISDN-*` (27 bản ghi ở `knowledge/domain`) và
+ * `BR-EMIS-*` (71 mã khai trong bản tóm tắt đặc tả của task). Regex của tôi khớp cả hai rồi chỉ tra
+ * một chỗ — và tôi đã báo cáo cái lệch đó cho chủ dự án như một phát hiện về công việc của họ.
+ *
+ * Bài học, và nó cùng họ với mọi thứ đợt này: **một cửa chỉ biết một nguồn sẽ gọi "không tồn tại"
+ * cho mọi thứ nằm ở nguồn kia.**
+ */
+/*
+ * TRÍCH GHÉP: một `quote` có thể dẫn NHIỀU nguồn trong một ô, dạng
+ *     BR-EMIS-042: "…câu của rule…" — Ô kỳ vọng bước 5: "…câu của case…"
+ * Khi đó phép so "cả chuỗi phải nằm trong nguồn" LUÔN trượt, và cửa gọi nó là "lệch" — tức tố oan.
+ * Nên: nếu `quote` có các đoạn trong ngoặc kép, chỉ cần MỘT đoạn đủ dài khớp nguồn là đạt.
+ *
+ * Đây KHÔNG phải nới: một câu bịa vẫn không khớp đoạn nào. Nó chỉ thôi đòi tác giả trích đúng MỘT
+ * nguồn khi họ đang dẫn hai.
+ */
+function docDoanTrich(quote) {
+  const min = (cfg.oracleTypes && cfg.oracleTypes.minQuoteChars) || 15;
+  const s = String(quote || '');
+  const ra = [...s.matchAll(/[“"«]([^”"»]{8,})[”"»]/g)].map((m) => m[1].trim());
+  /*
+   * CẮT THEO GẠCH NGANG nữa. Đo trên CSDL-4008/TC_183: phần trích từ rule nằm NGOÀI ngoặc kép, chỉ
+   * phần "Ô kỳ vọng bước 5" mới trong ngoặc — nên chỉ bóc đoạn-trong-ngoặc là bỏ sót đúng cái cần so.
+   */
+  for (const d of s.split(/\s[—–]\s|\s\|\s/)) ra.push(d.replace(/^[^:]{0,24}:\s*/, '').trim());
+  return [...new Set(ra)].filter((x) => x.length >= min);
+}
+
+/** Nguồn có chứa `quote` (nguyên chuỗi) hoặc MỘT đoạn trích đủ dài của nó. */
+function nguonChua(vanBan, quote) {
+  const vb = CHUAN(vanBan);
+  if (vb.includes(CHUAN(quote))) return true;
+  return docDoanTrich(quote).some((d) => vb.includes(CHUAN(d)));
+}
+
+function timTrongYeuCau(gocTask, ma, quote) {
+  const thu = path.join(gocTask, 'requirements');
+  let ds = [];
+  try { ds = fs.readdirSync(thu).filter((f) => /\.md$/i.test(f)); } catch (e) { return null; }
+  const coMa = [];
+  for (const f of ds) {
+    let noi;
+    try { noi = fs.readFileSync(path.join(thu, f), 'utf8'); } catch (e) { continue; }
+    if (!CHUAN(noi).includes(CHUAN(ma))) continue;
+    /*
+     * TRA HẾT MỌI FILE rồi mới kết luận "lệch".
+     *
+     * Bản đầu `return` ngay ở file ĐẦU TIÊN chứa mã. Đo trên CSDL-4008/TC_165: cả 3 đoạn trích đều
+     * CÓ trong `spec_digest_TH.md`, nhưng một file khác cũng nhắc mã đó và được duyệt trước, nên cửa
+     * tố oan. Dừng ở bằng chứng đầu tiên tìm thấy là cách chắc chắn để kết luận sai.
+     */
+    if (nguonChua(noi, quote)) return { trangThai: 'khop', nguon: `requirements/${f}` };
+    coMa.push(`requirements/${f}`);
+  }
+  if (coMa.length) return { trangThai: 'lech', nguon: coMa.join(' · ') };
+  return null;
+}
+
 /** `khop` ⇒ trích đúng · `lech` ⇒ không có trong nguồn · `chua-phan` ⇒ không có nguồn để đối chiếu. */
-function doiChieuNguon(o) {
+function doiChieuNguon(o, gocTask) {
   const C = cfg.oracleTypes.doiChieuNguon || {};
   if (!C.batBuoc) return { trangThai: 'chua-phan', viSao: 'đối chiếu nguồn chưa bật' };
   const ma = String(o.ref || '').match(new RegExp(C.mauMa));
   if (!ma) return { trangThai: 'chua-phan', viSao: `\`oracle.ref\` không chứa mã dạng ${C.mauMa} nên không tra được bản ghi nguồn` };
+  /* NGUỒN THỨ HAI trước: bản tóm tắt đặc tả của chính task. Mã họ `BR-EMIS-*` sống ở đây, không ở
+   * `knowledge/domain` — tra sai chỗ rồi kết luận "không tồn tại" là lỗi tôi đã mắc 09/11. */
+  const tuYeuCau = gocTask ? timTrongYeuCau(gocTask, ma[0], o.quote) : null;
+  if (tuYeuCau) return tuYeuCau;
+
   const thu = path.join(rc.REPO_ROOT, C.thuMuc);
   if (!fs.existsSync(thu)) return { trangThai: 'chua-phan', viSao: `không có \`${C.thuMuc}\` trong cây này (gói phát hành chở knowledge/ rỗng)` };
   let ds = [];
@@ -157,11 +228,17 @@ function doiChieuNguon(o) {
     let ban;
     try { ban = JSON.parse(fs.readFileSync(path.join(thu, f), 'utf8')); } catch (e) { continue; }
     if (CHUAN(ban.id) !== CHUAN(ma[0])) continue;
-    return CHUAN(vanBanNguon(ban)).includes(CHUAN(o.quote))
+    return nguonChua(vanBanNguon(ban), o.quote)
       ? { trangThai: 'khop', nguon: f }
       : { trangThai: 'lech', nguon: f };
   }
-  return { trangThai: 'chua-phan', viSao: `không có bản ghi \`${ma[0]}\` trong \`${C.thuMuc}\`` };
+  /* NÓI ĐỦ HAI NGUỒN ĐÃ TRA. Thông báo cũ chỉ nhắc `knowledge/domain`, nên người đọc tưởng oracle
+   * không truy được — trong khi nó nằm ở nguồn kia. Một cửa nói thiếu nguồn là một cửa nói sai. */
+  return {
+    trangThai: 'chua-phan',
+    viSao: `không tra được \`${ma[0]}\`: không có trong \`${C.thuMuc}\`, cũng không có trong `
+      + '`requirements/*.md` của task',
+  };
 }
 const NEO = (cfg.falsification && cfg.falsification.neoArtifact) || {};
 /*
@@ -376,7 +453,7 @@ function validate(claim, file) {
   if (!atLeast(o.quote, cfg.oracleTypes.minQuoteChars)) {
     at(`\`oracle.quote\` phải TRÍCH nguyên văn từ nguồn, tối thiểu ${cfg.oracleTypes.minQuoteChars} ký tự`);
   } else {
-    const dc = doiChieuNguon(o);
+    const dc = doiChieuNguon(o, path.resolve(path.dirname(file || "."), "..", ".."));
     if (dc.trangThai === 'lech') {
       at(`\`oracle.quote\` KHÔNG có trong \`${dc.nguon}\` — nó khai là TRÍCH NGUYÊN VĂN, nhưng đối chiếu `
         + 'với bản ghi nguồn thì không tìm thấy câu đó. Một câu bịa 40 ký tự qua cửa y như một câu trích '
