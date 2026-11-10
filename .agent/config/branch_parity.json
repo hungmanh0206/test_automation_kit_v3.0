@@ -3,28 +3,27 @@
   "_enforced_by": "scripts/qa/policy_source_check.js (npm run gate:policy) — chạy trong static-check của cả 2 CI.",
   "_how": "Mỗi máy khai `applies`: danh sách nhánh BẮT BUỘC phải nhắc tới nó. Không áp dụng cho nhánh nào thì ghi vào `waived` KÈM lý do — miễn trừ phải viết ra, không được im lặng.",
   "branches": {
-    "phase1": [
-      ".agent/workflows/phase1_000_system_discovery.md",
-      "prompt_templates/run_phase1_template.md",
-      "prompt_templates/phase1",
-      ".agent/workflows/phase1_01_analyze_requirements.md",
-      ".agent/workflows/phase1_02_generate_testcases.md",
-      ".agent/workflows/phase1_03_validate_export_report.md"
-    ],
-    "phase2": [
-      "prompt_templates/run_phase2_template.md",
+    "3_phase2": [
+      ".agent/workflows/01_system_discovery.md",
+      "prompt_templates/phase2/01_run_phase2.md",
       "prompt_templates/phase2",
-      ".agent/workflows/phase2_01_prepare_execution.md",
-      ".agent/workflows/phase2_02_generate_or_update_automation.md",
-      ".agent/workflows/phase2_03_execute_and_auto_heal.md",
-      ".agent/workflows/phase2_04_report_and_backlog_gate.md"
+      ".agent/workflows/05_generate_testcases.md",
+      ".agent/workflows/06_validate_export_report.md"
     ],
-    "rerun": [
-      "prompt_templates/run_phase_re-run_template.md",
-      ".agent/workflows/rerun.md",
-      ".agent/workflows/rerun_01_map_bug_to_testcase.md",
-      ".agent/workflows/rerun_02_rerun_and_verify.md",
-      ".agent/workflows/rerun_03_update_backlog_and_report.md"
+    "5_phase3": [
+      "prompt_templates/phase3/01_run_phase3.md",
+      "prompt_templates/phase3",
+      ".agent/workflows/09_prepare_execution.md",
+      ".agent/workflows/10_generate_or_update_automation.md",
+      ".agent/workflows/11_execute_and_auto_heal.md",
+      ".agent/workflows/12_report_and_backlog_gate.md"
+    ],
+    "6_phase4": [
+      "prompt_templates/phase4/01_run_phase4.md",
+      ".agent/workflows/13_tong_quan_rerun.md",
+      ".agent/workflows/14_map_bug_to_testcase.md",
+      ".agent/workflows/15_rerun_and_verify.md",
+      ".agent/workflows/16_update_backlog_and_report.md"
     ],
     "partial-rerun": [
       "partial-rerun/run_requirement_prepare_review.md",
@@ -38,19 +37,19 @@
     ],
     "discover": [
       ".claude/commands/discover.md",
-      ".agent/workflows/phase1_000_system_discovery.md",
+      ".agent/workflows/01_system_discovery.md",
       "scripts/qa/discover.js"
     ]
   },
   "machines": {
     "output_gate.js": {
       "applies": [
-        "phase2",
-        "rerun",
+        "5_phase3",
+        "6_phase4",
         "manual-run"
       ],
       "waived": {
-        "phase1": "Phase 1 chưa có kết quả execute để soi; chất lượng bộ case do design_gate + tc_validator gác.",
+        "3_phase2": "Phase 1 chưa có kết quả execute để soi; chất lượng bộ case do design_gate + tc_validator gác.",
         "partial-rerun": "Nhánh này không execute case nên không có kết quả để soi; chất lượng phần merge do design_gate + dim:coverage gác (Step 2a).",
         "discover": "Bước 0 chưa có kết quả execute để soi; nó chỉ sinh bản đồ quan sát."
       },
@@ -58,12 +57,12 @@
     },
     "expansion:plan": {
       "applies": [
-        "phase2",
-        "rerun",
+        "5_phase3",
+        "6_phase4",
         "manual-run"
       ],
       "waived": {
-        "phase1": "Mở rộng là chuyện lúc EXECUTE (quanh case đang chạy); ở Phase 1 vai trò đó do dim:coverage + spec:gap đảm nhiệm.",
+        "3_phase2": "Mở rộng là chuyện lúc EXECUTE (quanh case đang chạy); ở Phase 1 vai trò đó do dim:coverage + spec:gap đảm nhiệm.",
         "partial-rerun": "Mở rộng thuộc lúc execute; nhánh này chỉ merge thay đổi requirement rồi publish.",
         "discover": "Chưa có case nào để mở rộng quanh — Bước 0 chạy TRƯỚC khi sinh case."
       },
@@ -71,11 +70,11 @@
     },
     "bugs:checklist": {
       "applies": [
-        "phase1",
-        "rerun"
+        "3_phase2",
+        "6_phase4"
       ],
       "waived": {
-        "phase2": "Phase 2 execute theo bộ case đã chốt; Error Guessing từ bug lịch sử thuộc lúc SINH case (phase1) và lúc bug vừa đóng (rerun).",
+        "5_phase3": "Phase 2 execute theo bộ case đã chốt; Error Guessing từ bug lịch sử thuộc lúc SINH case (phase1) và lúc bug vừa đóng (rerun).",
         "partial-rerun": "Error Guessing thuộc lúc sinh case (phase1) và lúc bug vừa đóng (rerun).",
         "manual-run": "Nhánh này không sinh case và không phải lượt verify-fix — hai thời điểm mà checklist bug lặp có giá trị. Bug tìm ra khi chạy tay chuyển sang Phase 2 bug triage, nơi máy này đã được nối.",
         "discover": "Bước 0 không kết luận bug: mọi bản ghi là `observed`, và phát hiện đáng ngờ đi vào `EXPANSION_FINDING` cho người quyết."
@@ -84,12 +83,12 @@
     },
     "self-review": {
       "applies": [
-        "phase2",
+        "5_phase3",
         "manual-run"
       ],
       "waived": {
-        "phase1": "Phase 1 dùng design_gate + dim:coverage + risk:gate; self-review là checklist trước FINALIZE của lượt execute.",
-        "rerun": "Rerun đã bị output_gate gác ở đúng cửa ra (comment/Done Backlog); thêm self-review vào đây là gác hai lần cùng một thứ.",
+        "3_phase2": "Phase 1 dùng design_gate + dim:coverage + risk:gate; self-review là checklist trước FINALIZE của lượt execute.",
+        "6_phase4": "Rerun đã bị output_gate gác ở đúng cửa ra (comment/Done Backlog); thêm self-review vào đây là gác hai lần cùng một thứ.",
         "partial-rerun": "Human Review 2 pha (APPROVED + APPROVED_REVIEW_FILE) đã là chốt người ở đúng cửa; thêm self-review là gác hai lần.",
         "discover": "Chưa có sản phẩm nào để tự soi; `discover` tự gác bằng độ đầy đủ lượt bò và trần token tóm tắt."
       },
@@ -97,12 +96,12 @@
     },
     "dim:coverage": {
       "applies": [
-        "phase1",
+        "3_phase2",
         "partial-rerun"
       ],
       "waived": {
-        "phase2": "Độ phủ theo chiều là thuộc tính của BỘ CASE (Phase 1), không phải của lượt execute.",
-        "rerun": "Rerun chạy tập con đã map theo bug — đo độ phủ chiều ở đây là vô nghĩa.",
+        "5_phase3": "Độ phủ theo chiều là thuộc tính của BỘ CASE (Phase 1), không phải của lượt execute.",
+        "6_phase4": "Rerun chạy tập con đã map theo bug — đo độ phủ chiều ở đây là vô nghĩa.",
         "manual-run": "Đo độ phủ của BỘ case, việc của Phase 1. Nhánh này chỉ chạy một tập con đã có trong bộ, không thêm bớt chiều nào.",
         "discover": "Chưa có bộ testcase để chấm chiều. Bước 0 CẤP DỮ LIỆU cho nó (`injection_surface.json`), không bị nó gác."
       },
@@ -110,12 +109,12 @@
     },
     "tc:review": {
       "applies": [
-        "phase1",
+        "3_phase2",
         "partial-rerun"
       ],
       "waived": {
-        "phase2": "Rubric chấm bản THIẾT KẾ của case. Lượt execute không sửa thiết kế nên chấm lại là đo cùng một thứ hai lần.",
-        "rerun": "Rerun chạy tập con đã map theo bug, không sinh hay sửa case.",
+        "5_phase3": "Rubric chấm bản THIẾT KẾ của case. Lượt execute không sửa thiết kế nên chấm lại là đo cùng một thứ hai lần.",
+        "6_phase4": "Rerun chạy tập con đã map theo bug, không sinh hay sửa case.",
         "manual-run": "Chấm chất lượng từng case, việc của Phase 1. Nhánh này không sinh hay sửa case.",
         "discover": "Chưa có testcase."
       },
@@ -123,12 +122,12 @@
     },
     "design:gate": {
       "applies": [
-        "phase1",
+        "3_phase2",
         "partial-rerun"
       ],
       "waived": {
-        "phase2": "Phase 2 execute theo bộ case đã chốt, không sinh/sửa cột canonical.",
-        "rerun": "Rerun chạy tập con đã map, không sửa bộ case.",
+        "5_phase3": "Phase 2 execute theo bộ case đã chốt, không sinh/sửa cột canonical.",
+        "6_phase4": "Rerun chạy tập con đã map, không sửa bộ case.",
         "manual-run": "Chặn bộ case thiếu cột canonical. Nhánh này không sinh hay sửa bộ case, chỉ đọc bộ đã có.",
         "discover": "Chưa có testcase để chấm chất lượng thiết kế."
       },
@@ -136,12 +135,12 @@
     },
     "domain:check": {
       "applies": [
-        "phase1",
+        "3_phase2",
         "partial-rerun"
       ],
       "waived": {
-        "phase2": "Phase 2 ĐỌC oracle để phán, không phiên bản hoá nó.",
-        "rerun": "Rerun verify fix theo oracle hiện hành; rule đổi là việc của partial-rerun.",
+        "5_phase3": "Phase 2 ĐỌC oracle để phán, không phiên bản hoá nó.",
+        "6_phase4": "Rerun verify fix theo oracle hiện hành; rule đổi là việc của partial-rerun.",
         "manual-run": "Máy này gác việc phiên bản hoá oracle khi requirement đổi. Nhánh chạy tay không xử lý requirement đổi.",
         "discover": "Bước 0 không ghi `knowledge/domain`: nó chỉ sinh ứng viên ở trạng thái `draft`/`observed`, và việc chốt rule là của người."
       },

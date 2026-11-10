@@ -8,7 +8,7 @@ import { thuMucTam, donThuMucTam } from './_thu_muc_tam';
 /*
  * @infra — CỔNG MƠ HỒ, nay có code đứng sau.
  *
- * Trước v2.9.2, `phase1_01_prepare_context.md` bước 7 bảo "DỪNG tới khi RESOLVED" nhưng KHÔNG script
+ * Trước v2.9.2, `04_prepare_context.md` bước 7 bảo "DỪNG tới khi RESOLVED" nhưng KHÔNG script
  * nào đọc khoá đó rồi `exit 1`. Đo 16/10/2026: 0 máy.
  *
  * Hai cái bẫy ĐO ĐƯỢC trên 5 task thật, và chúng đổi hẳn thiết kế:

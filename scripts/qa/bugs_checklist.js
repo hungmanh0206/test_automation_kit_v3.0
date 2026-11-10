@@ -5,7 +5,7 @@
  * bugs_checklist.js — biến `knowledge/bugs/` thành CHECKLIST lúc SINH CASE (chiều §20 Error Guessing).
  *
  * VÌ SAO CÓ FILE NÀY: đo 20/08/2026 — kho có 58 bug thật, nhưng nơi DUY NHẤT đọc nó ở khâu sinh case là
- * `phase1_00_scope_planning.md`, và chỉ để **nâng risk** cho module hay vỡ. Không prompt nào bắt "mỗi lỗi
+ * `03_scope_planning.md`, và chỉ để **nâng risk** cho module hay vỡ. Không prompt nào bắt "mỗi lỗi
  * từng xảy ra phải có TC canh". Lỗi đã lọt một lần thì đường lọt đó còn mở tới khi có case đứng canh —
  * đây là kỹ thuật error-guessing dựa trên lỗi THẬT của chính sản phẩm, không phải lý thuyết.
  *

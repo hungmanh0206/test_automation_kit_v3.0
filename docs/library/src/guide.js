@@ -12,7 +12,7 @@ const FLOW_STEPS = [
   { n:'1', k:'phase1', title:'Phase 1 — Sinh testcase', who:'AI Agent + QA',
     goal:'Đọc Backlog/tài liệu nguồn/Figma/Swagger, phân tích, hỏi cho rõ, rồi sinh bộ testcase.',
     out:['testcase Markdown','bản xuất Excel (7 cột bắt buộc)','phase1-summary.md','Setup Strategy contract (PRE-NN)','task.md'],
-    cmd:'/phase1 <TASK_KEY>',
+    cmd:'/3_phase2 <TASK_KEY>',
     gate:'Ambiguity Gate — còn chỗ mơ hồ thì DỪNG, gộp câu hỏi hỏi BA rồi mới gen.' },
 
   { n:'2', k:'review', title:'Review Phase 1', who:'QA Member + QA Lead',
@@ -35,7 +35,7 @@ const FLOW_STEPS = [
   { n:'5', k:'phase2', title:'Phase 2 — Execute', who:'AI Agent + QA',
     goal:'Kéo testcase từ Google Sheet, dựng tiền điều kiện, chạy thật, thu evidence.',
     out:['Playwright results','evidence ảnh/video','execution-summary.md','testcase-status.json','expansion-plan.md'],
-    cmd:'/phase2 <TASK_KEY>   (gate: /preflight <TASK_KEY>)',
+    cmd:'/5_phase3 <TASK_KEY>   (gate: /preflight <TASK_KEY>)',
     gate:'preflight_gate phải xanh trước. Execute KHÔNG chỉ bám chữ trong case — phải mở rộng 5 trục quanh nó theo risk band.' },
 
   { n:'5b', k:'push', title:'Đẩy kết quả lên Google Sheet', who:'QA',
@@ -58,7 +58,7 @@ const FLOW_STEPS = [
   { n:'8', k:'rerun', title:'Re-run sau khi Dev fix', who:'QA',
     goal:'Xác nhận lỗi đã hết trên bản build mới.',
     out:['rerun report','evidence PASS','Backlog chuyển Done nếu PASS thật'],
-    cmd:'/rerun <TASK_KEY>',
+    cmd:'/6_phase4 <TASK_KEY>',
     gate:'Chỉ chuyển Done khi có evidence PASS. Kết quả rerun hết hạn nếu có deploy chen vào.' }
 ];
 
@@ -83,8 +83,8 @@ const SETUP_CARDS = [
     items:['TASK_KEY','PROJECT_OUTPUT_DIR','link tài liệu nguồn'],
     note:'Thiếu một trong ba thì output đổ nhầm chỗ hoặc chạy trên nền sai.' },
   { icon:'⌘', title:'Slash command — điểm vào gõ được',
-    items:['/start · /discover · /phase1 · /phase2','/rerun · /partial-rerun · /publish','/preflight · /gates · /explore · /ui-debug · /manual-run'],
-    note:'Mỗi lệnh nạp đúng thứ tự file phải đọc và gate phải chạy — không phải tự nhớ. Không thay thế gate, chỉ dẫn đúng đường.' }
+    items:['Có số, là dòng chảy: /1_start · /2_phase1 · /3_phase2 · /4_publish','… tiếp: /5_phase3 · /6_phase4 · /7_release','Không số, là công cụ: /discover · /preflight · /gates','… tiếp: /partial-rerun · /manual-run · /explore · /ui-debug'],
+    note:'Số là thứ tự chạy. Mỗi lệnh nạp đúng thứ tự file phải đọc và gate phải chạy — không phải tự nhớ. Không thay thế gate, chỉ dẫn đúng đường.' }
 ];
 
 /* ── Lỗi thường gặp (USER_GUIDE §10) ── */
@@ -151,7 +151,7 @@ const TREE = [
   [1,'skills/','28 skill theo phase1 / phase2 / shared','dir'],
   [1,'rules/','core_rules · qa_instincts · locator_strategy · playwright_fe/api','dir'],
   [0,'prompt_templates/','prompt chạy từng phase','dir'],
-  [1,'phase1/dimensions/','15 chương chiều coverage — mở đúng chiều task cần, không nạp cả 15','dir'],
+  [1,'phase2/dimensions/','15 chương chiều coverage — mở đúng chiều task cần, không nạp cả 15','dir'],
   [0,'scripts/qa/','công cụ QA chạy thật + toàn bộ gate máy-kiểm','dir'],
   [0,'tests/','spec Playwright','dir'],
   [1,'support/setup/','setup layer dùng chung (factory/hook/fixture/mock/cleanup)','dir'],
@@ -253,7 +253,7 @@ const CMD_GROUPS = [
     ['npm run merge:execution-status -- --task <KEY>','Ghép kết quả execute vào bộ canonical']
   ]},
   { g:'Kit: tự kiểm toán & phát hành', items:[
-    ['npm run gates:index  ·  npm run gates:index:check','Danh mục gate tự sinh — 167 máy, 117 CHẶN; :check chặn khi bảng lệch source'],
+    ['npm run gates:index  ·  npm run gates:index:check','Danh mục gate tự sinh — 168 máy, 120 CHẶN; :check chặn khi bảng lệch source'],
     ['npm run rule -- <mục>  ·  npm run rule:toc','Tra RULE_GLOBAL theo mục (287 token) thay vì đọc cả file (12,8k)'],
     ['npm run version:check','Chặn phát hành thiếu số phiên bản; kiểm khớp tag'],
     ['npm run package:kit','Đóng gói dist/ CHỈ lớp GENERIC — không để lọt secret hay oracle của dự án khác'],

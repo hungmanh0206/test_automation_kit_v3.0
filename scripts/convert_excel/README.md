@@ -71,5 +71,5 @@ Script `md_to_xlsx.js` giúp QA review testcase dễ hơn bằng Excel mà vẫn
 
 | Document | Purpose |
 |---|---|
-| `prompt_templates/phase1/02_gen_testcases.md` | Phase 1 testcase format and Excel export rule. |
-| `prompt_templates/run_phase1_template.md` | End-to-end Phase 1 execution prompt. |
+| `prompt_templates/phase2/03_gen_testcases.md` | Phase 1 testcase format and Excel export rule. |
+| `prompt_templates/phase2/01_run_phase2.md` | End-to-end Phase 1 execution prompt. |

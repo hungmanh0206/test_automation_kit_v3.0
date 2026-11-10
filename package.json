@@ -87,6 +87,7 @@
     "recon:check": "node scripts/qa/recon_check.js",
     "recon:passive": "node scripts/qa/recon_passive.js",
     "router:check": "node scripts/qa/router_check.js",
+    "workflow:refs": "node scripts/qa/workflow_refs.js",
     "parity:check": "node scripts/qa/parity_check.js",
     "data:chain": "node scripts/qa/data_chain_check.js",
     "data:chain:check": "node scripts/qa/data_chain_check.js --enforce",

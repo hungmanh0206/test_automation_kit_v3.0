@@ -45,7 +45,7 @@ const THOI_DIEM = [
   { ma: 'ci', khop: (s) => /\.github|gitlab-ci/.test(s), nghia: 'trên CI' },
   {
     ma: 'exit',
-    khop: (s) => /publish|release|finalize|report_and_backlog|self.?review|cleanup/i.test(s),
+    khop: (s) => /4_publish|release|finalize|report_and_backlog|self.?review|cleanup/i.test(s),
     nghia: 'ở cửa ra (publish · log bug · Done hoặc release)',
   },
   { ma: 'phase', khop: (s) => /phase|prompt_templates|workflows|exploratory|manual-run|commands|rules|skills|partial-rerun/i.test(s), nghia: 'trong lúc chạy phase' },

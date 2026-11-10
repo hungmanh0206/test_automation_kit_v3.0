@@ -15,7 +15,7 @@
  * 1.540 trong tổng 11.299 lượt — mà mỗi lượt là một message, và mỗi message kéo theo cả context
  * (~500k token, cache-hit 98,5%).
  *
- * `prompt_templates/phase2/04_execute_fe_playwright.md` ĐÃ dặn "rerun đúng case đỏ". Số đo nói lời dặn
+ * `prompt_templates/phase3/02_execute_fe_playwright.md` ĐÃ dặn "rerun đúng case đỏ". Số đo nói lời dặn
  * đó không xảy ra. Nên nó cần một MÁY: một lệnh làm sẵn việc đọc kết quả, dựng `--grep`, rồi chạy.
  *
  * HAI CHỖ TỪ CHỐI, cố ý, vì im lặng ở đây dẫn tới kết luận sai:

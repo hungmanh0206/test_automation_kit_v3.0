@@ -416,7 +416,7 @@ function scanPackage(root, files) {
      * dữ liệu, nên cùng mức chặn.
      *
      * Đo 19/09/2026: luật cũ bỏ qua mọi `.md` nên gói `kit-2.1.1` phát ra ngoài kèm mục
-     * "Hai giới hạn ĐÃ ĐO của DB NÀY" trong `prompt_templates/phase1/dimensions/23_db_persistence.md`,
+     * "Hai giới hạn ĐÃ ĐO của DB NÀY" trong `prompt_templates/phase2/dimensions/23_db_persistence.md`,
      * khẳng định một bảng cụ thể không có cột audit. Người nhận ở dự án khác đọc đó là sự thật về DB
      * của họ. Sau khi khái quát hoá lại: 0 hit trên toàn bộ `prompt_templates/**` và `.agent/**`, nên bật
      * mức CHẶN không báo oan file nào đang có.

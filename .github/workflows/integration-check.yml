@@ -3,7 +3,7 @@
 # tài liệu nguồn đã bỏ khỏi job này (22/09/2026, cùng lượt chuyển hệ bug-tracking cũ → Backlog) — chờ quyết Google Docs/Sheet.
 # Testcase publish (Google Sheet → Google Sheet, 22/09/2026) dùng Google Drive MCP — kênh riêng của phiên
 # chat, KHÔNG gọi được từ script CLI/CI headless. Vì vậy job này KHÔNG còn bước dry-run publish testcase;
-# muốn kiểm publish thì làm thủ công trong phiên chat (xem `.agent/workflows/phase1_04_auto_publish_backlog.md`).
+# muốn kiểm publish thì làm thủ công trong phiên chat (xem `.agent/workflows/07_auto_publish_backlog.md`).
 name: integration-check
 
 on:

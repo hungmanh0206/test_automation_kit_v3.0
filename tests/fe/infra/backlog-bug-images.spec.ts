@@ -27,7 +27,7 @@ import rules from '../../../scripts/qa/lib/output_rules';
  */
 const REPO = path.resolve(__dirname, '..', '..', '..');
 const REPORTER = path.join(REPO, 'scripts/integrations/backlog/bug_reporter.js');
-const PROMPT08 = path.join(REPO, 'prompt_templates/phase2/08_log_bug_backlog.md');
+const PROMPT08 = path.join(REPO, 'prompt_templates/phase3/07_log_bug_backlog.md');
 
 const PAYLOAD = {
   preconditions: 'Đã đăng nhập đơn vị TEST 1',

@@ -117,7 +117,7 @@ test.describe('@infra subagent — việc máy móc đi model rẻ', () => {
      * `REPORT.md` lúc đó ghi "chưa xác minh", và không workflow nào nhắc tới chúng.
      *
      * Nối ở WORKFLOW chứ không ở điểm vào: `.agent/workflows/**` không nằm trong phần nạp bắt buộc nên
-     * tốn 0 token, còn `.claude/commands/publish.md` là điểm vào của luồng publish — thêm chữ vào đó là
+     * tốn 0 token, còn `.claude/commands/4_publish.md` là điểm vào của luồng publish — thêm chữ vào đó là
      * vượt `moc` trong prompt_budget.json.
      */
     const noi = [

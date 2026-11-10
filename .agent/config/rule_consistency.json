@@ -16,7 +16,7 @@
   "_mien_tru_vi_sao": "Đây là vùng LỊCH SỬ: chúng kể lại luật từng như thế nào, nên chúng PHẢI được quyền nhắc câu cũ. Chặn chúng là bắt lịch sử nói dối. Riêng `tests/fe/infra/rule-consistency.spec.ts` miễn vì lý do khác: nó là BỘ KIỂM của chính máy này, nên bắt buộc phải chứa câu vi phạm làm đối chứng dương. Không miễn thì gate tự chặn bộ kiểm của nó — và cách chữa duy nhất còn lại là xoá đối chứng, tức làm gate thành đồ trang trí. Phát hiện ra chuyện này đúng lúc stage spec: gate đếm theo `git ls-files`, nên lúc file chưa track thì nó chưa nằm trong phạm vi.",
   "mien_tru_dong": [
     {
-      "file": "prompt_templates/run_phase2_template.md",
+      "file": "prompt_templates/phase3/01_run_phase3.md",
       "chua": "mọi step tự set = PASSED",
       "ly_do": "DƯƠNG TÍNH GIẢ. Dòng này nói về `status` (case PASSED thì step tự set PASSED), còn yêu cầu ảnh mà nó nêu là ảnh CẤP CASE — đúng mức B. Bộ dò làm việc theo DÒNG nên không tách được hai mệnh đề trong cùng một dòng."
     },

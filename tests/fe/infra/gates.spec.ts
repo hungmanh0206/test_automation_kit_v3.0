@@ -404,7 +404,7 @@ test.describe('@infra branch parity — cơ chế đã có phải dùng ở MỌ
 
   test('config khai đủ: máy nào cũng có `why`, miễn trừ nào cũng có lý do', () => {
     const cfg = JSON.parse(fs.readFileSync(CFG, 'utf8'));
-    expect(Object.keys(cfg.branches)).toEqual(expect.arrayContaining(['phase1', 'phase2', 'rerun']));
+    expect(Object.keys(cfg.branches)).toEqual(expect.arrayContaining(['3_phase2', '5_phase3', '6_phase4']));
     for (const [name, spec] of Object.entries<Record<string, never>>(cfg.machines)) {
       expect(String((spec as { why?: string }).why || ''), `${name} thiếu \`why\``).not.toBe('');
       const applies = (spec as { applies?: string[] }).applies || [];
@@ -424,9 +424,9 @@ test.describe('@infra branch parity — cơ chế đã có phải dùng ở MỌ
   test('nhánh rerun PHẢI có output_gate + expansion + bugs:checklist (nhánh đóng bug, hậu quả cao nhất)', () => {
     const cfg = JSON.parse(fs.readFileSync(CFG, 'utf8'));
     for (const m of ['output_gate.js', 'expansion:plan', 'bugs:checklist']) {
-      expect(cfg.machines[m].applies, `${m} phải áp cho rerun`).toContain('rerun');
+      expect(cfg.machines[m].applies, `${m} phải áp cho rerun`).toContain('6_phase4');
     }
-    const text = cfg.branches.rerun.map((rel: string) => {
+    const text = cfg.branches['6_phase4'].map((rel: string) => {
       const abs = path.join(REPO, rel);
       if (!fs.existsSync(abs)) return '';
       return fs.statSync(abs).isDirectory()
@@ -445,7 +445,7 @@ test.describe('@infra branch parity — cơ chế đã có phải dùng ở MỌ
      */
     const cfg = JSON.parse(fs.readFileSync(CFG, 'utf8'));
     const known = Object.keys(cfg.branches);
-    expect(known, 'thiếu nhánh nào là F12 mù nhánh đó').toEqual(expect.arrayContaining(['phase1', 'phase2', 'rerun', 'partial-rerun']));
+    expect(known, 'thiếu nhánh nào là F12 mù nhánh đó').toEqual(expect.arrayContaining(['3_phase2', '5_phase3', '6_phase4', 'partial-rerun']));
     // Điểm-vào `run_*` nào tồn tại trên đĩa cũng phải được một nhánh nào đó trỏ tới.
     const declared = Object.values<string[]>(cfg.branches).flat().join(' ');
     const entries = fs.readdirSync(path.join(REPO, 'prompt_templates')).filter((f) => /^run_.*\.md$/.test(f));
@@ -464,9 +464,9 @@ test.describe('@infra branch parity — cơ chế đã có phải dùng ở MỌ
   });
 
   test('gate CÓ RĂNG: gỡ 1 máy khỏi nhánh applies ⇒ gate:policy đỏ', () => {
-    // Chạy gate trên bản config đã bẻ (trỏ nhánh rerun sang thư mục rỗng) — không sửa file thật.
+    // Chạy gate trên bản config đã bẻ (trỏ nhánh 6_phase4 sang thư mục rỗng) — không sửa file thật.
     const cfg = JSON.parse(fs.readFileSync(CFG, 'utf8'));
-    cfg.branches.rerun = ['.gitignore'];   // file KHÔNG nhắc output_gate.js (branch_parity.json tự chứa tên máy)
+    cfg.branches['6_phase4'] = ['.gitignore'];   // file KHÔNG nhắc output_gate.js (branch_parity.json tự chứa tên máy)
     const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'parity-'));
     const bak = fs.readFileSync(CFG, 'utf8');
     try {

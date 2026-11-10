@@ -7,14 +7,14 @@ import * as path from 'path';
  *
  * `model.js` ghi bài học này ngay cạnh `DIMENSION_TAGS`: *"thêm ở đây MỚI có tác dụng — chiều mới mà quên
  * khai thì case gắn tag vẫn ra 0"*. Lời dặn đó đã được viết hai lần (§22 rồi §23) và vẫn hỏng lần thứ ba:
- * khi thêm §24/§25 (13/10/2026) tôi tìm ra bảng tag ở `02_gen_testcases.md` **dừng ở §17**, tức sáu chiều
+ * khi thêm §24/§25 (13/10/2026) tôi tìm ra bảng tag ở `03_gen_testcases.md` **dừng ở §17**, tức sáu chiều
  * có file và có gate đếm mà không có dòng nào ở bảng cho người đọc.
  *
  * Một lời dặn lặp ba lần mà vẫn hỏng thì vấn đề không phải người đọc — là nó chưa có máy. Đây là máy đó.
  */
 
 const REPO = path.resolve(__dirname, '..', '..', '..');
-const DIR = path.join(REPO, 'prompt_templates', 'phase1', 'dimensions');
+const DIR = path.join(REPO, 'prompt_templates', 'phase2', 'dimensions');
 
 /* eslint-disable @typescript-eslint/no-var-requires, global-require */
 const model = require(path.join(REPO, 'scripts/lib/testcase/model.js'));
@@ -68,8 +68,8 @@ test.describe('@infra chiều coverage — khai đủ BỐN chỗ, không ba', (
     }
   });
 
-  test('`02_gen_testcases.md` có dòng ở CẢ bảng tag lẫn bảng điều hướng', () => {
-    const src = fs.readFileSync(path.join(REPO, 'prompt_templates/phase1/02_gen_testcases.md'), 'utf8');
+  test('`03_gen_testcases.md` có dòng ở CẢ bảng tag lẫn bảng điều hướng', () => {
+    const src = fs.readFileSync(path.join(REPO, 'prompt_templates/phase2/03_gen_testcases.md'), 'utf8');
     for (const f of files) {
       const { sec, tag } = tagCuaFile(f);
       if (!tag) continue;
@@ -90,7 +90,7 @@ test.describe('@infra chiều coverage — khai đủ BỐN chỗ, không ba', (
      * Hai template run_* từng dạy "15 chương (§3–§17)" trong khi thư mục có 20 file tới §23. Con số trong
      * tài liệu là thứ duy nhất người đọc dùng để biết mình đã xem hết hay chưa.
      */
-    for (const p of ['prompt_templates/run_phase1_template.md', 'prompt_templates/run_phase2_template.md']) {
+    for (const p of ['prompt_templates/phase2/01_run_phase2.md', 'prompt_templates/phase3/01_run_phase3.md']) {
       const src = fs.readFileSync(path.join(REPO, p), 'utf8');
       const so = [...src.matchAll(/(\d+) chương/g)].map((m) => Number(m[1]));
       for (const n of so) expect(n, `${p}: khai "${n} chương" nhưng thư mục có ${files.length} file chiều`).toBe(files.length);

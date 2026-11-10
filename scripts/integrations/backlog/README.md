@@ -95,5 +95,5 @@ người bấm, không có script tự ghi. Gặp tài liệu cũ nhắc lệnh 
 
 | Document | Purpose |
 |---|---|
-| `prompt_templates/phase2/08_log_bug_backlog.md` | Backlog bug logging rules. |
+| `prompt_templates/phase3/07_log_bug_backlog.md` | Backlog bug logging rules. |
 | `RULE_GLOBAL.md` | Global security and output rules. |

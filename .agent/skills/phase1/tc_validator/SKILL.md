@@ -37,7 +37,7 @@ Kiểm tra testcase sau khi sinh/cập nhật để đảm bảo đủ chi tiế
 |---|---|
 | Testcase Markdown | `<TASK_OUTPUT_DIR>/test-cases/*.md` |
 | Requirement summary | `requirements/`, `reports/phase1-summary.md`, `task.md` |
-| Rules | `prompt_templates/phase1/02_gen_testcases.md` |
+| Rules | `prompt_templates/phase2/03_gen_testcases.md` |
 
 ## Outputs
 

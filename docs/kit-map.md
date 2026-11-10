@@ -17,27 +17,27 @@ test-automation-kit/
 │   │                 #   db.conventions.json  — quy ước DB + bản đồ cột↔nhãn khoá THEO MÀN
 │   │                 #   locators.schema.json — schema cho knowledge/locators/*.json
 │   ├── workflows/
-│   │   ├── phase1_generate_tc.md            # entry Phase 1
-│   │   ├── phase1_00_scope_planning.md      # optional: RBT scope + risk register
-│   │   ├── phase1_01_prepare_context.md     # gồm Ambiguity Gate (chặn sinh TC khi mơ hồ)
-│   │   ├── phase1_02_generate_testcases.md
-│   │   ├── phase1_03_validate_export_report.md
-│   │   ├── phase1_04_auto_publish_backlog.md
-│   │   ├── phase2_execute.md                # entry Phase 2
-│   │   ├── phase2_01_prepare_execution.md
-│   │   ├── phase2_02_generate_or_update_automation.md
-│   │   ├── phase2_03_execute_and_auto_heal.md
-│   │   ├── phase2_04_report_and_backlog_gate.md
-│   │   ├── rerun.md                         # entry Re-run
-│   │   ├── rerun_01_map_bug_to_testcase.md
-│   │   ├── rerun_02_rerun_and_verify.md
-│   │   └── rerun_03_update_backlog_and_report.md
+│   │   ├── 02_tong_quan_testcase.md            # entry Phase 1
+│   │   ├── 03_scope_planning.md      # optional: RBT scope + risk register
+│   │   ├── 04_prepare_context.md     # gồm Ambiguity Gate (chặn sinh TC khi mơ hồ)
+│   │   ├── 05_generate_testcases.md
+│   │   ├── 06_validate_export_report.md
+│   │   ├── 07_auto_publish_backlog.md
+│   │   ├── 08_tong_quan_execute.md                # entry Phase 2
+│   │   ├── 09_prepare_execution.md
+│   │   ├── 10_generate_or_update_automation.md
+│   │   ├── 11_execute_and_auto_heal.md
+│   │   ├── 12_report_and_backlog_gate.md
+│   │   ├── 13_tong_quan_rerun.md                         # entry Re-run
+│   │   ├── 14_map_bug_to_testcase.md
+│   │   ├── 15_rerun_and_verify.md
+│   │   └── 16_update_backlog_and_report.md
 │   ├── skills/       # 26 skill theo vai trò; phase2/ui_debug_agent = khám phá DOM tìm locator bền
 │   └── rules/
 ├── prompt_templates/
-│   ├── run_phase1_template.md
-│   ├── run_phase2_template.md
-│   ├── run_phase_re-run_template.md
+│   ├── 01_run_phase2.md
+│   ├── 01_run_phase3.md
+│   ├── 01_run_phase4.md
 │   ├── phase1/   # 01 setup → 02 gen testcase → 02b output format → 03 gen test data → 04 publish Sheet
 │   │   └── dimensions/   # 22 chương CHIỀU coverage — mở đúng chiều task cần, không nạp cả bộ
 │   │                     #   §22 inbound callback · §23 DB persistence (bản ghi sau CRUD)
@@ -83,11 +83,11 @@ test-automation-kit/
 | [CHANGELOG.md](../CHANGELOG.md) | Lịch sử thay đổi **kit dùng chung** theo ngày + chủ đề (vấn đề → cách chữa), kèm commit hash. Đọc trước khi nâng cấp kit hoặc khi thấy hành vi lạ sau khi pull. |
 | [QUICKSTART.md](../QUICKSTART.md) | Onboarding nhanh cho project mới. |
 | [RULE_GLOBAL.md](../RULE_GLOBAL.md) | Quy tắc chung về ngôn ngữ, bảo mật, output và cleanup. |
-| `.agent/workflows/` | Workflow chính dạng flat: mỗi flow gồm 1 file entry (`phase1_generate_tc.md`, `phase2_execute.md`, `rerun.md`) và các step file `*_NN_*.md` cùng thư mục. Step đánh số reset theo từng flow (phase1_01..04, phase2_01..04, rerun_01..03). |
+| `.agent/workflows/` | Workflow chính dạng flat: mỗi flow gồm 1 file entry (`02_tong_quan_testcase.md`, `08_tong_quan_execute.md`, `13_tong_quan_rerun.md`) và các step file `*_NN_*.md` cùng thư mục. Step đánh số reset theo từng flow (phase1_01..04, phase2_01..04, rerun_01..03). |
 | `.claude/commands/` | **Slash command — điểm vào chuẩn hoá** cho 13 luồng (ý nghĩa từng lệnh: README). Mỗi command là **con trỏ mỏng**: chỉ nói đọc workflow nào · chạy npm script nào · dừng ở gate nào — **không** chép policy (kit đã có `gate:policy` giữ `RULE_GLOBAL.md` là canonical). Máy giữ chúng khỏi mục rữa: `tests/fe/infra/slash-commands.spec.ts` kiểm mọi npm script/đường dẫn được nhắc phải tồn tại, và mọi nhánh trong `branch_parity.json` phải có command cùng tên. |
 | `.agent/skills/` | Skill instructions cho agent theo vai trò chuyên biệt (**26 skill**). Danh mục: `.agent/skills/INDEX.md` (sinh lại: `npm run skills:index`). |
 | `.agent/rules/` | Rule bắt buộc cho core behavior, locator, Playwright FE/API. |
-| `prompt_templates/` | Prompt dùng để chạy Phase 1, Phase 2 và rerun. Lưu ý đánh số: prompt con là sub-prompt theo hoạt động, số chạy liên tục theo trình tự pipeline (`phase1/01..04` chuẩn bị→sinh testcase→test data→publish Sheet; `phase2/04..08` execute FE→execute API→triage review→flaky→log bug Backlog) — KHÁC với workflow `.agent/workflows/` đánh số reset theo từng phase (phase2_01..04). Số prompt không ánh xạ 1:1 với số workflow; chạy từng prompt khi cần đúng hoạt động đó. **`phase1/dimensions/`** giữ 22 chương **chiều coverage** (tách khỏi `02_gen_testcases.md` ngày 14/08/2026) — mở đúng chiều task khai `required`, không nạp cả bộ; **`phase1/02b_output_format.md`** giữ Summary Report + Export Excel, chỉ nạp ở cuối lượt. |
+| `prompt_templates/` | Prompt dùng để chạy Phase 1, Phase 2 và rerun. Lưu ý đánh số: prompt con là sub-prompt theo hoạt động, số chạy liên tục theo trình tự pipeline (`phase2/01..04` chuẩn bị→sinh testcase→test data→publish Sheet; `phase3/04..08` execute FE→execute API→triage review→flaky→log bug Backlog) — KHÁC với workflow `.agent/workflows/` đánh số reset theo từng phase (phase2_01..04). Số prompt không ánh xạ 1:1 với số workflow; chạy từng prompt khi cần đúng hoạt động đó. **`phase2/dimensions/`** giữ 22 chương **chiều coverage** (tách khỏi `03_gen_testcases.md` ngày 14/08/2026) — mở đúng chiều task khai `required`, không nạp cả bộ; **`phase2/04_output_format.md`** giữ Summary Report + Export Excel, chỉ nạp ở cuối lượt. |
 | `partial-rerun/` | Nhánh phụ độc lập; không là dependency của Main Flow và có thể xóa mà Main Flow vẫn chạy. |
 | `partial-rerun/run_requirement_prepare_review.md` | Phase 1 của nhánh phụ: tạo diff/impact/testcase draft và dừng chờ Human Review. |
 | `partial-rerun/run_requirement_apply_approved.md` | Phase 2 của nhánh phụ: merge testcase đã approve và partial execute. |
@@ -158,14 +158,14 @@ vượt ngưỡng thì `metrics_collect` **cảnh báo**, không chặn.
 
 ```text
 /preflight <TASK_KEY>       # kiểm input/config bắt buộc trước khi bắt đầu
-/phase1 <TASK_KEY>          # sinh testcase (dừng ở Ambiguity Gate khi spec còn mơ hồ)
-/phase2 <TASK_KEY>          # execute (xác nhận với user TRƯỚC lượt chạm UAT đầu tiên)
-/rerun <TASK_KEY>           # chạy lại case của bug đã fix
+/3_phase2 <TASK_KEY>          # sinh testcase (dừng ở Ambiguity Gate khi spec còn mơ hồ)
+/5_phase3 <TASK_KEY>          # execute (xác nhận với user TRƯỚC lượt chạm UAT đầu tiên)
+/6_phase4 <TASK_KEY>           # chạy lại case của bug đã fix
 /partial-rerun <TASK_KEY>   # requirement đổi: bản review trước, apply sau khi duyệt
 /explore <phạm vi>          # phiên exploratory có charter
 /ui-debug <màn>             # khám phá DOM tìm locator bền (Never-auto)
 /gates <TASK_KEY>           # bó gate trước khi finalize (self-review)
-/publish <TASK_KEY>         # đẩy Google Sheet qua Drive MCP — review nội dung local trước khi ghi đè
+/4_publish <TASK_KEY>         # đẩy Google Sheet qua Drive MCP — review nội dung local trước khi ghi đè
 ```
 
 Command **không thay thế** npm script: kit có 110 script, gọi trực tiếp vẫn nhanh hơn cho việc lẻ.
@@ -221,7 +221,7 @@ Chúng chỉ bọc **điểm vào của một luồng công việc**.
 | Risk gate (cảnh báo / chặn CI) | `npm run risk:gate` · `npm run risk:gate:enforce` |
 | Preflight — input/config đủ (G1) | `npm run preflight` · `node scripts/qa/preflight_gate.js --mode phase2 --task <TASK_KEY>` |
 | Design gate — thiết kế TC (G5) | `npm run design:gate -- --dir <test-cases/> --with-rows` |
-| **Chiều coverage — bộ TC có trống hẳn một LOẠI câu hỏi không?** | `TASK_ENV=… npm run dim:coverage` · `-- --enforce`. Bộ TC có **hai trục**: *module* = test **ở đâu**, *chiều* = hỏi **loại câu hỏi nào** (validate · hiển thị · công thức · BE conformance · guard · bảo mật · perf · change-impact). Phủ kín module mà trống một chiều thì bộ **vẫn trông đầy đủ** — đo trên một bộ 530 case thật: §6 E2E **0 case**, §17 change-impact **0–1**, case hiển thị **≈12%** dù mục đó BẮT BUỘC. Cách gác: khai `requirements/dimension_manifest.json` (chiều nào `required`/`n/a` **kèm lý do**; khai `n/a` trái artifact có thật = CHẶN) → mỗi case gắn **tag chiều** trong tiêu đề (`[Positive][Display] …`) → gate đếm theo tag. Nội dung 15 chiều: [`prompt_templates/phase1/dimensions/`](../prompt_templates/phase1/dimensions/) · quy ước tag: prompt gen §0b · luật canonical: [RULE_GLOBAL §Chiều coverage](../RULE_GLOBAL.md) |
+| **Chiều coverage — bộ TC có trống hẳn một LOẠI câu hỏi không?** | `TASK_ENV=… npm run dim:coverage` · `-- --enforce`. Bộ TC có **hai trục**: *module* = test **ở đâu**, *chiều* = hỏi **loại câu hỏi nào** (validate · hiển thị · công thức · BE conformance · guard · bảo mật · perf · change-impact). Phủ kín module mà trống một chiều thì bộ **vẫn trông đầy đủ** — đo trên một bộ 530 case thật: §6 E2E **0 case**, §17 change-impact **0–1**, case hiển thị **≈12%** dù mục đó BẮT BUỘC. Cách gác: khai `requirements/dimension_manifest.json` (chiều nào `required`/`n/a` **kèm lý do**; khai `n/a` trái artifact có thật = CHẶN) → mỗi case gắn **tag chiều** trong tiêu đề (`[Positive][Display] …`) → gate đếm theo tag. Nội dung 15 chiều: [`prompt_templates/phase2/dimensions/`](../prompt_templates/phase2/dimensions/) · quy ước tag: prompt gen §0b · luật canonical: [RULE_GLOBAL §Chiều coverage](../RULE_GLOBAL.md) |
 | Output gate — execute / gen-testcase (G2/G4/G6) | `npm run gate:output -- --status <status.json>` · `npm run gate:gen-testcase -- --dir <test-cases/>` |
 | Self-review — checklist gộp trước finalize (G9) | `npm run self-review -- --task <TASK_KEY>` |
 | Dependency graph — REQ→TC→exec + impact-map (P2) | `npm run dep:graph -- --task <TASK_KEY> [--changed a,b]` |
@@ -243,7 +243,7 @@ Chúng chỉ bọc **điểm vào của một luồng công việc**.
 | **Nhật ký dựng kit từ 0** — [docs/BUILD_JOURNAL.md](BUILD_JOURNAL.md), nguồn canonical cho tab *Hành trình* của trang thư viện. Viết cho người muốn TỰ DỰNG kit tương tự: mỗi chặng ghi vấn đề · đã dựng · đo bằng · bẫy đã vấp · nếu bạn dựng lại | — (sửa markdown rồi `npm run library:build`) |
 | Check Backlog connection | `npm run integration:check` |
 | Check Backlog connection live | `npm run integration:check:live` |
-| Publish testcase lên Google Sheet | Thao tác agent qua Drive MCP (`search_files` → `create_file`/`update_file`), không phải npm script — xem `.agent/workflows/phase1_04_auto_publish_backlog.md` |
+| Publish testcase lên Google Sheet | Thao tác agent qua Drive MCP (`search_files` → `create_file`/`update_file`), không phải npm script — xem `.agent/workflows/07_auto_publish_backlog.md` |
 | Đồng bộ kết quả execute vào Sheet | `node scripts/convert_excel/merge_execution_status.js <local .xlsx> <testcase-status.json>` rồi agent `update_file` qua Drive MCP |
 | Dry-run Backlog bug reporter | `npm run backlog:bug-report:dry-run -- --task <TASK_KEY> --story <BACKLOG_STORY_KEY> --project-output <PROJECT_OUTPUT_DIR>` |
 | Create Backlog bug after approval | `npm run backlog:bug-report -- --task <TASK_KEY> --story <BACKLOG_STORY_KEY> --project-output <PROJECT_OUTPUT_DIR>` |

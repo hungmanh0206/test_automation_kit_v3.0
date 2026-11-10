@@ -13,7 +13,7 @@ Threshold-gated, opt-in bằng `LOCATOR_HEAL=1`. Locator ASSERTION không bao gi
 ## Purpose
 
 Giảm fail giả do UI churn (nút/label đổi tên, dời chỗ nhưng vẫn tồn tại) mà không tạo false PASS.
-Chính thức hoá việc "sửa locator rồi rerun" ở `.agent/workflows/phase2_03_execute_and_auto_heal.md`
+Chính thức hoá việc "sửa locator rồi rerun" ở `.agent/workflows/11_execute_and_auto_heal.md`
 thành một policy có **gate confidence** + **ghi lịch sử tái dùng**. Tuân theo
 `.agent/rules/locator_healing_policy.md`.
 
@@ -86,7 +86,7 @@ runtime (kit là Node thuần, không thêm dependency).
 
 - `.agent/rules/locator_healing_policy.md` — policy runtime chi tiết.
 - `.agent/rules/locator_strategy.md` — thứ tự ưu tiên khi viết locator (không sửa).
-- Neo workflow: `.agent/workflows/phase2_03_execute_and_auto_heal.md` (Bước 4).
+- Neo workflow: `.agent/workflows/11_execute_and_auto_heal.md` (Bước 4).
 - [[learning_recorder]] — chuẩn ghi `knowledge/`; heal history dùng chung `knowledge/index.json`.
 
 ## Dùng khi · KHÔNG dùng khi

@@ -5,7 +5,7 @@
 ## Nguyên tắc
 - **Expected lấy từ catalog** (trích nguyên văn từ FS/Figma), **KHÔNG lấy từ build** → tránh oracle tautological.
 - **So khớp CHÍNH XÁC**: equality cho tên cột/label; **regex** cho format; **đếm + đúng thứ tự + đúng tên** cột; token style so với **dung sai**. Không dùng "contains/tồn tại".
-- Đây là tầng "visual oracle" mà prompt không tự đóng được (mục 11b của `run_phase2_template.md`).
+- Đây là tầng "visual oracle" mà prompt không tự đóng được (mục 11b của `01_run_phase3.md`).
 
 ## Cách chạy
 ```bash
@@ -76,7 +76,7 @@ node scripts/qa/ui_conformance_check.js --catalog <PROJECT_OUTPUT_DIR>/tasks/<TA
 
 ## Lưu ý
 - **Truyền `TASK_ENV=profiles/<TASK_KEY>/task.env`** khi chạy, nếu không env rơi về `.env` chung (thường không có creds).
-- Catalog là **per-task** (sinh ở Phase 1, mục 2b của `run_phase1_template.md`), nhưng công cụ dùng chung.
+- Catalog là **per-task** (sinh ở Phase 1, mục 2b của `01_run_phase2.md`), nhưng công cụ dùng chung.
 - Màn cần dữ liệu động (vd `batch_job_id`) thì điền URL sau khi có dữ liệu, hoặc dùng `preSteps` điều hướng.
 - Đây là bổ trợ, không thay thế review mắt/vision cho bố cục tổng thể — nhưng bắt trọn phần "exact text/format/column" mà mắt dễ bỏ sót khi bảng dài.
 

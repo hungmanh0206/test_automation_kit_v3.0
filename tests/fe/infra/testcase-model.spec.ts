@@ -18,7 +18,7 @@ const read = (p: string) => fs.readFileSync(path.join(REPO, p), 'utf8');
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const { groupNumbered, splitNumbered, buildTestCase, validate, tagNamesOf, cleanCell } = require(path.join(REPO, 'scripts/lib/testcase'));
 
-const PROMPT = 'prompt_templates/phase1/02_gen_testcases.md';
+const PROMPT = 'prompt_templates/phase2/03_gen_testcases.md';
 
 test.describe('@infra hợp nhất bước ↔ kết quả (groupNumbered) — nguồn cho MỌI consumer đọc steps/expected', () => {
   test('groupNumbered gộp dòng con vào bước của nó và KHÔNG mất chữ nào', () => {

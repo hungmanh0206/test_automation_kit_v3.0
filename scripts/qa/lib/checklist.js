@@ -1,7 +1,7 @@
 'use strict';
 
 /*
- * checklist.js — parser và gate cho CHECKLIST RÀ TAY (sub-mode của `05_manual_quick.md`).
+ * checklist.js — parser và gate cho CHECKLIST RÀ TAY (sub-mode của `07_manual_quick.md`).
  *
  * VÌ SAO TÁCH KHỎI parser testcase canonical: checklist KHÔNG phải bộ testcase. Nó có 7 cột khác hẳn
  * (`# · ✅ · Hạng mục · Kết quả kỳ vọng · Priority · REQ ID · TC ID liên quan`), không có Tiền điều kiện,

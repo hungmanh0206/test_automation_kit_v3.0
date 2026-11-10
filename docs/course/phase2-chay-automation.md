@@ -393,7 +393,7 @@ tại trong đầu một người thì không phải quy trình.
 
 Bạn giờ có hơn mười lệnh, và một **trình tự** phải đúng. Trước đó trình tự đó nằm trong đầu bạn.
 
-`.claude/commands/phase2.md`:
+`.claude/commands/3_phase2.md`:
 
 ```markdown
 ---
@@ -428,7 +428,7 @@ npm run tms:push-exec -- --status <...> --folder "<Sprint>" --apply
 Nếu có case FAIL: rerun 2–3 lần, đọc response để khoanh tầng, điền `tangLoi`, rồi mới log bug.
 ```
 
-Chín lệnh nên có: `/phase1` `/phase2` `/rerun` `/publish` `/kiem-dau-vao` `/gates` `/explore` `/ui-debug`
+Chín lệnh nên có: `/3_phase2` `/5_phase3` `/6_phase4` `/4_publish` `/kiem-dau-vao` `/gates` `/explore` `/ui-debug`
 `/partial-rerun`.
 
 > Slash command KHÔNG thay thế gate, nó chỉ dẫn đúng đường. Gate vẫn là thứ chặn. Nhưng nó xoá được một

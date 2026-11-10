@@ -8,8 +8,8 @@ const { CANONICAL_COLS, COL } = require('../../../scripts/lib/testcase/model.js'
 /*
  * @infra — MỌI CON SỐ "N CỘT" TRONG KIT PHẢI KHỚP MỘT NGUỒN.
  *
- * LỖI THẬT, đo 10/10/2026: `.agent/workflows/phase1_03_validate_export_report.md` ghi "Đủ 11 cột" và
- * `phase1_generate_tc.md` ghi "template 11 cột", trong khi template Markdown canonical có **10**. Hai tài
+ * LỖI THẬT, đo 10/10/2026: `.agent/workflows/06_validate_export_report.md` ghi "Đủ 11 cột" và
+ * `02_tong_quan_testcase.md` ghi "template 11 cột", trong khi template Markdown canonical có **10**. Hai tài
  * liệu dạy sai cho người đọc, và không gì đỏ vì không ai đối chiếu.
  *
  * GỐC CỦA CON SỐ 11: Excel SAU publish có nhiều cột hơn (exporter thêm `Nhóm chức năng`, `Result`,
@@ -59,7 +59,7 @@ test.describe('@infra số cột canonical — một nguồn, không trôi', () 
      * Hai nơi giữ cùng một sự thật thì sớm muộn lệch nhau. Nên neo chúng vào nhau: nguồn SỐ ở
      * `model.js`, nguồn CHỮ là header trong prompt, và test này bắt chúng phải khớp.
      */
-    const p = path.join(REPO, 'prompt_templates/phase1/02_gen_testcases.md');
+    const p = path.join(REPO, 'prompt_templates/phase2/03_gen_testcases.md');
     const header = fs.readFileSync(p, 'utf8').replace(/\r\n?/g, '\n').split('\n')
       .find((d) => d.startsWith('| TC ID |'));
     expect(header, 'không thấy header canonical trong prompt sinh case').toBeTruthy();

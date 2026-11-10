@@ -19,8 +19,8 @@ không phải chủ đề.
 ## Purpose
 
 Biến thay đổi code thật (git diff) thành danh sách **bề mặt dùng chung bị đụng** — input trực tiếp
-cho **Bước 1 của mục 17 (Change Impact / Regression Ripple)** — nay ở `prompt_templates/phase1/dimensions/17_change_impact.md` — trong
-`prompt_templates/phase1/02_gen_testcases.md`. Giúp agent không phải đọc toàn bộ code để đoán bề mặt
+cho **Bước 1 của mục 17 (Change Impact / Regression Ripple)** — nay ở `prompt_templates/phase2/dimensions/17_change_impact.md` — trong
+`prompt_templates/phase2/03_gen_testcases.md`. Giúp agent không phải đọc toàn bộ code để đoán bề mặt
 chung; thay vào đó bắt đầu từ diff thực tế rồi mới suy feature bị ảnh hưởng.
 
 Bổ trợ cho `requirements_analyzer` (nhận diện impact từ requirement/artifact) bằng góc nhìn từ **code
@@ -100,8 +100,8 @@ Format bảng:
 
 ## Related
 
-- Neo vào: `prompt_templates/phase1/02_gen_testcases.md` mục 17 (Bước 1), workflow
-  `.agent/workflows/phase1_02_generate_testcases.md`.
+- Neo vào: `prompt_templates/phase2/03_gen_testcases.md` mục 17 (Bước 1), workflow
+  `.agent/workflows/05_generate_testcases.md`.
 - [[requirements_analyzer]] — nhận diện impact từ requirement/artifact; skill này bổ sung góc nhìn từ diff.
 - `learning_recorder` — nguồn `knowledge/bugs/` cho risk hint theo module.
 

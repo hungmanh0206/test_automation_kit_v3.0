@@ -1,21 +1,21 @@
-# `/start` — phạm vi, và vì sao từng câu phải hỏi TRƯỚC
+# `/1_start` — phạm vi, và vì sao từng câu phải hỏi TRƯỚC
 
-Phần "vì sao" của [`.claude/commands/start.md`](../../.claude/commands/start.md) để ở đây, không để trong
+Phần "vì sao" của [`.claude/commands/1_start.md`](../../.claude/commands/1_start.md) để ở đây, không để trong
 lệnh. Lý do là một con số: thân lệnh nằm trong phần **bắt buộc nạp** của luồng `start`, nên mỗi câu giải
-thích viết trong đó làm **mọi lượt** `/start` đắt hơn — kể cả lượt của người đã biết. `prompt:budget` gác
+thích viết trong đó làm **mọi lượt** `/1_start` đắt hơn — kể cả lượt của người đã biết. `prompt:budget` gác
 đúng chuyện này và chính nó chặn bản trước của file này (xem `.agent/config/prompt_budget.json`, mục `moc`).
 
-## Phạm vi: `/start` CHỈ tạo profile và task
+## Phạm vi: `/1_start` CHỈ tạo profile và task
 
-`/start` hỏi 5 câu, chạy `profile:create` + `preflight`, ghi `task.md`, in lệnh kế tiếp, rồi **dừng**.
+`/1_start` hỏi 5 câu, chạy `profile:create` + `preflight`, ghi `task.md`, in lệnh kế tiếp, rồi **dừng**.
 
-**Đã trả giá thật — CSDL-4172, 05/11/2026.** Người dùng chạy `/start`, rồi nhắn một chữ **"tiếp"**. Agent
-hiểu "tiếp" là "chuyển sang phase", tự gọi `/phase1` và đi tới **sinh ~90 case** — trong khi người dùng chỉ
-định làm nốt bước còn lại của `/start`. Không ai yêu cầu bộ case đó.
+**Đã trả giá thật — CSDL-4172, 05/11/2026.** Người dùng chạy `/1_start`, rồi nhắn một chữ **"tiếp"**. Agent
+hiểu "tiếp" là "chuyển sang phase", tự gọi `/3_phase2` và đi tới **sinh ~90 case** — trong khi người dùng chỉ
+định làm nốt bước còn lại của `/1_start`. Không ai yêu cầu bộ case đó.
 
-Nên luật viết theo hướng ngược lại: `"tiếp"` sau `/start` nghĩa là **làm nốt bước còn lại của `/start`**, và
+Nên luật viết theo hướng ngược lại: `"tiếp"` sau `/1_start` nghĩa là **làm nốt bước còn lại của `/1_start`**, và
 phase chỉ bắt đầu khi người dùng **tự gõ** lệnh của phase đó. Cùng lý do, `load_map.json` khai hai prompt
-template của phase là `co_dieu_kien` kèm chữ *"KHÔNG nạp trong /start"* — và `start-command.spec.ts` gác
+template của phase là `co_dieu_kien` kèm chữ *"KHÔNG nạp trong /1_start"* — và `start-command.spec.ts` gác
 câu đó.
 
 ## Vì sao từng câu phải hỏi TRƯỚC

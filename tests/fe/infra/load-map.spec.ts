@@ -5,7 +5,7 @@ import path from 'path';
 /*
  * @infra — BẢN ĐỒ NẠP THEO ĐIỀU KIỆN (H2 của token-diet).
  *
- * Vì sao có file này: `npm run prompt:budget` đo chuỗi của `/phase1` ra 56 file, 143,2k token nếu đọc hết.
+ * Vì sao có file này: `npm run prompt:budget` đo chuỗi của `/3_phase2` ra 56 file, 143,2k token nếu đọc hết.
  * Trong đó chỉ 5,7k bắt buộc và 13,5k khai điều kiện rõ; **124k rơi vào cột chưa-phân-loại**, vì câu chứa
  * con trỏ không viết điều kiện ra. Máy không đọc được điều kiện thì agent phải đoán, và đoán rộng tay là
  * nạp hết.
@@ -89,7 +89,7 @@ test.describe('@infra load_map — điều kiện nạp phải là lời khai, k
      * đúng loại hằng số làm người ta sửa test cho xanh thay vì hỏi vì sao test đỏ. Mẫu số lấy từ thư mục
      * chiều, là nguồn duy nhất của câu "có bao nhiêu chiều".
      */
-    const soFileChieu = fs.readdirSync(path.join(REPO, 'prompt_templates/phase1/dimensions'))
+    const soFileChieu = fs.readdirSync(path.join(REPO, 'prompt_templates/phase2/dimensions'))
       .filter((f) => /^\d+_.*\.md$/.test(f)).length;
     expect(khoa.length, `phải đủ ${soFileChieu} chiều (bằng số file trong dimensions/)`).toBe(soFileChieu);
     for (const k of khoa) {
@@ -113,10 +113,10 @@ test.describe('@infra load_map — điều kiện nạp phải là lời khai, k
 
   test('một file có thể bắt buộc ở luồng này và có điều kiện ở luồng khác', () => {
     /*
-     * `04_execute_fe_playwright.md` bắt buộc ở phase2 nhưng có điều kiện ở rerun. Nếu spec gộp hai luồng
+     * `02_execute_fe_playwright.md` bắt buộc ở phase2 nhưng có điều kiện ở rerun. Nếu spec gộp hai luồng
      * rồi đòi tính duy nhất thì nó sẽ bắt oan đúng trường hợp hợp lệ này.
      */
-    const fe = 'prompt_templates/phase2/04_execute_fe_playwright.md';
+    const fe = 'prompt_templates/phase3/02_execute_fe_playwright.md';
     expect((MAP.luong.phase2.bat_buoc as string[])).toContain(fe);
     expect((MAP.luong.rerun.co_dieu_kien as { file: string }[]).map((c) => c.file)).toContain(fe);
     expect(MAP._bay_da_biet, 'cái bẫy này phải được ghi lại trong config').toMatch(/TỪNG luồng/);

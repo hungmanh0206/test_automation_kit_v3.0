@@ -1,7 +1,7 @@
 {
   "_why": "Chủ repo chỉ ra một lỗi lặp lại: ở Phase 2 tôi báo 'phát hiện bug' rồi hỏi có log không, bạn hỏi lại 'chắc chưa', tôi kiểm lại và rút lời. Tức phát hiện kỹ thuật sai ngay từ đầu, còn câu hỏi của người dùng đang làm việc mà gate lẽ ra phải làm.",
   "_chan_doan": {
-    "goc": "Lỗi THỨ TỰ, không phải bất cẩn. Bar để khẳng định một bug nằm ở .agent/workflows/phase2_04_report_and_backlog_gate.md với khoảng 8 điều kiện. Nhưng lời nói ra ở phase2_03, nơi chỉ đòi 2 điều kiện: rerun đủ vòng và thu evidence. Tôi nói trước khi qua gate.",
+    "goc": "Lỗi THỨ TỰ, không phải bất cẩn. Bar để khẳng định một bug nằm ở .agent/workflows/12_report_and_backlog_gate.md với khoảng 8 điều kiện. Nhưng lời nói ra ở phase2_03, nơi chỉ đòi 2 điều kiện: rerun đủ vòng và thu evidence. Tôi nói trước khi qua gate.",
     "khong_do_duoc": "Claim bị rút trước khi log thì không để lại dấu vết nào. knowledge/bugs có 62 bản ghi với 1 Rejected, nhưng memory ghi ít nhất 2 bug Rejected (CSDL-28776, CSDL-28126) nên store đã đếm thiếu. Lỗi không đếm được thì không sửa được.",
     "cach_chua": "Dời kiểm chứng lên TRƯỚC lời nói. Claim phải là một bản ghi qua được máy, rồi mới được nhắc tới trong hội thoại. Câu hỏi cho người dùng khi đó chỉ còn là 'có log không', không phải 'có phải bug không'."
   },

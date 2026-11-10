@@ -298,7 +298,7 @@
           "sau": 5
         },
         {
-          "file": ".agent/workflows/phase1_01_prepare_context.md",
+          "file": ".agent/workflows/phase1_03_prepare_context.md",
           "tok": 1371,
           "nguoiDoc": 0,
           "loai": "chưa rõ",
@@ -346,7 +346,7 @@
           "sau": 4
         },
         {
-          "file": ".agent/workflows/phase1_04_auto_publish_backlog.md",
+          "file": ".agent/workflows/phase1_06_auto_publish_backlog.md",
           "tok": 1126,
           "nguoiDoc": 0,
           "loai": "có điều kiện",
@@ -676,7 +676,7 @@
           "sau": 2
         },
         {
-          "file": ".agent/workflows/phase1_03_validate_export_report.md",
+          "file": ".agent/workflows/phase1_05_validate_export_report.md",
           "tok": 1952,
           "nguoiDoc": 0,
           "loai": "chưa rõ",
@@ -716,7 +716,7 @@
           "sau": 3
         },
         {
-          "file": ".agent/workflows/phase1_01_prepare_context.md",
+          "file": ".agent/workflows/phase1_03_prepare_context.md",
           "tok": 1371,
           "nguoiDoc": 0,
           "loai": "chưa rõ",
@@ -772,7 +772,7 @@
           "sau": 6
         },
         {
-          "file": ".agent/workflows/phase1_04_auto_publish_backlog.md",
+          "file": ".agent/workflows/phase1_06_auto_publish_backlog.md",
           "tok": 1126,
           "nguoiDoc": 0,
           "loai": "chưa rõ",
@@ -796,7 +796,7 @@
           "sau": 7
         },
         {
-          "file": ".agent/workflows/phase1_00_scope_planning.md",
+          "file": ".agent/workflows/phase1_02_scope_planning.md",
           "tok": 1062,
           "nguoiDoc": 0,
           "loai": "chưa rõ",
@@ -836,11 +836,11 @@
           "sau": 2
         },
         {
-          "file": ".agent/workflows/phase1_02_generate_testcases.md",
+          "file": ".agent/workflows/phase1_04_generate_testcases.md",
           "tok": 893,
           "nguoiDoc": 0,
           "loai": "có điều kiện",
-          "viSao": "| 2 | [phase1_02_generate_testcases.md](phase1_02_generate_testcases.md) | Sinh testcase theo template 11 cột, phân nhóm và risk. **KHÔNG vào bước này nếu `AMBI",
+          "viSao": "| 2 | [phase1_04_generate_testcases.md](phase1_04_generate_testcases.md) | Sinh testcase theo template 11 cột, phân nhóm và risk. **KHÔNG vào bước này nếu `AMBI",
           "sau": 2
         },
         {
@@ -1118,7 +1118,7 @@
           "sau": 4
         },
         {
-          "file": ".agent/workflows/phase1_01_prepare_context.md",
+          "file": ".agent/workflows/phase1_03_prepare_context.md",
           "tok": 1371,
           "nguoiDoc": 0,
           "loai": "chưa rõ",
@@ -1166,7 +1166,7 @@
           "sau": 2
         },
         {
-          "file": ".agent/workflows/phase1_04_auto_publish_backlog.md",
+          "file": ".agent/workflows/phase1_06_auto_publish_backlog.md",
           "tok": 1126,
           "nguoiDoc": 0,
           "loai": "có điều kiện",
@@ -1434,7 +1434,7 @@
           "sau": 3
         },
         {
-          "file": ".agent/workflows/phase1_04_auto_publish_backlog.md",
+          "file": ".agent/workflows/phase1_06_auto_publish_backlog.md",
           "tok": 1126,
           "nguoiDoc": 0,
           "loai": "chưa rõ",
@@ -1620,7 +1620,7 @@
           "sau": 5
         },
         {
-          "file": ".agent/workflows/phase1_01_prepare_context.md",
+          "file": ".agent/workflows/phase1_03_prepare_context.md",
           "tok": 1371,
           "nguoiDoc": 0,
           "loai": "chưa rõ",
@@ -1668,7 +1668,7 @@
           "sau": 4
         },
         {
-          "file": ".agent/workflows/phase1_04_auto_publish_backlog.md",
+          "file": ".agent/workflows/phase1_06_auto_publish_backlog.md",
           "tok": 1126,
           "nguoiDoc": 0,
           "loai": "có điều kiện",
@@ -2093,7 +2093,7 @@
       "soFile": 3,
       "files": [
         ".agent/workflows/phase2_01_prepare_execution.md",
-        ".agent/workflows/phase1_01_prepare_context.md",
+        ".agent/workflows/phase1_03_prepare_context.md",
         ".agent/workflows/rerun_01_map_bug_to_testcase.md"
       ],
       "cau": "nếu yêu cầu hiện tại không nêu rõ task key , không dùng task key từ .env hoặc context cũ để chạy; phải hỏi lại."
@@ -2243,7 +2243,7 @@
       "files": [
         "prompt_templates/phase1/02b_output_format.md",
         "prompt_templates/run_phase1_template.md",
-        ".agent/workflows/phase1_03_validate_export_report.md"
+        ".agent/workflows/phase1_05_validate_export_report.md"
       ],
       "cau": "node scripts/convert excel/md to xlsx.js <testcase.md <testcase.xlsx"
     },
@@ -2346,7 +2346,7 @@
       "soFile": 2,
       "files": [
         "prompt_templates/phase1/02_gen_testcases.md",
-        ".agent/workflows/phase1_02_generate_testcases.md"
+        ".agent/workflows/phase1_04_generate_testcases.md"
       ],
       "cau": "tc id loại case tag module trường hợp kiểm thử tiền điều kiện dữ liệu test các bước thực hiện kết quả mong đợi ưu tiên"
     },

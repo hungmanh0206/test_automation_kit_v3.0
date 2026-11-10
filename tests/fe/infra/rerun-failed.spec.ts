@@ -15,7 +15,7 @@ import { gateEnv } from './_gate_env';
  *     có --grep                  :     6
  *     có --last-failed           :     0
  *
- * Rerun chọn lọc được dùng **0,3%**. `04_execute_fe_playwright.md` ĐÃ dặn "rerun đúng case đỏ" từ trước.
+ * Rerun chọn lọc được dùng **0,3%**. `02_execute_fe_playwright.md` ĐÃ dặn "rerun đúng case đỏ" từ trước.
  * Số đo nói lời dặn đó không xảy ra — và đó chính là định nghĩa của một luật thiếu máy.
  *
  * HAI CHỖ TỪ CHỐI được khoá ở đây, và cả hai quan trọng hơn phần tiết kiệm:
@@ -118,7 +118,7 @@ test.describe('@infra rerun:failed — chạy lại đúng case đỏ, hoặc kh
      * Lời dặn "rerun đúng case đỏ" đã có từ trước và số đo cho thấy nó không xảy ra (0,3%). Một lời dặn
      * không kèm LỆNH LÀM SẴN thì người đọc vẫn phải tự lắp, và họ sẽ chạy lại cả suite cho nhanh.
      */
-    const p = fs.readFileSync(path.join(REPO, 'prompt_templates/phase2/04_execute_fe_playwright.md'), 'utf8');
+    const p = fs.readFileSync(path.join(REPO, 'prompt_templates/phase3/02_execute_fe_playwright.md'), 'utf8');
     expect(p, 'prompt chưa trỏ tới npm run rerun:failed').toContain('rerun:failed');
   });
 });

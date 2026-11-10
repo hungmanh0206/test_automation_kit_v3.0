@@ -162,12 +162,12 @@ test.describe('@infra phát hành kit — gói chỉ mang lớp GENERIC', () => 
    */
   test('.md lớp GENERIC (prompt/workflow) mang tên bảng dự án thì CHẶN, .md khác thì không', () => {
     const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'pkgscan2-'));
-    const sub = path.join(tmp, 'prompt_templates', 'phase1');
+    const sub = path.join(tmp, 'prompt_templates', 'phase2');
     fs.mkdirSync(sub, { recursive: true });
     declareTables(tmp, ['bang_don_hang']);
     fs.writeFileSync(path.join(sub, 'd.md'), 'DB này: `bang_don_hang` không có cột audit.');
     fs.writeFileSync(path.join(tmp, 'e.md'), 'README kể lại `bang_don_hang` như một ví dụ.');
-    const r = kit.scanPackage(tmp, ['prompt_templates/phase1/d.md', 'e.md']);
+    const r = kit.scanPackage(tmp, ['prompt_templates/phase2/d.md', 'e.md']);
     fs.rmSync(tmp, { recursive: true, force: true });
     expect(r.hits.join(' '), 'prompt template mang tên bảng dự án phải CHẶN').toMatch(/d\.md/);
     expect([...r.hits, ...r.warns].join(' '), '.md ngoài hai thư mục đó vẫn được kể ví dụ').not.toMatch(/e\.md/);

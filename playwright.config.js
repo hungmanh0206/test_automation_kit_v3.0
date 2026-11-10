@@ -218,7 +218,7 @@ module.exports = defineConfig({
   // Desktop chạy tests/ trừ mobile-web|load|support; mobile-web chạy trên thiết bị thật (touch/UA/isMobile).
   // Không để project mobile phủ toàn bộ suite (tránh nhân 3 lần). Task-scoped scripts (automation/*.js)
   // KHÔNG dùng projects này — chúng tự emulate qua browser.newContext({ ...devices[...] }), xem
-  // prompt_templates/phase2/04_execute_fe_playwright.md.
+  // prompt_templates/phase3/02_execute_fe_playwright.md.
   /*
    * Cờ CHỈ DÀNH CHO CHROMIUM. Tắt dấu hiệu automation: một số SPA phát hiện automation rồi chặn
    * redirect OIDC (Keycloak/Auth0/Okta…) hoặc loop trang login trắng. Kèm `addInitScript` override

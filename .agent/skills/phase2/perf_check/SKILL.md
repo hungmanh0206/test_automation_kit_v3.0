@@ -80,7 +80,7 @@ trong cùng pass với coverage là báo cáo chi phí của **công cụ đo**,
 - `scripts/qa/accessibility_check.js` — cùng khuôn (login/catalog/report).
 - [[lighthouse_check]] — điểm Lighthouse (Perf/A11y/SEO/Best-practices) qua CDP, opt-in nặng, bổ sung vitals thô ở đây.
 - [[security_check]] — cặp non-functional executable.
-- mục 16 `prompt_templates/phase1/02_gen_testcases.md`; large-dataset bắc cầu mục 7.
+- mục 16 `prompt_templates/phase2/03_gen_testcases.md`; large-dataset bắc cầu mục 7.
 - [[learning_recorder]] — có thể ghi perf finding lặp lại theo module (chỉ khi đã confirm).
 
 ## Dùng khi · KHÔNG dùng khi

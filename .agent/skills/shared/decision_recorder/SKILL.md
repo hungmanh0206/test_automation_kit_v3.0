@@ -83,7 +83,7 @@ node scripts/qa/decisions.js --index     # đưa vào knowledge/index.json
 
 - `knowledge/SCHEMA.md` §`decisions/` — schema đầy đủ.
 - [[learning_recorder]] · [[domain_recorder]] · [[system_mapper]] — 3 nửa còn lại của bộ nhớ.
-- `.agent/workflows/phase2_04_report_and_backlog_gate.md` bước 4 — điểm tra cứu bắt buộc trước khi log bug.
+- `.agent/workflows/12_report_and_backlog_gate.md` bước 4 — điểm tra cứu bắt buộc trước khi log bug.
 
 ## Dùng khi
 

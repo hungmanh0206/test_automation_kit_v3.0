@@ -6,13 +6,13 @@ import { spawnSync } from 'child_process';
 import { gateEnv } from './_gate_env';
 
 /*
- * @infra — `/start` (v2.5.0 G3.5): cửa vào cho người mới.
+ * @infra — `/1_start` (v2.5.0 G3.5): cửa vào cho người mới.
  *
  * VẤN ĐỀ NÓ CHỮA, và nó đo được: kit có **95 gate** và **25 skill**, không cái nào auto-load. Người mới
  * không biết bắt đầu từ đâu, và đường sai thì tốn cả lượt — `profile:create` đã có nhưng không ai biết nó
  * là bước đầu, và `preflight` thì dễ bị bỏ qua vì nó chưa chặn gì lúc chưa có input.
  *
- * `/start` KHÔNG thêm luật nào. Nó chỉ hỏi 5 điều rồi chỉ sang lệnh có sẵn. Hai thứ phải gác:
+ * `/1_start` KHÔNG thêm luật nào. Nó chỉ hỏi 5 điều rồi chỉ sang lệnh có sẵn. Hai thứ phải gác:
  *   ① ĐÚNG 5 câu hỏi — ít hơn thì thiếu thứ phải biết trước, nhiều hơn thì nó thành một workflow;
  *   ② KHÔNG được bỏ bước `preflight` — đó là chỗ bắt thiếu input và config hỏng.
  *
@@ -21,13 +21,13 @@ import { gateEnv } from './_gate_env';
  * được không · một tài khoản thì case phân quyền ra `NEEDS_ACCOUNT` chứ không FAIL.
  */
 const REPO = path.resolve(__dirname, '..', '..', '..');
-const CMD = path.join(REPO, '.claude/commands/start.md');
+const CMD = path.join(REPO, '.claude/commands/1_start.md');
 const body = () => fs.readFileSync(CMD, 'utf8');
 
-test.describe('@infra /start — đúng 5 câu hỏi', () => {
+test.describe('@infra /1_start — đúng 5 câu hỏi', () => {
   test('bảng câu hỏi có ĐÚNG 5 dòng, đánh số 1–5', () => {
     /*
-     * Ít hơn 5 thì thiếu một thứ phải biết TRƯỚC khi chạy. Nhiều hơn thì `/start` thành một workflow, và
+     * Ít hơn 5 thì thiếu một thứ phải biết TRƯỚC khi chạy. Nhiều hơn thì `/1_start` thành một workflow, và
      * nó mất đúng công dụng "người mới hỏi một lần rồi chạy được".
      */
     const dong = body().split('\n').filter((d) => /^\| *[1-9] *\|/.test(d));
@@ -60,7 +60,7 @@ test.describe('@infra /start — đúng 5 câu hỏi', () => {
   });
 });
 
-test.describe('@infra /start — KHÔNG được bỏ preflight', () => {
+test.describe('@infra /1_start — KHÔNG được bỏ preflight', () => {
   test('có lệnh `preflight`, và nói rõ hậu quả nếu bỏ', () => {
     const b = body();
     expect(b).toMatch(/npm run preflight/);
@@ -90,15 +90,15 @@ test.describe('@infra /start — KHÔNG được bỏ preflight', () => {
   });
 });
 
-test.describe('@infra /start — CHỈ tạo profile + task, không tự sang phase', () => {
+test.describe('@infra /1_start — CHỈ tạo profile + task, không tự sang phase', () => {
   /*
-   * Đã trả giá thật (CSDL-4172, 05/11/2026): command ghi "rồi làm tiếp" và bảng "→ /phase1", load_map ghi
-   * "chuyển hẳn sang luồng phase1". Người dùng nhắn "tiếp", agent đọc hai câu đó thành lệnh, tự gọi /phase1 và
+   * Đã trả giá thật (CSDL-4172, 05/11/2026): command ghi "rồi làm tiếp" và bảng "→ /3_phase2", load_map ghi
+   * "chuyển hẳn sang luồng phase1". Người dùng nhắn "tiếp", agent đọc hai câu đó thành lệnh, tự gọi /3_phase2 và
    * sinh ~90 case trong khi người dùng chỉ định tạo profile.
    */
-  test('command nói rõ KHÔNG tự gọi /phase1 hay /phase2 và phải DỪNG', () => {
+  test('command nói rõ KHÔNG tự gọi /3_phase2 hay /5_phase3 và phải DỪNG', () => {
     const b = body();
-    expect(b).toMatch(/KHÔNG tự gọi[\s>]*`\/phase1` hay `\/phase2`/);
+    expect(b).toMatch(/KHÔNG tự gọi[\s>]*`\/3_phase2` hay `\/5_phase3`/);
     expect(b).toMatch(/Báo lệnh kế tiếp rồi DỪNG/);
     expect(b, 'điều kiện dừng sau ba bước').toMatch(/\*\*Đã xong ba bước\.\*\*/);
     expect(b, 'không còn câu "rồi làm tiếp" mơ hồ').not.toMatch(/rồi làm tiếp\./);
@@ -109,15 +109,15 @@ test.describe('@infra /start — CHỈ tạo profile + task, không tự sang ph
     const start = lm.luong.start;
     for (const c of start.co_dieu_kien) {
       expect(c.khi, `${c.file}: không được ra lệnh chuyển luồng`).not.toMatch(/chuyển hẳn sang/);
-      expect(c.khi, `${c.file}: phải nói KHÔNG nạp trong /start`).toMatch(/KHÔNG nạp trong \/start/);
+      expect(c.khi, `${c.file}: phải nói KHÔNG nạp trong /1_start`).toMatch(/KHÔNG nạp trong \/1_start/);
     }
   });
 });
 
-test.describe('@infra /start — lệnh nhắc tới phải chạy được THẬT', () => {
+test.describe('@infra /1_start — lệnh nhắc tới phải chạy được THẬT', () => {
   test('`profile:create` tạo được profile, và KHÔNG ghi đè', () => {
     /*
-     * Chạy thật chứ không tin tài liệu: `/start` dạy đúng hai lệnh, và nếu một lệnh không hoạt động như
+     * Chạy thật chứ không tin tài liệu: `/1_start` dạy đúng hai lệnh, và nếu một lệnh không hoạt động như
      * command mô tả thì người mới đi vào đường chết ngay bước đầu.
      */
     const d = fs.mkdtempSync(path.join(os.tmpdir(), 'start-'));
@@ -143,7 +143,7 @@ test.describe('@infra /start — lệnh nhắc tới phải chạy được TH�
 
   test('con số "95 gate · 25 skill" phải còn đúng — nếu lệch thì câu mở đầu dạy sai', () => {
     /*
-     * Câu mở đầu của `/start` dùng hai con số để nói "không cần biết hết". Số sai thì nó thành một lời
+     * Câu mở đầu của `/1_start` dùng hai con số để nói "không cần biết hết". Số sai thì nó thành một lời
      * khoe sai, và đó đúng là lớp lỗi G4.1 (tài liệu dạy sai số). Cho sai số ±5 để một gate mới không
      * làm đỏ oan.
      */
@@ -165,7 +165,7 @@ test.describe('@infra /start — lệnh nhắc tới phải chạy được TH�
      * SO VỚI CON SỐ `GATES.md` TỰ KHAI, KHÔNG ĐẾM LẠI DÒNG (10/11/2026).
      *
      * Bản đầu đếm số DÒNG bảng, và nó lệch hợp lệ với số MÁY mà GATES.md khai (168 dòng ↔ 167 máy),
-     * nên phải nới dung sai 5 để không đỏ oan. Nhưng dung sai ấy nuốt luôn mọi trôi: `/start` ghi
+     * nên phải nới dung sai 5 để không đỏ oan. Nhưng dung sai ấy nuốt luôn mọi trôi: `/1_start` ghi
      * **162** trong khi cây thật đã **167**, và nó chỉ lộ ra khi lệch vượt 5 — tức con số dạy người
      * mới đã sai suốt nhiều đợt phát hành mà không cửa nào nói.
      *

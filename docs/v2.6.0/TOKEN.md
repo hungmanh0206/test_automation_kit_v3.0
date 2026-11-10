@@ -70,9 +70,9 @@ Top mẫu shell: `node -e` 20 (15,3%) · `node --experimental-strip-types` 16 ·
 
 | Lượt | File |
 |---|---|
-| 1 | `prompt_templates/run_phase1_template.md` |
-| 1 | `prompt_templates/phase1/02_gen_testcases.md` |
-| 1 | `prompt_templates/phase1/02b_output_format.md` |
+| 1 | `prompt_templates/phase2/01_run_phase2.md` |
+| 1 | `prompt_templates/phase2/03_gen_testcases.md` |
+| 1 | `prompt_templates/phase2/04_output_format.md` |
 | 1 mỗi file | `dimensions/` : `06_e2e` · `08_resilience` · `12_display` · `13_business_logic` · `19_ordering` · `23_db_persistence` |
 
 ### 2.3. `fe6d3da6` — đối chứng quy mô lớn

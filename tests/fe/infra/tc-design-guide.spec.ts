@@ -191,7 +191,7 @@ test.describe('@infra skills:refcheck — link thật vs đường dẫn minh ho
  * DANH MỤC CANONICAL ⇄ CHECKLIST CON NGƯỜI ĐỌC (v2.9.5 §3.3).
  *
  * `.agent/config/ui_components.json` là nguồn duy nhất của hai danh mục field/component, và
- * `field-component-checklist.spec.ts` đã khoá nó với các file CHIỀU (`prompt_templates/phase1/dimensions/`).
+ * `field-component-checklist.spec.ts` đã khoá nó với các file CHIỀU (`prompt_templates/phase2/dimensions/`).
  * Nhưng hai checklist của skill `tc_design_guide` thì KHÔNG ai đối soát — và chúng đã lệch thật:
  *
  *   đo 29/10/2026 · `field_checklist.md` khai "18 loại" đúng bằng con số của danh mục canonical, nhưng

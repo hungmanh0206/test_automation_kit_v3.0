@@ -18,7 +18,7 @@ lúc làm, trong đó hai lỗi do chính máy của kit bắt.
 | H2 Rubric 8 tiêu chí | `tc:review` chấm từng case | `scripts/qa/tc_review.js` |
 | H3 Thứ tự nguồn oracle | `RULE_GLOBAL` mục mới · tag `[NeedsVerify]` | `design:gate` cảnh báo, `--publish` CHẶN |
 | H4 Loại field và component | 18 loại field · 6 component | `dim:coverage` (2 tầng) · test drift config ↔ tài liệu |
-| H5 Mode CHECKLIST | Sub-mode của `05_manual_quick.md` | `design:gate --mode checklist` (4 tiêu chí) |
+| H5 Mode CHECKLIST | Sub-mode của `07_manual_quick.md` | `design:gate --mode checklist` (4 tiêu chí) |
 | H6 Nhánh chạy tay | `manual-run/` never-auto | `manual:check` · ủy quyền `output_gate` |
 
 ## 2. Hai luật của gói nguồn BỊ BỎ

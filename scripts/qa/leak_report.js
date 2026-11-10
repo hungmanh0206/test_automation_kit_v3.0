@@ -206,7 +206,7 @@ function classify(text) {
     };
   });
 
-  // ĐÓNG VÒNG (luật ở prompt_templates/phase2/04_execute_fe_playwright.md): mỗi bug do NGƯỜI ngoài tìm ra mà kit
+  // ĐÓNG VÒNG (luật ở prompt_templates/phase3/02_execute_fe_playwright.md): mỗi bug do NGƯỜI ngoài tìm ra mà kit
   // chạy xanh đều phải trả lời "máy nào lẽ ra bắt được?". Không có máy ⇒ đó là trục chưa phủ, phải xây thêm.
   // Bản đồ bug → máy nằm ở `knowledge/leak_machine_map.json` (tuỳ chọn); thiếu bản đồ thì suy từ trục.
   const mapPath = path.join(rc.REPO_ROOT, 'knowledge', 'leak_machine_map.json');

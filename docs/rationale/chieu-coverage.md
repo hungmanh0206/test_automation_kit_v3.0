@@ -37,7 +37,7 @@ Một bộ như vậy không bắt được lỗi hiển thị, cũng không bi�
    ```
 
 2. **Mở đúng chương của các chiều `required`.** Mỗi chương nói chiều đó phải sinh case gì. Không nạp
-   cả bộ: [`prompt_templates/phase1/dimensions/`](../../prompt_templates/phase1/dimensions/).
+   cả bộ: [`prompt_templates/phase2/dimensions/`](../../prompt_templates/phase2/dimensions/).
 
 3. **Gắn tag chiều trong tiêu đề case**, và expected phải mang **bằng chứng** của chiều đó.
 

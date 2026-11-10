@@ -160,7 +160,7 @@ Chỉ chạy khi testcase đã từng publish lên Sheet (có `GOOGLE_SHEET_URL`
 - Agent `mcp__claude_ai_Google_Drive__update_file` với `.xlsx` canonical đã merge (TC `UPDATED` + `NEW` đã approve nằm sẵn trong đó) — ghi đè toàn workbook, không cần dedup theo key riêng như công cụ test-management cũ vì không có khái niệm "tạo trùng".
 - **Review nội dung `.xlsx` local trước khi ghi đè** — Drive MCP không "sửa 1 ô", ghi đè là ghi đè cả file.
 - Precondition đi theo case (cột `Tiền điều kiện`), không cần flag riêng.
-- Nếu testcase CHƯA từng publish lên Sheet → bỏ qua bước này (chạy `TESTCASE_SOURCE=excel`), hoặc publish lần đầu theo `.agent/workflows/phase1_04_auto_publish_backlog.md`.
+- Nếu testcase CHƯA từng publish lên Sheet → bỏ qua bước này (chạy `TESTCASE_SOURCE=excel`), hoặc publish lần đầu theo `.agent/workflows/07_auto_publish_backlog.md`.
 
 ### Step 3: Optional Cleanup — Unlink stale Test khỏi Story/Task (chạy SAU Step 2b re-publish)
 
@@ -243,7 +243,7 @@ node scripts/convert_excel/merge_execution_status.js <local .xlsx> test-results[
 → agent soi lại file đã merge → `update_file` qua Drive MCP.
 
 - **Chỉ gồm subset đã execute** (partial), không phải toàn bộ task — dùng `--only` để giới hạn.
-- Cơ chế chung (status-map theo cột `sheet`, gate `output_gate`/`plan_guard`, filter `carriedOver`/non-verdict) **giống Phase 2 §13b** — xem `prompt_templates/run_phase2_template.md`, không lặp lại ở đây.
+- Cơ chế chung (status-map theo cột `sheet`, gate `output_gate`/`plan_guard`, filter `carriedOver`/non-verdict) **giống Phase 2 §13b** — xem `prompt_templates/phase3/01_run_phase3.md`, không lặp lại ở đây.
 
 ### Step 7: Bug Candidate Handoff
 

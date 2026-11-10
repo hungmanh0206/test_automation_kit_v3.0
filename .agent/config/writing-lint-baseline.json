@@ -38,7 +38,7 @@
       "meanSent": 17.4,
       "emojiCount": 1
     },
-    "prompt_templates/phase1/01_setup_engine_fetch_docs.md": {
+    "prompt_templates/phase2/02_setup_engine_fetch_docs.md": {
       "slash": 4.3,
       "longSent": 0,
       "sym": 0,
@@ -47,7 +47,7 @@
       "meanSent": 13.4,
       "emojiCount": 0
     },
-    "prompt_templates/phase1/02b_output_format.md": {
+    "prompt_templates/phase2/04_output_format.md": {
       "slash": 11.5,
       "longSent": 0,
       "sym": 3.3,
@@ -56,7 +56,7 @@
       "meanSent": 14.8,
       "emojiCount": 0
     },
-    "prompt_templates/phase1/02_gen_testcases.md": {
+    "prompt_templates/phase2/03_gen_testcases.md": {
       "slash": 7.5,
       "longSent": 0,
       "sym": 11.1,
@@ -65,7 +65,7 @@
       "meanSent": 16.2,
       "emojiCount": 11
     },
-    "prompt_templates/phase1/03_gen_test_data.md": {
+    "prompt_templates/phase2/05_gen_test_data.md": {
       "slash": 10.3,
       "longSent": 0,
       "sym": 0,
@@ -74,7 +74,7 @@
       "meanSent": 10.2,
       "emojiCount": 0
     },
-    "prompt_templates/phase1/04_auto_publish_backlog.md": {
+    "prompt_templates/phase2/06_auto_publish_backlog.md": {
       "slash": 0,
       "longSent": 0,
       "sym": 0,
@@ -83,7 +83,7 @@
       "meanSent": 16.5,
       "emojiCount": 0
     },
-    "prompt_templates/phase1/05_manual_quick.md": {
+    "prompt_templates/phase2/07_manual_quick.md": {
       "slash": 2.8,
       "longSent": 0,
       "sym": 11.2,
@@ -92,7 +92,7 @@
       "meanSent": 12.8,
       "emojiCount": 0
     },
-    "prompt_templates/phase1/06_cross_module.md": {
+    "prompt_templates/phase2/08_cross_module.md": {
       "slash": 20,
       "longSent": 0,
       "sym": 17.5,
@@ -101,7 +101,7 @@
       "meanSent": 17.4,
       "emojiCount": 0
     },
-    "prompt_templates/phase1/dimensions/03_field_validation.md": {
+    "prompt_templates/phase2/dimensions/03_field_validation.md": {
       "slash": 15.4,
       "longSent": 0,
       "sym": 15.4,
@@ -110,7 +110,7 @@
       "meanSent": 16.3,
       "emojiCount": 0
     },
-    "prompt_templates/phase1/dimensions/04_ui.md": {
+    "prompt_templates/phase2/dimensions/04_ui.md": {
       "slash": 7.9,
       "longSent": 0,
       "sym": 15.7,
@@ -119,7 +119,7 @@
       "meanSent": 12.7,
       "emojiCount": 0
     },
-    "prompt_templates/phase1/dimensions/05_api.md": {
+    "prompt_templates/phase2/dimensions/05_api.md": {
       "slash": 13.3,
       "longSent": 0,
       "sym": 13.3,
@@ -128,7 +128,7 @@
       "meanSent": 15,
       "emojiCount": 0
     },
-    "prompt_templates/phase1/dimensions/06_e2e.md": {
+    "prompt_templates/phase2/dimensions/06_e2e.md": {
       "slash": 21.7,
       "longSent": 0,
       "sym": 10.9,
@@ -137,7 +137,7 @@
       "meanSent": 13.1,
       "emojiCount": 0
     },
-    "prompt_templates/phase1/dimensions/07_export_import.md": {
+    "prompt_templates/phase2/dimensions/07_export_import.md": {
       "slash": 23.4,
       "longSent": 0,
       "sym": 5.8,
@@ -146,7 +146,7 @@
       "meanSent": 15.5,
       "emojiCount": 0
     },
-    "prompt_templates/phase1/dimensions/08_resilience.md": {
+    "prompt_templates/phase2/dimensions/08_resilience.md": {
       "slash": 17.5,
       "longSent": 0,
       "sym": 8.8,
@@ -155,7 +155,7 @@
       "meanSent": 16.3,
       "emojiCount": 0
     },
-    "prompt_templates/phase1/dimensions/09_side_effect.md": {
+    "prompt_templates/phase2/dimensions/09_side_effect.md": {
       "slash": 22.1,
       "longSent": 0,
       "sym": 7.4,
@@ -164,7 +164,7 @@
       "meanSent": 15.1,
       "emojiCount": 0
     },
-    "prompt_templates/phase1/dimensions/10_guard.md": {
+    "prompt_templates/phase2/dimensions/10_guard.md": {
       "slash": 19.8,
       "longSent": 0,
       "sym": 0,
@@ -173,7 +173,7 @@
       "meanSent": 14.4,
       "emojiCount": 0
     },
-    "prompt_templates/phase1/dimensions/11_design.md": {
+    "prompt_templates/phase2/dimensions/11_design.md": {
       "slash": 16.3,
       "longSent": 0,
       "sym": 28.6,
@@ -182,7 +182,7 @@
       "meanSent": 16.3,
       "emojiCount": 0
     },
-    "prompt_templates/phase1/dimensions/12_display.md": {
+    "prompt_templates/phase2/dimensions/12_display.md": {
       "slash": 4.5,
       "longSent": 0,
       "sym": 9,
@@ -191,7 +191,7 @@
       "meanSent": 18.1,
       "emojiCount": 0
     },
-    "prompt_templates/phase1/dimensions/13_business_logic.md": {
+    "prompt_templates/phase2/dimensions/13_business_logic.md": {
       "slash": 12.5,
       "longSent": 0,
       "sym": 2.5,
@@ -200,7 +200,7 @@
       "meanSent": 18.8,
       "emojiCount": 0
     },
-    "prompt_templates/phase1/dimensions/14_be_conformance.md": {
+    "prompt_templates/phase2/dimensions/14_be_conformance.md": {
       "slash": 12.2,
       "longSent": 0,
       "sym": 7.6,
@@ -209,7 +209,7 @@
       "meanSent": 18.2,
       "emojiCount": 0
     },
-    "prompt_templates/phase1/dimensions/15_security.md": {
+    "prompt_templates/phase2/dimensions/15_security.md": {
       "slash": 10.1,
       "longSent": 0,
       "sym": 18.3,
@@ -218,7 +218,7 @@
       "meanSent": 19,
       "emojiCount": 0
     },
-    "prompt_templates/phase1/dimensions/16_perf.md": {
+    "prompt_templates/phase2/dimensions/16_perf.md": {
       "slash": 16.4,
       "longSent": 0,
       "sym": 13.7,
@@ -227,7 +227,7 @@
       "meanSent": 19.2,
       "emojiCount": 0
     },
-    "prompt_templates/phase1/dimensions/17_change_impact.md": {
+    "prompt_templates/phase2/dimensions/17_change_impact.md": {
       "slash": 20.1,
       "longSent": 0,
       "sym": 7.5,
@@ -236,7 +236,7 @@
       "meanSent": 15.9,
       "emojiCount": 0
     },
-    "prompt_templates/phase1/dimensions/19_ordering.md": {
+    "prompt_templates/phase2/dimensions/19_ordering.md": {
       "slash": 0,
       "longSent": 0,
       "sym": 16.6,
@@ -245,7 +245,7 @@
       "meanSent": 17.5,
       "emojiCount": 0
     },
-    "prompt_templates/phase1/dimensions/20_bug_history.md": {
+    "prompt_templates/phase2/dimensions/20_bug_history.md": {
       "slash": 3.3,
       "longSent": 0,
       "sym": 13,
@@ -254,7 +254,7 @@
       "meanSent": 15.3,
       "emojiCount": 0
     },
-    "prompt_templates/phase1/dimensions/21_accessibility.md": {
+    "prompt_templates/phase2/dimensions/21_accessibility.md": {
       "slash": 7.3,
       "longSent": 0,
       "sym": 2.4,
@@ -263,7 +263,7 @@
       "meanSent": 15.8,
       "emojiCount": 0
     },
-    "prompt_templates/phase1/dimensions/22_inbound_callback.md": {
+    "prompt_templates/phase2/dimensions/22_inbound_callback.md": {
       "slash": 7,
       "longSent": 0,
       "sym": 14,
@@ -272,7 +272,7 @@
       "meanSent": 17.9,
       "emojiCount": 0
     },
-    "prompt_templates/phase1/dimensions/23_db_persistence.md": {
+    "prompt_templates/phase2/dimensions/23_db_persistence.md": {
       "slash": 1.7,
       "longSent": 0,
       "sym": 16,
@@ -281,7 +281,7 @@
       "meanSent": 16.7,
       "emojiCount": 6
     },
-    "prompt_templates/phase2/04_execute_fe_playwright.md": {
+    "prompt_templates/phase3/02_execute_fe_playwright.md": {
       "slash": 14.5,
       "longSent": 0,
       "sym": 12,
@@ -290,7 +290,7 @@
       "meanSent": 15.7,
       "emojiCount": 5
     },
-    "prompt_templates/phase2/05_execute_api_playwright.md": {
+    "prompt_templates/phase3/04_execute_api_playwright.md": {
       "slash": 13.2,
       "longSent": 0,
       "sym": 9.4,
@@ -299,7 +299,7 @@
       "meanSent": 15.3,
       "emojiCount": 5
     },
-    "prompt_templates/phase2/06_triage_review.md": {
+    "prompt_templates/phase3/05_triage_review.md": {
       "slash": 14.7,
       "longSent": 0,
       "sym": 0,
@@ -308,7 +308,7 @@
       "meanSent": 13.6,
       "emojiCount": 0
     },
-    "prompt_templates/phase2/07_triage_flaky.md": {
+    "prompt_templates/phase3/06_triage_flaky.md": {
       "slash": 0,
       "longSent": 0,
       "sym": 0,
@@ -317,7 +317,7 @@
       "meanSent": 15.3,
       "emojiCount": 0
     },
-    "prompt_templates/phase2/08_log_bug_backlog.md": {
+    "prompt_templates/phase3/07_log_bug_backlog.md": {
       "slash": 7.3,
       "longSent": 0,
       "sym": 11,
@@ -326,7 +326,7 @@
       "meanSent": 15.6,
       "emojiCount": 1
     },
-    "prompt_templates/run_phase1_template.md": {
+    "prompt_templates/phase2/01_run_phase2.md": {
       "slash": 2.9,
       "longSent": 0,
       "sym": 2.9,
@@ -335,7 +335,7 @@
       "meanSent": 15.2,
       "emojiCount": 0
     },
-    "prompt_templates/run_phase2_template.md": {
+    "prompt_templates/phase3/01_run_phase3.md": {
       "slash": 0,
       "longSent": 0,
       "sym": 0,
@@ -344,7 +344,7 @@
       "meanSent": 17.2,
       "emojiCount": 0
     },
-    "prompt_templates/run_phase_re-run_template.md": {
+    "prompt_templates/phase4/01_run_phase4.md": {
       "slash": 18.6,
       "longSent": 0,
       "sym": 3.4,
@@ -353,7 +353,7 @@
       "meanSent": 14.6,
       "emojiCount": 1
     },
-    ".agent/workflows/phase1_00_scope_planning.md": {
+    ".agent/workflows/03_scope_planning.md": {
       "slash": 14.8,
       "longSent": 0,
       "sym": 12.3,
@@ -362,7 +362,7 @@
       "meanSent": 15,
       "emojiCount": 0
     },
-    ".agent/workflows/phase1_01_prepare_context.md": {
+    ".agent/workflows/04_prepare_context.md": {
       "slash": 7.1,
       "longSent": 0,
       "sym": 1.8,
@@ -371,7 +371,7 @@
       "meanSent": 17,
       "emojiCount": 0
     },
-    ".agent/workflows/phase1_02_generate_testcases.md": {
+    ".agent/workflows/05_generate_testcases.md": {
       "slash": 23.5,
       "longSent": 0,
       "sym": 0,
@@ -380,7 +380,7 @@
       "meanSent": 14.2,
       "emojiCount": 0
     },
-    ".agent/workflows/phase1_03_validate_export_report.md": {
+    ".agent/workflows/06_validate_export_report.md": {
       "slash": 5.3,
       "longSent": 0,
       "sym": 14.1,
@@ -389,7 +389,7 @@
       "meanSent": 14.2,
       "emojiCount": 0
     },
-    ".agent/workflows/phase1_04_auto_publish_backlog.md": {
+    ".agent/workflows/07_auto_publish_backlog.md": {
       "slash": 11.1,
       "longSent": 0,
       "sym": 11.1,
@@ -398,7 +398,7 @@
       "meanSent": 15,
       "emojiCount": 0
     },
-    ".agent/workflows/phase1_generate_tc.md": {
+    ".agent/workflows/02_tong_quan_testcase.md": {
       "slash": 24.6,
       "longSent": 0,
       "sym": 0,
@@ -407,7 +407,7 @@
       "meanSent": 13.5,
       "emojiCount": 0
     },
-    ".agent/workflows/phase2_01_prepare_execution.md": {
+    ".agent/workflows/09_prepare_execution.md": {
       "slash": 11.2,
       "longSent": 0,
       "sym": 4.5,
@@ -416,7 +416,7 @@
       "meanSent": 16.5,
       "emojiCount": 0
     },
-    ".agent/workflows/phase2_02_generate_or_update_automation.md": {
+    ".agent/workflows/10_generate_or_update_automation.md": {
       "slash": 10.7,
       "longSent": 0,
       "sym": 16,
@@ -425,7 +425,7 @@
       "meanSent": 12.7,
       "emojiCount": 0
     },
-    ".agent/workflows/phase2_03_execute_and_auto_heal.md": {
+    ".agent/workflows/11_execute_and_auto_heal.md": {
       "slash": 12.8,
       "longSent": 0,
       "sym": 4.3,
@@ -434,7 +434,7 @@
       "meanSent": 16.1,
       "emojiCount": 0
     },
-    ".agent/workflows/phase2_04_report_and_backlog_gate.md": {
+    ".agent/workflows/12_report_and_backlog_gate.md": {
       "slash": 8.9,
       "longSent": 0,
       "sym": 8.9,
@@ -443,7 +443,7 @@
       "meanSent": 15.9,
       "emojiCount": 1
     },
-    ".agent/workflows/phase2_execute.md": {
+    ".agent/workflows/08_tong_quan_execute.md": {
       "slash": 20.7,
       "longSent": 0,
       "sym": 0,
@@ -452,7 +452,7 @@
       "meanSent": 12.7,
       "emojiCount": 0
     },
-    ".agent/workflows/rerun.md": {
+    ".agent/workflows/13_tong_quan_rerun.md": {
       "slash": 23.4,
       "longSent": 0,
       "sym": 0,
@@ -461,7 +461,7 @@
       "meanSent": 13.2,
       "emojiCount": 0
     },
-    ".agent/workflows/rerun_01_map_bug_to_testcase.md": {
+    ".agent/workflows/14_map_bug_to_testcase.md": {
       "slash": 15.6,
       "longSent": 0,
       "sym": 0,
@@ -470,7 +470,7 @@
       "meanSent": 11.6,
       "emojiCount": 0
     },
-    ".agent/workflows/rerun_02_rerun_and_verify.md": {
+    ".agent/workflows/15_rerun_and_verify.md": {
       "slash": 5.8,
       "longSent": 0,
       "sym": 2.9,
@@ -479,7 +479,7 @@
       "meanSent": 13.3,
       "emojiCount": 0
     },
-    ".agent/workflows/rerun_03_update_backlog_and_report.md": {
+    ".agent/workflows/16_update_backlog_and_report.md": {
       "slash": 7.3,
       "longSent": 0,
       "sym": 10.9,

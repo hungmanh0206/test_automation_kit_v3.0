@@ -5,7 +5,7 @@
  *
  * VÌ SAO CÓ. Đo ở `docs/v2.7.0/BASELINE.md`: 55 lệnh npm khác nhau rải khắp các điểm vào, 43 lệnh gate
  * trong chuỗi Phase 2 và 30 trong Phase 1. Đích của v2.7.0 là người dùng chỉ cần nhớ NĂM lệnh. Nhưng
- * sáu lệnh còn lại (`/publish`, `/discover`, `/explore`, `/manual-run`, `/ui-debug`, `/partial-rerun`)
+ * sáu lệnh còn lại (`/4_publish`, `/discover`, `/explore`, `/manual-run`, `/ui-debug`, `/partial-rerun`)
  * vẫn cần thiết — chúng chỉ không nên cần NHỚ.
  *
  * Nên file này trả lời đúng một câu: "ở trạng thái này, việc tiếp theo là gì". Và nó trả lời bằng cách
@@ -76,7 +76,7 @@ function trangThai(taskKey, taskOutputDir) {
  */
 const GOI_Y = [
   {
-    lenh: '/start',
+    lenh: '/1_start',
     khi: (s) => !s.co_profile,
     vi_sao: 'chưa có `profiles/<TASK>/task.env` — chưa có creds và scope thì không bước nào chạy được',
     nhom: 'năm lệnh',
@@ -88,7 +88,7 @@ const GOI_Y = [
     nhom: 'gợi ý đúng lúc',
   },
   {
-    lenh: '/phase1',
+    lenh: '/3_phase2',
     khi: (s) => s.co_profile && !s.co_case_md,
     vi_sao: 'chưa có `test-cases/*.md` — đây là bước sinh bộ case',
     nhom: 'năm lệnh',
@@ -128,13 +128,13 @@ const GOI_Y = [
     nhom: 'năm lệnh',
   },
   {
-    lenh: '/publish',
+    lenh: '/4_publish',
     khi: (s) => s.co_case_md && s.co_mau_so && !s.co_dau_vet_publish && !s.co_status,
     vi_sao: 'bộ case đã có mà chưa qua cửa publish — Phase 2 chạy theo bộ đã publish',
     nhom: 'gợi ý đúng lúc',
   },
   {
-    lenh: '/phase2',
+    lenh: '/5_phase3',
     khi: (s) => s.co_case_md && !s.co_status,
     vi_sao: 'chưa có file status — đây là bước execute',
     nhom: 'năm lệnh',
@@ -146,13 +146,13 @@ const GOI_Y = [
     nhom: 'gợi ý đúng lúc',
   },
   {
-    lenh: '/rerun',
+    lenh: '/6_phase4',
     khi: (s) => s.co_status && s.so_no !== null && s.so_no > 0,
     vi_sao: 'có kết quả rồi nhưng sổ nợ chưa sạch — sửa rồi chạy lại đúng case đỏ',
     nhom: 'năm lệnh',
   },
   {
-    lenh: '/release',
+    lenh: '/7_release',
     khi: (s) => s.co_status && (s.so_no === 0) && !s.co_dau_vet_done,
     vi_sao: 'sổ nợ sạch mà chưa qua cửa cuối — đây là bước chuyển Done',
     nhom: 'năm lệnh',
@@ -184,11 +184,11 @@ function main() {
     taskOutputDir = rc.getTaskOutputDir({ taskKey });
   } catch (e) {
     /*
-     * KHÔNG CÓ TASK THÌ GỢI Ý VẪN ĐÚNG MỘT CÁI: `/start`. Đây là ca của người mới, và báo lỗi ở đây là
+     * KHÔNG CÓ TASK THÌ GỢI Ý VẪN ĐÚNG MỘT CÁI: `/1_start`. Đây là ca của người mới, và báo lỗi ở đây là
      * chặn đúng người cần giúp nhất.
      */
-    if (JSON_OUT) { console.log(JSON.stringify({ goi_y: [{ lenh: '/start', vi_sao: 'chưa có TASK_KEY hoặc PROJECT_OUTPUT_DIR' }] }, null, 2)); return; }
-    console.log('Lệnh tiếp theo: `/start` — chưa có TASK_KEY hoặc PROJECT_OUTPUT_DIR.');
+    if (JSON_OUT) { console.log(JSON.stringify({ goi_y: [{ lenh: '/1_start', vi_sao: 'chưa có TASK_KEY hoặc PROJECT_OUTPUT_DIR' }] }, null, 2)); return; }
+    console.log('Lệnh tiếp theo: `/1_start` — chưa có TASK_KEY hoặc PROJECT_OUTPUT_DIR.');
     return;
   }
 
@@ -217,7 +217,7 @@ function main() {
       for (const g of ds.slice(1)) console.log(`    ${g.lenh.padEnd(38)} ${g.vi_sao}`);
     }
   }
-  console.log('\n  NĂM LỆNH bạn cần nhớ: /start → /phase1 → /phase2 → /rerun → /release · cộng /check lúc nào cũng được.');
+  console.log('\n  NĂM LỆNH bạn cần nhớ: /1_start → /3_phase2 → /5_phase3 → /6_phase4 → /7_release · cộng /check lúc nào cũng được.');
   console.log('  Mấy lệnh dưới đây KHÔNG cần nhớ — chúng được gợi ý khi đúng tình huống:');
   for (const t of THEO_TINH_HUONG) console.log(`    ${t.lenh.padEnd(16)} ${t.khi}`);
 }

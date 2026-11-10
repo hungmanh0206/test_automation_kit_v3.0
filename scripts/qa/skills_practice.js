@@ -351,7 +351,7 @@ const BAI = [
      */
     ma: 'qemis-bieu-emis',
     skill: 'run_report_reader',
-    pack: 'enhancements/v10/packs/qemis.md',
+    pack: '.agent/extensions/kit-a/packs/qemis.md',
     soDapAn: 'qemis_bieu.dapan.json',
     tep: [{ tu: 'qemis_bieu_emis.de.txt', thanh: 'bao-cao.txt' }],
     de: 'Đọc `bao-cao.txt` và trả lời đúng theo hợp đồng JSON ghi trong đó. '
@@ -388,7 +388,7 @@ const BAI = [
      */
     ma: 'qemis-luoi-lop',
     skill: 'ui_debug_agent',
-    pack: 'enhancements/v10/packs/qemis.md',
+    pack: '.agent/extensions/kit-a/packs/qemis.md',
     soDapAn: 'qemis_luoi.dapan.json',
     tep: [{ tu: 'qemis_luoi_lop.de.txt', thanh: 'bao-cao.txt' }],
     de: 'Đọc `bao-cao.txt` và trả lời đúng theo hợp đồng JSON ghi trong đó. '

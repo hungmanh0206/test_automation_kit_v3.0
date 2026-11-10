@@ -261,7 +261,7 @@ const TERMS_CONCEPT = [
   def:'Điểm dừng bắt buộc: phân tích tài liệu xong phải hỏi cho rõ TRƯỚC khi sinh testcase.',
   detail:'Gộp mọi chỗ mơ hồ thành một danh sách câu hỏi, gửi người ra yêu cầu, nhận trả lời, phân tích lại, rồi mới gen. Câu trả lời nhận được chính là điểm bắt tự nhiên để ghi vào knowledge/domain/.',
   why:'Đoán chỗ mơ hồ thì cả bộ case dựng trên một giả định sai, và cái sai đó chỉ lộ ra khi đã tốn công execute. Hỏi một lượt gộp lại rẻ hơn nhiều so với hỏi rải rác hoặc không hỏi.',
-  src:'.agent/workflows/phase1_01_prepare_context.md', rel:['sk-requirements_analyzer','sk-domain_recorder','f-phase1','c-oracle'] },
+  src:'.agent/workflows/04_prepare_context.md', rel:['sk-requirements_analyzer','sk-domain_recorder','f-phase1','c-oracle'] },
 
 { id:'c-scope-to-nature', t:'Scope case theo bản chất task', cat:'concept',
   def:'Bộ testcase phải bám đúng loại việc mà task đang làm.',

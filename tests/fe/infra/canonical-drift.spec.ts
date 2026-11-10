@@ -372,7 +372,7 @@ test.describe('@infra canonical:drift — luật trỏ tới máy, máy không m
      * MẪU DÒ ĐÃ NỚI 12/10/2026 — bản cũ chỉ bắt `source of truth` viết DẤU CÁCH, trong khi gần như mọi
      * chỗ trong repo viết `source-of-truth` có GẠCH NỐI. Gate xanh suốt từ lúc dựng, và 7 bề mặt vẫn
      * khai Excel là nguồn: `RULE_GLOBAL.md` (hai chỗ, một trong đó mâu thuẫn với chính dòng 111 của
-     * nó), `run_phase1_template.md`, `USER_GUIDE.md`, `QUICKSTART.md`, `run_testcase_cleanup.md`,
+     * nó), `01_run_phase2.md`, `USER_GUIDE.md`, `QUICKSTART.md`, `run_testcase_cleanup.md`,
      * `docs/course/thiet-ke-testcase.md`.
      *
      * Bài học của chính dòng này: một gate dò bằng chữ mà không ai thử ĐỐI CHỨNG ÂM thì nó chứng minh

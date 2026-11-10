@@ -198,7 +198,7 @@ lớn nhất (563 case) có **415 case mutation**, trong đó **177 (43%)** *có
 **Đã dựng.**
 - Tầng kiểm DB (chiều §23): adapter Postgres · `dbVerify` · guard **chỉ đọc** · so sánh theo kiểu dữ liệu ·
   bản đồ cột ↔ field neo bằng **fixture phân biệt**.
-- **9 slash command** làm điểm vào gõ được: `/phase1` `/phase2` `/rerun` `/partial-rerun` `/publish`
+- **9 slash command** làm điểm vào gõ được: `/2_phase1` `/3_phase2` `/rerun` `/partial-rerun` `/4_publish`
   `/preflight` `/gates` `/explore` `/ui-debug`.
 - Skill `ui_debug_agent` — bước **khám phá DOM thật** trước khi viết locator.
 

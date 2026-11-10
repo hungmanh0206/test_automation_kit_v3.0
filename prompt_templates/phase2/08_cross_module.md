@@ -1,0 +1,43 @@
+# Prompt Phase 1 - Cross-Module / Combinatorial Testing
+
+> Chạy: `Đọc file này và chạy với TASK_KEY=<TASK_KEY>`. Rule: non-negotiables ở `CLAUDE.md` (đã auto-load). Digest: `.agent/rules/core_rules.md`. Chỉ mở `RULE_GLOBAL.md` **ở đúng mục cần** (mỗi gạch đầu dòng của digest có ghi `§`) — đừng nạp cả file.
+> Bổ sung cho `03_gen_testcases.md` khi chức năng phụ thuộc **nhiều biến kết hợp** hoặc **dữ liệu chảy qua nhiều màn/hệ thống**. Dùng skill `combinatorial_matrix`.
+
+# Khi nào dùng
+
+- Kết quả phụ thuộc tổ hợp nhiều biến độc lập (loại × phương thức × role × trạng thái...) mà test rời từng biến bỏ lọt bug tương tác.
+- Luồng cross-module/cross-app: dữ liệu tạo ở A → hiển thị/xử lý ở B → tổng hợp ở C.
+- KHÔNG dùng khi chỉ 1 biến (dùng EP/BVA thường ở [`dimensions/03_field_validation.md`](dimensions/03_field_validation.md)).
+
+# Nguyên tắc
+
+- **Pairwise mặc định + business-critical combos**; full Cartesian chỉ khi tổ hợp nhỏ + rủi ro cao + ghi lý do (chống nổ case — xem `combinatorial_matrix`).
+- Expected mỗi bộ là **oracle độc lập từ tài liệu**, không lấy từ build.
+- Có **checkpoint** trước khi sinh ma trận lớn (xem Bước 4).
+
+# Quy trình 5 bước
+
+1. **Recon**: xác định chức năng/luồng và các màn/hệ thống liên quan trong scope.
+2. **Data Flow Mapping**: vẽ dữ liệu chảy qua đâu (tạo ở đâu → biến đổi/hiển thị ở đâu → tổng hợp/side-effect ở đâu); chỉ ra điểm dễ lệch giữa các module.
+3. **Dimension Extraction**: liệt kê các chiều độc lập + tập giá trị mỗi chiều + **constraints** (cặp bất khả). Chiều không thực sự tương tác → tách ra test rời, KHÔNG đưa vào ma trận.
+4. **Matrix (có CHECKPOINT)**: sinh ma trận theo `combinatorial_matrix` (pairwise mặc định). **Trước khi sinh**: báo số chiều, số giá trị, số bộ pairwise dự kiến vs số Cartesian lý thuyết. Nếu bộ pairwise vẫn quá lớn hoặc muốn full → **hỏi QA xác nhận strategy** trước khi sinh (không tự nhân bừa).
+5. **Expected Mapping**: map expected cho từng bộ (hợp lệ vs bị chặn), trace về rule/tài liệu; ghi rõ constraints đã loại.
+
+# Outputs
+
+| Output | Vị trí |
+|---|---|
+| Data flow map | `<TASK_OUTPUT_DIR>/test-cases/<basename>_dataflow.md` |
+| Ma trận tổ hợp + expected | `<TASK_OUTPUT_DIR>/test-cases/<basename>_matrix.md` |
+| Ghi chú strategy + mức cắt giảm | Đầu file matrix + Coverage Gaps của `phase1-summary.md` |
+
+File matrix phải khai khối `## Lớp kết quả`. Mỗi lớp có mã `OC-…` và `oracle_ref`. Bảng ma trận thêm cột `Lớp kết quả` mang MÃ. ⚙️ `npm run matrix:coverage:enforce` **CHẶN** khi một lớp đã khai không có bộ nào phủ. Lý do: **pairwise phủ cặp giá trị, KHÔNG phủ kết quả**. Xem `combinatorial_matrix`.
+
+Mỗi hàng ma trận = 1 testcase → export Excel bằng script hiện có (`scripts/convert_excel/md_to_xlsx.js`) rồi publish lên Google Sheet qua Drive MCP, vào đúng nhóm chức năng. Sau đó validate bằng `tc_validator` như testcase thường.
+
+# Rules
+
+- Không full Cartesian mặc định; báo số bộ + hỏi khi lớn (Bước 4 checkpoint).
+- Không đưa chiều độc lập không tương tác vào ma trận.
+- Expected từ tài liệu, không từ build.
+- Ma trận vẫn phải qua `tc_validator` + Ambiguity Gate như testcase thường trước khi tính coverage.

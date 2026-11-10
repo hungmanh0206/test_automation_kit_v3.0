@@ -142,7 +142,7 @@ thì phải có `confirmed_by`. Mẫu tham chiếu: `ops-row-menu__flaky-3-cham.
 
 **③ `fieldMap` theo MÀN** nếu màn có kiểm DB. Giữ đúng luật tầng DB verify — **trỏ, không chép**:
 `.agent/config/db.conventions.json` (`fieldMap.byScreen`, `_method`, `_method_enum_by_groups`,
-`_instrument_note`) + `prompt_templates/phase1/dimensions/23_db_persistence.md`. Ba điều dễ sai nhất:
+`_instrument_note`) + `prompt_templates/phase2/dimensions/23_db_persistence.md`. Ba điều dễ sai nhất:
 
 - Bản đồ **khoá theo màn** — cùng một cột có nhãn khác nhau giữa hai màn, và **cùng một nhãn có thể là hai
   cột khác nhau** (`"Paid Amount"`: tab Overview = tiền đã trả, form `/edit` = `deposit`).

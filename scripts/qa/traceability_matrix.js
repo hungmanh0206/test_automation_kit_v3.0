@@ -50,7 +50,7 @@ function parseTestcases(dir) {
  * Tập TC ĐÃ PUBLISH = có mặt trong mirror `test-cases/from-sheet/*.xlsx` (bản tải về từ Google Sheet).
  * Lượt refactor bỏ công cụ cũ đã viết ngữ nghĩa này vào header nhưng KHÔNG viết phần dựng biến, chỉ thêm chỗ dùng
  * `publishedTc.has(...)` ⇒ ReferenceError ngay khi map rows. Lệnh này nằm trong bảng gate bắt buộc của
- * `run_phase1_template.md` nên nó vỡ là cả bước Phase 1 vỡ theo.
+ * `01_run_phase2.md` nên nó vỡ là cả bước Phase 1 vỡ theo.
  *
  * KHÔNG có mirror ⇒ trả `null` (KHÔNG phải Set rỗng): Set rỗng sẽ gắn cờ "chưa-publish" cho TOÀN BỘ TC,
  * biến "chưa kéo mirror về" thành "chưa publish" — báo oan đúng kiểu mà kit cấm.

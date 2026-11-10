@@ -170,7 +170,7 @@ test.describe('@infra phase2 — ngưỡng rerun/lint/mutation có số', () => 
   });
 
   test('gate code automation được nối vào CẢ workflow lẫn điểm-vào (F3)', () => {
-    for (const f of ['.agent/workflows/phase2_02_generate_or_update_automation.md', 'prompt_templates/run_phase2_template.md']) {
+    for (const f of ['.agent/workflows/10_generate_or_update_automation.md', 'prompt_templates/phase3/01_run_phase3.md']) {
       expect(fs.readFileSync(path.join(REPO, f), 'utf8'), f).toContain('lint:locator');
     }
   });
