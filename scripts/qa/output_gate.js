@@ -73,7 +73,19 @@ function canonStatus(raw) {
 // evidence có thể là string | array; step dùng evidence | evidences.
 const evList = (v) => (Array.isArray(v) ? v : (v ? [v] : [])).map(String).filter(Boolean);
 
-function gateTestExecution(doc, { fix = false } = {}) {
+/**
+ * @param {object} doc  sổ kết quả
+ * @param {object} opt
+ * @param {boolean} opt.fix      tự sửa định dạng comment rồi trả bản đã sửa
+ * @param {boolean} opt.chayTay  lượt CHẠY TAY (`manual-run/`) — bỏ phép kiểm dấu nguồn gốc lượt chạy.
+ *
+ *   Vì sao phải có cờ này: case `[manual]` chạy tay KHÔNG có lượt Playwright nào để trỏ tới, nên đòi
+ *   `run.evidenceDir` ở đó là báo oan. Phát hiện ngay lượt đầu, qua chính ca "CHỐNG BÁO OAN" của
+ *   `manual-run-gate.spec.ts` — và một gate báo oan một lần là mất uy tín vĩnh viễn.
+ *
+ *   Cờ này KHÔNG nới gì khác: mọi phép kiểm còn lại (evidence, verdict, phân tầng) vẫn áp nguyên.
+ */
+function gateTestExecution(doc, { fix = false, chayTay = false } = {}) {
   const tests = Array.isArray(doc) ? doc : (doc.tests || doc.testcases || []);
   const problems = [];
   const warnings = [];
@@ -307,7 +319,7 @@ function gateTestExecution(doc, { fix = false } = {}) {
    */
   const daChay = tests.filter((t) => isExecuted(t.status));
   const thieuNguonGoc = daChay.filter((t) => !t.run || !t.run.evidenceDir);
-  if (thieuNguonGoc.length) {
+  if (thieuNguonGoc.length && !chayTay) {
     warnings.push(`${thieuNguonGoc.length}/${daChay.length} case đã chạy nhưng KHÔNG có dấu nguồn gốc \`run\` `
       + `(ví dụ: ${thieuNguonGoc.slice(0, 3).map((t) => t.tcId).join(', ')}${thieuNguonGoc.length > 3 ? ' …' : ''}). `
       + 'Không lần lại được verdict này ra từ lượt chạy nào, spec nào, ảnh ở đâu — đúng lớp lỗi đã làm '

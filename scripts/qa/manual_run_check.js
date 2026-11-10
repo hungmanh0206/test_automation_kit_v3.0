@@ -298,7 +298,9 @@ function kiem(taskDir) {
   // Truyền CẢ doc, không chỉ `tests`: `gateTestExecution` đọc `doc.attestation` để chống "tick suông".
   // Bản đầu truyền mảng `tests` nên khối attestation vĩnh viễn undefined, và cảnh báo "chưa có
   // attestation" bắn ra ở MỌI lượt kể cả lượt đã khai đủ — một cảnh báo luôn đúng là một cảnh báo vô dụng.
-  const g = outputGate.gateTestExecution(status);
+  /* `chayTay`: lượt này KHÔNG có lượt Playwright nào để trỏ tới, nên bỏ phép kiểm dấu nguồn gốc.
+   * Mọi phép kiểm khác vẫn áp nguyên. */
+  const g = outputGate.gateTestExecution(status, { chayTay: true });
   g.problems.forEach((p) => problems.push(`[output_gate] ${p}`));
   g.warnings.forEach((p) => warnings.push(`[output_gate] ${p}`));
 

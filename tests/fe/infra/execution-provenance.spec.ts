@@ -97,6 +97,27 @@ test.describe('@infra nguồn gốc — đóng dấu từng case', () => {
     expect(loc(mk({ evidenceDir: 'x/y', spec: 's.ts' })), 'ĐỐI CHỨNG ÂM: có dấu ⇒ im lặng').toHaveLength(0);
   });
 
+  test('CHỐNG BÁO OAN: lượt CHẠY TAY được miễn — nó không có lượt Playwright nào để trỏ tới', async () => {
+    /*
+     * BÁO OAN THẬT, bắt được ngay lượt đầu bởi ca "CHỐNG BÁO OAN" của `manual-run-gate.spec.ts`:
+     * case `[manual]` chạy tay không hề có lượt Playwright, nên đòi `run.evidenceDir` ở đó là vô lý.
+     * Một gate báo oan một lần là mất uy tín vĩnh viễn.
+     *
+     * Và miễn trừ phải HẸP: cờ `chayTay` chỉ bỏ ĐÚNG phép kiểm nguồn gốc. Ca dưới giữ ranh giới đó —
+     * một lỗi evidence vẫn phải lọt ra khi cờ đang bật.
+     */
+    const thieuEvidence = { tests: [{ tcId: 'M', status: 'PASSED', comment: 'x', evidence: [], steps: [] }] };
+    const w = (d: unknown, o: unknown) => (og.gateTestExecution(d, o).warnings || []) as string[];
+    expect(w(thieuEvidence, { chayTay: true }).filter((x) => /dấu nguồn gốc/.test(x)),
+      'chạy tay thì KHÔNG hỏi dấu lượt chạy').toHaveLength(0);
+    expect(w(thieuEvidence, {}).filter((x) => /dấu nguồn gốc/.test(x)),
+      'còn lượt automation thì vẫn hỏi').toHaveLength(1);
+
+    const p = (og.gateTestExecution(thieuEvidence, { chayTay: true }).problems || []) as string[];
+    expect(p.length, 'cờ chayTay KHÔNG được nới các phép kiểm khác — case PASS thiếu evidence vẫn phải bị bắt')
+      .toBeGreaterThan(0);
+  });
+
   test('cảnh báo nêu VÌ SAO, không chỉ nêu thiếu', async () => {
     const d = { tests: [{ tcId: 'A', status: 'PASSED', comment: 'x', evidence: ['a/step-01-passed.png'], steps: [{ name: 'b', status: 'PASSED', evidence: ['a/x.png'] }] }] };
     const w = ((og.gateTestExecution(d).warnings || []) as string[]).find((x) => /dấu nguồn gốc/.test(x)) || '';

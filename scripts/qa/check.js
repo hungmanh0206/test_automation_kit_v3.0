@@ -308,6 +308,7 @@ const PHAI_SPAWN = {
     { lenh: 'exec:proof', args: [] },
     { lenh: 'write:proof', args: [] },
     { lenh: 'setup:proof', args: [] },
+    { lenh: 'rerun:classify', args: [] },
   ],
 };
 

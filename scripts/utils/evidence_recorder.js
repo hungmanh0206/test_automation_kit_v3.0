@@ -32,6 +32,7 @@
  */
 const fs = require('fs');
 const path = require('path');
+const crypto = require('crypto');
 const { sanitize } = require('./evidence/sanitize');   // #3: PII safety-net
 const { buildManifest, readManifest } = require('./evidence/manifest'); // #3: index evidence + kiểm tồn tại
 
@@ -310,6 +311,37 @@ class Case {
    *   · `evidenceDir` — thứ kiểm lại được bằng tay: ảnh của case này, của chính lượt này, nằm ở đó.
    *     Đây là câu trả lời cho "kể cả khi sổ không lưu step trực tiếp".
    */
+  /**
+   * Bản ghi của LƯỢT TRƯỚC cho chính case này: shard trước, bản gộp sau.
+   *
+   * Tách ra khỏi nhánh `laFail` vì nó vốn nằm trong đó — tức chỉ đọc được khi case ĐỎ. Phân loại
+   * "verdict đổi vì sao" cần đọc ở MỌI trạng thái, kể cả FAIL → PASS, là chiều đáng quan tâm nhất.
+   *
+   * SHARD MẤT THÌ ĐỌC TIẾP BẢN GỘP. Shard theo TC nằm trong thư mục của MỘT lượt chạy, nên nó đi theo
+   * lượt đó khi người ta archive (`archive-cap-THCS/`) hoặc dọn thư mục. Bản gộp `testcase-status.json`
+   * sống lâu hơn.
+   *
+   * Đo trên CSDL-9001: bản archive 02/10 ghi `CSDL_HSTRUONG_TC_123` có `reruns: 2`; mọi bản từ 06/10
+   * ghi 0, vì shard theo TC đã biến mất cùng lượt được archive. Verdict sống sót qua carry-over nhưng
+   * BẰNG CHỨNG đã rerun thì reset — 7 verdict vốn đúng luật bị `output_gate` chặn vì "chỉ rerun 0 lần",
+   * và người gặp sẽ hoặc chạy lại vô ích, hoặc sửa tay `reruns`, tức bịa đúng con số gate sinh ra để chặn.
+   *
+   * Vẫn KHÔNG phải "khai tay": bản gộp cũng do máy ghi.
+   */
+  _banGhiTruoc() {
+    try {
+      const shard = path.join(this.rec.shardDir, `${safeName(this.tcId)}.json`);
+      const prev = JSON.parse(fs.readFileSync(shard, 'utf8'));
+      if (prev && prev.test) return prev.test;
+    } catch { /* chưa có shard */ }
+    try {
+      const goc = JSON.parse(fs.readFileSync(this.rec.statusFile, 'utf8'));
+      const ds = Array.isArray(goc) ? goc : (goc.tests || []);
+      return ds.find((x) => x && x.tcId === this.tcId) || null;
+    } catch { /* chưa có bản gộp = lượt chạy đầu */ }
+    return null;
+  }
+
   _nguonGoc() {
     /*
      * Đường dẫn phải NGẮN và dùng `/`, kể cả trên Windows — nó đi vào JSON mà người khác đọc.
@@ -330,7 +362,20 @@ class Case {
       /* eslint-disable-next-line global-require */
       const ti = require('@playwright/test').test.info();
       if (ti) {
-        if (ti.file) ra.spec = goiGon(ti.file);
+        if (ti.file) {
+          ra.spec = goiGon(ti.file);
+          /*
+           * VÂN TAY SPEC — 12 ký tự đầu của sha256 nội dung file lúc chạy.
+           *
+           * Đây là thứ DUY NHẤT cho phép trả lời "automation có đổi giữa hai lượt không" mà không
+           * phải đoán. So `mtime` thì không dùng được: checkout lại, `git stash pop`, hay chỉ mở file
+           * ra lưu cũng đổi `mtime` trong khi nội dung y nguyên.
+           *
+           * Chỉ 12 ký tự: đủ để phân biệt hai bản khác nhau, và không biến bản ghi thành bãi hash.
+           */
+          try { ra.specSha = crypto.createHash('sha256').update(fs.readFileSync(ti.file)).digest('hex').slice(0, 12); }
+          catch (e2) { /* đọc không được thì bỏ — thiếu vân tay vẫn hơn vân tay bịa */ }
+        }
         /* Bỏ phần tử đầu của `titlePath`: nó là ĐƯỜNG DẪN FILE, đã có ở `spec`, và mang dấu `\`
          * của Windows vào giữa câu tiêu đề. */
         if (Array.isArray(ti.titlePath) && ti.titlePath.length) {
@@ -419,6 +464,40 @@ class Case {
         status = haXuong;
       }
     }
+    /*
+     * ──────────────────────────────────────────────────────────────────────────────────────────────
+     * ĐỔI VERDICT: ghi thứ ĐO ĐƯỢC, KHÔNG tự gán nguyên nhân.
+     *
+     * Chủ dự án nêu (ưu tiên #4): phân biệt verdict đổi vì FIX BUG, vì MÔI TRƯỜNG, vì SỬA AUTOMATION,
+     * hay vì FLAKY. Máy không đọc được ý định, nên nó chỉ được ghi BẰNG CHỨNG để phân loại:
+     *
+     *   · `tu`/`sang`   — verdict cũ và mới. Không có cái này thì không biết đã đổi.
+     *   · `cungLuot`    — cùng một lượt chạy mà verdict đổi. Playwright retry trong một lượt: đây là
+     *                     tín hiệu FLAKY mạnh nhất đo được, vì mã và môi trường chưa kịp đổi.
+     *   · `specDoi`     — vân tay spec khác lượt trước ⇒ AUTOMATION có đổi. `null` khi lượt trước
+     *                     không có vân tay (bản ghi cũ) — "không biết" khác "không đổi".
+     *   · `lyDo`        — lời khai của người chạy. Máy KHÔNG điền hộ.
+     *
+     * VÌ SAO KHÔNG TỰ GÁN NHÃN: "fix bug" và "đổi môi trường" đều cho cùng một dấu vết đo được là
+     * verdict đổi mà spec không đổi. Chọn một trong hai thay người chạy là bịa nguyên nhân — đúng thứ
+     * đã bị chặn ở `failureLayer`, và đúng thứ `SUSPECT_REAL_BUG` sinh ra để chống: dán nhãn flaky cho
+     * một lượt chưa giải thích được cơ chế là chôn bug thật.
+     */
+    const truocChung = this._banGhiTruoc();
+    const nguonGoc = this._nguonGoc();
+    let doiVerdict = null;
+    if (truocChung && truocChung.status && chuanHoaVerdict(truocChung.status) !== chuanHoaVerdict(status)) {
+      const tr = truocChung.run || {};
+      const specDoi = (tr.specSha && nguonGoc.specSha) ? (tr.specSha !== nguonGoc.specSha) : null;
+      doiVerdict = {
+        tu: truocChung.status,
+        sang: status,
+        cungLuot: Boolean(tr.id && nguonGoc.id && tr.id === nguonGoc.id),
+        specDoi,
+        ...(opts.lyDoDoiVerdict ? { lyDo: sanitize(String(opts.lyDoDoiVerdict)) } : {}),
+      };
+    }
+
     const failEv = this.steps.find((s) => laFail(s.status));
     const caseEv = [...((failEv || this.steps[this.steps.length - 1] || {}).evidence || []), ...[].concat(opts.evidence || [])];
 
@@ -453,12 +532,7 @@ class Case {
      * cộng dồn vào chuỗi cũ. */
     let reruns = 0;
     if (laFail(status)) {
-      let truoc = null;
-      try {
-        const shard = path.join(this.rec.shardDir, `${safeName(this.tcId)}.json`);
-        const prev = JSON.parse(fs.readFileSync(shard, 'utf8'));
-        if (prev && prev.test) truoc = prev.test;
-      } catch { /* chưa có shard */ }
+      let truoc = truocChung;
 
       /*
        * SHARD MẤT THÌ ĐỌC TIẾP BẢN GỘP. Shard theo TC nằm trong thư mục của MỘT lượt chạy, nên nó đi theo
@@ -473,14 +547,6 @@ class Case {
        *
        * Vẫn KHÔNG phải "khai tay": bản gộp cũng do máy ghi, không phải người gõ.
        */
-      if (!truoc) {
-        try {
-          const goc = JSON.parse(fs.readFileSync(this.rec.statusFile, 'utf8'));
-          const ds = Array.isArray(goc) ? goc : (goc.tests || []);
-          truoc = ds.find((x) => x && x.tcId === this.tcId) || null;
-        } catch { /* chưa có bản gộp = lượt chạy đầu */ }
-      }
-
       if (truoc && laFail(truoc.status)) reruns = Number(truoc.reruns || 0) + 1;
     }
 
@@ -492,7 +558,8 @@ class Case {
       comment: sanitize(opts.comment || (anyFail ? 'Có step FAILED — xem step evidence' : 'Executed')),
       evidence: caseEv,
       steps: this.steps,
-      run: this._nguonGoc(),
+      run: nguonGoc,
+      ...(doiVerdict ? { doiVerdict } : {}),
     });
     return status;
   }

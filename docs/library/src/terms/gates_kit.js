@@ -150,7 +150,7 @@ const TERMS_GATE3 = [
   src:'scripts/qa/scope_anchor.js', rel:['g-dimension_coverage','c-canonical','g-preflight_gate'] },
 { id:'g-gate_index', t:'gates:index', cat:'gate',
   def:'Sinh DANH MỤC GATE của kit từ chính source. Trả lời được "kit có bao nhiêu gate, mỗi cái CHẶN gì, gọi ở đâu".',
-  detail:'Quét source rồi suy mức từ code: exit 1 là CHẶN · ghi artifact là SINH · chỉ in là BÁO CÁO. Bảng hiện tại: 170 máy — 121 CHẶN, 29 SINH, 20 BÁO CÁO. Bản --check chặn khi bảng lệch source.',
+  detail:'Quét source rồi suy mức từ code: exit 1 là CHẶN · ghi artifact là SINH · chỉ in là BÁO CÁO. Bảng hiện tại: 171 máy — 121 CHẶN, 30 SINH, 20 BÁO CÁO. Bản --check chặn khi bảng lệch source.',
   why:'Kit có hơn 30 npm script dạng gate và gần 60 file trong scripts/qa/, nhưng không chỗ nào trả lời được câu trên. Hệ quả không phải bất tiện: luận đề của kit là "luật cần MÁY", mà máy không LIỆT KÊ ĐƯỢC thì không kiểm toán được. Không ai biết một gate đã âm thầm tụt thành cảnh báo, hay đã mất nơi gọi.',
   how:['npm run gates:index để sinh lại bảng.','npm run gates:index:check để chặn khi bảng lệch source.'],
   cmd:'npm run gates:index   ·   npm run gates:index:check',
@@ -658,5 +658,15 @@ const TERMS_GATE3 = [
   ex:'Đo 11/11/2026: 242 npm script, 26 máy không nằm trên đường chạy nào. Trong đó 5 là bản :enforce, vốn sinh ra để người siết tay chạy — vẫn để trong mẫu số và nói ra, thay vì lọc cho số đẹp.',
   trap:'Vế ÂM đáng tin (không xuất hiện ⇒ chắc chắn không ai chạy), vế DƯƠNG chỉ là CHẶN TRÊN — một cái tên nằm trong câu văn giải thích cũng được tính là có nối. Gộp hai vế thành x% đã khép kín là nói quá. Và bản đầu của chính cửa này in ✓ ĐẠT — 27 ≤ mốc 18, một câu tự mâu thuẫn: không chặn KHÁC đã đạt.',
   src:'scripts/qa/gate_reachable.js', rel:['g-policy_source_check','g-exec_proof','g-setup_proof','g-gate_index','c-forcing-function'] }
+,
+{ id:'g-rerun_classify', t:'rerun:classify', cat:'gate',
+  def:'Verdict ĐỔI giữa hai lượt: bằng chứng nói được gì, và KHÔNG nói được gì.',
+  detail:'Đọc dấu doiVerdict mà EvidenceRecorder đóng vào từng case: verdict cũ, verdict mới, có cùng một lượt chạy không, và vân tay spec có đổi không.',
+  why:'Trước đó sổ chỉ có reruns — một con số đếm, không nói được vì sao verdict đổi. Mà "chạy lại thì xanh" có thể là dev đã fix, có thể là môi trường khác, có thể là ai đó vừa sửa spec, và cũng có thể là flaky. Bốn nguyên nhân, bốn hành động khác hẳn nhau.',
+  how:['Chạy: npm run rerun:classify -- --task <TASK_KEY>. Nằm trong bó gate của phase execute.','Khai lý do khi biết: finish(status, { lyDoDoiVerdict: "<vì sao verdict đổi>" }).'],
+  cmd:'npm run rerun:classify -- --task <TASK_KEY>',
+  ex:'Máy xếp được HAI loại. ① flaky: verdict đổi TRONG CÙNG một lượt — mã và môi trường chưa kịp đổi nên không còn lời giải thích nào khác. ② automation đã đổi: vân tay spec khác lượt trước.',
+  trap:'"Fix bug" và "đổi môi trường" để lại CÙNG một dấu vết đo được — verdict đổi mà spec không đổi. Máy KHÔNG phân biệt được, và chọn bừa một trong hai là bịa nguyên nhân, đúng thứ failureLayer đã cấm. Và specDoi chỉ nói automation CÓ ĐỔI, không nói đổi đó GÂY RA verdict mới: sửa một dòng chú thích cũng làm vân tay đổi.',
+  src:'scripts/qa/rerun_classify.js', rel:['s-layer-flaky','g-exec_proof','f-verdict-taxonomy','g-setup_proof'] }
 
 ];
