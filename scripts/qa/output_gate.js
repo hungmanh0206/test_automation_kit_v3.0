@@ -317,7 +317,60 @@ function gateTestExecution(doc, { fix = false, chayTay = false } = {}) {
    *   · gộp, vì CSDL-4008 có 284 case thiếu dấu. 284 dòng cảnh báo giống hệt nhau không phải thông
    *     tin, nó là nhiễu — và nhiễu đẩy những dòng đáng đọc ra khỏi màn hình.
    */
+  /*
+   * ORACLE CONFIDENCE — PASS chính thức KHÔNG được đứng trên một CÂU HỎI CÒN TREO (11/11/2026).
+   *
+   * Chủ dự án nêu (ưu tiên #2): *"Nếu comment ghi rõ chưa đủ đặc tả để kết luận thì không được phát
+   * hành PASS chính thức."*
+   *
+   * ĐÃ THỬ MỘT MẪU RỘNG HƠN VÀ BỎ. Dò chữ kiểu "không có neo / chưa neo" gắn cờ 3 case của CSDL-4008,
+   * đọc nguyên văn thì chỉ 1 sai — hai case kia ghi `OBSERVATION` cho một khía cạnh PHỤ trong khi
+   * oracle chính vẫn có neo, tức dùng đúng doctrine. 67% dương tính giả thì không chặn được.
+   *
+   * CŨNG ĐÃ THỬ NEO VÀO `BR-…` VÀ BỎ: 50 case PASS không mang mã BR, nhưng mẫu toàn case cấu trúc
+   * kiểu "mở màn, header ghi đúng cấp" — oracle của chúng nằm ở đặc tả màn, không ở một business
+   * rule. Gắn cờ cả 50 là tố oan hàng loạt.
+   *
+   * MẪU CÒN LẠI HẸP VÀ ĐÚNG: một CÂU HỎI CHƯA ĐƯỢC TRẢ LỜI. Đo trên CSDL-4008: 3 case, 2 trong đó
+   * PASSED, và cả 2 đều sai thật (một case ghi "BR… chưa neo hành vi với số nhập tay — cần chủ dự án
+   * chốt", một case mang "mã diện chưa chốt" kèm chênh UI≠SQL). Case thứ ba đã FAILED nên không sao.
+   *
+   * Taxonomy đã có sẵn chỗ đúng cho tình huống này: `OBSERVATION` — "quan sát được nhưng KHÔNG có
+   * oracle độc lập ⇒ không kết luận đúng/sai. Bắt buộc kèm open_question."
+   *
+   * ĐƯỜNG THOÁT: nói rõ câu hỏi đó KHÔNG ảnh hưởng verdict của case này. Một câu hỏi treo về khía
+   * cạnh phụ là chuyện bình thường; cái phải chặn là verdict dựa trên nó.
+   */
+  const CAU_HOI_TREO = /cần (chủ dự án|BA|dev|PO|QA[ -]?lead|người ra yêu cầu)[^.]{0,24}(chốt|xác nhận|trả lời)|chưa chốt|chờ (chốt|trả lời|xác nhận)|đang chờ (BA|dev|chủ dự án)/i;
+  const KHONG_ANH_HUONG = /không ảnh hưởng (verdict|kết luận|case này)|ngoài phạm vi case|không dùng để phán/i;
+  for (const t of tests) {
+    if (!/^(pass|passed)$/i.test(String(t.status || '').trim())) continue;
+    const txt = [t.comment || '', ...(Array.isArray(t.steps) ? t.steps.map((s) => s.comment || '') : [])].join(' | ');
+    if (!CAU_HOI_TREO.test(txt) || KHONG_ANH_HUONG.test(txt)) continue;
+    problems.push(`${t.tcId || '(không rõ TC)'}: ghi PASS trong khi còn CÂU HỎI CHƯA ĐƯỢC TRẢ LỜI `
+      + `("${(txt.match(CAU_HOI_TREO) || [''])[0]}"). Chưa đủ căn cứ để kết luận thì verdict đúng là `
+      + '`OBSERVATION` (kèm open_question), không phải PASS. Nếu câu hỏi đó KHÔNG ảnh hưởng verdict của '
+      + 'case này thì nói thẳng ra trong comment — im lặng thì người đọc sau không phân biệt được.');
+  }
+
   const daChay = tests.filter((t) => isExecuted(t.status));
+
+  /*
+   * COMMENT RỖNG RUỘT — case đã chạy mà lời ghi không nói được gì (11/11/2026).
+   *
+   * `Executed`, `OK`, `Done` nói đúng một điều người đọc đã biết, và chiếm chỗ của expected/actual/
+   * nguồn đo. Đo trên CSDL-4008: 0/241 case dính — đây là lỗ TIỀM ẨN ở giá trị mặc định của recorder,
+   * nên cửa này giữ cho nó đừng sống lại. Mức CẢNH BÁO và GỘP: hôm nay 0, nên nó không gây nhiễu.
+   */
+  const RONG_RUOT = /^(executed|ok|done|pass(ed)?|fail(ed)?|n\/a|-|\(chưa khai\).*)$/i;
+  const cmtRong = daChay.filter((t) => RONG_RUOT.test(String(t.comment || '').trim()));
+  if (cmtRong.length) {
+    warnings.push(`${cmtRong.length}/${daChay.length} case đã chạy có comment RỖNG RUỘT `
+      + `(${cmtRong.slice(0, 3).map((t) => `${t.tcId}="${String(t.comment || '').trim().slice(0, 24)}"`).join(', ')}${cmtRong.length > 3 ? ' …' : ''}). `
+      + 'Comment phải nêu EXPECTED, ACTUAL và NGUỒN ĐO — một chữ "Executed" nói đúng điều người đọc đã biết, '
+      + 'và chiếm chỗ của thứ đáng đọc.');
+  }
+
   const thieuNguonGoc = daChay.filter((t) => !t.run || !t.run.evidenceDir);
   if (thieuNguonGoc.length && !chayTay) {
     warnings.push(`${thieuNguonGoc.length}/${daChay.length} case đã chạy nhưng KHÔNG có dấu nguồn gốc \`run\` `

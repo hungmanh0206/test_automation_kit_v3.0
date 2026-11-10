@@ -555,7 +555,21 @@ class Case {
       status,
       ...(failureLayer ? { failureLayer } : {}),
       ...(laFail(status) ? { reruns } : {}),
-      comment: sanitize(opts.comment || (anyFail ? 'Có step FAILED — xem step evidence' : 'Executed')),
+      /*
+       * COMMENT MẶC ĐỊNH KHÔNG ĐƯỢC LÀ MỘT CHỮ RỖNG RUỘT (11/11/2026).
+       *
+       * Chủ dự án nêu (ưu tiên #5): thay `Executed` bằng tóm tắt expected, actual và nguồn đo.
+       *
+       * `'Executed'` nói đúng một điều người đọc đã biết — case này đã chạy — và chiếm đúng chỗ của
+       * thứ đáng đọc. Đo trên CSDL-4008: 0/241 case dùng giá trị này, nên đây là lỗ TIỀM ẨN ở default
+       * chứ chưa phải lỗi đang sống. Vì thế việc đúng là BỊT DEFAULT, không phải thêm một cửa ồn ào.
+       *
+       * Không ném: thiếu comment là chuyện biên tập, không phải mâu thuẫn trong spec. Nhưng chữ ghi ra
+       * phải TỰ TỐ CÁO mình, để `output_gate` đếm được và người đọc thấy ngay là còn thiếu.
+       */
+      comment: sanitize(opts.comment || (anyFail
+        ? 'Có step FAILED — xem step evidence'
+        : '(CHƯA KHAI) — comment phải nêu expected, actual và nguồn đo')),
       evidence: caseEv,
       steps: this.steps,
       run: nguonGoc,
