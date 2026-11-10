@@ -293,6 +293,27 @@ function gateTestExecution(doc, { fix = false } = {}) {
     if (!att.oracleSource) warnings.push('Attestation thiếu "oracleSource" (nguồn oracle: sheet/spec/figma/api-contract…) — nêu để chống oracle tự chế.');
   }
 
+  /*
+   * NGUỒN GỐC — case đã chạy thì phải lần lại được nó ra từ LƯỢT NÀO (11/11/2026).
+   *
+   * `evidence_recorder` nay đóng dấu `run: { evidenceDir, spec, title, project, retry, worker, id }`
+   * vào TỪNG case. Cửa này đếm xem bản ghi có dấu đó không.
+   *
+   * MỨC CẢNH BÁO, và GỘP MỘT DÒNG — hai quyết định, hai lý do khác nhau:
+   *   · cảnh báo, vì mọi bản ghi có TRƯỚC hôm nay đều thiếu dấu. Làm đỏ chúng là làm đỏ việc đã xong;
+   *     một cửa đỏ-sẵn thì người ta tắt, và lúc đó luật mất hẳn.
+   *   · gộp, vì CSDL-4008 có 284 case thiếu dấu. 284 dòng cảnh báo giống hệt nhau không phải thông
+   *     tin, nó là nhiễu — và nhiễu đẩy những dòng đáng đọc ra khỏi màn hình.
+   */
+  const daChay = tests.filter((t) => isExecuted(t.status));
+  const thieuNguonGoc = daChay.filter((t) => !t.run || !t.run.evidenceDir);
+  if (thieuNguonGoc.length) {
+    warnings.push(`${thieuNguonGoc.length}/${daChay.length} case đã chạy nhưng KHÔNG có dấu nguồn gốc \`run\` `
+      + `(ví dụ: ${thieuNguonGoc.slice(0, 3).map((t) => t.tcId).join(', ')}${thieuNguonGoc.length > 3 ? ' …' : ''}). `
+      + 'Không lần lại được verdict này ra từ lượt chạy nào, spec nào, ảnh ở đâu — đúng lớp lỗi đã làm '
+      + '45 verdict của lượt GDTX ghi đè cột Result THCS mà không máy nào báo. Lượt chạy mới sẽ tự có dấu.');
+  }
+
   return { problems, warnings, fixes, executed, doc: Array.isArray(doc) ? { tests } : doc };
 }
 

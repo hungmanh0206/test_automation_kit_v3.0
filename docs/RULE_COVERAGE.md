@@ -18,7 +18,7 @@ Ví dụ cụ thể: `secret:scan` chặn theo mục Security mà mục đó kh�
 không nhắc tên. Đã đo trên bản máy của `gate:policy`: đòi luật canonical nhắc TÊN mọi lệnh thì **19/24
 script báo oan**. Nên con số `chưa nối được` ở dưới là **việc cần rà**, không phải một lỗ đã chứng minh.
 
-Nguồn: `RULE_GLOBAL.md` (35 mục có nội dung) · 170 gate · 192 spec hạ tầng.
+Nguồn: `RULE_GLOBAL.md` (35 mục có nội dung) · 170 gate · 193 spec hạ tầng.
 
 ## Mục luật ĐÃ nối được gate (29)
 
@@ -29,9 +29,9 @@ Nguồn: `RULE_GLOBAL.md` (35 mục có nội dung) · 170 gate · 192 spec hạ
 | Inputs | `profile:create` | `start-command.spec.ts` |
 | Outputs | `report` | `ambiguity-gate.spec.ts` · `autofix.spec.ts` · `backlog-bug-images.spec.ts` +53 |
 | Giọng văn output | `report` | `ambiguity-gate.spec.ts` · `autofix.spec.ts` · `backlog-bug-images.spec.ts` +53 |
-| Thân bug Backlog — viết cho DEV đọc, không phải cho máy đọc | `gate:output` · `writing:lint` · `report` | `check-command.spec.ts` · `checks-l4.spec.ts` · `dimension-threshold.spec.ts` +65 |
+| Thân bug Backlog — viết cho DEV đọc, không phải cho máy đọc | `gate:output` · `writing:lint` · `report` | `check-command.spec.ts` · `checks-l4.spec.ts` · `dimension-threshold.spec.ts` +66 |
 | Language | `report` | `ambiguity-gate.spec.ts` · `autofix.spec.ts` · `backlog-bug-images.spec.ts` +53 |
-| Security | `gate:output` · `report` | `check-command.spec.ts` · `checks-l4.spec.ts` · `dimension-threshold.spec.ts` +63 |
+| Security | `gate:output` · `report` | `check-command.spec.ts` · `checks-l4.spec.ts` · `dimension-threshold.spec.ts` +64 |
 | Project And Output | `report` | `ambiguity-gate.spec.ts` · `autofix.spec.ts` · `backlog-bug-images.spec.ts` +53 |
 | Parallel Story Safety | `report` | `ambiguity-gate.spec.ts` · `autofix.spec.ts` · `backlog-bug-images.spec.ts` +53 |
 | Phase-Separated Story Execution | `merge:execution-status` · `canonical:drift` · `check` · `expected:check` · `load` · `gate:policy` · `ledger:check` · `risk` · `sync:canonical` · `report` | `canonical-drift.spec.ts` · `expansion-gates.spec.ts` · `manual-run-gate.spec.ts` +149 |
@@ -43,11 +43,11 @@ Nguồn: `RULE_GLOBAL.md` (35 mục có nội dung) · 170 gate · 192 spec hạ
 | 7 trục mở rộng quanh case + luật đóng vòng (Phase 2 — có máy đứng sau) | `authz:expand` · `check` · `xsurf:diff` · `design:gate` · `discover` · `expansion:audit` · `expansion:plan` · `ui:contract` · `fixture:matrix` · `lane` · `leak:report` · `load` · `mutation:check` · `oracle:calc` · `probe:persist` · `risk` · `rule` · `self-review` · `spec:extract` · `spec:gap` · `report` | `authz-expand.spec.ts` · `autofix.spec.ts` · `bug-claim.spec.ts` +164 |
 | Execute Results | `rule` · `report` | `api-card.spec.ts` · `automation-review.spec.ts` · `backlog-bug-images.spec.ts` +82 |
 | Phân tầng lỗi FE hay BE — bắt buộc kiểm API trước khi kết luận | `load` | `agent-routing.spec.ts` · `auth-session-lock.spec.ts` · `automation-review.spec.ts` +49 |
-| Evidence — Quy chuẩn bắt buộc | `load` · `gate:output` · `rule` · `report` | `agent-routing.spec.ts` · `auth-session-lock.spec.ts` · `automation-review.spec.ts` +119 |
+| Evidence — Quy chuẩn bắt buộc | `load` · `gate:output` · `rule` · `report` | `agent-routing.spec.ts` · `auth-session-lock.spec.ts` · `automation-review.spec.ts` +120 |
 | Bug Claim Gate — kiểm chứng phải đi TRƯỚC lời nói | `bug:claim` · `check` · `spec:gap` · `report` | `bug-claim.spec.ts` · `bug-retest.spec.ts` · `trace-test-mocoi.spec.ts` +128 |
 | Retest một bug đã log (thêm 10/10/2026, v2.5.0 G1.8) | `bug:claim` · `check` | `bug-claim.spec.ts` · `bug-retest.spec.ts` · `trace-test-mocoi.spec.ts` +105 |
 | Backlog Bug Gate | `load` | `agent-routing.spec.ts` · `auth-session-lock.spec.ts` · `automation-review.spec.ts` +49 |
-| Executable QA capabilities (autonomy & safety) | `check` · `dashboard` · `learn` · `load` · `gate:output` · `perf` · `risk` · `rule` · `security` · `report` | `autofix.spec.ts` · `bug-claim.spec.ts` · `bug-outcome.spec.ts` +162 |
+| Executable QA capabilities (autonomy & safety) | `check` · `dashboard` · `learn` · `load` · `gate:output` · `perf` · `risk` · `rule` · `security` · `report` | `autofix.spec.ts` · `bug-claim.spec.ts` · `bug-outcome.spec.ts` +163 |
 | Automation quality | `auto:review` · `check` · `gate:friction` · `golden:check` · `judge` · `rule` | `automation-review.spec.ts` · `checks-l4.spec.ts` · `expected-ledger.spec.ts` +122 |
 | Push execution | `merge:execution-status` | `canonical-drift.spec.ts` · `expansion-gates.spec.ts` · `manual-run-gate.spec.ts` +2 |
 | Workflow | `report` | `ambiguity-gate.spec.ts` · `autofix.spec.ts` · `backlog-bug-images.spec.ts` +53 |

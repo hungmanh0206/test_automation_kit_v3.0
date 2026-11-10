@@ -12,7 +12,11 @@
  * Ảnh lưu: <projectOutputDir>/tasks/<taskKey>/test-results/evidence/<TC_ID>/<CẤP>/step-NN-<status>.png
  * Ghi ra:  <projectOutputDir>/tasks/<taskKey>/test-results/testcase-status.json
  *   schema đúng với push_test_execution.js:
- *   { taskKey, generatedAt, runId?, tests: [ { tcId, status, comment, evidence:[...], steps:[ {status, comment, evidence:[...]} ] } ] }
+ *   { taskKey, generatedAt, runId?, tests: [ {
+ *       tcId, status, comment, evidence:[...], steps:[ {name, status, comment, evidence:[...], tienDe?} ],
+ *       recordedAt, scope?,
+ *       run: { evidenceDir, id?, spec?, title?, project?, retry?, worker? }   // NGUỒN GỐC, đóng dấu từng case
+ *   } ] }
  *
  * Cách dùng trong automation task-scoped (standalone Playwright):
  *   const { EvidenceRecorder } = require('<repo>/scripts/utils/evidence_recorder');
@@ -281,6 +285,66 @@ class Case {
     return this.step(page, `TIỀN ĐỀ · ${moTa}`, { ...opts, tienDe: true });
   }
 
+  /**
+   * NGUỒN GỐC của verdict: nó ra từ LƯỢT CHẠY NÀO, SPEC nào, và ảnh nằm ở đâu.
+   *
+   * ──────────────────────────────────────────────────────────────────────────────────────────────
+   * VÌ SAO Ở CẤP CASE, KHÔNG Ở CẤP FILE
+   *
+   * Đây là nối tiếp đúng lập luận đã có sẵn ở `_put()`: `testcase-status.json` gộp cả shard của lượt
+   * trước, nên MỘT file chứa kết quả của NHIỀU lượt. `runId` ở mức file vì thế không nói được case
+   * nào thuộc lượt nào — cùng lý do `recordedAt` và `scope` đã phải đóng dấu từng case.
+   *
+   * Lớp lỗi đã trả giá (08/10/2026, ghi ở `_put`): 45 verdict của lượt GDTX ghi đè cột `Result THCS`,
+   * và KHÔNG MÁY NÀO BÁO vì bản ghi không mang dấu vết lượt chạy để đối chiếu.
+   *
+   * ──────────────────────────────────────────────────────────────────────────────────────────────
+   * LẤY DANH TÍNH TỪ ĐÂU, và ranh giới của từng nguồn
+   *
+   *   · `test.info()` — nguồn ĐÁNG TIN NHẤT: spec, tên test, project, lần retry, worker. Nó do chính
+   *     Playwright cấp nên không đoán. Gọi ngoài runner thì NÉM, nên phải bọc try/catch; recorder còn
+   *     được dùng ở script ngoài Playwright.
+   *   · `RUN_ID` — chỉ có khi người chạy khai. KHÔNG tự sinh một id thay thế: mỗi worker là một tiến
+   *     trình riêng nên id tự sinh sẽ KHÁC NHAU giữa các worker của CÙNG một lượt, và một dấu vết sai
+   *     tệ hơn không có dấu vết.
+   *   · `evidenceDir` — thứ kiểm lại được bằng tay: ảnh của case này, của chính lượt này, nằm ở đó.
+   *     Đây là câu trả lời cho "kể cả khi sổ không lưu step trực tiếp".
+   */
+  _nguonGoc() {
+    /*
+     * Đường dẫn phải NGẮN và dùng `/`, kể cả trên Windows — nó đi vào JSON mà người khác đọc.
+     * Và `repoRoot` không phải lúc nào cũng là gốc repo (test dựng cây tạm), nên khi `relative()`
+     * trả ra đường đi lên (`..`) hoặc đường tuyệt đối thì rơi về `process.cwd()`. Một đường dẫn
+     * tuyệt đối của MÁY TÔI trong sổ kết quả là vô dụng với người đọc sau.
+     */
+    const goiGon = (p) => {
+      for (const goc of [this.rec.repoRoot, process.cwd()]) {
+        const r = path.relative(goc, p).split(path.sep).join('/');
+        if (r && !r.startsWith('../') && !path.isAbsolute(r)) return r;
+      }
+      return String(p).split(path.sep).join('/');
+    };
+    const ra = { evidenceDir: goiGon(this.dir) };
+    if (this.rec.runId) ra.id = this.rec.runId;
+    try {
+      /* eslint-disable-next-line global-require */
+      const ti = require('@playwright/test').test.info();
+      if (ti) {
+        if (ti.file) ra.spec = goiGon(ti.file);
+        /* Bỏ phần tử đầu của `titlePath`: nó là ĐƯỜNG DẪN FILE, đã có ở `spec`, và mang dấu `\`
+         * của Windows vào giữa câu tiêu đề. */
+        if (Array.isArray(ti.titlePath) && ti.titlePath.length) {
+          const t = ti.titlePath.filter(Boolean).filter((x) => !/\.spec\.[tj]s$/.test(String(x)));
+          if (t.length) ra.title = sanitize(t.join(' › '));
+        }
+        if (ti.project && ti.project.name) ra.project = ti.project.name;
+        if (typeof ti.retry === 'number') ra.retry = ti.retry;
+        if (typeof ti.workerIndex === 'number') ra.worker = ti.workerIndex;
+      }
+    } catch (e) { /* không chạy trong Playwright — evidenceDir vẫn đủ để lần lại */ }
+    return ra;
+  }
+
   /** Kết thúc case: status tổng (mặc định = FAILED nếu có step FAILED). Evidence cấp case = ảnh step lỗi (nếu có) hoặc step cuối. */
   /**
    * Step nào là XẤU: đã chạy và sai, HOẶC chưa chạy được vì bị chặn.
@@ -428,6 +492,7 @@ class Case {
       comment: sanitize(opts.comment || (anyFail ? 'Có step FAILED — xem step evidence' : 'Executed')),
       evidence: caseEv,
       steps: this.steps,
+      run: this._nguonGoc(),
     });
     return status;
   }
