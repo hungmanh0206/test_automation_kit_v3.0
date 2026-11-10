@@ -73,7 +73,19 @@ function canonStatus(raw) {
 // evidence có thể là string | array; step dùng evidence | evidences.
 const evList = (v) => (Array.isArray(v) ? v : (v ? [v] : [])).map(String).filter(Boolean);
 
-function gateTestExecution(doc, { fix = false } = {}) {
+/**
+ * @param {object} doc  sổ kết quả
+ * @param {object} opt
+ * @param {boolean} opt.fix      tự sửa định dạng comment rồi trả bản đã sửa
+ * @param {boolean} opt.chayTay  lượt CHẠY TAY (`manual-run/`) — bỏ phép kiểm dấu nguồn gốc lượt chạy.
+ *
+ *   Vì sao phải có cờ này: case `[manual]` chạy tay KHÔNG có lượt Playwright nào để trỏ tới, nên đòi
+ *   `run.evidenceDir` ở đó là báo oan. Phát hiện ngay lượt đầu, qua chính ca "CHỐNG BÁO OAN" của
+ *   `manual-run-gate.spec.ts` — và một gate báo oan một lần là mất uy tín vĩnh viễn.
+ *
+ *   Cờ này KHÔNG nới gì khác: mọi phép kiểm còn lại (evidence, verdict, phân tầng) vẫn áp nguyên.
+ */
+function gateTestExecution(doc, { fix = false, chayTay = false } = {}) {
   const tests = Array.isArray(doc) ? doc : (doc.tests || doc.testcases || []);
   const problems = [];
   const warnings = [];
@@ -165,6 +177,34 @@ function gateTestExecution(doc, { fix = false } = {}) {
     // 3) Step status: mọi step phải có status (không để trống → "TO DO" rối).
     const stepsNoStatus = steps.filter((s) => !String(s.status || '').trim()).length;
     if (steps.length && stepsNoStatus) problems.push(`${id}: ${stepsNoStatus}/${steps.length} step THIẾU status (mỗi step phải PASS/FAIL)`);
+
+    /*
+     * 3b) GỘP VERDICT — PASS chính thức KHÔNG được đứng trên một step xấu (11/11/2026).
+     *
+     * `evidence_recorder.finish()` đã bịt đường ghi, nhưng sổ này còn nhận bản ghi từ đường KHÁC:
+     * merge tay, bản archive chép lại, spec tự ghi JSON. Cửa đọc phải tự kiểm, nếu không thì luật chỉ
+     * đúng với những ai đi qua recorder — và chỗ không đi qua recorder mới là chỗ dễ sai nhất.
+     *
+     * Vì sao `BLOCKED` phải tính là xấu ngang `FAIL`: taxonomy xếp nó vào "chưa thực thi". Một case
+     * ghi PASS trong khi một bước CHƯA CHẠY ĐƯỢC là khai đã kiểm một thứ chưa ai kiểm.
+     *
+     * ĐƯỜNG THOÁT: comment nêu rõ đã PHỤC HỒI và xác minh lại. Nhận cả chữ do recorder sinh
+     * (`PHỤC HỒI:`) lẫn chữ người viết tay, miễn có nói tới việc chạy lại/xác minh lại bước đó.
+     */
+    const PASS_CHINH_THUC = /^(pass|passed)$/i.test(String(t.status || '').trim());
+    if (PASS_CHINH_THUC && steps.length) {
+      const stepXau = steps.filter((s) => {
+        const v = canonStatus(s.status) || String(s.status || '').trim().toUpperCase();
+        return v === 'FAIL' || v === 'BLOCKED_SETUP' || v === 'SKIP_SETUP' || v === 'SKIP';
+      });
+      const khaiPhucHoi = /PHỤC HỒI:|phục hồi|xác minh lại|chạy lại (và|rồi) (đạt|pass)/i.test(String(t.comment || ''));
+      if (stepXau.length && !khaiPhucHoi) {
+        problems.push(`${id}: ghi PASS trong khi ${stepXau.length}/${steps.length} step còn XẤU `
+          + `(${stepXau.slice(0, 3).map((s) => `${s.name || 'step'}=${s.status}`).join(' · ')}${stepXau.length > 3 ? ' …' : ''}) `
+          + 'mà comment KHÔNG khai đã phục hồi. PASS đứng trên một bước chưa chạy được là khai đã kiểm '
+          + 'một thứ chưa ai kiểm — hạ verdict, hoặc nói rõ đã phục hồi bằng cách nào và xác minh lại ở bước nào.');
+      }
+    }
     /*
      * EVIDENCE THEO STEP — ĐỔI 22/10/2026 (mức B). Trước: MỌI step của MỌI case phải có ảnh riêng.
      * Nay: chỉ case SẮP THÀNH BUG mới phải có chuỗi từng bước.
@@ -263,6 +303,80 @@ function gateTestExecution(doc, { fix = false } = {}) {
     if (att.allEvidenceAttached === true && evMiss) warnings.push(`Attestation "allEvidenceAttached=true" MÂU THUẪN: gate thấy ${evMiss} vấn đề evidence.`);
     if (att.failuresClassified === true && failLayerMiss) warnings.push(`Attestation "failuresClassified=true" MÂU THUẪN: gate thấy ${failLayerMiss} FAIL thiếu tầng-lỗi.`);
     if (!att.oracleSource) warnings.push('Attestation thiếu "oracleSource" (nguồn oracle: sheet/spec/figma/api-contract…) — nêu để chống oracle tự chế.');
+  }
+
+  /*
+   * NGUỒN GỐC — case đã chạy thì phải lần lại được nó ra từ LƯỢT NÀO (11/11/2026).
+   *
+   * `evidence_recorder` nay đóng dấu `run: { evidenceDir, spec, title, project, retry, worker, id }`
+   * vào TỪNG case. Cửa này đếm xem bản ghi có dấu đó không.
+   *
+   * MỨC CẢNH BÁO, và GỘP MỘT DÒNG — hai quyết định, hai lý do khác nhau:
+   *   · cảnh báo, vì mọi bản ghi có TRƯỚC hôm nay đều thiếu dấu. Làm đỏ chúng là làm đỏ việc đã xong;
+   *     một cửa đỏ-sẵn thì người ta tắt, và lúc đó luật mất hẳn.
+   *   · gộp, vì CSDL-4008 có 284 case thiếu dấu. 284 dòng cảnh báo giống hệt nhau không phải thông
+   *     tin, nó là nhiễu — và nhiễu đẩy những dòng đáng đọc ra khỏi màn hình.
+   */
+  /*
+   * ORACLE CONFIDENCE — PASS chính thức KHÔNG được đứng trên một CÂU HỎI CÒN TREO (11/11/2026).
+   *
+   * Chủ dự án nêu (ưu tiên #2): *"Nếu comment ghi rõ chưa đủ đặc tả để kết luận thì không được phát
+   * hành PASS chính thức."*
+   *
+   * ĐÃ THỬ MỘT MẪU RỘNG HƠN VÀ BỎ. Dò chữ kiểu "không có neo / chưa neo" gắn cờ 3 case của CSDL-4008,
+   * đọc nguyên văn thì chỉ 1 sai — hai case kia ghi `OBSERVATION` cho một khía cạnh PHỤ trong khi
+   * oracle chính vẫn có neo, tức dùng đúng doctrine. 67% dương tính giả thì không chặn được.
+   *
+   * CŨNG ĐÃ THỬ NEO VÀO `BR-…` VÀ BỎ: 50 case PASS không mang mã BR, nhưng mẫu toàn case cấu trúc
+   * kiểu "mở màn, header ghi đúng cấp" — oracle của chúng nằm ở đặc tả màn, không ở một business
+   * rule. Gắn cờ cả 50 là tố oan hàng loạt.
+   *
+   * MẪU CÒN LẠI HẸP VÀ ĐÚNG: một CÂU HỎI CHƯA ĐƯỢC TRẢ LỜI. Đo trên CSDL-4008: 3 case, 2 trong đó
+   * PASSED, và cả 2 đều sai thật (một case ghi "BR… chưa neo hành vi với số nhập tay — cần chủ dự án
+   * chốt", một case mang "mã diện chưa chốt" kèm chênh UI≠SQL). Case thứ ba đã FAILED nên không sao.
+   *
+   * Taxonomy đã có sẵn chỗ đúng cho tình huống này: `OBSERVATION` — "quan sát được nhưng KHÔNG có
+   * oracle độc lập ⇒ không kết luận đúng/sai. Bắt buộc kèm open_question."
+   *
+   * ĐƯỜNG THOÁT: nói rõ câu hỏi đó KHÔNG ảnh hưởng verdict của case này. Một câu hỏi treo về khía
+   * cạnh phụ là chuyện bình thường; cái phải chặn là verdict dựa trên nó.
+   */
+  const CAU_HOI_TREO = /cần (chủ dự án|BA|dev|PO|QA[ -]?lead|người ra yêu cầu)[^.]{0,24}(chốt|xác nhận|trả lời)|chưa chốt|chờ (chốt|trả lời|xác nhận)|đang chờ (BA|dev|chủ dự án)/i;
+  const KHONG_ANH_HUONG = /không ảnh hưởng (verdict|kết luận|case này)|ngoài phạm vi case|không dùng để phán/i;
+  for (const t of tests) {
+    if (!/^(pass|passed)$/i.test(String(t.status || '').trim())) continue;
+    const txt = [t.comment || '', ...(Array.isArray(t.steps) ? t.steps.map((s) => s.comment || '') : [])].join(' | ');
+    if (!CAU_HOI_TREO.test(txt) || KHONG_ANH_HUONG.test(txt)) continue;
+    problems.push(`${t.tcId || '(không rõ TC)'}: ghi PASS trong khi còn CÂU HỎI CHƯA ĐƯỢC TRẢ LỜI `
+      + `("${(txt.match(CAU_HOI_TREO) || [''])[0]}"). Chưa đủ căn cứ để kết luận thì verdict đúng là `
+      + '`OBSERVATION` (kèm open_question), không phải PASS. Nếu câu hỏi đó KHÔNG ảnh hưởng verdict của '
+      + 'case này thì nói thẳng ra trong comment — im lặng thì người đọc sau không phân biệt được.');
+  }
+
+  const daChay = tests.filter((t) => isExecuted(t.status));
+
+  /*
+   * COMMENT RỖNG RUỘT — case đã chạy mà lời ghi không nói được gì (11/11/2026).
+   *
+   * `Executed`, `OK`, `Done` nói đúng một điều người đọc đã biết, và chiếm chỗ của expected/actual/
+   * nguồn đo. Đo trên CSDL-4008: 0/241 case dính — đây là lỗ TIỀM ẨN ở giá trị mặc định của recorder,
+   * nên cửa này giữ cho nó đừng sống lại. Mức CẢNH BÁO và GỘP: hôm nay 0, nên nó không gây nhiễu.
+   */
+  const RONG_RUOT = /^(executed|ok|done|pass(ed)?|fail(ed)?|n\/a|-|\(chưa khai\).*)$/i;
+  const cmtRong = daChay.filter((t) => RONG_RUOT.test(String(t.comment || '').trim()));
+  if (cmtRong.length) {
+    warnings.push(`${cmtRong.length}/${daChay.length} case đã chạy có comment RỖNG RUỘT `
+      + `(${cmtRong.slice(0, 3).map((t) => `${t.tcId}="${String(t.comment || '').trim().slice(0, 24)}"`).join(', ')}${cmtRong.length > 3 ? ' …' : ''}). `
+      + 'Comment phải nêu EXPECTED, ACTUAL và NGUỒN ĐO — một chữ "Executed" nói đúng điều người đọc đã biết, '
+      + 'và chiếm chỗ của thứ đáng đọc.');
+  }
+
+  const thieuNguonGoc = daChay.filter((t) => !t.run || !t.run.evidenceDir);
+  if (thieuNguonGoc.length && !chayTay) {
+    warnings.push(`${thieuNguonGoc.length}/${daChay.length} case đã chạy nhưng KHÔNG có dấu nguồn gốc \`run\` `
+      + `(ví dụ: ${thieuNguonGoc.slice(0, 3).map((t) => t.tcId).join(', ')}${thieuNguonGoc.length > 3 ? ' …' : ''}). `
+      + 'Không lần lại được verdict này ra từ lượt chạy nào, spec nào, ảnh ở đâu — đúng lớp lỗi đã làm '
+      + '45 verdict của lượt GDTX ghi đè cột Result THCS mà không máy nào báo. Lượt chạy mới sẽ tự có dấu.');
   }
 
   return { problems, warnings, fixes, executed, doc: Array.isArray(doc) ? { tests } : doc };

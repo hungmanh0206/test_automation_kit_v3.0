@@ -12,7 +12,11 @@
  * Ảnh lưu: <projectOutputDir>/tasks/<taskKey>/test-results/evidence/<TC_ID>/<CẤP>/step-NN-<status>.png
  * Ghi ra:  <projectOutputDir>/tasks/<taskKey>/test-results/testcase-status.json
  *   schema đúng với push_test_execution.js:
- *   { taskKey, generatedAt, runId?, tests: [ { tcId, status, comment, evidence:[...], steps:[ {status, comment, evidence:[...]} ] } ] }
+ *   { taskKey, generatedAt, runId?, tests: [ {
+ *       tcId, status, comment, evidence:[...], steps:[ {name, status, comment, evidence:[...], tienDe?} ],
+ *       recordedAt, scope?,
+ *       run: { evidenceDir, id?, spec?, title?, project?, retry?, worker? }   // NGUỒN GỐC, đóng dấu từng case
+ *   } ] }
  *
  * Cách dùng trong automation task-scoped (standalone Playwright):
  *   const { EvidenceRecorder } = require('<repo>/scripts/utils/evidence_recorder');
@@ -28,6 +32,7 @@
  */
 const fs = require('fs');
 const path = require('path');
+const crypto = require('crypto');
 const { sanitize } = require('./evidence/sanitize');   // #3: PII safety-net
 const { buildManifest, readManifest } = require('./evidence/manifest'); // #3: index evidence + kiểm tồn tại
 
@@ -281,11 +286,218 @@ class Case {
     return this.step(page, `TIỀN ĐỀ · ${moTa}`, { ...opts, tienDe: true });
   }
 
+  /**
+   * NGUỒN GỐC của verdict: nó ra từ LƯỢT CHẠY NÀO, SPEC nào, và ảnh nằm ở đâu.
+   *
+   * ──────────────────────────────────────────────────────────────────────────────────────────────
+   * VÌ SAO Ở CẤP CASE, KHÔNG Ở CẤP FILE
+   *
+   * Đây là nối tiếp đúng lập luận đã có sẵn ở `_put()`: `testcase-status.json` gộp cả shard của lượt
+   * trước, nên MỘT file chứa kết quả của NHIỀU lượt. `runId` ở mức file vì thế không nói được case
+   * nào thuộc lượt nào — cùng lý do `recordedAt` và `scope` đã phải đóng dấu từng case.
+   *
+   * Lớp lỗi đã trả giá (08/10/2026, ghi ở `_put`): 45 verdict của lượt GDTX ghi đè cột `Result THCS`,
+   * và KHÔNG MÁY NÀO BÁO vì bản ghi không mang dấu vết lượt chạy để đối chiếu.
+   *
+   * ──────────────────────────────────────────────────────────────────────────────────────────────
+   * LẤY DANH TÍNH TỪ ĐÂU, và ranh giới của từng nguồn
+   *
+   *   · `test.info()` — nguồn ĐÁNG TIN NHẤT: spec, tên test, project, lần retry, worker. Nó do chính
+   *     Playwright cấp nên không đoán. Gọi ngoài runner thì NÉM, nên phải bọc try/catch; recorder còn
+   *     được dùng ở script ngoài Playwright.
+   *   · `RUN_ID` — chỉ có khi người chạy khai. KHÔNG tự sinh một id thay thế: mỗi worker là một tiến
+   *     trình riêng nên id tự sinh sẽ KHÁC NHAU giữa các worker của CÙNG một lượt, và một dấu vết sai
+   *     tệ hơn không có dấu vết.
+   *   · `evidenceDir` — thứ kiểm lại được bằng tay: ảnh của case này, của chính lượt này, nằm ở đó.
+   *     Đây là câu trả lời cho "kể cả khi sổ không lưu step trực tiếp".
+   */
+  /**
+   * Bản ghi của LƯỢT TRƯỚC cho chính case này: shard trước, bản gộp sau.
+   *
+   * Tách ra khỏi nhánh `laFail` vì nó vốn nằm trong đó — tức chỉ đọc được khi case ĐỎ. Phân loại
+   * "verdict đổi vì sao" cần đọc ở MỌI trạng thái, kể cả FAIL → PASS, là chiều đáng quan tâm nhất.
+   *
+   * SHARD MẤT THÌ ĐỌC TIẾP BẢN GỘP. Shard theo TC nằm trong thư mục của MỘT lượt chạy, nên nó đi theo
+   * lượt đó khi người ta archive (`archive-cap-THCS/`) hoặc dọn thư mục. Bản gộp `testcase-status.json`
+   * sống lâu hơn.
+   *
+   * Đo trên CSDL-9001: bản archive 02/10 ghi `CSDL_HSTRUONG_TC_123` có `reruns: 2`; mọi bản từ 06/10
+   * ghi 0, vì shard theo TC đã biến mất cùng lượt được archive. Verdict sống sót qua carry-over nhưng
+   * BẰNG CHỨNG đã rerun thì reset — 7 verdict vốn đúng luật bị `output_gate` chặn vì "chỉ rerun 0 lần",
+   * và người gặp sẽ hoặc chạy lại vô ích, hoặc sửa tay `reruns`, tức bịa đúng con số gate sinh ra để chặn.
+   *
+   * Vẫn KHÔNG phải "khai tay": bản gộp cũng do máy ghi.
+   */
+  _banGhiTruoc() {
+    try {
+      const shard = path.join(this.rec.shardDir, `${safeName(this.tcId)}.json`);
+      const prev = JSON.parse(fs.readFileSync(shard, 'utf8'));
+      if (prev && prev.test) return prev.test;
+    } catch { /* chưa có shard */ }
+    try {
+      const goc = JSON.parse(fs.readFileSync(this.rec.statusFile, 'utf8'));
+      const ds = Array.isArray(goc) ? goc : (goc.tests || []);
+      return ds.find((x) => x && x.tcId === this.tcId) || null;
+    } catch { /* chưa có bản gộp = lượt chạy đầu */ }
+    return null;
+  }
+
+  _nguonGoc() {
+    /*
+     * Đường dẫn phải NGẮN và dùng `/`, kể cả trên Windows — nó đi vào JSON mà người khác đọc.
+     * Và `repoRoot` không phải lúc nào cũng là gốc repo (test dựng cây tạm), nên khi `relative()`
+     * trả ra đường đi lên (`..`) hoặc đường tuyệt đối thì rơi về `process.cwd()`. Một đường dẫn
+     * tuyệt đối của MÁY TÔI trong sổ kết quả là vô dụng với người đọc sau.
+     */
+    const goiGon = (p) => {
+      for (const goc of [this.rec.repoRoot, process.cwd()]) {
+        const r = path.relative(goc, p).split(path.sep).join('/');
+        if (r && !r.startsWith('../') && !path.isAbsolute(r)) return r;
+      }
+      return String(p).split(path.sep).join('/');
+    };
+    const ra = { evidenceDir: goiGon(this.dir) };
+    if (this.rec.runId) ra.id = this.rec.runId;
+    try {
+      /* eslint-disable-next-line global-require */
+      const ti = require('@playwright/test').test.info();
+      if (ti) {
+        if (ti.file) {
+          ra.spec = goiGon(ti.file);
+          /*
+           * VÂN TAY SPEC — 12 ký tự đầu của sha256 nội dung file lúc chạy.
+           *
+           * Đây là thứ DUY NHẤT cho phép trả lời "automation có đổi giữa hai lượt không" mà không
+           * phải đoán. So `mtime` thì không dùng được: checkout lại, `git stash pop`, hay chỉ mở file
+           * ra lưu cũng đổi `mtime` trong khi nội dung y nguyên.
+           *
+           * Chỉ 12 ký tự: đủ để phân biệt hai bản khác nhau, và không biến bản ghi thành bãi hash.
+           */
+          try { ra.specSha = crypto.createHash('sha256').update(fs.readFileSync(ti.file)).digest('hex').slice(0, 12); }
+          catch (e2) { /* đọc không được thì bỏ — thiếu vân tay vẫn hơn vân tay bịa */ }
+        }
+        /* Bỏ phần tử đầu của `titlePath`: nó là ĐƯỜNG DẪN FILE, đã có ở `spec`, và mang dấu `\`
+         * của Windows vào giữa câu tiêu đề. */
+        if (Array.isArray(ti.titlePath) && ti.titlePath.length) {
+          const t = ti.titlePath.filter(Boolean).filter((x) => !/\.spec\.[tj]s$/.test(String(x)));
+          if (t.length) ra.title = sanitize(t.join(' › '));
+        }
+        if (ti.project && ti.project.name) ra.project = ti.project.name;
+        if (typeof ti.retry === 'number') ra.retry = ti.retry;
+        if (typeof ti.workerIndex === 'number') ra.worker = ti.workerIndex;
+      }
+    } catch (e) { /* không chạy trong Playwright — evidenceDir vẫn đủ để lần lại */ }
+    return ra;
+  }
+
   /** Kết thúc case: status tổng (mặc định = FAILED nếu có step FAILED). Evidence cấp case = ảnh step lỗi (nếu có) hoặc step cuối. */
+  /**
+   * Step nào là XẤU: đã chạy và sai, HOẶC chưa chạy được vì bị chặn.
+   *
+   * `laFail()` KHÔNG đủ ở đây. Nó chuẩn hoá qua taxonomy, mà `BLOCKED` → `BLOCKED_SETUP` — một
+   * trạng thái "chưa thực thi", không phải `FAIL`. Đó chính là lỗ: case có step BLOCKED mà người gọi
+   * không tự khai verdict thì rơi vào nhánh `steps.length ? 'PASSED' : 'TODO'` và vào sổ là PASSED.
+   */
+  static _stepXau(s) {
+    const v = chuanHoaVerdict(s && s.status);
+    return v === 'FAIL' || v === 'BLOCKED_SETUP' || v === 'SKIP_SETUP' || v === 'SKIP';
+  }
+
   async finish(overallStatus, opts = {}) {
     // opts.evidence: file cấp CASE thêm vào (vd video mô tả cả chuỗi thao tác — ảnh tĩnh không tả nổi).
     const anyFail = this.steps.some((s) => laFail(s.status));
-    const status = overallStatus || (anyFail ? 'FAILED' : (this.steps.length ? 'PASSED' : 'TODO'));
+    let status = overallStatus || (anyFail ? 'FAILED' : (this.steps.length ? 'PASSED' : 'TODO'));
+
+    /*
+     * ──────────────────────────────────────────────────────────────────────────────────────────────
+     * GỘP VERDICT: KHÔNG ghi PASS khi còn step XẤU, trừ khi khai được đã PHỤC HỒI và xác minh lại.
+     *
+     * LỖ HỔNG ĐÃ MỞ TỚI 11/11/2026, ở ngay dòng trên. `laFail()` chỉ nhận `FAIL`, mà `BLOCKED` chuẩn
+     * hoá thành `BLOCKED_SETUP` — "chưa thực thi", không phải fail. Nên case có step BLOCKED mà người
+     * gọi không tự khai verdict rơi vào nhánh `steps.length ? 'PASSED'` và vào sổ là **PASSED**.
+     * CSDL-4008 ra 0/284 ca dính, nhưng chỉ vì spec ở đó luôn khai verdict tay — dữ liệu sạch KHÔNG
+     * chứng minh lỗ đã bịt.
+     *
+     * HAI ĐƯỜNG ĐỀU BỊT, vì chúng hỏng khác nhau:
+     *   · không khai verdict ⇒ trước đây thành PASSED. Nay LAN trạng thái xấu nhất của step lên.
+     *   · khai thẳng `finish('PASSED')` trong khi còn step xấu ⇒ trước đây im lặng chấp nhận. Nay bị
+     *     HẠ xuống trạng thái xấu nhất, kèm ghi chú nói rõ đã hạ và vì sao.
+     *
+     * VÌ SAO HẠ CHỨ KHÔNG NÉM: ném sẽ cắt ngang lượt chạy và làm mất verdict của mọi case sau — đúng
+     * lớp "lượt chết cụt" kit đã trả giá. Sổ phải ghi được điều đã xảy ra, kể cả khi nó xấu.
+     *
+     * ĐƯỜNG THOÁT DUY NHẤT là `opts.phucHoi`: một câu nói rõ đã phục hồi bằng cách nào và đã xác minh
+     * lại ở bước nào. Có sàn độ dài, cùng khuôn với `minLyDoMienChars` của `bug_claim` — một chữ "ok"
+     * không phải lời khai.
+     */
+    const xau = this.steps.filter((s) => Case._stepXau(s));
+    if (xau.length && chuanHoaVerdict(status) === 'PASS') {
+      const phucHoi = String(opts.phucHoi || '').trim();
+      if (phucHoi.length >= 25) {
+        opts.comment = `${opts.comment || ''}\nPHỤC HỒI: ${phucHoi} (step xấu: ${xau.map((s) => `${s.name}=${s.status}`).join(' · ')})`.trim();
+      } else if (xau.some((s) => laFail(s.status)) && !opts.failureLayer) {
+        /*
+         * STEP FAILED + khai PASS + không khai tầng lỗi ⇒ NÉM, và đây là ngoại lệ có lý do.
+         *
+         * Hai luật gặp nhau ở đây: luật mới nói "không PASS khi còn step xấu", luật cũ nói "FAIL phải
+         * khai failureLayer". Hạ xuống FAILED thì luật cũ ném ngay dòng dưới, với một thông điệp nói
+         * về FAILED trong khi tác giả tưởng mình đang khai PASSED — đọc xong không biết sửa gì.
+         *
+         * Và KHÔNG được tự gán tầng lỗi thay tác giả: taxonomy CỐ Ý không có tầng "chưa phân tầng",
+         * nên mọi giá trị tôi điền vào đều là một lời khẳng định về NGUYÊN NHÂN mà không ai đo.
+         *
+         * Vì sao ném ở đây mà không ném ở nhánh BLOCKED: step FAILED + khai PASS là một MÂU THUẪN
+         * trong chính spec, không phải một tình huống chạy. Nó phải lộ ra ngay chỗ viết sai. Còn
+         * BLOCKED là chuyện có thật lúc chạy, nên nó được ghi vào sổ chứ không làm chết lượt.
+         */
+        throw new Error(`${this.tcId}: khai PASS trong khi step "${xau.find((s) => laFail(s.status)).name}" FAILED. `
+          + 'Chọn một trong hai: khai `failureLayer` để case thành FAILED đúng tầng, hoặc khai `phucHoi` '
+          + '(≥25 ký tự) nói rõ đã phục hồi bằng cách nào và xác minh lại ở bước nào.');
+      } else {
+        const te = xau.map((s) => chuanHoaVerdict(s.status));
+        const haXuong = te.includes('FAIL') ? 'FAILED' : (te.includes('BLOCKED_SETUP') ? 'BLOCKED_SETUP' : te[0]);
+        const vi = `GỘP VERDICT: HẠ từ "${status}" xuống "${haXuong}" — còn ${xau.length} step xấu `
+          + `(${xau.map((s) => `${s.name}=${s.status}`).join(' · ')}) mà không khai \`phucHoi\`. `
+          + 'PASS chỉ được ghi khi nói rõ đã phục hồi bằng cách nào và xác minh lại ở bước nào (tối thiểu 25 ký tự).';
+        if (this.rec && this.rec.log) console.log(`   [verdict] ${this.tcId}: ${vi}`);
+        opts.comment = `${opts.comment || ''}\n${vi}`.trim();
+        status = haXuong;
+      }
+    }
+    /*
+     * ──────────────────────────────────────────────────────────────────────────────────────────────
+     * ĐỔI VERDICT: ghi thứ ĐO ĐƯỢC, KHÔNG tự gán nguyên nhân.
+     *
+     * Chủ dự án nêu (ưu tiên #4): phân biệt verdict đổi vì FIX BUG, vì MÔI TRƯỜNG, vì SỬA AUTOMATION,
+     * hay vì FLAKY. Máy không đọc được ý định, nên nó chỉ được ghi BẰNG CHỨNG để phân loại:
+     *
+     *   · `tu`/`sang`   — verdict cũ và mới. Không có cái này thì không biết đã đổi.
+     *   · `cungLuot`    — cùng một lượt chạy mà verdict đổi. Playwright retry trong một lượt: đây là
+     *                     tín hiệu FLAKY mạnh nhất đo được, vì mã và môi trường chưa kịp đổi.
+     *   · `specDoi`     — vân tay spec khác lượt trước ⇒ AUTOMATION có đổi. `null` khi lượt trước
+     *                     không có vân tay (bản ghi cũ) — "không biết" khác "không đổi".
+     *   · `lyDo`        — lời khai của người chạy. Máy KHÔNG điền hộ.
+     *
+     * VÌ SAO KHÔNG TỰ GÁN NHÃN: "fix bug" và "đổi môi trường" đều cho cùng một dấu vết đo được là
+     * verdict đổi mà spec không đổi. Chọn một trong hai thay người chạy là bịa nguyên nhân — đúng thứ
+     * đã bị chặn ở `failureLayer`, và đúng thứ `SUSPECT_REAL_BUG` sinh ra để chống: dán nhãn flaky cho
+     * một lượt chưa giải thích được cơ chế là chôn bug thật.
+     */
+    const truocChung = this._banGhiTruoc();
+    const nguonGoc = this._nguonGoc();
+    let doiVerdict = null;
+    if (truocChung && truocChung.status && chuanHoaVerdict(truocChung.status) !== chuanHoaVerdict(status)) {
+      const tr = truocChung.run || {};
+      const specDoi = (tr.specSha && nguonGoc.specSha) ? (tr.specSha !== nguonGoc.specSha) : null;
+      doiVerdict = {
+        tu: truocChung.status,
+        sang: status,
+        cungLuot: Boolean(tr.id && nguonGoc.id && tr.id === nguonGoc.id),
+        specDoi,
+        ...(opts.lyDoDoiVerdict ? { lyDo: sanitize(String(opts.lyDoDoiVerdict)) } : {}),
+      };
+    }
+
     const failEv = this.steps.find((s) => laFail(s.status));
     const caseEv = [...((failEv || this.steps[this.steps.length - 1] || {}).evidence || []), ...[].concat(opts.evidence || [])];
 
@@ -320,12 +532,7 @@ class Case {
      * cộng dồn vào chuỗi cũ. */
     let reruns = 0;
     if (laFail(status)) {
-      let truoc = null;
-      try {
-        const shard = path.join(this.rec.shardDir, `${safeName(this.tcId)}.json`);
-        const prev = JSON.parse(fs.readFileSync(shard, 'utf8'));
-        if (prev && prev.test) truoc = prev.test;
-      } catch { /* chưa có shard */ }
+      let truoc = truocChung;
 
       /*
        * SHARD MẤT THÌ ĐỌC TIẾP BẢN GỘP. Shard theo TC nằm trong thư mục của MỘT lượt chạy, nên nó đi theo
@@ -340,14 +547,6 @@ class Case {
        *
        * Vẫn KHÔNG phải "khai tay": bản gộp cũng do máy ghi, không phải người gõ.
        */
-      if (!truoc) {
-        try {
-          const goc = JSON.parse(fs.readFileSync(this.rec.statusFile, 'utf8'));
-          const ds = Array.isArray(goc) ? goc : (goc.tests || []);
-          truoc = ds.find((x) => x && x.tcId === this.tcId) || null;
-        } catch { /* chưa có bản gộp = lượt chạy đầu */ }
-      }
-
       if (truoc && laFail(truoc.status)) reruns = Number(truoc.reruns || 0) + 1;
     }
 
@@ -356,9 +555,25 @@ class Case {
       status,
       ...(failureLayer ? { failureLayer } : {}),
       ...(laFail(status) ? { reruns } : {}),
-      comment: sanitize(opts.comment || (anyFail ? 'Có step FAILED — xem step evidence' : 'Executed')),
+      /*
+       * COMMENT MẶC ĐỊNH KHÔNG ĐƯỢC LÀ MỘT CHỮ RỖNG RUỘT (11/11/2026).
+       *
+       * Chủ dự án nêu (ưu tiên #5): thay `Executed` bằng tóm tắt expected, actual và nguồn đo.
+       *
+       * `'Executed'` nói đúng một điều người đọc đã biết — case này đã chạy — và chiếm đúng chỗ của
+       * thứ đáng đọc. Đo trên CSDL-4008: 0/241 case dùng giá trị này, nên đây là lỗ TIỀM ẨN ở default
+       * chứ chưa phải lỗi đang sống. Vì thế việc đúng là BỊT DEFAULT, không phải thêm một cửa ồn ào.
+       *
+       * Không ném: thiếu comment là chuyện biên tập, không phải mâu thuẫn trong spec. Nhưng chữ ghi ra
+       * phải TỰ TỐ CÁO mình, để `output_gate` đếm được và người đọc thấy ngay là còn thiếu.
+       */
+      comment: sanitize(opts.comment || (anyFail
+        ? 'Có step FAILED — xem step evidence'
+        : '(CHƯA KHAI) — comment phải nêu expected, actual và nguồn đo')),
       evidence: caseEv,
       steps: this.steps,
+      run: nguonGoc,
+      ...(doiVerdict ? { doiVerdict } : {}),
     });
     return status;
   }
