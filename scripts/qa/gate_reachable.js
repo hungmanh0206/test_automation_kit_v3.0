@@ -76,7 +76,7 @@ if (!tatCa) {
   process.exit(2);
 }
 
-/* eslint-disable-next-line global-require, import/no-dynamic-require */
+/* eslint-disable-next-line global-require */
 const scripts = require(path.join(REPO, 'package.json')).scripts || {};
 const ten = Object.keys(scripts);
 if (!ten.length) {
