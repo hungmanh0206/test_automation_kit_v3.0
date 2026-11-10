@@ -36,7 +36,7 @@ const og = require(path.join(REPO, 'scripts/qa/output_gate.js'));
 const ban = (status: string, comment: string, steps: unknown[] = [{ name: 'b', status: 'PASSED', evidence: ['a/x.png'] }]) => ({
   tests: [{ tcId: 'TC_O', status, comment, evidence: ['a/step-01-passed.png'], steps, run: { evidenceDir: 'e/TC_O' } }],
 });
-const locP = (d: unknown) => ((og.gateTestExecution(d).problems || []) as string[]).filter((p) => /CÂU HỎI CHƯA ĐƯỢC TRẢ LỜI/.test(p));
+const locP = (d: unknown) => ((og.gateTestExecution(d).problems || []) as string[]).filter((p) => /ghi PASS trong khi/.test(p));
 const locW = (d: unknown) => ((og.gateTestExecution(d).warnings || []) as string[]).filter((p) => /RỖNG RUỘT/.test(p));
 
 test.describe('@infra #2 oracle confidence — PASS không đứng trên câu hỏi còn treo', () => {
@@ -78,6 +78,59 @@ test.describe('@infra #2 oracle confidence — PASS không đứng trên câu h�
       '"không có neo" cho một khía cạnh phụ KHÔNG phải vi phạm').toHaveLength(0);
     expect(locP(ban('PASSED', 'Màn mở, không lỗi 500, header ghi đúng cấp Tiểu học')),
       'case cấu trúc không mang mã BR cũng KHÔNG phải vi phạm').toHaveLength(0);
+  });
+
+  test('HỒI QUY — năm case CSDL-9002 mà mẫu ĐẦU bỏ lọt 0/5', () => {
+    /*
+     * PHẢN BIỆN ĐÚNG, 11/11/2026. Người review đối chiếu 5 case này với mẫu đầu và ra **0/5**. Đọc
+     * lại: cả 5 đều `PASSED` trong khi comment TỰ KHAI không kết luận được —
+     *   "Ghi nhận hành vi thực tế, không chấm đạt hay không đạt vì đặc tả không quy định."
+     * Dạng này còn RÕ HƠN cái mẫu đầu bắt: tự nhận không phán được, chứ không phải một câu hỏi treo.
+     *
+     * LỖI GỐC LÀ CỦA TÔI: tôi neo mẫu vào đúng MỘT task (CSDL-4008), task đó dùng từ "cần … chốt".
+     * Con số "2/2 đúng" tôi báo là thật, nhưng nó là độ chính xác TRÊN MỘT TASK — và tôi đã đọc nó
+     * thành độ chính xác của luật.
+     *
+     * Ca này ghim đích danh 5 mã đó. Nới hay siết mẫu về sau đều phải chạy qua đây.
+     */
+    const p = path.join(REPO, 'outputs/CSDL/tasks/CSDL-9002/test-results/testcase-status.json');
+    if (!fs.existsSync(p)) { test.skip(true, 'không có dữ liệu CSDL-9002 trong checkout này'); return; }
+    const doc = JSON.parse(fs.readFileSync(p, 'utf8'));
+    const bi = locP(doc).join('\n');
+    for (const id of ['TC_028', 'TC_030', 'TC_077', 'TC_081', 'TC_112']) {
+      expect(bi, `${id}: PASS mà comment tự khai "không chấm đạt hay không đạt" — phải bị chặn`).toContain(id);
+    }
+    /* Đo lại trên corpus còn tìm ra MỘT case nữa mà bản đối chiếu kia bỏ sót. */
+    expect(bi, 'TC_134 cùng họ, cũng phải bị chặn').toContain('TC_134');
+  });
+
+  test('ĐỐI CHỨNG ÂM trên dữ liệu THẬT: đã PHỤC HỒI rồi mới chấm ⇒ KHÔNG chặn', () => {
+    /*
+     * `CSDL_HS_TC_006` nói "BƯỚC NÀY không kết luận được gì; ĐÃ ĐỔI SANG trường có lớp thật, đếm bằng
+     * câu lệnh chỉ-đọc". Đó là làm ĐÚNG — một bước không phán được, đổi sang nguồn đo khác, rồi mới
+     * kết luận. Mẫu rộng bắt nó; đường thoát phải loại nó ra.
+     *
+     * Không có ca này thì lần nới mẫu tiếp theo sẽ lặng lẽ biến một việc làm đúng thành vi phạm.
+     */
+    const p = path.join(REPO, 'outputs/CSDL/tasks/CSDL-9003/test-results/testcase-status.json');
+    if (!fs.existsSync(p)) { test.skip(true, 'không có dữ liệu CSDL-9003 trong checkout này'); return; }
+    expect(locP(JSON.parse(fs.readFileSync(p, 'utf8'))).join('\n')).not.toContain('TC_006');
+  });
+
+  test('`OBSERVATION` KHÔNG bị chặn — đó là verdict ĐÚNG cho tình huống này', () => {
+    /*
+     * Cửa chỉ soi case PASS. CSDL-9002 có 25 case dùng `OBSERVATION`, tức đội đã biết dùng đúng
+     * doctrine; 6 case PASS kia mới là chỗ trượt. Chặn luôn cả OBSERVATION là phạt người làm đúng.
+     */
+    expect(locP(ban('OBSERVATION', 'Ghi nhận hành vi thực tế, không chấm đạt hay không đạt vì đặc tả không quy định')))
+      .toHaveLength(0);
+  });
+
+  test('thông điệp gọi ĐÚNG TÊN họ vi phạm — ba họ, ba cách sửa khác nhau', () => {
+    const g = (c: string) => locP(ban('PASSED', c))[0] || '';
+    expect(g('cần chủ dự án chốt việc này')).toMatch(/CÂU HỎI CHƯA ĐƯỢC TRẢ LỜI/);
+    expect(g('Ghi nhận hành vi thực tế, không chấm đạt hay không đạt')).toMatch(/TỰ KHAI KHÔNG KẾT LUẬN ĐƯỢC/);
+    expect(g('đặc tả không quy định cột lưới nào')).toMatch(/KHÔNG CÓ ĐẶC TẢ ĐỂ NEO/);
   });
 
   test('lý do bỏ hai mẫu kia phải còn trong mã — xoá đi là mời người sau làm lại y hệt', () => {
