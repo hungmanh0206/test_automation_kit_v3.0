@@ -111,6 +111,7 @@ function looksLikeMeasurement(s) {
 const mienNeo = [];
 const chuaPhanHanDung = [];
 const chuaPhanOracle = [];
+const chuaNeo = [];
 
 /*
  * ĐỐI CHIẾU `oracle.quote` VỚI BẢN GHI NGUỒN (tăng 3, 09/11/2026).
@@ -163,9 +164,27 @@ function doiChieuNguon(o) {
   return { trangThai: 'chua-phan', viSao: `không có bản ghi \`${ma[0]}\` trong \`${C.thuMuc}\`` };
 }
 const NEO = (cfg.falsification && cfg.falsification.neoArtifact) || {};
+/*
+ * CHO PHÉP ÉP MỨC QUA BIẾN MÔI TRƯỜNG — để SPEC kiểm được CẢ HAI mức.
+ *
+ * Mức thật nằm ở config dùng chung, nên nếu spec chỉ kiểm mức đang bật thì nhánh kia KHÔNG BAO GIỜ
+ * được chạy, và ngày ai đó siết lên "block" sẽ không có phép kiểm nào đỡ. Đây không phải cửa hậu để
+ * nới: `block` chỉ làm luật CHẶT HƠN mức mặc định.
+ */
+if (process.env.BUG_CLAIM_NEO === 'block' || process.env.BUG_CLAIM_NEO === 'warn') {
+  NEO.batBuoc = process.env.BUG_CLAIM_NEO;
+}
 /** Token trông như đường dẫn: có đuôi file, và không phải là một lệnh npm. */
-/* Đuôi phải BẮT ĐẦU BẰNG CHỮ: nếu không, `uat-2026.11.09` (mã build) bị đọc thành một đường dẫn. */
-const MAU_DUONG_DAN = /(?:^|[\s'"`(=])([A-Za-z0-9_@][A-Za-z0-9_@./-]*\.[A-Za-z][A-Za-z0-9]{1,4})(?=$|[\s'"`),.;])/g;
+/*
+ * CHỈ NHẬN ĐUÔI CỦA ARTIFACT THẬT.
+ *
+ * Lượt đầu nhận mọi đuôi bắt đầu bằng chữ, và chạy trên claim THẬT của CSDL-4008 nó bắt nhầm 7 chỗ:
+ * `toastr.error` (tên hàm JS) · `ASP.NET` (tên nền tảng) · một HOSTNAME · `C1/…aspx` (đường URL).
+ * Thông báo khi đó SAI hẳn nghĩa: "trỏ tới X nhưng không file nào" trong khi tác giả chưa bao giờ
+ * định X là một file. Một cửa nói sai lý do còn tệ hơn cửa không nói.
+ */
+const DUOI_ARTIFACT = 'png|jpe?g|webp|gif|bmp|mp4|webm|json|md|txt|log|csv|tsv|xlsx?|docx?|pdf|zip|sql|har|ts|js|mjs|cjs|yml|yaml';
+const MAU_DUONG_DAN = new RegExp(`(?:^|[\\s'"\`(=])([A-Za-z0-9_@][A-Za-z0-9_@./-]*\\.(?:${DUOI_ARTIFACT}))(?=$|[\\s'"\`),.;])`, 'gi');
 
 function neoArtifact(s, goc, moc) {
   if (!NEO.batBuoc) return { dat: true };
@@ -435,8 +454,16 @@ function validate(claim, file) {
       const mocRerun = Math.max(...(Array.isArray(claim.reruns) ? claim.reruns : [])
         .map((r) => Date.parse((r && r.at) || '')).filter(Number.isFinite), -Infinity);
       const neo = neoArtifact(mea, gocTask, mocRerun);
-      if (!neo.dat) at(`${w} \`measurement\` ${neo.viSao}`);
-      else if (neo.mien) mienNeo.push(`${path.basename(file || '?')} ${w}`);
+      if (!neo.dat) {
+        /*
+         * HAI MỨC, theo đúng tiền lệ `requireBuild` trong cùng file config: "warn" đếm và in tỉ lệ,
+         * "block" mới chặn. Đo trên CSDL-4008 (task thật, đã chạy xong): 113/… phép đo không neo
+         * được, trải đều cả ba nhóm phản chứng — mức "block" sẽ đẩy gần như mọi phép đo vào lối
+         * thoát, tức biến lối thoát thành lối đi chính.
+         */
+        if (NEO.batBuoc === 'warn') chuaNeo.push(`${path.basename(file || '?')} ${w}`);
+        else at(`${w} \`measurement\` ${neo.viSao}`);
+      } else if (neo.mien) mienNeo.push(`${path.basename(file || '?')} ${w}`);
       else if (neo.chuaPhanHan) chuaPhanHanDung.push(`${path.basename(file || '?')} ${w}`);
     }
     if (!nonEmpty(f && f.result)) at(`${w} thiếu \`result\` — phản chứng đó bị loại bằng kết quả gì`);
@@ -537,6 +564,32 @@ const TEMPLATE = (tcId) => ({
   _retest_mau: { at: '<ISO>', build: '<build mới>', result: 'FIXED|NOT_FIXED|PARTIAL|CANNOT_VERIFY', evidence: '<đường dẫn ảnh/video>', con_sai: '(chỉ khi PARTIAL) phần nào còn sai' },
 });
 
+/*
+ * Ba bộ đếm của cửa, gom lại để in được ở CẢ HAI nhánh.
+ *
+ * Lượt đầu chúng chỉ in ở nhánh ĐẠT. Chạy trên task thật CSDL-4008 thì cửa CHẶN, và con số biến
+ * mất ĐÚNG LÚC CẦN NÓ NHẤT: người đọc thấy 7 vấn đề mà không biết 113 phép đo kia đang ở đâu.
+ * Một số đo chỉ xuất hiện khi mọi thứ đã ổn thì nó không phải số đo, nó là lời chúc mừng.
+ */
+function inSoDem(claims) {
+  if (chuaNeo.length) {
+    /* Mức "warn": đếm và IN TỈ LỆ, để quyết định siết sau này dựa trên SỐ chứ không trên cảm giác. */
+    const tongPD = claims.reduce((a, c) => a + ((c.claim && Array.isArray(c.claim.falsified)) ? c.claim.falsified.length : 0), 0);
+    const neoDuoc = tongPD - chuaNeo.length;
+    const ti = tongPD ? Math.round((neoDuoc / tongPD) * 100) : 0;
+    console.log(`  ⚠ NEO ARTIFACT đang ở mức "warn": ${neoDuoc}/${tongPD} phép đo neo được vào artifact có thật (${ti}%).`);
+    console.log('    Siết lên "block" khi tỉ lệ này của một task MỚI vượt 70% — xem `_cach_siet` trong bug_claim.json.');
+  }
+  if (chuaPhanOracle.length) {
+    /* Oracle không đối chiếu được thì phải NÓI RA — "không đo được" không thành "đo ra đạt". */
+    console.log(`  ⚠ ${chuaPhanOracle.length} claim CHƯA ĐỐI CHIẾU ĐƯỢC \`oracle.quote\` với nguồn: ${chuaPhanOracle.join(' · ')}`);
+  }
+  if (chuaPhanHanDung.length) {
+    /* "Không đo được" KHÔNG thành "đo ra đạt" — cùng doctrine ⑦/⑨/⑩ của `version:check`. */
+    console.log(`  ⚠ ${chuaPhanHanDung.length} phép đo CHƯA PHÁN ĐƯỢC HẠN DÙNG (thiếu mốc rerun hoặc chưa bật \`maxTuoiNgay\`): ${chuaPhanHanDung.join(' · ')}`);
+  }
+}
+
 function main() {
   if (has('new')) {
     const tcId = arg('new');
@@ -618,6 +671,17 @@ function main() {
   const nWithdrawn = ok.length - nActive;
 
   inCanhBaoBuild();
+
+  /*
+   * IN SỐ ĐẾM Ở CẢ HAI NHÁNH, không chỉ khi ĐẠT.
+   *
+   * Lượt đầu tôi để ba bộ đếm (neo "warn" · lối thoát · oracle chưa đối chiếu) chỉ in ở nhánh ĐẠT.
+   * Chạy trên task thật CSDL-4008 thì cửa CHẶN, và con số biến mất ĐÚNG LÚC CẦN NÓ NHẤT — người đọc
+   * thấy 7 vấn đề mà không biết 113 phép đo kia đang ở đâu. Một số đo chỉ xuất hiện khi mọi thứ đã
+   * ổn thì nó không phải số đo, nó là lời chúc mừng.
+   */
+  inSoDem(claims);
+
   if (problems.length) {
     console.error(`[bug-claim] CHẶN: ${problems.length} vấn đề trên ${claims.length} claim.`);
     for (const p of problems) console.error(`  - ${p}`);
@@ -633,14 +697,6 @@ function main() {
   if (mienNeo.length) {
     /* Lối thoát không ai đếm thì nó thành lối đi chính. Con số này phải ở trong tầm mắt. */
     console.log(`  ⚠ ${mienNeo.length} phép đo dùng lối thoát \`${NEO.tienToMien}\` — không neo được artifact: ${mienNeo.join(' · ')}`);
-  }
-  if (chuaPhanOracle.length) {
-    /* Oracle không đối chiếu được thì phải NÓI RA — "không đo được" không thành "đo ra đạt". */
-    console.log(`  ⚠ ${chuaPhanOracle.length} claim CHƯA ĐỐI CHIẾU ĐƯỢC \`oracle.quote\` với nguồn: ${chuaPhanOracle.join(' · ')}`);
-  }
-  if (chuaPhanHanDung.length) {
-    /* "Không đo được" KHÔNG thành "đo ra đạt" — cùng doctrine ⑦/⑨/⑩ của `version:check`. */
-    console.log(`  ⚠ ${chuaPhanHanDung.length} phép đo CHƯA PHÁN ĐƯỢC HẠN DÙNG (thiếu mốc rerun hoặc chưa bật \`maxTuoiNgay\`): ${chuaPhanHanDung.join(' · ')}`);
   }
   process.exit(0);
 }

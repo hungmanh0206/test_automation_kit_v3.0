@@ -19,11 +19,22 @@ const REPO = path.resolve(__dirname, '..', '..', '..');
 const MACHINE = path.join(REPO, 'scripts', 'qa', 'bug_claim.js');
 
 /** Chạy máy trong một task NHÁP ngoài repo, để không chạm outputs thật. */
-function run(tmp: string, args: string[] = ['--check']) {
+/*
+ * `neo` ép MỨC của luật neo-artifact, vì mức thật nằm ở config dùng chung.
+ *
+ * ĐO TRÊN TASK THẬT 09/11/2026 (CSDL-4008, đã chạy xong): chỉ **32/116 = 28%** phép đo neo được vào
+ * artifact. Mức "block" sẽ đẩy gần như mọi phép đo vào lối thoát `khong-do-duoc:` — biến lối thoát
+ * thành LỐI ĐI CHÍNH, đúng thứ chính luật đó tự cảnh báo. Nên mặc định lui về "warn", theo đúng tiền
+ * lệ `requireBuild` trong cùng file config.
+ *
+ * Spec phải kiểm CẢ HAI mức: nếu chỉ kiểm mức đang bật thì nhánh kia không bao giờ chạy, và ngày ai
+ * đó siết lên "block" sẽ không có phép kiểm nào đỡ.
+ */
+function run(tmp: string, args: string[] = ['--check'], neo?: 'warn' | 'block') {
   const r = spawnSync(process.execPath, [MACHINE, ...args], {
     cwd: REPO,
     encoding: 'utf8',
-    env: gateEnv({ PROJECT_OUTPUT_DIR: tmp, TASK_KEY: 'CLAIM-TEST' }),
+    env: gateEnv({ PROJECT_OUTPUT_DIR: tmp, TASK_KEY: 'CLAIM-TEST', ...(neo ? { BUG_CLAIM_NEO: neo } : {}) }),
   });
   return { code: r.status === null ? 1 : r.status, out: `${r.stdout || ''}${r.stderr || ''}` };
 }
@@ -135,7 +146,7 @@ test.describe('@infra bug:claim — kiểm chứng phải đi trước lời nó
     const c = validClaim();
     c.falsified[1].measurement = 'toi da kiem tra lai nhieu lan va thay dung roi, 5 lan deu the';
     writeClaim(t.claims, 'TC_001', c);
-    const r = run(t.root);
+    const r = run(t.root, ['--check'], 'block');
     expect(r.code, 'câu này có chữ số và đủ dài — phép kiểm cũ cho qua').toBe(1);
     expect(r.out).toContain('ARTIFACT');
   });
@@ -149,7 +160,7 @@ test.describe('@infra bug:claim — kiểm chứng phải đi trước lời nó
     const c = validClaim();
     c.falsified[1].measurement = 'doi chieu lai, ket qua o evidence/khong-he-ton-tai/lan-9.png';
     writeClaim(t.claims, 'TC_001', c);
-    const r = run(t.root);
+    const r = run(t.root, ['--check'], 'block');
     expect(r.code, r.out).toBe(1);
     expect(r.out).toContain('khong-he-ton-tai/lan-9.png');
   });
@@ -188,7 +199,7 @@ test.describe('@infra bug:claim — kiểm chứng phải đi trước lời nó
     const t = mkTask();
     doiTuoi(t.root, NEO_CUA_VALID[1], -30 * 86400000);   // cũ hơn mốc 30 ngày
     writeClaim(t.claims, 'TC_001', validClaim());
-    const r = run(t.root);
+    const r = run(t.root, ['--check'], 'block');
     expect(r.code, r.out).toBe(1);
     expect(r.out).toContain('CŨ HƠN');
     expect(r.out, 'phải gọi tên file, không chỉ nói "có file cũ"').toContain(NEO_CUA_VALID[1]);
@@ -299,6 +310,43 @@ test.describe('@infra bug:claim — kiểm chứng phải đi trước lời nó
     const r = run(t.root);
     expect(r.code, r.out).toBe(0);
     expect(r.out).toMatch(/CHƯA ĐỐI CHIẾU ĐƯỢC/);
+  });
+
+  test('MỨC MẶC ĐỊNH là "warn": KHÔNG chặn, nhưng ĐẾM và in TỈ LỆ', () => {
+    /*
+     * Ba ca "CHẶN" ở trên đều ép `BUG_CLAIM_NEO=block`. Nếu không có ca này thì nhánh ĐANG THẬT SỰ
+     * CHẠY — mức mặc định — lại là nhánh không phép kiểm nào gác, và cửa có thể im lặng hỏng ở đúng
+     * chế độ mọi người dùng.
+     *
+     * Đo trên task thật CSDL-4008 (đã chạy xong): **32/116 = 28%** phép đo neo được. Mức "block" sẽ
+     * đẩy gần như mọi phép đo vào lối thoát — nên mặc định phải là "warn", và con số phải HIỆN RA để
+     * quyết định siết sau này dựa trên SỐ chứ không trên cảm giác.
+     */
+    const t = mkTask();
+    const c = validClaim();
+    c.falsified[1].measurement = 'toi da kiem tra lai nhieu lan va thay dung roi, 5 lan deu the';
+    writeClaim(t.claims, 'TC_001', c);
+    const r = run(t.root);
+    expect(r.code, `mức mặc định KHÔNG được chặn:\n${r.out}`).toBe(0);
+    expect(r.out, 'phải in tỉ lệ neo được, nếu không thì không ai biết khi nào siết được')
+      .toMatch(/NEO ARTIFACT đang ở mức "warn": \d+\/\d+/);
+    expect(r.out, 'phải nói điều kiện siết, không để người đọc tự đoán').toMatch(/Siết lên "block" khi/);
+  });
+
+  test('số đếm in ở CẢ nhánh CHẶN — không chỉ khi ĐẠT', () => {
+    /*
+     * Lượt đầu ba bộ đếm chỉ in ở nhánh ĐẠT. Chạy trên task thật thì cửa CHẶN, và con số biến mất
+     * ĐÚNG LÚC CẦN NÓ NHẤT: thấy 7 vấn đề mà không biết 116 phép đo kia đang ở đâu.
+     * Một số đo chỉ xuất hiện khi mọi thứ đã ổn thì nó không phải số đo, nó là lời chúc mừng.
+     */
+    const t = mkTask();
+    const c = validClaim();
+    c.falsified[1].measurement = 'toi da kiem tra lai nhieu lan va thay dung roi, 5 lan deu the';
+    c.layer = '';                                   // tạo một vấn đề KHÁC để cửa chặn
+    writeClaim(t.claims, 'TC_001', c);
+    const r = run(t.root);
+    expect(r.code, 'ca này cần cửa CHẶN mới đo được điều nó định đo').toBe(1);
+    expect(r.out, 'chặn rồi vẫn phải in số đếm').toMatch(/NEO ARTIFACT đang ở mức "warn"/);
   });
 
   test('ĐỐI CHỨNG: lối thoát KHÔNG lý do thì CHẶN', () => {
