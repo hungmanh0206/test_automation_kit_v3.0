@@ -150,7 +150,7 @@ const TERMS_GATE3 = [
   src:'scripts/qa/scope_anchor.js', rel:['g-dimension_coverage','c-canonical','g-preflight_gate'] },
 { id:'g-gate_index', t:'gates:index', cat:'gate',
   def:'Sinh DANH MỤC GATE của kit từ chính source. Trả lời được "kit có bao nhiêu gate, mỗi cái CHẶN gì, gọi ở đâu".',
-  detail:'Quét source rồi suy mức từ code: exit 1 là CHẶN · ghi artifact là SINH · chỉ in là BÁO CÁO. Bảng hiện tại: 169 máy — 120 CHẶN, 29 SINH, 20 BÁO CÁO. Bản --check chặn khi bảng lệch source.',
+  detail:'Quét source rồi suy mức từ code: exit 1 là CHẶN · ghi artifact là SINH · chỉ in là BÁO CÁO. Bảng hiện tại: 170 máy — 121 CHẶN, 29 SINH, 20 BÁO CÁO. Bản --check chặn khi bảng lệch source.',
   why:'Kit có hơn 30 npm script dạng gate và gần 60 file trong scripts/qa/, nhưng không chỗ nào trả lời được câu trên. Hệ quả không phải bất tiện: luận đề của kit là "luật cần MÁY", mà máy không LIỆT KÊ ĐƯỢC thì không kiểm toán được. Không ai biết một gate đã âm thầm tụt thành cảnh báo, hay đã mất nơi gọi.',
   how:['npm run gates:index để sinh lại bảng.','npm run gates:index:check để chặn khi bảng lệch source.'],
   cmd:'npm run gates:index   ·   npm run gates:index:check',
@@ -648,5 +648,15 @@ const TERMS_GATE3 = [
   ex:'Đo trên CSDL-4008: 303/312 case khai tiền điều kiện cần dựng · 274 đã chạy · 0 có ghi bằng chứng tiền đề.',
   trap:'HAI phép đo đã bị bỏ trước khi ra được cái này, và cả hai đều đọc spec. Bản chặt đòi expect ngay trong beforeAll: gắn cờ 267/303 case, tố oan vì helper trong lib mới là chỗ ném lỗi. Bản nới đi theo đường nhập: gắn cờ 0, vì gần như lib nào cũng có một throw. Số đổi từ 267 sang 0 tuỳ cách viết regex thì phép đo đang đo chính regex.',
   src:'scripts/qa/setup_proof.js', rel:['g-exec_proof','g-write_proof','r-evidence','f-verdict-taxonomy'] }
+,
+{ id:'g-gate_reachable', t:'gate:reachable', cat:'gate',
+  def:'Mỗi máy có nằm trên một ĐƯỜNG CHẠY thật không — lệnh, workflow, skill, prompt, CI, hay một npm script khác gọi nó.',
+  detail:'Quét các bề mặt mà một máy thật sự được gọi ra. KHÔNG tính ba chỗ: danh mục GATES.md (tự sinh nên nhắc tới mọi máy theo định nghĩa), trang thư viện (chỗ tra cứu), và spec của chính máy đó.',
+  why:'Người review 11/11/2026 nói kit chưa khép kín thành quy trình end-to-end. Đo lại thì chỗ hỏng cụ thể hơn: exec:proof, write:proof và setup:proof KHÔNG được gọi từ đâu cả, mà gate:policy vẫn ĐẠT — vì luật của nó chỉ là mọi npm script phải được NHẮC TỚI ở đâu đó. Spec chứng minh máy CHẠY ĐƯỢC, nó không chứng minh CÓ AI CHẠY.',
+  how:['Chạy: npm run gate:reachable. Nằm trong static-check của cả hai CI.','Mức BÁO CÁO: in số rồi thoát 0. Bản :enforce chặn khi vượt mốc.','Mốc là số ĐÃ ĐO (26 ngày 11/11/2026). Hạ khi nối thật, KHÔNG nâng để cho xanh.'],
+  cmd:'npm run gate:reachable   ·   npm run gate:reachable:enforce',
+  ex:'Đo 11/11/2026: 242 npm script, 26 máy không nằm trên đường chạy nào. Trong đó 5 là bản :enforce, vốn sinh ra để người siết tay chạy — vẫn để trong mẫu số và nói ra, thay vì lọc cho số đẹp.',
+  trap:'Vế ÂM đáng tin (không xuất hiện ⇒ chắc chắn không ai chạy), vế DƯƠNG chỉ là CHẶN TRÊN — một cái tên nằm trong câu văn giải thích cũng được tính là có nối. Gộp hai vế thành x% đã khép kín là nói quá. Và bản đầu của chính cửa này in ✓ ĐẠT — 27 ≤ mốc 18, một câu tự mâu thuẫn: không chặn KHÁC đã đạt.',
+  src:'scripts/qa/gate_reachable.js', rel:['g-policy_source_check','g-exec_proof','g-setup_proof','g-gate_index','c-forcing-function'] }
 
 ];

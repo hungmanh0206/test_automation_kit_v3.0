@@ -144,7 +144,7 @@ function main() {
     }
 
     // 4+5) Hai script từng crash khi KHÔNG có `.git` — đây là hồi quy có tên
-    for (const s of ['secret:scan', 'ci:scope']) {
+    for (const s of ['secret:scan', 'ci:scope', 'workflow:refs']) {
       const r = run('npm', ['run', '--silent', s], { cwd: root, shell: process.platform === 'win32' });
       record(`npm run ${s} (không .git)`, r.code === 0, r.code === 0 ? '' : r.out.split('\n').slice(-3).join(' | ').slice(0, 200));
     }

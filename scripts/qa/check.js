@@ -293,6 +293,21 @@ const PHAI_SPAWN = {
     { lenh: 'db:paths:check', args: [] },
     { lenh: 'steps:lint', args: [] },
     { lenh: 'case:paths', args: [] },
+    /*
+     * BA MÁY PROOF — nối vào đây 11/11/2026 vì trước đó chúng KHÔNG được gọi từ đâu cả.
+     *
+     * Người review nêu: "một số công cụ chỉ báo cáo thiếu bằng chứng, chưa biến PASS không chứng
+     * minh được thành trạng thái cần review". Đo lại còn nặng hơn: exec:proof, write:proof và
+     * setup:proof chỉ xuất hiện ở danh mục tự sinh, trang thư viện, package.json và spec của chính
+     * chúng. Một máy có spec xanh mà không nằm trên đường chạy nào thì nó không gác gì.
+     *
+     * Mức BÁO CÁO: cả ba thoát 0 và chỉ in một dòng ~. Chúng đo "CHƯA CHỨNG MINH ĐƯỢC", không đo
+     * "ĐÃ SAI" — biến chúng thành CHẶN là đổi một lỗ hổng truy vết thành một lời buộc tội, và làm
+     * đỏ mọi task cũ ngay lập tức. Siết lên chặn khi một task MỚI đạt ngưỡng.
+     */
+    { lenh: 'exec:proof', args: [] },
+    { lenh: 'write:proof', args: [] },
+    { lenh: 'setup:proof', args: [] },
   ],
 };
 

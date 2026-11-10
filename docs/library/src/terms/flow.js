@@ -10,7 +10,7 @@ const TERMS_FLOW = [
 
 { id:'f-phase2', t:'Phase 3 — Execute (/phase3)', cat:'flow',
   def:'Dựng và chạy automation thật, thu evidence, rồi mới tới cổng Backlog.',
-  detail:'Chuỗi bốn bước: chuẩn bị execute → sinh hoặc cập nhật automation → chạy và tự chữa locator → report và cổng Backlog. Nguồn testcase mặc định kéo từ Google Sheet (TESTCASE_SOURCE=sheet), Excel là lựa chọn thay thế khi chưa publish hoặc chạy offline.',
+  detail:'Chuỗi bốn bước: chuẩn bị execute → sinh hoặc cập nhật automation → chạy và tự chữa locator → report và cổng Backlog. Nguồn testcase lúc execute là Markdown canonical `test-cases/*.md` (TESTCASE_SOURCE=md, mặc định) vì đọc Markdown rẻ token hơn hẳn; `sheet` và `excel` là opt-in cho lượt cần đúng bộ QA vừa sửa tay trên Sheet. Excel là lựa chọn thay thế khi chưa publish hoặc chạy offline.',
   why:'Đây là nơi mọi thứ phase sinh case chuẩn bị được đem thử với sản phẩm thật, và cũng là nơi dễ ẩu nhất, nên xung quanh nó có nhiều gate nhất.',
   how:['Bắt buộc chạy preflight_gate trước khi execute.','Phần cần trạng thái backend nội bộ thì chuyển sang manual hoặc bán tự động, ghi đúng trạng thái.'],
   src:'.agent/workflows/08_tong_quan_execute.md', rel:['g-preflight_gate','sk-qa_automation_engineer','r-evidence','f-test-execution'] },
@@ -53,7 +53,7 @@ const TERMS_FLOW = [
 
 { id:'f-excel-canonical', t:'bản xuất Excel', cat:'flow',
   def:'Bộ testcase gốc, nguồn sự thật khi sinh và publish testcase.',
-  detail:'Nằm trong test-cases/. Bảy cột BẮT BUỘC: TC ID · Module · Trường hợp kiểm thử · Tiền điều kiện · Các bước thực hiện · Kết quả mong đợi · Ưu tiên. Là nguồn khi GEN và PUBLISH; còn khi EXECUTE thì Phase 2 mặc định kéo từ Google Sheet về.',
+  detail:'Nằm trong test-cases/. Bảy cột BẮT BUỘC: TC ID · Module · Trường hợp kiểm thử · Tiền điều kiện · Các bước thực hiện · Kết quả mong đợi · Ưu tiên. Là nguồn khi GEN và PUBLISH; còn khi EXECUTE thì mặc định đọc thẳng Markdown canonical, không kéo Sheet về.',
   why:'Có một bản gốc nghĩa là mọi phase đọc lại cùng một thứ thay vì dựa vào hội thoại cũ, và mọi công cụ phía sau parse được vì tên cột ổn định.',
   trap:'Thiếu hoặc đổi tên cột là design_gate chặn, vì downstream đọc theo tên cột và sẽ vỡ im lặng.',
   src:'.agent/skills/phase1/tc_validator/SKILL.md', rel:['c-canonical','g-design_gate','sk-backlog_testcase_publisher','f-severity'] },
@@ -68,7 +68,7 @@ const TERMS_FLOW = [
 
 { id:'f-sheet', t:'Google Sheet', cat:'flow',
   def:'Công cụ test-management DUY NHẤT của kit. Lưu test là thực thể riêng của app, không phải Backlog issue.',
-  detail:'Ba đường đi: bản xuất Excel → publish qua Drive MCP → dòng trong Google Sheet · kết quả Phase 2 → merge_execution_status → Cycle + Run + evidence theo từng bước · dòng trong Google Sheet → pull_testcases_aio → test-cases/from-sheet/*.xlsx làm nguồn execute. Model canonical dùng chung ở scripts/lib/testcase, chỉ khác tầng gọi API.',
+  detail:'Ba đường đi: bản xuất Excel → publish qua Drive MCP → dòng trong Google Sheet · kết quả Phase 2 → merge_execution_status → Cycle + Run + evidence theo từng bước · dòng trong Google Sheet → tải về test-cases/from-sheet/*.xlsx, CHỈ khi lượt đó opt-in nguồn `sheet`. Model canonical dùng chung ở scripts/lib/testcase, chỉ khác tầng gọi API.',
   why:'Vì test không phải Backlog issue nên phải có tầng tích hợp riêng, không dùng lại được đường Backlog. Đổi lại, evidence gắn được vào TỪNG BƯỚC của case chứ không chỉ vào cả case.',
   how:[
     'Env cần: GOOGLE_SHEET_URL trong profiles/<TASK_KEY>/task.env. Đọc và ghi Sheet đi qua Drive MCP.',

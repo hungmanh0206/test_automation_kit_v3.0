@@ -862,7 +862,7 @@ body.lropen{overflow:hidden}
 
     <h3 class="subhead"><span class="num">5</span>Lệnh hay dùng</h3>
     <p class="sectip">Danh mục gate của kit là <b>tự sinh từ source</b>, không viết tay — bản hiện tại đếm được
-      <b>169 máy: 120 CHẶN · 29 SINH · 20 BÁO CÁO</b>. Sinh lại bằng <code>npm run gates:index</code>.
+      <b>170 máy: 121 CHẶN · 29 SINH · 20 BÁO CÁO</b>. Sinh lại bằng <code>npm run gates:index</code>.
       Phiên bản kit: <b>2.11.0</b>.</p>
     <div id="cmdList"></div>
 
@@ -994,7 +994,7 @@ body.lropen{overflow:hidden}
       </ul>
 
       <h3>Vì sao cần</h3>
-      <p>Kit có 28 skill, 169 máy kiểm (120 trong đó CHẶN thật) và một bộ từ vựng riêng (oracle độc lập, tautology, failureLayer,
+      <p>Kit có 28 skill, 170 máy kiểm (121 trong đó CHẶN thật) và một bộ từ vựng riêng (oracle độc lập, tautology, failureLayer,
         readiness, TRI, chiều coverage…). Người mới vào phải đọc rải rác nhiều file mới ghép được bức tranh.
         Trang này gom lại một chỗ, giữ nguyên nguồn, và cố tình <b>không</b> diễn giải thêm ngoài những gì repo đã ghi.</p>
 
@@ -1795,7 +1795,7 @@ const TERMS_GATE3 = [
   src:'scripts/qa/scope_anchor.js', rel:['g-dimension_coverage','c-canonical','g-preflight_gate'] },
 { id:'g-gate_index', t:'gates:index', cat:'gate',
   def:'Sinh DANH MỤC GATE của kit từ chính source. Trả lời được "kit có bao nhiêu gate, mỗi cái CHẶN gì, gọi ở đâu".',
-  detail:'Quét source rồi suy mức từ code: exit 1 là CHẶN · ghi artifact là SINH · chỉ in là BÁO CÁO. Bảng hiện tại: 169 máy — 120 CHẶN, 29 SINH, 20 BÁO CÁO. Bản --check chặn khi bảng lệch source.',
+  detail:'Quét source rồi suy mức từ code: exit 1 là CHẶN · ghi artifact là SINH · chỉ in là BÁO CÁO. Bảng hiện tại: 170 máy — 121 CHẶN, 29 SINH, 20 BÁO CÁO. Bản --check chặn khi bảng lệch source.',
   why:'Kit có hơn 30 npm script dạng gate và gần 60 file trong scripts/qa/, nhưng không chỗ nào trả lời được câu trên. Hệ quả không phải bất tiện: luận đề của kit là "luật cần MÁY", mà máy không LIỆT KÊ ĐƯỢC thì không kiểm toán được. Không ai biết một gate đã âm thầm tụt thành cảnh báo, hay đã mất nơi gọi.',
   how:['npm run gates:index để sinh lại bảng.','npm run gates:index:check để chặn khi bảng lệch source.'],
   cmd:'npm run gates:index   ·   npm run gates:index:check',
@@ -2293,6 +2293,16 @@ const TERMS_GATE3 = [
   ex:'Đo trên CSDL-4008: 303/312 case khai tiền điều kiện cần dựng · 274 đã chạy · 0 có ghi bằng chứng tiền đề.',
   trap:'HAI phép đo đã bị bỏ trước khi ra được cái này, và cả hai đều đọc spec. Bản chặt đòi expect ngay trong beforeAll: gắn cờ 267/303 case, tố oan vì helper trong lib mới là chỗ ném lỗi. Bản nới đi theo đường nhập: gắn cờ 0, vì gần như lib nào cũng có một throw. Số đổi từ 267 sang 0 tuỳ cách viết regex thì phép đo đang đo chính regex.',
   src:'scripts/qa/setup_proof.js', rel:['g-exec_proof','g-write_proof','r-evidence','f-verdict-taxonomy'] }
+,
+{ id:'g-gate_reachable', t:'gate:reachable', cat:'gate',
+  def:'Mỗi máy có nằm trên một ĐƯỜNG CHẠY thật không — lệnh, workflow, skill, prompt, CI, hay một npm script khác gọi nó.',
+  detail:'Quét các bề mặt mà một máy thật sự được gọi ra. KHÔNG tính ba chỗ: danh mục GATES.md (tự sinh nên nhắc tới mọi máy theo định nghĩa), trang thư viện (chỗ tra cứu), và spec của chính máy đó.',
+  why:'Người review 11/11/2026 nói kit chưa khép kín thành quy trình end-to-end. Đo lại thì chỗ hỏng cụ thể hơn: exec:proof, write:proof và setup:proof KHÔNG được gọi từ đâu cả, mà gate:policy vẫn ĐẠT — vì luật của nó chỉ là mọi npm script phải được NHẮC TỚI ở đâu đó. Spec chứng minh máy CHẠY ĐƯỢC, nó không chứng minh CÓ AI CHẠY.',
+  how:['Chạy: npm run gate:reachable. Nằm trong static-check của cả hai CI.','Mức BÁO CÁO: in số rồi thoát 0. Bản :enforce chặn khi vượt mốc.','Mốc là số ĐÃ ĐO (26 ngày 11/11/2026). Hạ khi nối thật, KHÔNG nâng để cho xanh.'],
+  cmd:'npm run gate:reachable   ·   npm run gate:reachable:enforce',
+  ex:'Đo 11/11/2026: 242 npm script, 26 máy không nằm trên đường chạy nào. Trong đó 5 là bản :enforce, vốn sinh ra để người siết tay chạy — vẫn để trong mẫu số và nói ra, thay vì lọc cho số đẹp.',
+  trap:'Vế ÂM đáng tin (không xuất hiện ⇒ chắc chắn không ai chạy), vế DƯƠNG chỉ là CHẶN TRÊN — một cái tên nằm trong câu văn giải thích cũng được tính là có nối. Gộp hai vế thành x% đã khép kín là nói quá. Và bản đầu của chính cửa này in ✓ ĐẠT — 27 ≤ mốc 18, một câu tự mâu thuẫn: không chặn KHÁC đã đạt.',
+  src:'scripts/qa/gate_reachable.js', rel:['g-policy_source_check','g-exec_proof','g-setup_proof','g-gate_index','c-forcing-function'] }
 
 ];
 
@@ -3255,7 +3265,7 @@ const TERMS_FLOW = [
 
 { id:'f-phase2', t:'Phase 3 — Execute (/phase3)', cat:'flow',
   def:'Dựng và chạy automation thật, thu evidence, rồi mới tới cổng Backlog.',
-  detail:'Chuỗi bốn bước: chuẩn bị execute → sinh hoặc cập nhật automation → chạy và tự chữa locator → report và cổng Backlog. Nguồn testcase mặc định kéo từ Google Sheet (TESTCASE_SOURCE=sheet), Excel là lựa chọn thay thế khi chưa publish hoặc chạy offline.',
+  detail:'Chuỗi bốn bước: chuẩn bị execute → sinh hoặc cập nhật automation → chạy và tự chữa locator → report và cổng Backlog. Nguồn testcase lúc execute là Markdown canonical `test-cases/*.md` (TESTCASE_SOURCE=md, mặc định) vì đọc Markdown rẻ token hơn hẳn; `sheet` và `excel` là opt-in cho lượt cần đúng bộ QA vừa sửa tay trên Sheet. Excel là lựa chọn thay thế khi chưa publish hoặc chạy offline.',
   why:'Đây là nơi mọi thứ phase sinh case chuẩn bị được đem thử với sản phẩm thật, và cũng là nơi dễ ẩu nhất, nên xung quanh nó có nhiều gate nhất.',
   how:['Bắt buộc chạy preflight_gate trước khi execute.','Phần cần trạng thái backend nội bộ thì chuyển sang manual hoặc bán tự động, ghi đúng trạng thái.'],
   src:'.agent/workflows/08_tong_quan_execute.md', rel:['g-preflight_gate','sk-qa_automation_engineer','r-evidence','f-test-execution'] },
@@ -3298,7 +3308,7 @@ const TERMS_FLOW = [
 
 { id:'f-excel-canonical', t:'bản xuất Excel', cat:'flow',
   def:'Bộ testcase gốc, nguồn sự thật khi sinh và publish testcase.',
-  detail:'Nằm trong test-cases/. Bảy cột BẮT BUỘC: TC ID · Module · Trường hợp kiểm thử · Tiền điều kiện · Các bước thực hiện · Kết quả mong đợi · Ưu tiên. Là nguồn khi GEN và PUBLISH; còn khi EXECUTE thì Phase 2 mặc định kéo từ Google Sheet về.',
+  detail:'Nằm trong test-cases/. Bảy cột BẮT BUỘC: TC ID · Module · Trường hợp kiểm thử · Tiền điều kiện · Các bước thực hiện · Kết quả mong đợi · Ưu tiên. Là nguồn khi GEN và PUBLISH; còn khi EXECUTE thì mặc định đọc thẳng Markdown canonical, không kéo Sheet về.',
   why:'Có một bản gốc nghĩa là mọi phase đọc lại cùng một thứ thay vì dựa vào hội thoại cũ, và mọi công cụ phía sau parse được vì tên cột ổn định.',
   trap:'Thiếu hoặc đổi tên cột là design_gate chặn, vì downstream đọc theo tên cột và sẽ vỡ im lặng.',
   src:'.agent/skills/phase1/tc_validator/SKILL.md', rel:['c-canonical','g-design_gate','sk-backlog_testcase_publisher','f-severity'] },
@@ -3313,7 +3323,7 @@ const TERMS_FLOW = [
 
 { id:'f-sheet', t:'Google Sheet', cat:'flow',
   def:'Công cụ test-management DUY NHẤT của kit. Lưu test là thực thể riêng của app, không phải Backlog issue.',
-  detail:'Ba đường đi: bản xuất Excel → publish qua Drive MCP → dòng trong Google Sheet · kết quả Phase 2 → merge_execution_status → Cycle + Run + evidence theo từng bước · dòng trong Google Sheet → pull_testcases_aio → test-cases/from-sheet/*.xlsx làm nguồn execute. Model canonical dùng chung ở scripts/lib/testcase, chỉ khác tầng gọi API.',
+  detail:'Ba đường đi: bản xuất Excel → publish qua Drive MCP → dòng trong Google Sheet · kết quả Phase 2 → merge_execution_status → Cycle + Run + evidence theo từng bước · dòng trong Google Sheet → tải về test-cases/from-sheet/*.xlsx, CHỈ khi lượt đó opt-in nguồn `sheet`. Model canonical dùng chung ở scripts/lib/testcase, chỉ khác tầng gọi API.',
   why:'Vì test không phải Backlog issue nên phải có tầng tích hợp riêng, không dùng lại được đường Backlog. Đổi lại, evidence gắn được vào TỪNG BƯỚC của case chứ không chỉ vào cả case.',
   how:[
     'Env cần: GOOGLE_SHEET_URL trong profiles/<TASK_KEY>/task.env. Đọc và ghi Sheet đi qua Drive MCP.',
@@ -3476,7 +3486,7 @@ const TERMS_FLOW2 = [
 
 { id:'f-gate-catalog', t:'Danh mục gate (tự sinh)', cat:'flow',
   def:'Bảng liệt kê mọi máy của kit kèm mức chặn, sinh tự động từ source.',
-  detail:'Con số hiện tại: 169 máy — 120 CHẶN · 29 SINH (ghi artifact) · 20 BÁO CÁO (chỉ in). Mức được suy từ code chứ không khai tay: exit 1 là CHẶN, ghi artifact là SINH, chỉ in là BÁO CÁO. Bảng còn ghi mỗi máy được gọi từ đâu, và ghi ra .agent/config/GATES.md.',
+  detail:'Con số hiện tại: 170 máy — 121 CHẶN · 29 SINH (ghi artifact) · 20 BÁO CÁO (chỉ in). Mức được suy từ code chứ không khai tay: exit 1 là CHẶN, ghi artifact là SINH, chỉ in là BÁO CÁO. Bảng còn ghi mỗi máy được gọi từ đâu, và ghi ra .agent/config/GATES.md.',
   why:'Luận đề của kit là "luật cần MÁY". Nhưng máy mà không liệt kê được thì không kiểm toán được. Không ai biết một gate đã âm thầm tụt xuống thành cảnh báo, hay đã mất hết nơi gọi và thành mồ côi.',
   how:['Sinh lại: npm run gates:index.','Chặn khi bảng lệch source: npm run gates:index:check.'],
   trap:'SINH và BÁO CÁO không phải gate bị nới. Chúng không kiểm vi phạm, chỉ tạo dữ liệu cho máy khác chặn.',
@@ -3668,7 +3678,7 @@ const FLOW_STEPS = [
     gate:'Đây là điểm dừng có chủ ý, không phải thời gian chết: dùng để dựng precondition và chuẩn bị fixture.' },
 
   { n:'5', k:'phase2', title:'Phase 3 — Execute', who:'AI Agent + QA',
-    goal:'Kéo testcase từ Google Sheet, dựng tiền điều kiện, chạy thật, thu evidence.',
+    goal:'Đọc Markdown canonical, dựng tiền điều kiện, chạy thật, thu evidence.',
     out:['Playwright results','evidence ảnh/video','execution-summary.md','testcase-status.json','expansion-plan.md'],
     cmd:'/phase3 <TASK_KEY>   (gate: /preflight <TASK_KEY>)',
     gate:'preflight_gate phải xanh trước. Execute KHÔNG chỉ bám chữ trong case — phải mở rộng 5 trục quanh nó theo risk band.' },
@@ -3770,7 +3780,7 @@ const CHECKLISTS = [
 const ARCH_LAYERS = [
   { k:'Phase 2 — sinh testcase', c:'#4F46E5', d:'Đọc requirement/design/API rồi sinh testcase Markdown + Excel + coverage report + Setup Strategy contract (PRE-NN) + Precondition Execution Matrix. Markdown là source of truth cho nội dung case; Excel là bản xuất bắt buộc của bước gen.' },
   { k:'Testcase Publish (Google Sheet)', c:'#4338CA', d:'Step riêng sau /phase2: khi QA đã xác nhận Excel thì tạo/cập nhật case trên Google Sheet, nhóm bằng folder 2 cấp, TC ID ở automationKey. Mặc định dry-run.' },
-  { k:'Phase 3 — execute', c:'#2A6FDB', d:'Đọc testcase từ nguồn canonical (mặc định kéo từ Google Sheet), chạy Precondition Resolution Pass, sinh/cập nhật Playwright spec, execute thật rồi thu evidence.' },
+  { k:'Phase 3 — execute', c:'#2A6FDB', d:'Đọc testcase từ Markdown canonical (mặc định; `sheet`/`excel` là opt-in khi QA vừa sửa tay trên Sheet), chạy Precondition Resolution Pass, sinh/cập nhật Playwright spec, execute thật rồi thu evidence.' },
   { k:'Setup Layer', c:'#0E9AA7', d:'tests/support/setup/ — factory, hook, fixture, mock, cleanup, contract dùng chung để dựng tiền điều kiện. Không dựng state bằng DB; DB chỉ read-only verify qua guarded client.' },
   { k:'Rerun', c:'#1F8A5B', d:'Chạy lại case fail hoặc bug Backlog đã fix. Không dùng để đồng bộ tài liệu nguồn mới.' },
   { k:'Partial Rerun', c:'#7C5CD6', d:'Nhánh phụ độc lập xử lý thay đổi tài liệu nguồn và execute subset bị ảnh hưởng. Không được gọi từ Main Flow.' },
@@ -3888,7 +3898,7 @@ const CMD_GROUPS = [
     ['npm run merge:execution-status -- --task <KEY>','Ghép kết quả execute vào bộ canonical']
   ]},
   { g:'Kit: tự kiểm toán & phát hành', items:[
-    ['npm run gates:index  ·  npm run gates:index:check','Danh mục gate tự sinh — 169 máy, 120 CHẶN; :check chặn khi bảng lệch source'],
+    ['npm run gates:index  ·  npm run gates:index:check','Danh mục gate tự sinh — 170 máy, 121 CHẶN; :check chặn khi bảng lệch source'],
     ['npm run rule -- <mục>  ·  npm run rule:toc','Tra RULE_GLOBAL theo mục (287 token) thay vì đọc cả file (12,8k)'],
     ['npm run version:check','Chặn phát hành thiếu số phiên bản; kiểm khớp tag'],
     ['npm run package:kit','Đóng gói dist/ CHỈ lớp GENERIC — không để lọt secret hay oracle của dự án khác'],

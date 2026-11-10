@@ -133,6 +133,12 @@ console.log('    · Điều nó nói được: với những case đó, artifact
 console.log('      Đó đúng là "CHƯA CHỨNG MINH" — một lỗ hổng truy vết, không phải một kết luận về lỗi.');
 console.log('    · BLOCKED_SETUP ghi ít bước là ĐÚNG: chúng dừng sớm có chủ ý.');
 
+/* Dòng cho BÓ GATE đọc: `check.js` chỉ nhặt dòng mở đầu bằng `~` làm cảnh báo. Không có dòng này
+ * thì nối vào bó gate chỉ tạo ra một ô PASS im lặng. Vẫn thoát 0 — đây là mức BÁO CÁO. */
+if (yeu.length) {
+  console.log(`~ exec:proof — ${yeu.length} case PASSED mà artifact KHÔNG đủ để kiểm lại từng bước (CẦN REVIEW, không phải "chạy sai")`);
+}
+
 const so = path.join(REPO, 'knowledge', 'metrics', 'exec-proof.json');
 try {
   fs.mkdirSync(path.dirname(so), { recursive: true });
