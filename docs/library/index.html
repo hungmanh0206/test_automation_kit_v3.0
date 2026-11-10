@@ -862,7 +862,7 @@ body.lropen{overflow:hidden}
 
     <h3 class="subhead"><span class="num">5</span>Lệnh hay dùng</h3>
     <p class="sectip">Danh mục gate của kit là <b>tự sinh từ source</b>, không viết tay — bản hiện tại đếm được
-      <b>166 máy: 119 CHẶN · 27 SINH · 20 BÁO CÁO</b>. Sinh lại bằng <code>npm run gates:index</code>.
+      <b>167 máy: 119 CHẶN · 28 SINH · 20 BÁO CÁO</b>. Sinh lại bằng <code>npm run gates:index</code>.
       Phiên bản kit: <b>2.11.0</b>.</p>
     <div id="cmdList"></div>
 
@@ -994,7 +994,7 @@ body.lropen{overflow:hidden}
       </ul>
 
       <h3>Vì sao cần</h3>
-      <p>Kit có 28 skill, 166 máy kiểm (112 trong đó CHẶN thật) và một bộ từ vựng riêng (oracle độc lập, tautology, failureLayer,
+      <p>Kit có 28 skill, 167 máy kiểm (112 trong đó CHẶN thật) và một bộ từ vựng riêng (oracle độc lập, tautology, failureLayer,
         readiness, TRI, chiều coverage…). Người mới vào phải đọc rải rác nhiều file mới ghép được bức tranh.
         Trang này gom lại một chỗ, giữ nguyên nguồn, và cố tình <b>không</b> diễn giải thêm ngoài những gì repo đã ghi.</p>
 
@@ -1795,7 +1795,7 @@ const TERMS_GATE3 = [
   src:'scripts/qa/scope_anchor.js', rel:['g-dimension_coverage','c-canonical','g-preflight_gate'] },
 { id:'g-gate_index', t:'gates:index', cat:'gate',
   def:'Sinh DANH MỤC GATE của kit từ chính source. Trả lời được "kit có bao nhiêu gate, mỗi cái CHẶN gì, gọi ở đâu".',
-  detail:'Quét source rồi suy mức từ code: exit 1 là CHẶN · ghi artifact là SINH · chỉ in là BÁO CÁO. Bảng hiện tại: 166 máy — 119 CHẶN, 27 SINH, 20 BÁO CÁO. Bản --check chặn khi bảng lệch source.',
+  detail:'Quét source rồi suy mức từ code: exit 1 là CHẶN · ghi artifact là SINH · chỉ in là BÁO CÁO. Bảng hiện tại: 167 máy — 119 CHẶN, 28 SINH, 20 BÁO CÁO. Bản --check chặn khi bảng lệch source.',
   why:'Kit có hơn 30 npm script dạng gate và gần 60 file trong scripts/qa/, nhưng không chỗ nào trả lời được câu trên. Hệ quả không phải bất tiện: luận đề của kit là "luật cần MÁY", mà máy không LIỆT KÊ ĐƯỢC thì không kiểm toán được. Không ai biết một gate đã âm thầm tụt thành cảnh báo, hay đã mất nơi gọi.',
   how:['npm run gates:index để sinh lại bảng.','npm run gates:index:check để chặn khi bảng lệch source.'],
   cmd:'npm run gates:index   ·   npm run gates:index:check',
@@ -1809,6 +1809,13 @@ const TERMS_GATE3 = [
   why:'Đặt adapter trong .agent/skills làm 7 ca infra của kit đỏ (skills-shim, skills-route, /start) vì chúng không được đăng ký trong INDEX.md và shim. V9.1 dời ra ngoài để sửa tận gốc; cửa này giữ cho nó không quay lại.',
   how:['npm run extension:check'],
   src:'scripts/qa/extension_integrity_check.js', rel:['g-skills_index','c-forcing-function'] },
+
+{ id:'g-write_proof', t:'write:proof', cat:'gate',
+  def:'Case có hành động GHI thì spec của nó có đường nghiệm thu bằng KÊNH ĐỘC LẬP không (DB chỉ-đọc, hoặc tải lại trang rồi đọc lại)?',
+  detail:'Dò HÀNH ĐỘNG ghi trong cột "Các bước thực hiện" (bấm Ghi/Lưu/Xóa/Tổng hợp dữ liệu/Gửi/Khóa/Duyệt…), rồi nối case với spec bằng CHÍNH danh sách id đọc được từ bộ .md. Cơ chế độc lập tính cả khi nằm ở lib mà spec nhập vào. Không có case ghi, hoặc không đọc được spec ⇒ KHÔNG PHÁN ĐƯỢC, exit 2.',
+  why:'Vế thứ hai của điều #2 chủ dự án nêu: "xác nhận dữ liệu thực sự thay đổi như expected". Kit đã có doctrine ở packs/qemis.md mục 1 — toast "thành công" KHÔNG chứng minh đã ghi, năm cơ chế từng cho cùng triệu chứng — nhưng doctrine nằm ở lời dặn, không ở máy. Đo trên CSDL-4008: 312 case · 184 có hành động ghi · 92 nằm trong spec KHÔNG có đường nghiệm thu độc lập · 68 có · 24 không tìm thấy spec. HAI LẦN SIẾT do đo mà biết: dò theo chữ trong cột Kết quả mong đợi bắt 248/312 kể cả case chỉ mở màn (⇒ chuyển sang dò hành động trong cột Các bước); và chỉ grep file .spec.ts gắn cờ oan c-ngan-sach.spec.ts trong khi lib/nganSach.ts nó nhập vào có đường hỏi DB (⇒ theo đường nhập, 115 → 92). Phép đo ở MỨC FILE: vế ÂM đáng tin, vế DƯƠNG chỉ là chặn trên — gộp thành một tỉ lệ "đã nghiệm thu X%" là nói quá.',
+  how:['npm run write:proof -- --task CSDL-4008','npm run write:proof -- --task CSDL-4008 --json'],
+  src:'scripts/qa/write_proof.js', rel:['g-exec_proof','g-bug_claim'] },
 
 { id:'g-exec_proof', t:'exec:proof', cat:'gate',
   def:'Artifact có ĐỦ để chứng minh một case PASSED đã chạy hết bước không — đo "CHƯA CHỨNG MINH", KHÔNG phán "đã sai".',
@@ -3449,7 +3456,7 @@ const TERMS_FLOW2 = [
 
 { id:'f-gate-catalog', t:'Danh mục gate (tự sinh)', cat:'flow',
   def:'Bảng liệt kê mọi máy của kit kèm mức chặn, sinh tự động từ source.',
-  detail:'Con số hiện tại: 166 máy — 119 CHẶN · 27 SINH (ghi artifact) · 20 BÁO CÁO (chỉ in). Mức được suy từ code chứ không khai tay: exit 1 là CHẶN, ghi artifact là SINH, chỉ in là BÁO CÁO. Bảng còn ghi mỗi máy được gọi từ đâu, và ghi ra .agent/config/GATES.md.',
+  detail:'Con số hiện tại: 167 máy — 119 CHẶN · 28 SINH (ghi artifact) · 20 BÁO CÁO (chỉ in). Mức được suy từ code chứ không khai tay: exit 1 là CHẶN, ghi artifact là SINH, chỉ in là BÁO CÁO. Bảng còn ghi mỗi máy được gọi từ đâu, và ghi ra .agent/config/GATES.md.',
   why:'Luận đề của kit là "luật cần MÁY". Nhưng máy mà không liệt kê được thì không kiểm toán được. Không ai biết một gate đã âm thầm tụt xuống thành cảnh báo, hay đã mất hết nơi gọi và thành mồ côi.',
   how:['Sinh lại: npm run gates:index.','Chặn khi bảng lệch source: npm run gates:index:check.'],
   trap:'SINH và BÁO CÁO không phải gate bị nới. Chúng không kiểm vi phạm, chỉ tạo dữ liệu cho máy khác chặn.',
@@ -3737,7 +3744,7 @@ const CMD_GROUPS = [
     ['npm run merge:execution-status -- --task <KEY>','Ghép kết quả execute vào bộ canonical']
   ]},
   { g:'Kit: tự kiểm toán & phát hành', items:[
-    ['npm run gates:index  ·  npm run gates:index:check','Danh mục gate tự sinh — 166 máy, 117 CHẶN; :check chặn khi bảng lệch source'],
+    ['npm run gates:index  ·  npm run gates:index:check','Danh mục gate tự sinh — 167 máy, 117 CHẶN; :check chặn khi bảng lệch source'],
     ['npm run rule -- <mục>  ·  npm run rule:toc','Tra RULE_GLOBAL theo mục (287 token) thay vì đọc cả file (12,8k)'],
     ['npm run version:check','Chặn phát hành thiếu số phiên bản; kiểm khớp tag'],
     ['npm run package:kit','Đóng gói dist/ CHỈ lớp GENERIC — không để lọt secret hay oracle của dự án khác'],
