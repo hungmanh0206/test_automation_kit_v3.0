@@ -1146,7 +1146,7 @@ async function main() {
   {
     const LENIENT = args.includes("--lenient") || process.env.QA_STRICT === "0";
     const QA_APPROVED = args.includes("--qa-approved");
-    const pf = preflight.runPreflight({ mode: "phase1" });
+    const pf = preflight.runPreflight({ mode: "phase2" });
     if (pf.warnings && pf.warnings.length) console.warn(`[preflight] ⚠ ${pf.warnings.join(" | ")}`);
     if (pf.problems && pf.problems.length) {
       const msg = `[preflight] ✗ ${pf.problems.length} input bắt buộc thiếu/hỏng:\n  - ${pf.problems.join("\n  - ")}\n→ Đọc/sửa input rồi convert lại.`;

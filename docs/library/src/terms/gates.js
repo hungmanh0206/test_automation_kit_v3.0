@@ -6,7 +6,7 @@ const TERMS_GATE = [
   detail:'Chạy TRƯỚC workflow. Kiểm ba thứ: các file input bắt buộc có tồn tại không (project_context, catalog, testcase canonical), file cấu hình có parse được không, và bộ testcase canonical đã có chưa. Thiếu bất kỳ thứ nào là chặn.',
   why:'Agent có thể lướt qua hoặc quên đọc một file input, hoặc file JSON bị hỏng dấu phẩy. Không có gate này thì cả phase vẫn chạy, nhưng chạy trên nền sai, và hỏng đến cuối mới lộ ra, lúc đó đã mất hàng giờ.',
   how:['Bắt buộc chạy trước Phase 2.','Đọc thông báo: nó nói thẳng file nào thiếu, dòng nào hỏng.'],
-  cmd:'node scripts/qa/preflight_gate.js --mode phase2 --task <TASK_KEY>',
+  cmd:'node scripts/qa/preflight_gate.js --mode phase3 --task <TASK_KEY>',
   ex:'requirements/ui_catalog.json bị thừa một dấu phẩy → gate chặn ngay, thay vì để ui_conformance_check chạy xong rồi báo "không đo được".',
   src:'scripts/qa/preflight_gate.js', rel:['f-phase2','g-self_review','f-project-context','c-forcing-function'] },
 

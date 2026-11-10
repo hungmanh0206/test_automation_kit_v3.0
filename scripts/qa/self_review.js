@@ -34,7 +34,7 @@ const results = [];
 
 // 1) Preflight — input/config integrity.
 {
-  const r = preflight.runPreflight({ mode: TASK ? 'phase2' : 'generic', task: TASK });
+  const r = preflight.runPreflight({ mode: TASK ? 'phase3' : 'generic', task: TASK });
   results.push(engine.toResult('preflight (input/config)', { problems: r.problems || [], warnings: r.warnings || [], severity: engine.SEVERITY.P0 }));
 }
 

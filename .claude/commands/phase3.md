@@ -20,7 +20,7 @@ Thiếu mã task → `npm run task:which -- $ARGUMENTS`; thoát 2 = KHÔNG PHÁN
 Gate bắt buộc:
 
 ```bash
-node scripts/qa/preflight_gate.js --mode phase2 --task $ARGUMENTS
+node scripts/qa/preflight_gate.js --mode phase3 --task $ARGUMENTS
 npm run expansion:plan
 npm run gate:output
 npm run self-review -- --task $ARGUMENTS

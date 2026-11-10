@@ -4,7 +4,7 @@ description: Cửa vào cho người mới — hỏi đúng 5 điều, tạo pro
 
 Task: **$ARGUMENTS**
 
-Kit có 168 gate và 28 skill. Người mới cần **5 điều**. Hỏi đủ 5 câu dưới, **gom thành MỘT lần hỏi**, rồi
+Kit có 169 gate và 28 skill. Người mới cần **5 điều**. Hỏi đủ 5 câu dưới, **gom thành MỘT lần hỏi**, rồi
 làm ba bước. Đừng hỏi lắt nhắt.
 
 > **Phạm vi: CHỈ tạo profile và task.** Không đọc đặc tả, không neo mẫu số, không sinh case, không execute.
@@ -38,7 +38,7 @@ In cho người dùng, **không** phải để agent chạy:
 | Phase | Người dùng gõ tiếp |
 |---|---|
 | Phase 1 | `/phase2 <TASK_KEY>` — bước đầu của nó là `scope:anchor:init` |
-| Phase 2 | `/preflight` với `--mode phase2` → `/phase3 <TASK_KEY>` |
+| Phase 2 | `/preflight` với `--mode phase3` → `/phase3 <TASK_KEY>` |
 
 ## Dừng khi
 

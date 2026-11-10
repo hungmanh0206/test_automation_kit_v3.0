@@ -150,7 +150,7 @@ const TERMS_GATE3 = [
   src:'scripts/qa/scope_anchor.js', rel:['g-dimension_coverage','c-canonical','g-preflight_gate'] },
 { id:'g-gate_index', t:'gates:index', cat:'gate',
   def:'Sinh DANH MỤC GATE của kit từ chính source. Trả lời được "kit có bao nhiêu gate, mỗi cái CHẶN gì, gọi ở đâu".',
-  detail:'Quét source rồi suy mức từ code: exit 1 là CHẶN · ghi artifact là SINH · chỉ in là BÁO CÁO. Bảng hiện tại: 168 máy — 120 CHẶN, 28 SINH, 20 BÁO CÁO. Bản --check chặn khi bảng lệch source.',
+  detail:'Quét source rồi suy mức từ code: exit 1 là CHẶN · ghi artifact là SINH · chỉ in là BÁO CÁO. Bảng hiện tại: 169 máy — 120 CHẶN, 29 SINH, 20 BÁO CÁO. Bản --check chặn khi bảng lệch source.',
   why:'Kit có hơn 30 npm script dạng gate và gần 60 file trong scripts/qa/, nhưng không chỗ nào trả lời được câu trên. Hệ quả không phải bất tiện: luận đề của kit là "luật cần MÁY", mà máy không LIỆT KÊ ĐƯỢC thì không kiểm toán được. Không ai biết một gate đã âm thầm tụt thành cảnh báo, hay đã mất nơi gọi.',
   how:['npm run gates:index để sinh lại bảng.','npm run gates:index:check để chặn khi bảng lệch source.'],
   cmd:'npm run gates:index   ·   npm run gates:index:check',
@@ -301,7 +301,7 @@ const TERMS_GATE3 = [
   how:[
     'npm run env:scope để soi cả bộ profile trên máy.',
     'node scripts/qa/env_scope_check.js --soi để ĐO trước, chốt luật sau.',
-    'Chặn thật nằm ở preflight_gate.js --mode phase2 (hàm kiemGhimCapHoc), vì env:scope quét cả repo nên không vào CI được.'
+    'Chặn thật nằm ở preflight_gate.js --mode phase3 (hàm kiemGhimCapHoc), vì env:scope quét cả repo nên không vào CI được.'
   ],
   cmd:'npm run env:scope   ·   node scripts/qa/env_scope_check.js --soi',
   ex:'QEMIS_CAP_HOC= để RỖNG vẫn tính là chưa ghim: isReal() của opsLogin loại ô rỗng, nên "có tên khoá" KHÔNG phải "đã ghim".',
@@ -638,5 +638,15 @@ const TERMS_GATE3 = [
   ex:'Lượt chạy đầu tiên bắt được một chỗ lệch CÓ SẴN: branch_parity.json trỏ .agent/workflows/phase1_01_analyze_requirements.md, một file không tồn tại ở đâu trong cây.',
   trap:'Cửa đếm-theo-mẫu luôn hỏng im lặng theo chiều thôi nhìn. Đợt đánh số lại bỏ tiền tố phase khỏi tên workflow, mẫu cũ hết khớp, và cửa tụt từ 103 đường dẫn xuống 4 rồi in ĐẠT. Cái sàn ở trên sinh ra từ đúng lượt đó.',
   src:'scripts/qa/workflow_refs.js', rel:['f-slash-commands','g-policy_source_check','g-gate_index','c-forcing-function'] }
+,
+{ id:'g-setup_proof', t:'setup:proof', cat:'gate',
+  def:'Case giả định một trạng thái thì lượt chạy có GHI LẠI việc kiểm trạng thái đó không.',
+  detail:'Mẫu số là case khai tiền điều kiện cần DỰNG — tag [ui] [api] [factory] [test_hook]; pre_existing và manual cố ý không tính vì chúng không dựng gì. Tử số là case có ít nhất một step mang dấu tiền đề, do EvidenceRecorder.tienDe() đặt.',
+  why:'Chủ dự án nêu: chưa chứng minh Agent dựng đúng state. Trạng thái có thật lúc chạy hay không là chuyện chỉ LƯỢT CHẠY biết, nên chỉ lượt chạy ghi được. Không ghi thì không ai kiểm lại được tiền đề, và một case đỏ vì tiền đề không có sẽ trông y hệt một case đỏ vì sản phẩm sai.',
+  how:['Dựng xong thì ghi: await ca.tienDe(page, "<trạng thái>", { assert: () => … }).','Mức BÁO CÁO, không chặn: API mới có nên mọi task cũ đều 0%. Siết lên chặn khi một task MỚI đạt ngưỡng.'],
+  cmd:'npm run setup:proof -- --task <TASK_KEY>',
+  ex:'Đo trên CSDL-4008: 303/312 case khai tiền điều kiện cần dựng · 274 đã chạy · 0 có ghi bằng chứng tiền đề.',
+  trap:'HAI phép đo đã bị bỏ trước khi ra được cái này, và cả hai đều đọc spec. Bản chặt đòi expect ngay trong beforeAll: gắn cờ 267/303 case, tố oan vì helper trong lib mới là chỗ ném lỗi. Bản nới đi theo đường nhập: gắn cờ 0, vì gần như lib nào cũng có một throw. Số đổi từ 267 sang 0 tuỳ cách viết regex thì phép đo đang đo chính regex.',
+  src:'scripts/qa/setup_proof.js', rel:['g-exec_proof','g-write_proof','r-evidence','f-verdict-taxonomy'] }
 
 ];

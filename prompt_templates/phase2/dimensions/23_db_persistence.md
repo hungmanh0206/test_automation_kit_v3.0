@@ -125,7 +125,7 @@ Khai chiều này trong `dimension_manifest.json` (hoặc dùng tag `[DbPersist]
 preflight**:
 
 ```
-node scripts/qa/preflight_gate.js --mode phase2 --task <TASK_KEY>
+node scripts/qa/preflight_gate.js --mode phase3 --task <TASK_KEY>
 ```
 
 Nhóm đó chặn khi: thiếu `.agent/config/db.conventions.json` · conventions không parse được · thiếu

@@ -52,7 +52,7 @@ const cfgLine = nProb
 const ctx = [
   '[KIT FORCING FUNCTIONS — round-3] Output của bạn bị GATE máy-kiểm (preflight · design_gate · output_gate · risk_gate + harness hook); sai chuẩn = CHẶN, KHÔNG push được. Rule là forcing function, không phải "dặn".',
   'Non-negotiables (đọc): CLAUDE.md. Verdict/rerun (1 nguồn): .agent/config/verdict_taxonomy.json — FAIL bắt buộc kèm failureLayer; rerun 2–3 lần; "không phán được" KHÔNG thành PASS.',
-  'TRƯỚC execute (Phase 2): `node scripts/qa/preflight_gate.js --mode phase2 --task <TASK_KEY>` — thiếu input/config hỏng/testcase canonical chưa có = CHẶN.',
+  'TRƯỚC execute (Phase 2): `node scripts/qa/preflight_gate.js --mode phase3 --task <TASK_KEY>` — thiếu input/config hỏng/testcase canonical chưa có = CHẶN.',
   'TRƯỚC sinh case (Phase 1): neo MẪU SỐ trước — `npm run scope:anchor:init` rồi điền `requirements/scope_inventory.md` (mỗi mục kèm nguồn). Không có danh mục thì mọi con số coverage về sau là % của mẫu số do CHÍNH BẠN đặt ra, và "đủ" chỉ còn nghĩa "bạn thấy đủ".',
   'TRƯỚC finalize/publish: `npm run self-review:enforce -- --task <TASK_KEY>` — checklist gộp (preflight+design+row-quality+neo mẫu số+execution+attestation). Dùng bản `:enforce`: bản thường luôn exit 0 nên không chặn được gì.',
   `Preflight config integrity (giờ): ${cfgLine}.`,
