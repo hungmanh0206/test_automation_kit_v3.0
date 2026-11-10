@@ -10,11 +10,11 @@ Phase 1 làm **đúng hai việc**, theo thứ tự:
 
 | Bước | Lệnh | Việc |
 |---|---|---|
-| 1 | [`/1_start`](1_start.md) | Hỏi đúng 5 điều, tạo `profiles/<TASK>/task.env`, chạy preflight |
+| 1 | [`/start`](start.md) | Hỏi đúng 5 điều, tạo `profiles/<TASK>/task.env`, chạy preflight |
 | 2 | [`/discover`](discover.md) | Bò app: bản đồ màn, API, vùng mù tài liệu, bề mặt injection |
 
 > **Phạm vi: CHỈ chuẩn bị.** Không đọc đặc tả, không neo mẫu số, không sinh case, không execute —
-> những việc đó là `/3_phase2`.
+> những việc đó là `/phase2`.
 
 ## Vì sao tách hai bước
 
@@ -32,7 +32,7 @@ bấm Ghi, không Xoá, không đổi trạng thái bản ghi nào.
 ## Chạy
 
 ```
-/1_start <TASK_KEY>
+/start <TASK_KEY>
 /discover <TASK_KEY>
 ```
 
@@ -41,17 +41,17 @@ bấm Ghi, không Xoá, không đổi trạng thái bản ghi nào.
 - **Đã có profile VÀ đã có `requirements/system_map.json`** — chạy lại không thêm thông tin nào.
 - **Preflight chặn ở bước 1** — dựng đúng thứ nó đòi rồi mới đi tiếp.
 - **User chưa xác nhận chạm UAT** — dừng ở bước 1.
-- **Xong bước 2** — báo bản đồ rồi **DỪNG**. KHÔNG tự chạy `/3_phase2`: đó là lượt khác, cần phiên
+- **Xong bước 2** — báo bản đồ rồi **DỪNG**. KHÔNG tự chạy `/phase2`: đó là lượt khác, cần phiên
   sạch và một bản bàn giao (`handoff/`).
 
-## Bốn phase
+## Bốn phase — thứ tự chạy
 
 | | Lệnh | Việc |
 |---|---|---|
-| **1** | `/2_phase1` | tạo profile · khám phá hệ thống |
-| **2** | `/3_phase2` | đọc tài liệu · sinh testcase · đẩy lên Sheet |
-| **3** | `/5_phase3` | execute trên UAT · chấm verdict |
-| **4** | `/6_phase4` | rerun sau khi bug được sửa |
+| **1** | `/phase1` | tạo profile · khám phá hệ thống |
+| **2** | `/phase2` | đọc tài liệu · sinh testcase · đẩy lên Sheet |
+| **3** | `/phase3` | execute trên UAT · chấm verdict |
+| **4** | `/phase4` | rerun sau khi bug được sửa |
 
-`/4_publish` chen giữa phase 2 và 3 khi cần đẩy Sheet; `/7_release` là cửa cuối. `/partial-rerun` là
+`/publish` chen giữa phase 2 và 3 khi cần đẩy Sheet; `/release` là cửa cuối. `/partial-rerun` là
 **ngoại lệ** ngoài chuỗi bốn phase: dùng khi **requirement đổi** và chỉ một phần bộ case cần sửa.

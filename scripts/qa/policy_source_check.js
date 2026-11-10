@@ -398,7 +398,7 @@ const { boChuThich } = require('./recon_passive.js');
   /*
    * `.claude/commands` LÀ ĐIỂM VÀO THẬT, và danh sách này từng bỏ sót nó.
    *
-   * Người gõ `/5_phase3` thì agent chạy đúng thứ viết trong file lệnh đó — không khác gì prompt hay
+   * Người gõ `/phase3` thì agent chạy đúng thứ viết trong file lệnh đó — không khác gì prompt hay
    * workflow. Thiếu nó ở đây thì một npm script CHỈ được slash command gọi sẽ bị báo "không nơi nào
    * nhắc tới ⇒ sẽ không ai chạy", trong khi thực tế nó chạy mỗi lượt có người gõ lệnh.
    *

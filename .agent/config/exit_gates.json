@@ -7,7 +7,7 @@
     "publish": {
       "ten": "Trước publish testcase lên Google Sheet",
       "lenh": "npm run exit:gate -- --cua publish",
-      "goi_tu": ["prompt_templates/phase2/06_auto_publish_backlog.md", ".agent/workflows/07_auto_publish_backlog.md", ".claude/commands/4_publish.md"],
+      "goi_tu": ["prompt_templates/phase2/06_auto_publish_backlog.md", ".agent/workflows/07_auto_publish_backlog.md", ".claude/commands/publish.md"],
       "may": [
         { "lenh": "self-review:enforce", "vi_sao": "bó sẵn preflight + design_gate + output_gate + typecheck:task + ledger của task; dùng lại thay vì liệt kê lại từng máy" },
         { "lenh": "canonical:drift:enforce", "vi_sao": "bản xuất đem publish phải vừa sinh TỪ Markdown canonical, không phải bản .xlsx sửa tay" },
@@ -31,7 +31,7 @@
     "done": {
       "ten": "Trước khi chuyển Done hoặc phát hành",
       "lenh": "npm run exit:gate -- --cua done",
-      "goi_tu": ["prompt_templates/phase4/01_run_phase4.md", ".agent/workflows/12_report_and_backlog_gate.md", ".claude/commands/6_phase4.md"],
+      "goi_tu": ["prompt_templates/phase4/01_run_phase4.md", ".agent/workflows/12_report_and_backlog_gate.md", ".claude/commands/phase4.md"],
       "may": [
         { "lenh": "self-review:enforce", "vi_sao": "checklist gộp trước finalize — bó sẵn preflight, design_gate, output_gate, typecheck:task và ledger của task" },
         { "lenh": "run:analysis", "vi_sao": "lượt chạy này có đủ điều kiện để kết luận chất lượng hay không (T0 §3)" },

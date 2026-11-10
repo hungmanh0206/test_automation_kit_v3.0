@@ -11,13 +11,13 @@ ra, cách đọc output của `npm run check`, và cách xin vượt qua cho h�
 **Đường ngắn nhất, năm lệnh phải thuộc — bốn phase cộng cửa cuối:**
 
 ```
-/2_phase1  →  /3_phase2  →  /5_phase3  →  /6_phase4  →  /7_release
+/phase1  →  /phase2  →  /phase3  →  /phase4  →  /release
  chuẩn bị     sinh case      execute       rerun         cửa ra
 ```
 
-Số trong tên lệnh **là thứ tự chạy**. Đây là bản rút gọn của luồng đầy đủ (xem mục
-[14 slash command](#14-slash-command)); năm lệnh còn lại trong luồng — `/1_start`, `/discover`,
-`/preflight`, `/gates`, `/4_publish` — không cần thuộc vì `npm run check` gợi ý đúng lúc ở dòng
+Đây là bản rút gọn của luồng đầy đủ (xem mục
+[14 slash command](#14-slash-command)); năm lệnh còn lại trong luồng — `/start`, `/discover`,
+`/preflight`, `/gates`, `/publish` — không cần thuộc vì `npm run check` gợi ý đúng lúc ở dòng
 **Lệnh tiếp theo**, hoặc xem thẳng bằng `npm run next -- --task <TASK_KEY>`.
 
 ## Đi đâu tiếp
@@ -140,33 +140,34 @@ dừng lại đúng chỗ cần người quyết. Lệnh không chứa luật, n
 
 Gõ trong Claude Code. Phần sau tên lệnh phải đúng bằng `<TASK_KEY>`, không thêm chữ nào.
 
-**Bảy lệnh có số, bảy lệnh không.** Số là **thứ tự chạy** của dòng chảy chính. Bảy lệnh không số là
-công cụ: gọi khi gặp đúng tình huống, không có vị trí cố định trong dòng chảy.
+**Bảy lệnh là dòng chảy chính, bảy lệnh là công cụ.** Công cụ gọi khi gặp đúng tình huống, không có
+vị trí cố định trong dòng chảy. Thứ tự chạy nằm ở bảng dưới, không nằm trong tên lệnh.
 
-> Trong Claude Code, **tên file lệnh chính là tên lệnh**. Đó là lý do số nằm ngay trong tên: nhìn
-> `.claude/commands/` là biết thứ tự, và không có chỗ thứ hai để con số ấy trôi.
+> Vì sao tên lệnh KHÔNG mang số thứ tự, dù `.agent/workflows/` và `prompt_templates/` thì có: trong
+> Claude Code, **tên file lệnh chính là tên lệnh** — lệnh ở `.claude/commands/` không nhận trường
+> `name` để đặt bí danh. Đánh số file là bắt người dùng gõ số mỗi lần. Hai thư mục kia là file được
+> ĐỌC chứ không phải lệnh được GÕ, nên đánh số ở đó không phải trả giá gì.
 
 ### Luồng chính, theo đúng thứ tự chạy
 
 ```text
-/1_start ─┐
-          ├─ /2_phase1 → /preflight → /3_phase2 → /gates → /4_publish → /5_phase3 → /6_phase4 → /7_release
+/start ─┐
+          ├─ /phase1 → /preflight → /phase2 → /gates → /publish → /phase3 → /phase4 → /release
 /discover ┘
 ```
 
-**1. `/1_start <TASK_KEY>`: mở một task mới**
+**1. `/start <TASK_KEY>`: mở một task mới**
 
 Cửa vào khi bạn chưa có gì cả. Nó hỏi đúng 5 điều (task nào, module nào, nguồn requirement ở đâu,
 môi trường nào, giới hạn scope), tạo `profiles/<TASK_KEY>/task.env`, chạy preflight, rồi chỉ lệnh kế
 tiếp. Thiếu câu trả lời nào thì nó **dừng và hỏi**, không tự điền.
 
-**2. `/2_phase1 <TASK_KEY>`: PHASE 1 — chuẩn bị**
+**2. `/phase1 <TASK_KEY>`: PHASE 1 — chuẩn bị**
 
-Gọi lần lượt `/1_start` rồi `/discover`. Gõ một lệnh này là đủ cho cả bước chuẩn bị; hai lệnh con để
-dành cho khi cần chạy lại riêng một bước. Vì vậy `/1_start` mang số **1** còn lệnh gộp mang số **2**:
-số là thứ tự **chạy**, không phải thứ tự bao hàm.
+Gọi lần lượt `/start` rồi `/discover`. Gõ một lệnh này là đủ cho cả bước chuẩn bị; hai lệnh con để
+dành cho khi cần chạy lại riêng một bước.
 
-Nó **không đọc đặc tả và không sinh case** — đó là `/3_phase2`. Nó dừng sau khi báo bản đồ hệ thống,
+Nó **không đọc đặc tả và không sinh case** — đó là `/phase2`. Nó dừng sau khi báo bản đồ hệ thống,
 và không tự chạy sang phase sau.
 
 **3. `/discover`: xem hệ thống có những gì**
@@ -182,7 +183,7 @@ Soát input và config bắt buộc: thiếu file, JSON hỏng, hoặc chưa có
 Mục đích là hỏng sớm ở cửa vào, thay vì hỏng giữa chừng khi đã chạy được nửa bộ case. Gặp exit khác 0
 thì sửa nguyên nhân, đừng bỏ qua.
 
-**5. `/3_phase2 <TASK_KEY>`: PHASE 2 — sinh bộ testcase**
+**5. `/phase2 <TASK_KEY>`: PHASE 2 — sinh bộ testcase**
 
 Đọc spec, hỏi cho hết chỗ mơ hồ, rồi mới sinh Markdown canonical và xuất Excel. Phase này **không
 execute** gì cả.
@@ -196,12 +197,12 @@ Chạy một bó gate gộp: preflight, thiết kế case, chất lượng từn
 Dùng trước khi finalize hoặc publish. Còn dòng CHẶN thì **sửa nội dung cho đúng**, không nới ngưỡng
 để cho qua.
 
-**7. `/4_publish <TASK_KEY>`: đẩy lên Google Sheet**
+**7. `/publish <TASK_KEY>`: đẩy lên Google Sheet**
 
 Đồng bộ testcase hoặc kết quả execute lên Sheet. Nó luôn cho bạn **xem bản local trước**, chỉ ghi đè
 Sheet thật sau khi bạn duyệt. Chạy sau khi QA đã xác nhận bộ case ở bước 5.
 
-**8. `/5_phase3 <TASK_KEY>`: PHASE 3 — execute thật**
+**8. `/phase3 <TASK_KEY>`: PHASE 3 — execute thật**
 
 Dựng automation, execute trên môi trường test, chấm verdict theo taxonomy chuẩn. Nó **xác nhận với
 bạn trước lượt chạm UAT đầu tiên**, vì UAT là môi trường dùng chung.
@@ -209,12 +210,12 @@ bạn trước lượt chạm UAT đầu tiên**, vì UAT là môi trường dù
 Fail ở bước dựng tiền điều kiện được tính là `setup_failure`, **không phải** lỗi sản phẩm, nên không
 log bug.
 
-**9. `/6_phase4 <TASK_KEY>`: PHASE 4 — rerun sau khi Dev fix**
+**9. `/phase4 <TASK_KEY>`: PHASE 4 — rerun sau khi Dev fix**
 
 Chạy lại đúng những case liên quan tới bug đã fix rồi cập nhật kết quả. Nó **không sinh testcase
 mới** — requirement đổi là việc của `/partial-rerun`.
 
-**10. `/7_release <TASK_KEY>`: cửa cuối**
+**10. `/release <TASK_KEY>`: cửa cuối**
 
 Chạy cửa ra `done` rồi đưa khuyến nghị go hoặc no-go **có căn cứ**, không phải cảm tính. Dùng khi đã
 execute xong và sổ nợ đã sạch; còn nợ thì nó không cho qua.
@@ -227,7 +228,7 @@ Không nằm trong luồng chính. Xoá chúng đi thì luồng chính vẫn ch�
 
 Khi BA, UIUX hoặc BE sửa tài liệu **sau khi** đã có testcase. Nó dựng bản review trước (diff, phần bị
 ảnh hưởng, case draft), và **chỉ merge sau khi bạn duyệt**. Chưa có testcase baseline thì dùng
-`/3_phase2` chứ không dùng lệnh này.
+`/phase2` chứ không dùng lệnh này.
 
 **`/manual-run <TASK_KEY>`: case không tự động hoá được**
 

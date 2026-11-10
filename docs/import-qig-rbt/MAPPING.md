@@ -89,7 +89,7 @@ Cột **Quyết định**: NHẬN (lấy nguyên ý) · CHỈNH (lấy ý, đổ
 | "Tài liệu ghi một đằng, ảnh một nẻo → ảnh thắng" (`:174`) | Ambiguity Gate đã có, `04_prepare_context.md:29` | **CHỈNH** | Lệch nguồn ⇒ **thành câu hỏi Ambiguity Gate**, không tự chọn bên |
 | Thứ tự dựng oracle mới | — | **NHẬN (viết lại)** | `knowledge/domain/` đã xác nhận > spec, Figma > ảnh hoặc DOM của build. Ảnh/DOM chỉ **chốt sự thật quan sát** (nhãn, option, mặc định, disabled), không phán đúng/sai |
 | 4 nhóm TC bắt buộc có nguồn chống lưng (`:184`) | **Chưa có** | **NHẬN** | Bố cục · nhãn nguyên văn · giá trị mặc định · định dạng hiển thị |
-| Tag `@NeedsVerify` khi thiếu evidence (`:179`) | **Chưa có** | **NHẬN (đổi cú pháp)** | Thành `[NeedsVerify]` cho khớp cột `Tag`. `/4_publish` CHẶN khi còn, trừ `--qa-approved` |
+| Tag `@NeedsVerify` khi thiếu evidence (`:179`) | **Chưa có** | **NHẬN (đổi cú pháp)** | Thành `[NeedsVerify]` cho khớp cột `Tag`. `/publish` CHẶN khi còn, trừ `--qa-approved` |
 | Script đọc DOM (option, selectedIndex, checked/disabled, fieldOrder) (`:199`) | `ui_debug_agent` đã có | **NHẬN** | Đưa vào skill dạng công thức tái dùng — **đúng thứ cũng cần cho H4 của prompt giảm token** |
 | "Checkbox xám mờ = disabled → có business rule phụ thuộc" (`:218`) | **Chưa có** | **NHẬN** | Vào `dimensions/03_field_validation.md`: sinh case cả hai chiều + mở câu hỏi |
 | "Chưa mở evidence thì chưa được ghi dòng TC đầu tiên" | — | **BỎ** | Kit chạy Phase 1 từ spec, nhiều task không có thư mục evidence. Áp cứng sẽ chặn oan |

@@ -5,7 +5,7 @@ import path from 'path';
 /*
  * @infra — BẢN ĐỒ NẠP THEO ĐIỀU KIỆN (H2 của token-diet).
  *
- * Vì sao có file này: `npm run prompt:budget` đo chuỗi của `/3_phase2` ra 56 file, 143,2k token nếu đọc hết.
+ * Vì sao có file này: `npm run prompt:budget` đo chuỗi của `/phase2` ra 56 file, 143,2k token nếu đọc hết.
  * Trong đó chỉ 5,7k bắt buộc và 13,5k khai điều kiện rõ; **124k rơi vào cột chưa-phân-loại**, vì câu chứa
  * con trỏ không viết điều kiện ra. Máy không đọc được điều kiện thì agent phải đoán, và đoán rộng tay là
  * nạp hết.

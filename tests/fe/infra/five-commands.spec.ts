@@ -24,15 +24,15 @@ const nc = require(NEXT);
  * NĂM LỆNH PHẢI NHỚ — đổi 10/11/2026 theo bốn phase mà chủ dự án chốt.
  *
  * Cũ: start · phase1 · phase2 · rerun · release. Mới: bốn phase liên tục + release.
- * `/1_start` và `/discover` KHÔNG biến mất — chúng nằm TRONG `/2_phase1`, và người mới chỉ cần nhớ
+ * `/start` và `/discover` KHÔNG biến mất — chúng nằm TRONG `/phase1`, và người mới chỉ cần nhớ
  * một tên cho cả bước chuẩn bị thay vì hai.
  *
  * ĐÁNH SỐ 10/11/2026 — tên file lệnh mang luôn thứ tự chạy. Trong Claude Code tên file CHÍNH LÀ tên
- * lệnh, nên đây không phải việc trang trí thư mục: `/phase1` không còn gõ được, phải gõ `/2_phase1`.
+ * lệnh, nên đây không phải việc trang trí thư mục: `/phase1` không còn gõ được, phải gõ `/phase1`.
  * Bảy lệnh phụ trợ cố ý KHÔNG có số — chúng gọi khi cần, không có vị trí trong dòng chảy.
  */
-const NAM_LENH = ['2_phase1', '3_phase2', '5_phase3', '6_phase4', '7_release'];
-const GOI_Y_DUNG_LUC = ['4_publish', 'discover', 'explore', 'manual-run', 'ui-debug', 'partial-rerun'];
+const NAM_LENH = ['phase1', 'phase2', 'phase3', 'phase4', 'release'];
+const GOI_Y_DUNG_LUC = ['publish', 'discover', 'explore', 'manual-run', 'ui-debug', 'partial-rerun'];
 
 test.describe.configure({ mode: 'default' });
 
@@ -149,11 +149,11 @@ test.describe('@infra next — gợi ý suy từ TRẠNG THÁI ARTIFACT', () => 
     return { goc, taskDir };
   }
 
-  test('chưa có profile ⇒ gợi ý `/1_start`', () => {
+  test('chưa có profile ⇒ gợi ý `/start`', () => {
     const t = dungTask({});
     const s = nc.trangThai('T-KHONG-CO-PROFILE', t.taskDir);
     expect(s.co_profile).toBe(false);
-    expect(nc.goiY(s)[0].lenh).toBe('/1_start');
+    expect(nc.goiY(s)[0].lenh).toBe('/start');
   });
 
   test('có case mà chưa neo mẫu số ⇒ gợi ý `scope:anchor:init`', () => {
@@ -169,20 +169,20 @@ test.describe('@infra next — gợi ý suy từ TRẠNG THÁI ARTIFACT', () => 
     expect(nc.goiY(s).map((g: { lenh: string }) => g.lenh)).toContain('npm run lane -- --task <KEY>');
   });
 
-  test('đã execute, sổ nợ SẠCH, chưa qua cửa cuối ⇒ gợi ý `/7_release`', () => {
+  test('đã execute, sổ nợ SẠCH, chưa qua cửa cuối ⇒ gợi ý `/release`', () => {
     const t = dungTask({ case: true, mauSo: true, status: true, soNoSach: true });
     const s = { ...nc.trangThai('T-NEXT', t.taskDir), co_profile: true };
     expect(s.so_no).toBe(0);
-    expect(nc.goiY(s).map((g: { lenh: string }) => g.lenh)).toContain('/7_release');
+    expect(nc.goiY(s).map((g: { lenh: string }) => g.lenh)).toContain('/release');
   });
 
-  test('sổ nợ CÒN MÓN ⇒ gợi ý `/6_phase4`, KHÔNG gợi ý `/7_release`', () => {
-    /* Qua cửa cuối với sổ nợ còn món là đúng thứ §A2 chặn; gợi ý `/7_release` ở đó là dẫn người ta vào tường. */
+  test('sổ nợ CÒN MÓN ⇒ gợi ý `/phase4`, KHÔNG gợi ý `/release`', () => {
+    /* Qua cửa cuối với sổ nợ còn món là đúng thứ §A2 chặn; gợi ý `/release` ở đó là dẫn người ta vào tường. */
     const t = dungTask({ case: true, mauSo: true, status: true, soNoCon: true });
     const s = { ...nc.trangThai('T-NEXT', t.taskDir), co_profile: true };
     const ds = nc.goiY(s).map((g: { lenh: string }) => g.lenh);
-    expect(ds).toContain('/6_phase4');
-    expect(ds).not.toContain('/7_release');
+    expect(ds).toContain('/phase4');
+    expect(ds).not.toContain('/release');
   });
 
   test('THIẾU sổ nợ KHÁC sổ nợ SẠCH — gợi ý `npm run check` để biết đã gate nào chạy chưa', () => {
@@ -223,9 +223,9 @@ test.describe('@infra next — gợi ý suy từ TRẠNG THÁI ARTIFACT', () => 
      * thời điểm là nhiễu, và nhiễu làm người ta thôi đọc dòng này.
      */
     const thuTu = nc.GOI_Y.map((g: { lenh: string }) => g.lenh);
-    expect(thuTu.indexOf('/1_start')).toBeLessThan(thuTu.indexOf('/3_phase2'));
-    expect(thuTu.indexOf('/3_phase2')).toBeLessThan(thuTu.indexOf('/5_phase3'));
-    expect(thuTu.indexOf('/5_phase3')).toBeLessThan(thuTu.indexOf('/7_release'));
+    expect(thuTu.indexOf('/start')).toBeLessThan(thuTu.indexOf('/phase2'));
+    expect(thuTu.indexOf('/phase2')).toBeLessThan(thuTu.indexOf('/phase3'));
+    expect(thuTu.indexOf('/phase3')).toBeLessThan(thuTu.indexOf('/release'));
   });
 
   test('CHỈ gợi ý — không tự chạy, không tự ghi', () => {
@@ -249,12 +249,12 @@ test.describe('@infra next — gợi ý suy từ TRẠNG THÁI ARTIFACT', () => 
     }
   });
 
-  test('không có TASK_KEY ⇒ vẫn gợi ý `/1_start`, KHÔNG báo lỗi', () => {
+  test('không có TASK_KEY ⇒ vẫn gợi ý `/start`, KHÔNG báo lỗi', () => {
     /* Đây là ca của người mới, và báo lỗi ở đây là chặn đúng người cần giúp nhất. */
     const r = spawnSync(process.execPath, [NEXT, '--mot-dong'],
       { cwd: REPO, encoding: 'utf8', env: { ...gateEnv(), PROJECT_OUTPUT_DIR: '', TASK_KEY: '' } });
     expect(r.status).toBe(0);
-    expect(`${r.stdout}`).toContain('/1_start');
+    expect(`${r.stdout}`).toContain('/start');
   });
 });
 
@@ -267,12 +267,12 @@ test.describe('@infra `/check` in dòng "Lệnh tiếp theo"', () => {
     expect(src).toMatch(/gợi ý thiếu thì KHÔNG được làm chết lượt kiểm/);
   });
 
-  test('`/7_release` chạy cửa `done` rồi mới `release:summary`', () => {
+  test('`/release` chạy cửa `done` rồi mới `release:summary`', () => {
     /*
      * Thứ tự có nghĩa: cửa CHẶN, còn summary chỉ KHUYẾN NGHỊ. Chạy summary trước thì người ta đọc một
      * khuyến nghị go/no-go cho một task chưa qua cửa.
      */
-    const r = fs.readFileSync(path.join(REPO, '.claude/commands/7_release.md'), 'utf8');
+    const r = fs.readFileSync(path.join(REPO, '.claude/commands/release.md'), 'utf8');
     const iCua = r.indexOf('exit:gate -- --cua done');
     const iSum = r.indexOf('release:summary');
     expect(iCua).toBeGreaterThan(0);
@@ -280,8 +280,8 @@ test.describe('@infra `/check` in dòng "Lệnh tiếp theo"', () => {
     expect(r, 'phải nói rõ summary không chặn và không tự quyết').toMatch(/không chặn và không tự quyết/);
   });
 
-  test('`/7_release` nêu ba trạng thái của cửa, gồm `○`', () => {
-    const r = fs.readFileSync(path.join(REPO, '.claude/commands/7_release.md'), 'utf8');
+  test('`/release` nêu ba trạng thái của cửa, gồm `○`', () => {
+    const r = fs.readFileSync(path.join(REPO, '.claude/commands/release.md'), 'utf8');
     expect(r).toContain('không phán được');
     expect(r, 'và cảnh báo đọc ○ thành ✓').toMatch(/Đọc nó thành `✓`/);
   });

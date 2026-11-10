@@ -1,6 +1,6 @@
 {
   "_doc": "Mỗi bước của mỗi luồng nạp FILE NÀO, và file nào chỉ nạp KHI NÀO. NGUỒN DUY NHẤT — slash command và workflow trỏ vào đây thay vì tự liệt kê lại.",
-  "_vi_sao": "Đo bằng `npm run prompt:budget`: chuỗi của `/3_phase2` có 56 file, tổng 143,2k token nếu đọc hết. Trong đó chỉ 5,7k là bắt buộc và 13,5k khai điều kiện rõ; còn **124k rơi vào cột chưa-phân-loại** vì câu chứa con trỏ không viết điều kiện ra. Máy không đọc được điều kiện thì agent phải đoán, và đoán rộng tay là nạp hết.",
+  "_vi_sao": "Đo bằng `npm run prompt:budget`: chuỗi của `/phase2` có 56 file, tổng 143,2k token nếu đọc hết. Trong đó chỉ 5,7k là bắt buộc và 13,5k khai điều kiện rõ; còn **124k rơi vào cột chưa-phân-loại** vì câu chứa con trỏ không viết điều kiện ra. Máy không đọc được điều kiện thì agent phải đoán, và đoán rộng tay là nạp hết.",
   "_khong_phai_de_giam_token_truoc_tien": "Đo động cho thấy một lượt chạy task thật chỉ `Read` 0 đến 4 file tài liệu của kit, nên giá trị token trực tiếp của file này nhỏ. Giá trị thật là biến 124k chưa-phân-loại thành LỜI KHAI máy kiểm được: ai thêm file prompt mà không khai điều kiện nạp thì gate bắt được.",
   "_dieu_kien_viet_the_nao": "Trường `khi` là câu tiếng Việt cho người đọc. Trường `may_kiem` (nếu có) là dấu hiệu máy đo được — artifact tồn tại, hoặc khoá trong manifest. Không có `may_kiem` nghĩa là điều kiện này hiện chỉ người kiểm được, và nói thẳng ra thay vì giả vờ đã gác.",
   "luong": {
@@ -70,7 +70,7 @@
       }
     },
     "publish": {
-      "diem_vao": ".claude/commands/4_publish.md",
+      "diem_vao": ".claude/commands/publish.md",
       "bat_buoc": [
         "prompt_templates/phase2/06_auto_publish_backlog.md"
       ],
@@ -121,16 +121,16 @@
     },
     "start": {
       "_vi_sao": "Cửa vào cho người mới (v2.5.0 G3.5). Luồng RIÊNG, cố ý không đụng phase1/phase2:  chỉ hỏi 5 điều rồi chỉ sang lệnh có sẵn, nên nó không được làm phình phần nạp của hai luồng chính.",
-      "diem_vao": ".claude/commands/1_start.md",
+      "diem_vao": ".claude/commands/start.md",
       "bat_buoc": [],
       "co_dieu_kien": [
         {
           "file": "prompt_templates/phase2/01_run_phase2.md",
-          "khi": "KHÔNG nạp trong /1_start. Chỉ nạp khi người dùng TỰ gõ /3_phase2 (câu 3 trả lời Phase 1 chỉ quyết định lệnh nào được BÁO ra, không phải lệnh để agent tự chạy)."
+          "khi": "KHÔNG nạp trong /start. Chỉ nạp khi người dùng TỰ gõ /phase2 (câu 3 trả lời Phase 1 chỉ quyết định lệnh nào được BÁO ra, không phải lệnh để agent tự chạy)."
         },
         {
           "file": "prompt_templates/phase3/01_run_phase3.md",
-          "khi": "KHÔNG nạp trong /1_start. Chỉ nạp khi người dùng TỰ gõ /5_phase3."
+          "khi": "KHÔNG nạp trong /start. Chỉ nạp khi người dùng TỰ gõ /phase3."
         }
       ]
     },
@@ -186,7 +186,7 @@
       ],
       "viec": "Convert Markdown sang Excel, và ghi kết quả execute vào cột Result.",
       "khong_lam": "Chỉ ghi cột Result; không upload Drive; không sửa Markdown nguồn; không chấm verdict.",
-      "_vi_sao_khong_khai_o_publish_md": "`.claude/commands/4_publish.md` là ĐIỂM VÀO của luồng publish, tức nằm trong phần nạp BẮT BUỘC. Thêm chữ vào đó là vượt `moc` trong prompt_budget.json và bị CHẶN. Nối ở workflow tương ứng thay vì ở điểm vào: workflow không nằm trong phần bắt buộc nên tốn 0 token."
+      "_vi_sao_khong_khai_o_publish_md": "`.claude/commands/publish.md` là ĐIỂM VÀO của luồng publish, tức nằm trong phần nạp BẮT BUỘC. Thêm chữ vào đó là vượt `moc` trong prompt_budget.json và bị CHẶN. Nối ở workflow tương ứng thay vì ở điểm vào: workflow không nằm trong phần bắt buộc nên tốn 0 token."
     }
   }
 }

@@ -329,6 +329,6 @@ làm `dim:coverage` đòi thêm chiều nên phải hai tầng; (b) để crawle
 
 - Tường lửa ghi không chứng minh được trên fixture là chặn **100%** request ghi ⇒ **tuyệt đối không chạy UAT**.
 - Muốn làm được thì phải để discovery thành oracle, hoặc phải nới gate.
-- Phần nạp bắt buộc của `/2_phase1` vượt `moc` (28.074), hoặc summary vượt trần §2.1.
+- Phần nạp bắt buộc của `/phase1` vượt `moc` (28.074), hoặc summary vượt trần §2.1.
 - §E đo lại mà tổng token Phase 1 không giảm → báo số và nguyên nhân (đã dự báo ở §0①).
 - Bạn chưa xác nhận chạm UAT ở §E.

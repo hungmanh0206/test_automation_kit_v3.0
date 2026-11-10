@@ -115,7 +115,7 @@ chính 5 ca của A làm bộ đối chứng âm — chúng là ví dụ thật,
 
 ## 6. Token
 
-`SKILL.md` ≤2.300 (trần 2.500). Phần bắt buộc của `/2_phase1` **không tăng**: skill khai `co_dieu_kien`
+`SKILL.md` ≤2.300 (trần 2.500). Phần bắt buộc của `/phase1` **không tăng**: skill khai `co_dieu_kien`
 trong `load_map`, kích hoạt ở `phase1_02_generate_testcases`; workflow chỉ thêm **một dòng** trỏ tới.
 Nếu `prompt:budget` báo tăng, cắt bù trong cùng luồng — không nới số, đúng cách v2.8.1 đã làm.
 

@@ -17,26 +17,26 @@
 
 ![Main Flow của Test Automation Kit](docs/user-guide-images/main-flow.png)
 
-Kit chạy theo **bốn phase**, và bạn gọi từng phase bằng một slash command. **Số trong tên lệnh chính
-là thứ tự chạy** — nhìn tên là biết đang ở đâu.
+Kit chạy theo **bốn phase**, và bạn gọi từng phase bằng một slash command. Thứ tự chạy nằm ở bảng
+dưới đây — tên lệnh không mang số, vì trong Claude Code tên file chính là tên lệnh.
 
 ```text
-/2_phase1  →  /3_phase2  →  [/4_publish]  →  /5_phase3  →  /6_phase4  →  /7_release
+/phase1  →  /phase2  →  [/publish]  →  /phase3  →  /phase4  →  /release
  chuẩn bị     sinh case      đẩy Sheet        execute       rerun         cửa ra
 ```
 
 | Phase | Lệnh | Làm gì | Ai quyết định |
 |---|---|---|---|
-| **1** | `/2_phase1` | Tạo profile task, rồi bò app bằng script để lấy mẫu số từ thứ **quan sát được** chứ không chỉ từ tài liệu | — |
-| **2** | `/3_phase2` | Đọc đặc tả, hỏi hết mơ hồ, sinh testcase, xuất Excel | QA review trước khi sang phase 3 |
-| **3** | `/5_phase3` | Execute thật trên môi trường test, chấm verdict | QA duyệt trước khi ghi lên Sheet |
-| **4** | `/6_phase4` | Chạy lại case của bug đã fix | QA |
+| **1** | `/phase1` | Tạo profile task, rồi bò app bằng script để lấy mẫu số từ thứ **quan sát được** chứ không chỉ từ tài liệu | — |
+| **2** | `/phase2` | Đọc đặc tả, hỏi hết mơ hồ, sinh testcase, xuất Excel | QA review trước khi sang phase 3 |
+| **3** | `/phase3` | Execute thật trên môi trường test, chấm verdict | QA duyệt trước khi ghi lên Sheet |
+| **4** | `/phase4` | Chạy lại case của bug đã fix | QA |
 
-Ba lệnh có số nhưng **không phải một phase**: `/1_start` (bước đầu nằm trong phase 1), `/4_publish`
-(đẩy Sheet, chen giữa phase 2 và 3) và `/7_release` (cửa cuối sau phase 4).
+Ba lệnh nữa nằm trong dòng chảy nhưng **không phải một phase**: `/start` (bước đầu nằm trong phase
+1), `/publish` (đẩy Sheet, chen giữa phase 2 và 3) và `/release` (cửa cuối sau phase 4).
 
-Bảy lệnh còn lại **không có số** vì chúng là công cụ, gọi khi gặp đúng tình huống chứ không có vị trí
-cố định: `/discover`, `/preflight`, `/gates`, `/partial-rerun`, `/manual-run`, `/explore`, `/ui-debug`.
+Bảy lệnh còn lại là **công cụ**: gọi khi gặp đúng tình huống, không có vị trí cố định trong dòng
+chảy — `/discover`, `/preflight`, `/gates`, `/partial-rerun`, `/manual-run`, `/explore`, `/ui-debug`.
 
 **Kit không thay QA quyết định.** Agent đọc tài liệu, sinh case, chạy test và tổng hợp. Coverage đủ
 chưa, risk chấp nhận được không, bug có đáng log không — vẫn là người quyết.
@@ -46,7 +46,7 @@ chưa, risk chấp nhận được không, bug có đáng log không — vẫn l
 | Luật | Vi phạm thì sao |
 |---|---|
 | Đúng `TASK_KEY` | Ghi đè output của task khác |
-| Bộ case của `/3_phase2` phải được review trước khi `/5_phase3` chạy | Execute theo expected sai |
+| Bộ case của `/phase2` phải được review trước khi `/phase3` chạy | Execute theo expected sai |
 | `test-cases/*.md` là nguồn sự thật, Excel và Sheet là bản xuất | Sửa trên Sheet sẽ mất ở lần đồng bộ sau |
 | Không skip để làm đẹp pass rate | Report không phản ánh chất lượng thật |
 | Không log bug khi fail do setup/data/automation | Tạo nhiễu cho Dev |
@@ -89,7 +89,7 @@ QA Lead chỉ review report thì không cần cài Playwright.
 
 Mỗi task một profile riêng. Đây là cơ chế giữ các task không đè lên nhau.
 
-Cách thường dùng là `/1_start <TASK_KEY>`: nó hỏi 5 điều rồi tạo profile cho bạn. Muốn tạo thẳng không
+Cách thường dùng là `/start <TASK_KEY>`: nó hỏi 5 điều rồi tạo profile cho bạn. Muốn tạo thẳng không
 qua hỏi đáp thì:
 
 ```bash
@@ -139,15 +139,15 @@ Mỗi phase đều cùng một hình dạng: **chạy gì, ra gì, kiểm gì**.
 
 Trong tài liệu này `TASK_DIR` viết tắt cho `<PROJECT_OUTPUT_DIR>/tasks/<TASK_KEY>/`.
 
-### 3.1 `/2_phase1` — chuẩn bị: profile và khám phá
+### 3.1 `/phase1` — chuẩn bị: profile và khám phá
 
 **Chạy:**
 
 ```text
-/2_phase1 <TASK_KEY>
+/phase1 <TASK_KEY>
 ```
 
-Nó làm **đúng hai việc, theo thứ tự**: `/1_start` tạo `profiles/<TASK_KEY>/task.env` rồi `/discover`
+Nó làm **đúng hai việc, theo thứ tự**: `/start` tạo `profiles/<TASK_KEY>/task.env` rồi `/discover`
 bò app. Gọi riêng từng bước cũng được — dùng khi cần chạy lại một trong hai.
 
 Bước khám phá chạm UAT, nên nó **xác nhận với bạn trước**, và chỉ ĐỌC. Không có agent thì chạy tay:
@@ -173,12 +173,12 @@ PROJECT_OUTPUT_DIR=…  TASK_KEY=…  TASK_OUTPUT_DIR=…  Phase=…
 
 `TASK_KEY` không khớp thì **dừng ngay**.
 
-### 3.2 `/3_phase2` — sinh testcase
+### 3.2 `/phase2` — sinh testcase
 
 **Chạy:**
 
 ```text
-/3_phase2 <TASK_KEY>
+/phase2 <TASK_KEY>
 ```
 
 Hoặc trỏ thẳng vào `prompt_templates/phase2/01_run_phase2.md`.
@@ -223,7 +223,7 @@ chức năng.
 Mỗi ô `Tiền điều kiện` phải mang tag `[<method>]` — `api`, `factory`, `test_hook`, `ui`,
 `pre_existing`, `manual`. **Không có `db`**: dựng state bằng DB là bỏ qua business logic.
 
-`/3_phase2` **không execute**. Nó dừng ở `Pending QA confirmation`.
+`/phase2` **không execute**. Nó dừng ở `Pending QA confirmation`.
 
 ### 3.3 Review bộ case: cửa quyết định
 
@@ -253,17 +253,17 @@ Coverage cao mà còn gap Critical/High thì **không PASS**.
 **Publish lên Google Sheet** sau khi QA duyệt:
 
 ```text
-/4_publish <TASK_KEY>
+/publish <TASK_KEY>
 ```
 
-### 3.4 `/5_phase3` — execute
+### 3.4 `/phase3` — execute
 
 ![Vòng execute và phân tích kết quả](docs/user-guide-images/phase2-execution-loop.png)
 
 **Chạy:**
 
 ```text
-/5_phase3 <TASK_KEY>
+/phase3 <TASK_KEY>
 ```
 
 Agent **xác nhận với bạn** trước lượt chạm môi trường test đầu tiên.
@@ -298,7 +298,7 @@ Mô hình Sheet và vì sao chọn nó: [`docs/rationale/google-sheet.md`](docs/
 
 | Loại | Dấu hiệu | Làm gì |
 |---|---|---|
-| Product bug | App/API sai expected thật | `/6_phase4` xác nhận rồi chuẩn bị log |
+| Product bug | App/API sai expected thật | `/phase4` xác nhận rồi chuẩn bị log |
 | Automation issue | Locator/script/assertion sai | Sửa rồi chạy lại |
 | Test data issue | Dữ liệu thiếu hoặc không rollback được | Dựng qua API/factory/hook; không dựng bằng DB |
 | Environment issue | App/API/auth lỗi | Ghi blocker, **không** log product bug |
@@ -328,13 +328,13 @@ node scripts/qa/decisions.js --check "<triệu chứng>" --module <Module>
 
 Khớp `false_positive` hoặc `by_design` thì **không log lại** — log lại là bị Dev bounce lần hai.
 
-### 3.7 `/6_phase4` — rerun sau khi Dev fix
+### 3.7 `/phase4` — rerun sau khi Dev fix
 
 ```text
-/6_phase4 <TASK_KEY>
+/phase4 <TASK_KEY>
 ```
 
-`/6_phase4` chỉ xử lý bug hoặc case fail đã có. **Không** dùng nó để cập nhật testcase theo tài liệu
+`/phase4` chỉ xử lý bug hoặc case fail đã có. **Không** dùng nó để cập nhật testcase theo tài liệu
 mới — việc đó là Partial Rerun (mục 5).
 
 PASS thật thì: đính evidence, comment Backlog kèm TC ID, chuyển bug sang `Done`, cập nhật report.
@@ -360,7 +360,7 @@ change/            bản regen của Partial Rerun
 task.md            nhật ký trạng thái task
 ```
 
-> **Tên file artifact giữ số CŨ, có chủ ý.** `phase1-summary.md` là báo cáo của `/3_phase2`, và
+> **Tên file artifact giữ số CŨ, có chủ ý.** `phase1-summary.md` là báo cáo của `/phase2`, và
 > `handoff/phase2.md` là bàn giao của chính lệnh đó. Chúng không đổi tên theo đợt đánh số lệnh vì
 > mọi task đã chạy đang mang tên đó: đổi là làm hỏng bộ artifact cũ để đẹp một bảng mục lục. Khi đọc,
 > neo theo **lệnh** chứ đừng neo theo con số trong tên file.
@@ -381,7 +381,7 @@ task.md            nhật ký trạng thái task
 ![Luồng Partial Rerun](docs/user-guide-images/partial-rerun-flow.png)
 
 Dùng khi BA/UIUX/BE sửa nội dung requirement **sau khi** đã có testcase. Chưa có testcase baseline thì
-chạy `/3_phase2` bình thường, không dùng nhánh này.
+chạy `/phase2` bình thường, không dùng nhánh này.
 
 ```text
 /partial-rerun <TASK_KEY>
@@ -406,7 +406,7 @@ bước cleanup riêng**.
 
 ## 6. QA Lead review
 
-**Sau `/3_phase2`**, mở `reports/phase1-summary.md`:
+**Sau `/phase2`**, mở `reports/phase1-summary.md`:
 
 | Xem mục | Hỏi |
 |---|---|
@@ -415,7 +415,7 @@ bước cleanup riêng**.
 | High/Critical Gaps | Có gap nào chặn PASS không? |
 | Final Decision | Kết luận có hợp lý với số ở trên không? |
 
-**Sau `/5_phase3`**, mở `reports/execution-summary.md`:
+**Sau `/phase3`**, mở `reports/execution-summary.md`:
 
 | Xem | Hỏi |
 |---|---|
@@ -463,19 +463,19 @@ TASK_KEY=<TASK_A> PROJECT_OUTPUT_DIR=outputs/<PROJECT> npm run test:task -- --ta
 **Ý nghĩa đầy đủ của 14 lệnh nằm ở [`README.md`](README.md)** — ở đó mỗi lệnh có một đoạn nói nó làm
 gì, ra gì, gọi khi nào và dừng ở đâu. Mục này chỉ nối lệnh với bước trong quy trình ở trên.
 
-**Bảy lệnh có số — gõ theo đúng thứ tự số:**
+**Bảy lệnh của dòng chảy chính, theo đúng thứ tự chạy:**
 
 | # | Lệnh | Bước trong mục 3 |
 |---|---|---|
-| 1 | `/1_start` | 3.1 — tạo profile (bước đầu của phase 1) |
-| 2 | `/2_phase1` | 3.1 — cả phase 1: profile + khám phá |
-| 3 | `/3_phase2` | 3.2 — sinh testcase |
-| 4 | `/4_publish` | 3.3 — đẩy Sheet, sau khi QA duyệt |
-| 5 | `/5_phase3` | 3.4 — execute |
-| 6 | `/6_phase4` | 3.7 — rerun sau khi Dev fix |
-| 7 | `/7_release` | kết thúc task |
+| 1 | `/start` | 3.1 — tạo profile (bước đầu của phase 1) |
+| 2 | `/phase1` | 3.1 — cả phase 1: profile + khám phá |
+| 3 | `/phase2` | 3.2 — sinh testcase |
+| 4 | `/publish` | 3.3 — đẩy Sheet, sau khi QA duyệt |
+| 5 | `/phase3` | 3.4 — execute |
+| 6 | `/phase4` | 3.7 — rerun sau khi Dev fix |
+| 7 | `/release` | kết thúc task |
 
-**Bảy lệnh không số — gọi khi gặp đúng tình huống:**
+**Bảy lệnh công cụ — gọi khi gặp đúng tình huống:**
 
 | Lệnh | Gọi khi |
 |---|---|
@@ -488,7 +488,7 @@ gì, ra gì, gọi khi nào và dừng ở đâu. Mục này chỉ nối lệnh 
 | `/ui-debug` | Màn mới, hoặc test đỏ vì `script_error` do locator |
 
 > **Phần sau tên command phải đúng bằng `<TASK_KEY>`.** Nó đổ thẳng vào `--task`, nên
-> `/5_phase3 CSDL-1234 chạy local` sẽ làm preflight nhận cả câu đó làm task key rồi chặn. Cần truyền
+> `/phase3 CSDL-1234 chạy local` sẽ làm preflight nhận cả câu đó làm task key rồi chặn. Cần truyền
 > thêm tham số thì dùng prompt mẫu (mục 8.3).
 
 **Quên mã task?** Lệnh tự xử lý:
@@ -525,7 +525,7 @@ Nếu có bug thì chưa log Backlog, chỉ report local.
 
 Mỗi phase có **một thư mục** trong `prompt_templates/`, và file `01_` là điểm vào của thư mục đó:
 `phase2/01_run_phase2.md` · `phase3/01_run_phase3.md` · `phase4/01_run_phase4.md`. Không có
-`phase1/` vì `/2_phase1` chạy bằng script, không có prompt template nào.
+`phase1/` vì `/phase1` chạy bằng script, không có prompt template nào.
 
 ### Việc nào giao subagent
 
@@ -552,9 +552,9 @@ Vì sao chọn từng mức model: [`docs/rationale/subagent-model.md`](docs/rat
 | Triệu chứng | Nguyên nhân hay gặp | Xử lý |
 |---|---|---|
 | Agent không thấy file | Mở sai folder trong VS Code | Mở đúng root của kit |
-| `/3_phase2` thiếu requirement | Link/quyền chưa đủ | Kiểm link trong profile của task |
+| `/phase2` thiếu requirement | Link/quyền chưa đủ | Kiểm link trong profile của task |
 | Excel không xuất được | Thiếu dependency hoặc bảng sai cột | `npm ci`, kiểm cột `ID_TC` |
-| `/5_phase3` skip nhiều | Auth/data/env chưa sẵn sàng | Sửa setup rồi chạy lại |
+| `/phase3` skip nhiều | Auth/data/env chưa sẵn sàng | Sửa setup rồi chạy lại |
 | Evidence trắng | Chụp lúc trang chưa render | Chụp lại sau khi trang ổn định |
 | Fail không rõ nguyên nhân | Chưa phân loại root cause | Rerun đúng case rồi đọc artifact |
 | Case cũ vẫn trên Sheet | Chưa re-publish sau khi sửa Excel | Publish lại, ghi đè cả workbook |
@@ -608,7 +608,7 @@ vào coverage.
 | **Gate** | Điểm dừng máy kiểm. exit 1 = đã đo và sai; **exit 2 = chưa phán được** |
 | **Chiều coverage** | Trục thứ hai cạnh module: hỏi *loại câu hỏi nào* (validate · hiển thị · công thức · quyền · bảo mật · hiệu năng) |
 | **`ui_catalog.json`** | Kiểm kê field/cột theo tài liệu — thứ duy nhất bắt được "thiếu một trường" hoặc "mọc thêm cột lạ" |
-| **Ambiguity Gate** | `/3_phase2` dừng sinh case khi requirement mơ hồ mức Critical/High |
+| **Ambiguity Gate** | `/phase2` dừng sinh case khi requirement mơ hồ mức Critical/High |
 | **RUN_ID** | ID một lượt chạy, dùng khi chạy song song |
 
 ### 11.2 Checklist
@@ -617,11 +617,11 @@ vào coverage.
 
 | Giai đoạn | Phải có |
 |---|---|
-| Phase 2 — `/3_phase2` | Markdown canonical · bản xuất Excel · `phase1-summary.md` · `task.md` |
+| Phase 2 — `/phase2` | Markdown canonical · bản xuất Excel · `phase1-summary.md` · `task.md` |
 | Publish | QA đã duyệt · summary ghi rõ tạo mới hay ghi đè |
-| Phase 3 — `/5_phase3` | `execution-summary.md` · evidence · root cause đã phân loại · `testcase-status.json` |
+| Phase 3 — `/phase3` | `execution-summary.md` · evidence · root cause đã phân loại · `testcase-status.json` |
 | Log bug | Mô tả 4 phần · ảnh/video · expected và actual rõ |
-| Phase 4 — `/6_phase4` | Report rerun · evidence · bug chuyển `Done` nếu PASS thật |
+| Phase 4 — `/phase4` | Report rerun · evidence · bug chuyển `Done` nếu PASS thật |
 
 **QA Lead: quyết định gì thì đọc file nào:**
 

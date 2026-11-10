@@ -11,7 +11,7 @@
  * mà cửa vẫn xanh. Đó là kiểu hỏng riêng của cửa-phủ: nó đếm KHỚP, không đếm PHỦ.
  *
  * VA CHẠM THẬT ĐÃ HẾT, 10/11/2026 — và ca này suýt thành phép đo rỗng. Lúc ấy va chạm là `/rerun`
- * (lệnh) ↔ `rerun.md` (workflow). Đánh số lại đổi lệnh thành `/6_phase4` và workflow thành
+ * (lệnh) ↔ `rerun.md` (workflow). Đánh số lại đổi lệnh thành `/phase4` và workflow thành
  * `13_tong_quan_rerun`, nên trong cây hiện tại KHÔNG còn tên nào trùng. Ca cũ vẫn "xanh" được, nhưng
  * nó sẽ chỉ còn đo "xoá một dòng thì chặn" — đúng y ca ở trên, và không còn đo điều nó sinh ra để đo.
  * Nên nó dựng va chạm trên CÂY TẠM. Giữ phép đo thì phải giữ ĐỐI TƯỢNG của phép đo, không giữ cái tên.
@@ -45,7 +45,7 @@ test.describe('@infra router:check', () => {
     /*
      * ĐẾM TỪ CÂY, KHÔNG GHIM SỐ (10/11/2026).
      *
-     * Bản đầu ghim `32 điểm vào · lệnh /: 13`. Thêm `/2_phase1` lúc đánh số lại bốn phase là ca này đỏ
+     * Bản đầu ghim `32 điểm vào · lệnh /: 13`. Thêm `/phase1` lúc đánh số lại bốn phase là ca này đỏ
      * — không phải vì bảng sai, mà vì CON SỐ TRONG SPEC đã cũ. Một phép kiểm ghim số đếm thì mỗi lần
      * kit lớn lên nó lại đỏ oan, và cách sửa nhanh nhất của người gặp nó là **nâng con số**, tức phép
      * kiểm tự biến thành thủ tục.

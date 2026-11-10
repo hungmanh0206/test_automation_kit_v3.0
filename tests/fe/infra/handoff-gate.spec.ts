@@ -69,7 +69,7 @@ test.describe('@infra bàn giao giữa phase — cảnh báo, không chặn', ()
     expect(loc(chay('phase3'), /phase2\.md/).length, 'phase3 ← phase2').toBe(1);
     expect(loc(chay('phase4'), /phase3\.md/).length, 'phase4 ← phase3').toBe(1);
     expect(loc(chay('publish'), /phase2\.md/).length, 'publish ← phase2').toBe(1);
-    expect(chay('phase2'), 'phase2 là phase ĐẦU của chuỗi bàn giao — /2_phase1 chỉ sinh profile và bản đồ, là FILE chứ không phải tóm tắt hội thoại').toEqual([]);
+    expect(chay('phase2'), 'phase2 là phase ĐẦU của chuỗi bàn giao — /phase1 chỉ sinh profile và bản đồ, là FILE chứ không phải tóm tắt hội thoại').toEqual([]);
   });
 
   test('CHỐNG BÁO OAN — có bàn giao đủ mục thì im lặng hoàn toàn', () => {
@@ -115,7 +115,7 @@ test.describe('@infra bàn giao giữa phase — cảnh báo, không chặn', ()
       expect(t, `${f}: không nhắc ghi bàn giao`).toMatch(/handoff\//);
       expect(t, `${f}: không nhắc /clear giữa hai phase`).toContain('/clear');
     }
-    for (const f of ['.claude/commands/5_phase3.md', '.claude/commands/6_phase4.md', '.claude/commands/4_publish.md']) {
+    for (const f of ['.claude/commands/phase3.md', '.claude/commands/phase4.md', '.claude/commands/publish.md']) {
       const t = fs.readFileSync(path.join(REPO, f), 'utf8');
       expect(t, `${f}: không nhắc đọc handoff đầu lượt`).toMatch(/handoff\//);
       expect(t, `${f}: không nói rõ hội thoại cũ KHÔNG phải nguồn`).toMatch(/KHÔNG phải nguồn/);

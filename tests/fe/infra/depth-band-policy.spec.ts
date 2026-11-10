@@ -118,7 +118,7 @@ test.describe('@infra độ sâu mở rộng theo band', () => {
      */
     for (const ten of ['High', 'Medium', 'Low', 'UNKNOWN']) {
       const keys = Object.keys(RISK.depthPolicy[ten] || {});
-      const rerun = keys.filter((k) => /6_phase4|retry|lanchay/i.test(k));
+      const rerun = keys.filter((k) => /phase4|retry|lanchay/i.test(k));
       expect(rerun, `${ten}: rerun KHÔNG được khai theo band — nó là bộ lọc flaky, không phải độ sâu`).toEqual([]);
     }
     expect(RISK.depthPolicy._expansionAxes, 'quyết định giữ rerun phải ghi kèm lý do').toMatch(/rerun/i);

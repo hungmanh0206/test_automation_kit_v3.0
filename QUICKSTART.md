@@ -55,11 +55,11 @@ hệt nhau. Ngày nào danh sách strip có mục thì cột GitLab tụt đúng
 ## Chạy thử một task
 
 ```text
-/1_start <TASK_KEY>
+/start <TASK_KEY>
 ```
 
-`/1_start` hỏi năm điều, tạo `profiles/<TASK_KEY>/task.env` và `task.md`, chạy preflight, chỉ lệnh kế tiếp rồi
-**dừng**. Nó không đọc đặc tả, không sinh case và không tự gọi `/3_phase2` — phase bắt đầu khi bạn tự gõ lệnh đó.
+`/start` hỏi năm điều, tạo `profiles/<TASK_KEY>/task.env` và `task.md`, chạy preflight, chỉ lệnh kế tiếp rồi
+**dừng**. Nó không đọc đặc tả, không sinh case và không tự gọi `/phase2` — phase bắt đầu khi bạn tự gõ lệnh đó.
 
 Mở file profile vừa tạo và điền **giá trị động**: link Backlog, link requirement, Figma,
 `GOOGLE_SHEET_URL`, tài khoản app. Giá trị **tĩnh** dùng chung cho mọi task thì để ở `.env`.
@@ -67,15 +67,15 @@ Mở file profile vừa tạo và điền **giá trị động**: link Backlog, 
 Sau đó theo **bốn phase**, đúng thứ tự số trong tên lệnh:
 
 ```text
-/2_phase1 <TASK_KEY>   chuẩn bị — gọi /1_start rồi /discover, dừng sau khi báo bản đồ hệ thống
-/3_phase2 <TASK_KEY>   sinh testcase, dừng lại để bạn review
-/5_phase3 <TASK_KEY>   execute, xác nhận trước lượt chạm môi trường đầu tiên
-/6_phase4 <TASK_KEY>   chạy lại case của bug đã fix
-/7_release <TASK_KEY>  cửa cuối: chạy cửa ra `done` rồi khuyến nghị go/no-go
+/phase1 <TASK_KEY>   chuẩn bị — gọi /start rồi /discover, dừng sau khi báo bản đồ hệ thống
+/phase2 <TASK_KEY>   sinh testcase, dừng lại để bạn review
+/phase3 <TASK_KEY>   execute, xác nhận trước lượt chạm môi trường đầu tiên
+/phase4 <TASK_KEY>   chạy lại case của bug đã fix
+/release <TASK_KEY>  cửa cuối: chạy cửa ra `done` rồi khuyến nghị go/no-go
 ```
 
-Vừa chạy `/1_start` ở trên rồi thì `/2_phase1` chỉ còn phần `/discover`. Giữa hai số là hai lệnh chen
-vào khi cần: `/4_publish` (đẩy Sheet, sau khi QA duyệt bộ case) và `/gates` (bó gate trước khi chốt).
+Vừa chạy `/start` ở trên rồi thì `/phase1` chỉ còn phần `/discover`. Giữa hai số là hai lệnh chen
+vào khi cần: `/publish` (đẩy Sheet, sau khi QA duyệt bộ case) và `/gates` (bó gate trước khi chốt).
 
 Quên mã task thì `npm run task:which` in danh sách profile đang có để chọn. Không nhớ đang ở đâu thì
 `npm run check` in dòng **Lệnh tiếp theo**.

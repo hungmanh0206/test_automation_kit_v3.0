@@ -61,7 +61,7 @@ function diemVao() {
  * Dòng bảng Markdown → Map `<loai>:<ten>` → ô ranh giới.
  *
  * KHOÁ PHẢI GỒM LOẠI. Bản đầu khoá bằng TÊN TRẦN, và nó báo ĐẠT trên một bảng thiếu một dòng: `rerun`
- * tồn tại vừa là lệnh `/6_phase4` vừa là workflow `13_tong_quan_rerun.md`, nên MỘT dòng che được HAI điểm vào. 31 dòng
+ * tồn tại vừa là lệnh `/phase4` vừa là workflow `13_tong_quan_rerun.md`, nên MỘT dòng che được HAI điểm vào. 31 dòng
  * phủ 32 điểm vào mà cửa vẫn xanh — đúng kiểu hỏng mà một cửa phủ sinh ra: nó đếm khớp, không đếm phủ.
  *
  * Mốc phân vùng là COMMENT MÁY-ĐỌC (`<!-- router:command -->`), KHÔNG phải câu chữ tiêu đề. Neo vào

@@ -223,7 +223,7 @@ Trả bằng cách cắt, theo đúng luật của chính config (*"thêm chữ 
 |---|---|
 | `CLAUDE.md` −176 ký tự | câu đã có **nguyên vẹn** trong hook SessionStart (bản ở hook còn kể tên 4 cửa) |
 | `core_rules.md` −386 | §Verify mở rộng về bản digest: 7 luật còn đủ 7, con trỏ còn giải được |
-| `.claude/commands/1_start.md` −1138 (−32%) | lý lẽ sang [`docs/rationale/start-pham-vi.md`](../../docs/rationale/start-pham-vi.md) |
+| `.claude/commands/start.md` −1138 (−32%) | lý lẽ sang [`docs/rationale/start-pham-vi.md`](../../docs/rationale/start-pham-vi.md) |
 
 Kết quả: sáu luồng đều **dưới mốc**, và **không một ngưỡng nào bị nới**.
 
@@ -234,7 +234,7 @@ Kết quả: sáu luồng đều **dưới mốc**, và **không một ngưỡng
 | `skills-lint:74` | tôi đổi chữ *"thứ DUY NHẤT agent đọc"* thành *"căn cứ chính"* | khôi phục nguyên văn — bản đổi là vô cớ |
 | `skills-lint:254` · `requirement-evidence:249` | `requirements_analyzer` 2543 > trần 2500 (`main` đã ở **2496**, dư 4 token) | rút hai con trỏ trong SKILL.md |
 | `handoff-gate:105` | nhát cắt phase1 làm **mất hẳn** khối *"ghi bàn giao + `/clear`"* | khôi phục, kèm số đo 494–515k token/message |
-| `start-command:144` | `/1_start` ghi 151 gate, thật **156**; và ô *"vì sao"* câu 3 ngắn hơn 40 ký tự | sửa số, viết lại ô |
+| `start-command:144` | `/start` ghi 151 gate, thật **156**; và ô *"vì sao"* câu 3 ngắn hơn 40 ký tự | sửa số, viết lại ô |
 | `config-presence:89` | `skills_template.json` chưa có trong danh sách **đóng gói** | thêm vào `package_kit.js` |
 | `automation-review:59` | nợ ngủ cứng của file đề bài | hết sau khi đổi đuôi |
 | `frontmatter-check:140` | đối chứng neo vào *"commit MỚI NHẤT sửa file"*, nên **tự vô hiệu sau một lần sửa** | dò ngược cả lịch sử |
@@ -246,7 +246,7 @@ bị chặn, nên không còn phụ thuộc vào việc lượt sửa gần nh�
 
 ### Và hai lỗi của tôi ngay trong lượt vá này, do cửa bắt
 
-- **Ngắt dòng giữa cụm** ``/2_phase1` hay `/3_phase2`` làm regex của `start-command` trượt — đúng lớp lỗi
+- **Ngắt dòng giữa cụm** ``/phase1` hay `/phase2`` làm regex của `start-command` trượt — đúng lớp lỗi
   `rule:parity` đã dạy ở commit trước, tôi vẫn lặp lại.
 - **Viết gọn TÊN luật** *"Neo CỦA kỳ vọng"* → *"Neo kỳ vọng"*, và `rule:parity` xếp là **MẤT LUẬT**. Nó
   đúng: tên là danh tính của luật, đổi nó để tiết kiệm 4 ký tự là đổi sai thứ.

@@ -5,7 +5,7 @@
  * prompt_budget.js — ĐO TĨNH: mỗi điểm vào bảo AI đọc bao nhiêu token hướng dẫn.
  *
  * VÌ SAO CẦN. Kit có 6 điểm vào (slash command), và mỗi điểm vào dẫn tới một chuỗi: command → workflow →
- * template → sub-prompt → rule. Không chỗ nào trả lời được câu "chạy `/5_phase3` thì AI phải nạp bao nhiêu
+ * template → sub-prompt → rule. Không chỗ nào trả lời được câu "chạy `/phase3` thì AI phải nạp bao nhiêu
  * chữ trước khi làm việc đầu tiên". Hệ quả không phải bất tiện: mọi quyết định cắt gọt về sau sẽ là cảm
  * tính, và `doc_budget.js` chỉ đo TÀI LIỆU ĐẦU VÀO CỦA TASK, không đo hướng dẫn của chính kit.
  *

@@ -1,21 +1,21 @@
 /* NHÓM 6 — quy trình & artifact (nguồn: README.md · USER_GUIDE.md · .agent/workflows/ · .agent/config/) */
 const TERMS_FLOW = [
 
-{ id:'f-phase1', t:'Phase 2 — Thiết kế testcase (/3_phase2)', cat:'flow',
+{ id:'f-phase1', t:'Phase 2 — Thiết kế testcase (/phase2)', cat:'flow',
   def:'Từ requirement ra bộ testcase canonical, validate, rồi publish lên Google Sheet.',
   detail:'Chuỗi năm bước: xác định phạm vi (kèm risk register) → chuẩn bị ngữ cảnh (có Ambiguity Gate) → sinh testcase → validate và export report → auto publish Backlog. Output chính gồm testcase Markdown, bản xuất Excel, coverage summary, Setup Strategy contract dạng PRE-NN, Precondition Execution Matrix và task.md.',
   why:'Tách hẳn khỏi execute vì hai việc cần hai loại tập trung khác nhau, và vì bộ case sai thiết kế mà lọt xuống phase execute thì công sức chạy đổ đi hết.',
   how:['Trước khi gen phải gộp câu hỏi làm rõ hỏi người ra yêu cầu, không đoán chỗ mơ hồ.','Gate ra: coverage/risk đủ rõ, mọi precondition có hợp đồng auto hay manual rõ ràng.'],
   src:'.agent/workflows/02_tong_quan_testcase.md', rel:['g-design_gate','g-dimension_coverage','f-excel-canonical','c-ambiguity-gate'] },
 
-{ id:'f-phase2', t:'Phase 3 — Execute (/5_phase3)', cat:'flow',
+{ id:'f-phase2', t:'Phase 3 — Execute (/phase3)', cat:'flow',
   def:'Dựng và chạy automation thật, thu evidence, rồi mới tới cổng Backlog.',
   detail:'Chuỗi bốn bước: chuẩn bị execute → sinh hoặc cập nhật automation → chạy và tự chữa locator → report và cổng Backlog. Nguồn testcase mặc định kéo từ Google Sheet (TESTCASE_SOURCE=sheet), Excel là lựa chọn thay thế khi chưa publish hoặc chạy offline.',
   why:'Đây là nơi mọi thứ phase sinh case chuẩn bị được đem thử với sản phẩm thật, và cũng là nơi dễ ẩu nhất, nên xung quanh nó có nhiều gate nhất.',
   how:['Bắt buộc chạy preflight_gate trước khi execute.','Phần cần trạng thái backend nội bộ thì chuyển sang manual hoặc bán tự động, ghi đúng trạng thái.'],
   src:'.agent/workflows/08_tong_quan_execute.md', rel:['g-preflight_gate','sk-qa_automation_engineer','r-evidence','f-test-execution'] },
 
-{ id:'f-rerun', t:'Phase 4 — Rerun (/6_phase4)', cat:'flow',
+{ id:'f-rerun', t:'Phase 4 — Rerun (/phase4)', cat:'flow',
   def:'Chạy lại case fail hoặc bug đã được Dev fix, rồi cập nhật Backlog.',
   detail:'Ba bước: map bug về testcase → chạy lại và verify → cập nhật Backlog và report. Chuyển bug sang Done chỉ khi có evidence PASS bằng ảnh hoặc video.',
   why:'Tách khỏi Phase 2 vì mục tiêu khác: không phải kiểm toàn bộ mà xác nhận đúng một điều đã sửa xong chưa.',

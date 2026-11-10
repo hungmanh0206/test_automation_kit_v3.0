@@ -6,18 +6,18 @@
 ## Năm lệnh
 
 ```
-/2_phase1  →  /3_phase2  →  /5_phase3  →  /6_phase4  →  /7_release
+/phase1  →  /phase2  →  /phase3  →  /phase4  →  /release
 ```
 
 cộng **`npm run check`** — gọi lúc nào cũng được.
 
 | Lệnh | Nó làm gì | Xong thì có gì |
 |---|---|---|
-| `/2_phase1` | **chuẩn bị**: `/1_start` tạo `profiles/<TASK>/task.env` rồi `/discover` bò app | profile · bản đồ màn và API |
-| `/3_phase2` | đọc spec, hỏi cho hết mơ hồ, sinh Markdown canonical rồi xuất Excel | `test-cases/*.md` và `*.xlsx` |
-| `/5_phase3` | execute, ghi verdict và evidence | `test-results/testcase-status.json` |
-| `/6_phase4` | chạy lại đúng case đỏ, cập nhật evidence và verdict | status đã cập nhật |
-| `/7_release` | cửa cuối: chạy cửa ra `done` rồi khuyến nghị go/no-go | dấu vết qua cửa |
+| `/phase1` | **chuẩn bị**: `/start` tạo `profiles/<TASK>/task.env` rồi `/discover` bò app | profile · bản đồ màn và API |
+| `/phase2` | đọc spec, hỏi cho hết mơ hồ, sinh Markdown canonical rồi xuất Excel | `test-cases/*.md` và `*.xlsx` |
+| `/phase3` | execute, ghi verdict và evidence | `test-results/testcase-status.json` |
+| `/phase4` | chạy lại đúng case đỏ, cập nhật evidence và verdict | status đã cập nhật |
+| `/release` | cửa cuối: chạy cửa ra `done` rồi khuyến nghị go/no-go | dấu vết qua cửa |
 | `npm run check` | **một lệnh kiểm**: tự nhận phase, chạy gate của phase, in một bảng gọn | biết còn phải sửa gì |
 
 
@@ -26,11 +26,12 @@ Xem thẳng bằng `npm run next -- --task <KEY>`.
 
 | Nhóm | Lệnh |
 |---|---|
-| Có số, nằm trong dòng chảy | `/1_start`, `/4_publish` |
-| Không số, là công cụ | `/discover`, `/preflight`, `/gates`, `/explore`, `/manual-run`, `/ui-debug`, `/partial-rerun` |
+| Trong dòng chảy chính | `/start`, `/publish` |
+| Công cụ, gọi khi cần | `/discover`, `/preflight`, `/gates`, `/explore`, `/manual-run`, `/ui-debug`, `/partial-rerun` |
 
-Lệnh có số thì **số là thứ tự chạy**. Lệnh không số gọi khi gặp đúng tình huống, không có vị trí cố
-định. Tên file trong `.claude/commands/` chính là tên lệnh, nên nhìn thư mục là biết thứ tự.
+Thứ tự chạy nằm ở bảng trên, **không nằm trong tên lệnh**: trong Claude Code tên file chính là tên
+lệnh, nên đánh số file là bắt bạn gõ số mỗi lần. `.agent/workflows/` và `prompt_templates/` thì CÓ
+đánh số, vì chúng là file được đọc chứ không phải lệnh được gõ.
 
 ## Ba cửa ra
 
@@ -59,7 +60,7 @@ lượng bộ case không liên quan tới việc một bug có thật hay khôn
   T1 ORACLE_THIEU_NEO · TC_045 · kết luận mở rộng mà không có neo
 
 sửa: `npm run check -- --explain <CODE>`
-Lệnh tiếp theo: `/4_publish` — bộ case đã có mà chưa qua cửa publish
+Lệnh tiếp theo: `/publish` — bộ case đã có mà chưa qua cửa publish
 ```
 
 **Bốn con số, và một trong bốn hay bị đọc sai.**

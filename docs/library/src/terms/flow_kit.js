@@ -4,11 +4,11 @@ const TERMS_FLOW2 = [
 
 { id:'f-slash-commands', t:'Slash command (.claude/commands/)', cat:'flow',
   def:'Mười bốn điểm vào gõ được thẳng trong phiên chat, thay cho việc tự nhớ đọc file nào trước.',
-  detail:'Bảy lệnh CÓ SỐ là dòng chảy chính, và số chính là thứ tự chạy: /1_start · /2_phase1 · /3_phase2 · /4_publish · /5_phase3 · /6_phase4 · /7_release. Bảy lệnh KHÔNG SỐ là công cụ, gọi khi gặp đúng tình huống: /discover · /preflight · /gates · /partial-rerun · /manual-run · /explore · /ui-debug. Mỗi file khai một description ngắn rồi liệt kê ĐÚNG THỨ TỰ những file phải đọc và những gate bắt buộc phải chạy, với $ARGUMENTS là mã task.',
+  detail:'Bảy lệnh là DÒNG CHẢY CHÍNH, theo đúng thứ tự chạy: /start · /phase1 · /phase2 · /publish · /phase3 · /phase4 · /release. Bảy lệnh còn lại là CÔNG CỤ, gọi khi gặp đúng tình huống: /discover · /preflight · /gates · /partial-rerun · /manual-run · /explore · /ui-debug. Mỗi file khai một description ngắn rồi liệt kê ĐÚNG THỨ TỰ những file phải đọc và những gate bắt buộc phải chạy, với $ARGUMENTS là mã task.',
   why:'Trước đó điểm vào là "đọc prompt_templates/phase2/01_run_phase2.md rồi đọc tiếp bốn workflow theo thứ tự". Tức là người dùng phải nhớ cả thứ tự lẫn tên file, và bỏ sót một bước thì không có gì báo. Đưa vào slash command là biến trình tự đó thành thứ gọi được bằng một dòng.',
-  ex:'/3_phase2 CSDL-12345 sẽ nạp đúng chuỗi: 01_run_phase2 → scope planning → prepare context → generate tc, kèm hai gate bắt buộc.',
-  trap:'Slash command KHÔNG thay thế gate, nó chỉ dẫn đúng đường. Gate vẫn là thứ chặn. Và số trong tên là thứ tự CHẠY chứ không phải thứ tự bao hàm: /1_start nằm BÊN TRONG /2_phase1.',
-  how:['Trong Claude Code, TÊN FILE chính là tên lệnh — không có chỗ thứ hai để con số trôi khỏi thứ tự thật.','Đổi tên file là đổi luôn lệnh phải gõ, nên mọi chỗ trỏ tới nó phải đổi theo: npm run workflow:refs gác đúng việc đó.'],
+  ex:'/phase2 CSDL-12345 sẽ nạp đúng chuỗi: 01_run_phase2 → scope planning → prepare context → generate tc, kèm hai gate bắt buộc.',
+  trap:'Slash command KHÔNG thay thế gate, nó chỉ dẫn đúng đường. Gate vẫn là thứ chặn. Và thứ tự chạy KHÔNG đọc được từ thư mục lệnh — nó nằm ở bảng định tuyến và README.',
+  how:['Trong Claude Code, TÊN FILE chính là tên lệnh: lệnh ở .claude/commands/ KHÔNG nhận trường name để đặt bí danh, nên tên file không đánh số được mà không bắt người dùng gõ số.','Đổi tên file là đổi luôn lệnh phải gõ, nên mọi chỗ trỏ tới nó phải đổi theo: npm run workflow:refs gác đúng việc đó.'],
   src:'.claude/commands/', rel:['f-cmd-1-start','f-cmd-2-phase1','f-cmd-3-phase2','f-cmd-7-release','g-workflow_refs'] },
 
 { id:'f-gate-catalog', t:'Danh mục gate (tự sinh)', cat:'flow',

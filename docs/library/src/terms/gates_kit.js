@@ -161,7 +161,7 @@ const TERMS_GATE3 = [
 { id:'g-extension_integrity_check', t:'extension:check', cat:'gate',
   def:'Năm adapter Kit A phải nằm NGOÀI cây skill canonical, và 28 skill + 28 shim của kit không được đổi.',
   detail:'Kiểm từng adapter: đúng đường dẫn trong .agent/extensions/kit-a/adapters/, có chuỗi thẩm quyền (RULE_GLOBAL + canonical + "does not grant permission to skip gates"), trỏ tới SOURCE_GUIDE, và băm source guide khớp manifest. Chặn cả chiều ngược: adapter RÒ vào .agent/skills hay .claude/skills, hoặc INDEX.md nhắc tên extension.',
-  why:'Đặt adapter trong .agent/skills làm 7 ca infra của kit đỏ (skills-shim, skills-route, /1_start) vì chúng không được đăng ký trong INDEX.md và shim. V9.1 dời ra ngoài để sửa tận gốc; cửa này giữ cho nó không quay lại.',
+  why:'Đặt adapter trong .agent/skills làm 7 ca infra của kit đỏ (skills-shim, skills-route, /start) vì chúng không được đăng ký trong INDEX.md và shim. V9.1 dời ra ngoài để sửa tận gốc; cửa này giữ cho nó không quay lại.',
   how:['npm run extension:check'],
   src:'scripts/qa/extension_integrity_check.js', rel:['g-skills_index','c-forcing-function'] },
 
@@ -588,7 +588,7 @@ const TERMS_GATE3 = [
   how:['Chỉ đọc file trong repo, chạy được offline.','Dòng mồ côi (bảng còn tên mà đĩa không còn) chỉ CẢNH BÁO: quên xoá nhỏ hơn hẳn quên thêm.'],
   cmd:'npm run router:check',
   ex:'Ô "KHÔNG dùng khi" điền dấu `-` cho đủ cũng bị chặn — sàn 25 ký tự, đo từ ô ngắn nhất đang có là 44.',
-  trap:'Bản đầu khoá bảng bằng TÊN TRẦN và nó báo ĐẠT trên bảng thiếu một dòng: `rerun` tồn tại VỪA là lệnh `/6_phase4` VỪA là workflow `13_tong_quan_rerun.md`, nên một dòng che hai điểm vào — 31 dòng phủ 32 điểm vào mà vẫn xanh. Khoá phải gồm LOẠI, và vùng phân loại neo bằng comment máy-đọc chứ không bằng câu chữ tiêu đề.',
+  trap:'Bản đầu khoá bảng bằng TÊN TRẦN và nó báo ĐẠT trên bảng thiếu một dòng: `rerun` tồn tại VỪA là lệnh `/phase4` VỪA là workflow `13_tong_quan_rerun.md`, nên một dòng che hai điểm vào — 31 dòng phủ 32 điểm vào mà vẫn xanh. Khoá phải gồm LOẠI, và vùng phân loại neo bằng comment máy-đọc chứ không bằng câu chữ tiêu đề.',
   src:'scripts/qa/router_check.js', rel:['g-gate_index','c-forcing-function','c-gate-real-content','g-skills_index'] },
 
 { id:'g-data_chain', t:'data:chain / data:chain:check', cat:'gate',

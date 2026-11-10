@@ -80,11 +80,11 @@ lệnh bị bỏ.**
 
 | Luồng | Phần nạp bắt buộc | Ngưỡng | Mốc |
 |---|---|---|---|
-| `/2_phase1` | 28.073 | 31.000 | 28.074 |
-| `/3_phase2` | 28.894 | 32.000 | 29.006 |
-| `/4_publish` | 6.559 | 9.000 | 6.561 |
+| `/phase1` | 28.073 | 31.000 | 28.074 |
+| `/phase2` | 28.894 | 32.000 | 29.006 |
+| `/publish` | 6.559 | 9.000 | 6.561 |
 | `/rerun` | 9.223 | 12.000 | 9.240 |
-| `/1_start` | 4.573 | 5.000 | 4.575 |
+| `/start` | 4.573 | 5.000 | 4.575 |
 
 Nguồn: `npm run prompt:budget -- --enforce`. Cả 5 luồng đang **dưới mốc** sau lượt đổi nguồn canonical,
 vì phần lý do được dồn về `RULE_GLOBAL` thay vì lặp ở 8 bề mặt.

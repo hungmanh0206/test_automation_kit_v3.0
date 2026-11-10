@@ -52,7 +52,7 @@ hoặc chỉ là script, không vào phần bắt buộc. Gate `prompt:budget --
 | **G3.2** Kiểm thông báo và email | **Không có gì** (`grep mailpit/mailhog` → rỗng) | **MỚI** — adapter opt-in cho hộp thư test, làm capability verify cho `precondition_setup_planner`. Thiếu capability → `BLOCKED_SETUP` với root cause `needs_sandbox`. **Không bao giờ đọc hộp thư thật** | Spec: thiếu capability → BLOCKED_SETUP, không phải PASS | 0 |
 | **G3.3** Chất lượng mô tả skill | `skills_index.js` có `--check` nhưng không chấm chất lượng mô tả | **MỚI** — `skills:lint`: mô tả ≥ 80 ký tự, có cả "dùng khi" và "KHÔNG dùng khi", có ít nhất một máy kiểm hoặc ghi rõ vì sao không có. Wikilink và đường dẫn trong skill phải tồn tại. Thêm `skill-trigger.spec.ts` offline chống trùng mô tả | Hai tầng: skill cũ chỉ cảnh báo một release | 0 |
 | **G3.4** Chọn bộ regression | `select_tests.js` (129 dòng) chọn theo git diff | **NÂNG CẤP** — thêm: đề xuất smoke/regression theo risk band + lịch sử bug, gộp case trùng giữa các task, báo case automation đã ổn định đủ N lượt để đề nghị promote (vẫn cần người duyệt) | Spec cho từng phần bổ sung | 0 |
-| **G3.5** Điểm vào cho người mới | `profile:create` đã có | **MỚI** — `/1_start` hỏi đúng 5 điều, tạo profile, chạy preflight, chỉ lệnh tiếp theo | Spec: 5 câu hỏi, và không bỏ qua preflight | **+~0,3k** cho luồng mới `start` (luồng riêng, không đụng phase1/phase2) |
+| **G3.5** Điểm vào cho người mới | `profile:create` đã có | **MỚI** — `/start` hỏi đúng 5 điều, tạo profile, chạy preflight, chỉ lệnh tiếp theo | Spec: 5 câu hỏi, và không bỏ qua preflight | **+~0,3k** cho luồng mới `start` (luồng riêng, không đụng phase1/phase2) |
 
 ## G4 — Khắc phục điểm yếu của B
 

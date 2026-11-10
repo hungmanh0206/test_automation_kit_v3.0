@@ -158,14 +158,14 @@ vượt ngưỡng thì `metrics_collect` **cảnh báo**, không chặn.
 
 ```text
 /preflight <TASK_KEY>       # kiểm input/config bắt buộc trước khi bắt đầu
-/3_phase2 <TASK_KEY>          # sinh testcase (dừng ở Ambiguity Gate khi spec còn mơ hồ)
-/5_phase3 <TASK_KEY>          # execute (xác nhận với user TRƯỚC lượt chạm UAT đầu tiên)
-/6_phase4 <TASK_KEY>           # chạy lại case của bug đã fix
+/phase2 <TASK_KEY>          # sinh testcase (dừng ở Ambiguity Gate khi spec còn mơ hồ)
+/phase3 <TASK_KEY>          # execute (xác nhận với user TRƯỚC lượt chạm UAT đầu tiên)
+/phase4 <TASK_KEY>           # chạy lại case của bug đã fix
 /partial-rerun <TASK_KEY>   # requirement đổi: bản review trước, apply sau khi duyệt
 /explore <phạm vi>          # phiên exploratory có charter
 /ui-debug <màn>             # khám phá DOM tìm locator bền (Never-auto)
 /gates <TASK_KEY>           # bó gate trước khi finalize (self-review)
-/4_publish <TASK_KEY>         # đẩy Google Sheet qua Drive MCP — review nội dung local trước khi ghi đè
+/publish <TASK_KEY>         # đẩy Google Sheet qua Drive MCP — review nội dung local trước khi ghi đè
 ```
 
 Command **không thay thế** npm script: kit có 110 script, gọi trực tiếp vẫn nhanh hơn cho việc lẻ.
