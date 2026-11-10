@@ -341,16 +341,55 @@ function gateTestExecution(doc, { fix = false, chayTay = false } = {}) {
    * ĐƯỜNG THOÁT: nói rõ câu hỏi đó KHÔNG ảnh hưởng verdict của case này. Một câu hỏi treo về khía
    * cạnh phụ là chuyện bình thường; cái phải chặn là verdict dựa trên nó.
    */
-  const CAU_HOI_TREO = /cần (chủ dự án|BA|dev|PO|QA[ -]?lead|người ra yêu cầu)[^.]{0,24}(chốt|xác nhận|trả lời)|chưa chốt|chờ (chốt|trả lời|xác nhận)|đang chờ (BA|dev|chủ dự án)/i;
-  const KHONG_ANH_HUONG = /không ảnh hưởng (verdict|kết luận|case này)|ngoài phạm vi case|không dùng để phán/i;
+  /*
+   * ──────────────────────────────────────────────────────────────────────────────────────────────
+   * MẪU THỨ HAI, thêm 11/11/2026 sau một phản biện ĐÚNG — và lỗi gốc là của tôi.
+   *
+   * Người review đối chiếu 5 case CSDL-9002 (TC_028, TC_030, TC_077, TC_081, TC_112) với mẫu ở trên:
+   * **0/5 được nhận diện**. Đọc lại thì cả 5 đều `PASSED` trong khi comment TỰ KHAI không kết luận
+   * được: *"Ghi nhận hành vi thực tế, không chấm đạt hay không đạt vì đặc tả không quy định."*
+   *
+   * Đó còn là dạng RÕ HƠN cái mẫu đầu bắt: tự nhận không phán được, chứ không phải một câu hỏi treo.
+   *
+   * VÌ SAO LỌT: tôi neo mẫu vào đúng MỘT task (CSDL-4008). Task đó dùng từ "cần … chốt"; CSDL-9002
+   * dùng "không chấm đạt hay không đạt". Con số "2/2 đúng" tôi báo là thật, nhưng nó là độ chính xác
+   * TRÊN MỘT TASK — và tôi đã đọc nó thành độ chính xác của luật. Cùng họ với lỗi đã ghi ở
+   * `exec_proof`: một phép đo chỉ nói về mẫu mà nó nhìn thấy.
+   *
+   * ĐO LẠI TRÊN TOÀN CORPUS (684 case PASS, 6 task): mẫu B+C bắt 7 case, trong đó **6 vi phạm thật**
+   * — gồm cả `TC_134` mà bản đối chiếu kia bỏ sót — và **1 dương tính giả**: `CSDL_HS_TC_006` nói
+   * "BƯỚC NÀY không kết luận được gì; ĐÃ ĐỔI SANG trường có lớp thật, đếm bằng câu lệnh chỉ-đọc",
+   * tức đã phục hồi rồi mới chấm. Nên đường thoát phải nhận cả lời khai PHỤC HỒI, không chỉ lời khai
+   * "không ảnh hưởng verdict".
+   */
+  const CAU_HOI_TREO = new RegExp([
+    /* ① câu hỏi còn treo */
+    'cần (chủ dự án|BA|dev|PO|QA[ -]?lead|người ra yêu cầu)[^.]{0,24}(chốt|xác nhận|trả lời)',
+    'chưa chốt', 'chờ (chốt|trả lời|xác nhận)', 'đang chờ (BA|dev|chủ dự án)',
+    /* ② TỰ KHAI không kết luận được */
+    'không chấm (đạt|được)', 'không kết luận (được|đúng/sai)', 'không phán (được|xét)',
+    /* ③ không có đặc tả để neo */
+    'đặc tả không (quy định|khai|nói)', 'tài liệu không (quy định|nói)',
+  ].join('|'), 'i');
+  const KHONG_ANH_HUONG = new RegExp([
+    'không ảnh hưởng (verdict|kết luận|case này)', 'ngoài phạm vi case', 'không dùng để phán',
+    /* đã PHỤC HỒI rồi mới chấm — ca `CSDL_HS_TC_006`: một bước không phán được, đổi sang nguồn đo
+     * khác, rồi mới kết luận. Đó là làm ĐÚNG, không phải vi phạm. */
+    'đã (đổi|chuyển) sang', 'sau đó (đo|đếm|kiểm|chạy) lại', 'thay bằng', 'đo lại trên',
+  ].join('|'), 'i');
   for (const t of tests) {
     if (!/^(pass|passed)$/i.test(String(t.status || '').trim())) continue;
     const txt = [t.comment || '', ...(Array.isArray(t.steps) ? t.steps.map((s) => s.comment || '') : [])].join(' | ');
     if (!CAU_HOI_TREO.test(txt) || KHONG_ANH_HUONG.test(txt)) continue;
-    problems.push(`${t.tcId || '(không rõ TC)'}: ghi PASS trong khi còn CÂU HỎI CHƯA ĐƯỢC TRẢ LỜI `
-      + `("${(txt.match(CAU_HOI_TREO) || [''])[0]}"). Chưa đủ căn cứ để kết luận thì verdict đúng là `
-      + '`OBSERVATION` (kèm open_question), không phải PASS. Nếu câu hỏi đó KHÔNG ảnh hưởng verdict của '
-      + 'case này thì nói thẳng ra trong comment — im lặng thì người đọc sau không phân biệt được.');
+    const khop = (txt.match(CAU_HOI_TREO) || [''])[0];
+    /* Nói đúng họ nào khớp: "chưa đủ căn cứ" và "tự khai không phán được" là hai chuyện khác nhau,
+     * và người đi sửa cần biết mình đang sửa cái nào. */
+    const ho = /không chấm|không kết luận|không phán/i.test(khop) ? 'TỰ KHAI KHÔNG KẾT LUẬN ĐƯỢC'
+      : (/đặc tả không|tài liệu không/i.test(khop) ? 'KHÔNG CÓ ĐẶC TẢ ĐỂ NEO' : 'CÂU HỎI CHƯA ĐƯỢC TRẢ LỜI');
+    problems.push(`${t.tcId || '(không rõ TC)'}: ghi PASS trong khi ${ho} ("${khop}"). `
+      + 'Chưa đủ căn cứ để kết luận thì verdict đúng là `OBSERVATION` (kèm open_question), không phải PASS. '
+      + 'Nếu điều đó KHÔNG ảnh hưởng verdict của case này, hoặc đã phục hồi rồi mới chấm, thì nói thẳng ra '
+      + 'trong comment — im lặng thì người đọc sau không phân biệt được.');
   }
 
   const daChay = tests.filter((t) => isExecuted(t.status));
