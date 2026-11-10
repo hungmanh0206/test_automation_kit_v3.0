@@ -122,7 +122,7 @@ từ app là chế oracle, đúng thứ `domain:check` đã chặn. Nó chỉ d�
 ## Nguyên tắc
 
 - **Chỉ ghi fact đã qua gate.** Bug chỉ ghi sau khi qua Backlog gate ở
-  `.agent/workflows/phase2_04_report_and_backlog_gate.md` (đã loại flaky/setup/data/prompt).
+  `.agent/workflows/12_report_and_backlog_gate.md` (đã loại flaky/setup/data/prompt).
 - **Suggest-only.** Knowledge Base là dữ liệu tham chiếu, không tự đưa ra kết luận PASS/FAIL
   hay tự thay đổi scope. Người đọc (QA/agent) quyết định.
 - **Không secret / không PII khách hàng.** Không ghi email/số điện thoại khách hàng, credential,

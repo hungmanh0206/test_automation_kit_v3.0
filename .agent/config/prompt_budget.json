@@ -17,12 +17,12 @@
   "_cach_chot_lai_moc": "node scripts/qa/prompt_budget.js --moc  (in số đo hiện tại dưới dạng JSON để dán vào đây).",
   "_moc_ha_061126": "HẠ mốc sáu luồng theo số đo của v2.10.0 (lệnh: --moc). phase1 28371 → 23042 là nhát cắt dời khối Prompt mẫu (20,3 KB) sang references/; năm luồng kia giảm 2-60 token là phần cắt bù ở nền (CLAUDE.md bỏ câu đã có nguyên văn trong hook SessionStart; core_rules rút mục Verify mở rộng về bản digest). KHÔNG hạ mốc thì chính phép KIỂM-ÂM của cửa này rỗng: đo 06/11/2026, phình thẻ run_phase1_template thêm 5.000 token vẫn KHÔNG đỏ vì mốc phase1 cũ còn dư 5.538 token. Một cải thiện không khoá lại thì nó vừa trôi về vừa làm chết phép đối chứng.",
   "moc": {
-    "phase1": 23043,
-    "publish": 6748,
-    "phase2": 29198,
-    "rerun": 9377,
-    "start": 4820,
-    "phase2_lite": 18963
+    "phase1": 23037,
+    "publish": 6743,
+    "phase2": 29200,
+    "rerun": 9384,
+    "start": 4823,
+    "phase2_lite": 18967
   },
   "_alwaysOn_la_gi": "Phần MỌI phiên đều trả, kể cả phiên chỉ hỏi một câu: CLAUDE.md + đầu ra hook SessionStart + frontmatter description của mọi skill/command/agent mà harness quảng bá. KHÁC `luong`: `luong` đo chi phí CHẠY MỘT PHASE, còn đây là chi phí MỞ MỘT PHIÊN. Khối description không nằm trong load_map.json nên trước v2.10.0 không gate nào đếm nó — mà đo 04/11/2026 nó là khối LỚN NHẤT (10,05 trên 16,29 KB). Đo bằng: node scripts/qa/token_session.js",
   "_alwaysOn_nguong_dat_o_dau": "Chốt 05/11/2026 SAU khi cắt: số đo 11,99 KB cộng 5% đệm = 12,6. KHÓA lại thành quả 16,29 → 11,99 (giảm 26%). ĐÍCH CỦA v2.10.0 LÀ DƯỚI 10 VÀ CHƯA ĐẠT — còn thiếu 1,99 KB. Không đặt 10 ở đây vì một ngưỡng đỏ ngay hôm đặt là tiếng ồn, và tiếng ồn thì bị tắt (xem _nguong_dat_o_dau). Muốn xuống dưới 10 phải chặn description ở 110 ký tự, tức cắt cụt 38/44 mô tả — xem đường cong trong docs/v2.10.0/BASELINE.md. Cấm nâng ngưỡng này mà không kèm số đo.",
@@ -47,13 +47,13 @@
   },
   "_luong_hien_tai": "Số chính xác nằm ở `moc` ngay trên — đừng ghi lại số ở đây nữa. Hai chỗ khai cùng một con số thì sớm muộn lệch nhau, và dòng này đã lệch thật: nó ghi phase2 30,4k trong khi số đo là 30.519.",
   "the_chay": {
-    "prompt_templates/run_phase1_template.md": 3550,
-    "prompt_templates/run_phase2_template.md": 14500,
-    "prompt_templates/run_phase_re-run_template.md": 6000,
-    "prompt_templates/phase1/02_gen_testcases.md": 15000,
-    "prompt_templates/phase2/04_execute_fe_playwright.md": 12500,
-    "prompt_templates/phase2/08_log_bug_backlog.md": 9000,
-    "prompt_templates/phase2/05_execute_api_playwright.md": 7000,
+    "prompt_templates/phase2/01_run_phase2.md": 3550,
+    "prompt_templates/phase3/01_run_phase3.md": 14500,
+    "prompt_templates/phase4/01_run_phase4.md": 6000,
+    "prompt_templates/phase2/03_gen_testcases.md": 15000,
+    "prompt_templates/phase3/02_execute_fe_playwright.md": 12500,
+    "prompt_templates/phase3/07_log_bug_backlog.md": 9000,
+    "prompt_templates/phase3/04_execute_api_playwright.md": 7000,
     ".agent/rules/core_rules.md": 5000
   },
   "_the_chay_hien_tai": "Đo 10/10/2026: run_phase1 8,6k · run_phase2 13,4k · re-run 5,4k · 02_gen_testcases 13,9k · 04_execute_fe 11,6k · 08_log_bug 8,1k · 05_execute_api 6,5k · core_rules 4,5k.",
@@ -67,8 +67,9 @@
   },
   "_tran_tom_tat_discover": "Trần token của BẢN TÓM TẮT mà `npm run discover` in ra — thứ DUY NHẤT agent đọc từ Bước 0 (v2.6.0 §T.3). Script tự rút gọn cho vừa trần, và cắt theo thứ tự ưu tiên: bảng màn cắt trước, còn vùng mù / bề mặt injection / câu hỏi thì KHÔNG BAO GIỜ cắt — đó là thứ duy nhất agent buộc phải hành động theo. Khai ở đây vì file này là NGUỒN DUY NHẤT của mọi ngưỡng token trong kit; đóng cứng trong code thì sớm muộn hai chỗ lệch nhau.",
   "_tran_do_o_dau": "Kiểm bằng `tests/fe/infra/discovery-cli.spec.ts` trên fixture 120 màn (đúng `so_trang_toi_da` mặc định), KHÔNG chỉ trên fixture 7 màn — một trần chỉ đo trên dữ liệu nhỏ thì nó chưa được gác.",
-  "_phase2_lite": "Luồng Lite của v2.7.0 §A12. Số đo thật: prompt execute rẻ hơn 88% (11.760 còn 1.383 token), nhưng ở MỨC LUỒNG chỉ rẻ 35% (29.006 còn 18.765) vì `run_phase2_template.md` nặng 13,4k vẫn phải nạp. Ghi cả hai con số, vì '88%' đứng một mình sẽ được đọc thành tiết kiệm của cả lượt chạy. Mốc chốt ở 18.765 chứ không phải 18.726 ghi giữa chừng: bản cuối dài thêm 39 token vì `writing:lint` đòi thay ký hiệu bằng chữ (ký hiệu 30/1k còn 2,8/1k). Mốc phải là số của bản PHÁT HÀNH, không phải của một bản nháp.",
+  "_phase2_lite": "Luồng Lite của v2.7.0 §A12. Số đo thật: prompt execute rẻ hơn 88% (11.760 còn 1.383 token), nhưng ở MỨC LUỒNG chỉ rẻ 35% (29.006 còn 18.765) vì `01_run_phase3.md` nặng 13,4k vẫn phải nạp. Ghi cả hai con số, vì '88%' đứng một mình sẽ được đọc thành tiết kiệm của cả lượt chạy. Mốc chốt ở 18.765 chứ không phải 18.726 ghi giữa chừng: bản cuối dài thêm 39 token vì `writing:lint` đòi thay ký hiệu bằng chữ (ký hiệu 30/1k còn 2,8/1k). Mốc phải là số của bản PHÁT HÀNH, không phải của một bản nháp.",
   "_moc_chot_lai": "CHỐT LẠI 13/10/2026. Nguyên nhân: commit 817050f của chủ repo thêm luật \"nói bug là PHẢI CHẮC CHẮN\" vào CLAUDE.md §3 — mà CLAUDE.md là một trong hai file NỀN auto-load (xem NEN trong prompt_budget.js), nên +245 token lan vào MỌI luồng. Đây là phình CÓ CHỦ Ý, không phải phình dần, và nó vẫn DƯỚI TRẦN (start 4.820/5.000). Mốc cũ: {\"phase1\":28074,\"phase2\":29006,\"publish\":6561,\"rerun\":9240,\"start\":4575,\"phase2_lite\":18765}. KHÔNG nới cột \"luong\" (trần) — chỉ chốt lại \"moc\".",
   "_phaseMaxKB_nguong_dat_o_dau": "Chốt 06/11/2026 SAU khi cắt. phase1 73.2 = số đo 69,7 cộng 5% đệm; phase2 96.4 = số đo 91,8 cộng 5% (chưa cắt). ĐÍCH CỦA v2.10.0 LÀ phase1 <= 45 VÀ CHƯA ĐẠT — còn thiếu 24,7 KB. Không đặt 45 ở đây vì một ngưỡng đỏ ngay hôm đặt là tiếng ồn, và tiếng ồn thì bị tắt. Cấm nâng hai ngưỡng này mà không kèm số đo.",
-  "_phaseMaxKB_vi_sao_45_khong_dat": "Đã cắt: dời khối \"Prompt mẫu để chạy\" (20,3 KB) khỏi run_phase1_template.md sang prompt_templates/phase1/references/ và khai ở co_dieu_kien — phase1 89,3 -> 69,7 KB (-22%). Căn cứ dời: 82/87 dòng chỉ dẫn trong khối đã có ở nơi khác mà lượt chạy vẫn nạp; 2 dòng còn lại chỉ là ô trống chờ URL. Vì sao không cắt tiếp tới 45: đo 02_gen_testcases.md (51,1 KB) thì các khối >1KB mang LUẬT CHẶN chiếm 27,2 KB, phần \"có thể mở\" chỉ 16,4 KB — dời HẾT phần có thể mở vẫn còn 53,3 KB, tức thiếu 8,3 KB so với đích. Cắt thêm là phải dời chính luật chặn, mà rule:parity KHÔNG gác prompt_templates/, nên một luật mất ở đó sẽ không có máy nào bắt. Xem docs/v2.10.0/BASELINE.md."
+  "_phaseMaxKB_vi_sao_45_khong_dat": "Đã cắt: dời khối \"Prompt mẫu để chạy\" (20,3 KB) khỏi 01_run_phase2.md sang prompt_templates/phase2/references/ và khai ở co_dieu_kien — phase1 89,3 -> 69,7 KB (-22%). Căn cứ dời: 82/87 dòng chỉ dẫn trong khối đã có ở nơi khác mà lượt chạy vẫn nạp; 2 dòng còn lại chỉ là ô trống chờ URL. Vì sao không cắt tiếp tới 45: đo 03_gen_testcases.md (51,1 KB) thì các khối >1KB mang LUẬT CHẶN chiếm 27,2 KB, phần \"có thể mở\" chỉ 16,4 KB — dời HẾT phần có thể mở vẫn còn 53,3 KB, tức thiếu 8,3 KB so với đích. Cắt thêm là phải dời chính luật chặn, mà rule:parity KHÔNG gác prompt_templates/, nên một luật mất ở đó sẽ không có máy nào bắt. Xem docs/v2.10.0/BASELINE.md.",
+  "_moc_chot_lai_101126": "CHỐT LẠI 10/11/2026 — đánh số lại lệnh và gom prompt_templates theo phase. Nguyên nhân thuần CƠ HỌC: mỗi tên lệnh dài thêm 2 ký tự (`/phase2` → `/phase2`), và tên file template đổi theo. KHÔNG có chữ nào được thêm vào phần bắt buộc. Chênh lệch: phase2 +2 · rerun +7 · start +3 · phase2_lite +4 token; phase1 -6 và publish -5 vì vài tên file mới NGẮN hơn tên cũ. Mọi luồng vẫn dưới trần, trần GIỮ NGUYÊN. Mốc cũ: {\"phase1\": 23043, \"publish\": 6748, \"phase2\": 29198, \"rerun\": 9377, \"start\": 4820, \"phase2_lite\": 18963}."
 }

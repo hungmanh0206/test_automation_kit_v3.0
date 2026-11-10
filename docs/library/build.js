@@ -26,7 +26,7 @@ const read = f => norm(fs.readFileSync(path.join(SRC, f), 'utf8'));
 
 // Thứ tự QUAN TRỌNG: _cats khai CATS, các nhóm khai TERMS_*, _merge gộp lại.
 const DATA_FILES = ['terms/_cats.js','terms/rules.js','terms/gates.js','terms/gates_expansion.js','terms/gates_kit.js','terms/gates_knowledge.js','terms/gates_do_luong.js','terms/skills.js',
-  'terms/concepts.js','terms/concepts_expansion.js','terms/status.js','terms/flow.js','terms/flow_kit.js','terms/_merge.js','guide.js'];
+  'terms/concepts.js','terms/concepts_expansion.js','terms/status.js','terms/flow.js','terms/flow_kit.js','terms/flow_slash.js','terms/_merge.js','guide.js'];
 
 /* Không nhúng logo: trang này dùng chung bảng màu trung tính với ảnh User Guide (19/09/2026). */
 

@@ -6,7 +6,7 @@
  * ─────────────────────────────────────────────────────────────────────────────────────────────────────
  * VÌ SAO CÓ MÁY NÀY.
  *
- * `phase1_01_prepare_context.md` bước 7 bảo "DỪNG tới khi `AMBIGUITY_GATE: RESOLVED`". Đo 16/10/2026:
+ * `04_prepare_context.md` bước 7 bảo "DỪNG tới khi `AMBIGUITY_GATE: RESOLVED`". Đo 16/10/2026:
  * **không script nào** đọc khoá đó rồi `exit 1`. `discover.js` chỉ GHI dòng đó vào file câu hỏi. Tức
  * việc dừng phụ thuộc hoàn toàn vào agent tự tuân thủ, và `RESOLVED` thì do người tick.
  *

@@ -92,13 +92,13 @@ test.describe('@infra /start — KHÔNG được bỏ preflight', () => {
 
 test.describe('@infra /start — CHỈ tạo profile + task, không tự sang phase', () => {
   /*
-   * Đã trả giá thật (CSDL-4172, 05/11/2026): command ghi "rồi làm tiếp" và bảng "→ /phase1", load_map ghi
-   * "chuyển hẳn sang luồng phase1". Người dùng nhắn "tiếp", agent đọc hai câu đó thành lệnh, tự gọi /phase1 và
+   * Đã trả giá thật (CSDL-4172, 05/11/2026): command ghi "rồi làm tiếp" và bảng "→ /phase2", load_map ghi
+   * "chuyển hẳn sang luồng phase1". Người dùng nhắn "tiếp", agent đọc hai câu đó thành lệnh, tự gọi /phase2 và
    * sinh ~90 case trong khi người dùng chỉ định tạo profile.
    */
-  test('command nói rõ KHÔNG tự gọi /phase1 hay /phase2 và phải DỪNG', () => {
+  test('command nói rõ KHÔNG tự gọi /phase2 hay /phase3 và phải DỪNG', () => {
     const b = body();
-    expect(b).toMatch(/KHÔNG tự gọi[\s>]*`\/phase1` hay `\/phase2`/);
+    expect(b).toMatch(/KHÔNG tự gọi[\s>]*`\/phase2` hay `\/phase3`/);
     expect(b).toMatch(/Báo lệnh kế tiếp rồi DỪNG/);
     expect(b, 'điều kiện dừng sau ba bước').toMatch(/\*\*Đã xong ba bước\.\*\*/);
     expect(b, 'không còn câu "rồi làm tiếp" mơ hồ').not.toMatch(/rồi làm tiếp\./);

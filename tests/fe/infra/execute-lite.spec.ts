@@ -8,7 +8,7 @@ import { gateEnv } from './_gate_env';
 /*
  * EXECUTE LITE — 6 chốt, và 5 LỖI CÀI SẴN để đo xem nó còn gác được không (v2.7.0 §A12).
  *
- * Bản đầy đủ `04_execute_fe_playwright.md` nặng ~11,8k token, phần lớn là hướng dẫn viết code mà agent đã
+ * Bản đầy đủ `02_execute_fe_playwright.md` nặng ~11,8k token, phần lớn là hướng dẫn viết code mà agent đã
  * biết. Cắt nó xuống là việc đúng — nhưng cắt một prompt execute thì RẤT dễ cắt luôn phần gác, và chuyện
  * đó không lộ ra ngay: nó lộ ra ở lượt đầu tiên có bug thật lọt qua, tức là quá muộn.
  *
@@ -21,8 +21,8 @@ import { gateEnv } from './_gate_env';
  * đọc thành "chốt này đã gác xong".
  */
 const REPO = path.resolve(__dirname, '..', '..', '..');
-const LITE = path.join(REPO, 'prompt_templates/phase2/04L_execute_lite.md');
-const DAY_DU = path.join(REPO, 'prompt_templates/phase2/04_execute_fe_playwright.md');
+const LITE = path.join(REPO, 'prompt_templates/phase3/03_execute_lite.md');
+const DAY_DU = path.join(REPO, 'prompt_templates/phase3/02_execute_fe_playwright.md');
 const CHARS_PER_TOK = 3.2;
 
 const HEADER = '| TC ID | Loại case | Tag | Module | Trường hợp kiểm thử | Tiền điều kiện | Dữ liệu Test | Các bước thực hiện | Kết quả mong đợi | Ưu tiên |';
@@ -100,7 +100,7 @@ test.describe('@infra Execute Lite — rẻ hơn, và phải chứng minh là v�
 
   test('bản Lite trỏ về bản đầy đủ, và nói rõ khi nào phải mở', () => {
     const t = docLite();
-    expect(t).toContain('04_execute_fe_playwright.md');
+    expect(t).toContain('02_execute_fe_playwright.md');
     expect(t).toContain('lane');
   });
 });

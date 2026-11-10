@@ -125,14 +125,42 @@ if (fs.existsSync(RULES_DIR)) {
 // ─── Prompt bước phải có ĐƯỜNG VÀO từ một `run_phase*` ─────────────────────────────────────────────────────
 // `run_phase*_template.md` là điểm vào của mỗi phase: người/agent được bảo "đọc file này". Prompt bước nào
 // không được nó trỏ tới thì coi như không tồn tại — đúng lớp hỏng đã xảy ra thật: `run_phase2` KHÔNG trỏ tới
-// `04_execute_fe_playwright.md` và `05_execute_api_playwright.md` (47KB kỷ luật execute), nên ai chỉ đọc
+// `02_execute_fe_playwright.md` và `04_execute_api_playwright.md` (47KB kỷ luật execute), nên ai chỉ đọc
 // run_phase2 là chạy test mà thiếu toàn bộ phần khoanh tầng lỗi FE/BE, oracle mapping và conformance.
 // Đo 13/08/2026 trước khi vá: 8/11 prompt bước mồ côi, 4 trong số đó không nơi nào trỏ tới.
 // `.agent/workflows/` và SKILL cũng tính là đường vào hợp lệ (chúng dẫn agent tới đọc thật).
 const PT_DIR = path.join(rc.REPO_ROOT, 'prompt_templates');
 if (fs.existsSync(PT_DIR)) {
-  const entryTexts = fs.readdirSync(PT_DIR).filter((f) => /^run_phase.*\.md$/.test(f))
-    .map((f) => fs.readFileSync(path.join(PT_DIR, f), 'utf8'));
+  /*
+   * ĐIỂM VÀO ĐỔI CHỖ 10/11/2026, và cửa này suýt kết tội cả cây.
+   *
+   * Trước: `prompt_templates/run_phase1_template.md` nằm ngay gốc. Sau khi gom mỗi phase vào một thư
+   * mục, nó thành `prompt_templates/phase2/01_run_phase2.md`. `readdirSync(PT_DIR)` chỉ đọc GỐC nên
+   * `entryTexts` rỗng, và khi tập hạt giống rỗng thì MỌI prompt đều "không tới được" — cửa in 14 lỗi
+   * mồ côi trong khi không file nào mồ côi. Hỏng theo chiều ồn ào, nhưng vẫn là kết luận sai.
+   *
+   * Nên: tìm điểm vào ở gốc VÀ trong thư mục con một cấp, rồi CHỐT MẪU SỐ — không có điểm vào nào thì
+   * nói "KHÔNG PHÁN ĐƯỢC", đừng quy kết phần còn lại.
+   */
+  const timDiemVao = () => {
+    const ra = [];
+    const la = (f) => /^run_phase.*\.md$/.test(f) || /^\d{2}_run_phase\d+\.md$/.test(f);
+    for (const e of fs.readdirSync(PT_DIR, { withFileTypes: true })) {
+      if (e.isFile() && la(e.name)) ra.push(path.join(PT_DIR, e.name));
+      else if (e.isDirectory()) {
+        for (const f of fs.readdirSync(path.join(PT_DIR, e.name))) {
+          if (la(f)) ra.push(path.join(PT_DIR, e.name, f));
+        }
+      }
+    }
+    return ra;
+  };
+  const entryFiles = timDiemVao();
+  if (!entryFiles.length) {
+    problems.push('prompt_templates/: KHÔNG tìm thấy file điểm vào nào (`run_phase*.md` hoặc `NN_run_phaseN.md`) '
+      + '⇒ KHÔNG PHÁN ĐƯỢC prompt nào mồ côi. Đây KHÔNG phải là đạt, và cũng KHÔNG có nghĩa mọi prompt đều mồ côi.');
+  }
+  const entryTexts = entryFiles.map((f) => fs.readFileSync(f, 'utf8'));
   const routerText = entryTexts.join('\n');
   const alsoDirs = [path.join(rc.REPO_ROOT, '.agent', 'workflows'), path.join(rc.REPO_ROOT, '.agent', 'skills')];
   const alsoText = alsoDirs.filter((d) => fs.existsSync(d)).map((d) => {
@@ -146,12 +174,12 @@ if (fs.existsSync(PT_DIR)) {
   }).join('\n');
   // QUÉT ĐỆ QUY + REACHABILITY 2 CHẶNG. Hai lỗ của bản trước, cả hai đều làm check này BỎ SÓT chứ không báo sai:
   //
-  //   1. `readdirSync(phase)` chỉ đi MỘT tầng ⇒ 15 chương trong `prompt_templates/phase1/dimensions/`
+  //   1. `readdirSync(phase)` chỉ đi MỘT tầng ⇒ 15 chương trong `prompt_templates/phase2/dimensions/`
   //      (tách ra 14/08/2026) CHƯA TỪNG được kiểm. Check tồn tại mà không nhìn vào file cần nhìn thì tệ hơn
   //      không có check: nó tạo cảm giác đã gác.
   //   2. Chỉ nhận đường vào TRỰC TIẾP từ `run_phase*` ⇒ nếu bật đệ quy thôi thì ~9 chương chiều bị báo oan,
-  //      vì chúng tới được qua BẢNG ĐIỀU HƯỚNG trong `02_gen_testcases.md` — mà `02` lại được `run_phase1` trỏ.
-  //      Đó là đường đi HỢP LỆ (2 chặng), y như `run_phase2 → phase2/04 → qa_instincts`.
+  //      vì chúng tới được qua BẢNG ĐIỀU HƯỚNG trong `03_gen_testcases.md` — mà `02` lại được `run_phase1` trỏ.
+  //      Đó là đường đi HỢP LỆ (2 chặng), y như `run_phase2 → phase3/04 → qa_instincts`.
   //
   // Nên mô hình đúng là LAN TRUYỀN: seed = text của `run_phase*`; file nào được một file ĐÃ tới được nhắc thì
   // cũng tới được; lặp tới khi không thêm gì. Ai không nằm trong tập đó mới là mồ côi thật.
@@ -162,9 +190,10 @@ if (fs.existsSync(PT_DIR)) {
       if (e.isDirectory()) { walkPT(p); continue; }
       if (!e.name.endsWith('.md')) continue;
       const rel = path.relative(PT_DIR, p).replace(/\\/g, '/');
-      if (/^run_phase.*\.md$/.test(rel)) continue;                 // chính điểm vào, không tự kiểm
-      // Link trong prompt là đường dẫn TƯƠNG ĐỐI so với file đang viết: `02_gen_testcases.md` trỏ chương chiều
-      // bằng `dimensions/05_api.md`, KHÔNG phải `phase1/dimensions/05_api.md`. So bằng rel đầy đủ thì báo oan
+      // chính điểm vào, không tự kiểm — khớp cả tên cũ ở gốc và tên mới trong thư mục phase
+      if (/(^|\/)(run_phase.*|\d{2}_run_phase\d+)\.md$/.test(rel)) continue;
+      // Link trong prompt là đường dẫn TƯƠNG ĐỐI so với file đang viết: `03_gen_testcases.md` trỏ chương chiều
+      // bằng `dimensions/05_api.md`, KHÔNG phải `phase2/dimensions/05_api.md`. So bằng rel đầy đủ thì báo oan
       // hàng loạt (đo: 6 chương bị gọi là mồ côi trong khi bảng điều hướng của `02` có đủ 15 link).
       // Nên nhận MỌI hậu tố theo ranh giới `/`. An toàn vì 30/30 tên file trong prompt_templates là DUY NHẤT.
       const parts = rel.split('/');
@@ -221,9 +250,9 @@ if (fs.existsSync(PT_DIR)) {
       return [...out];
     };
     const entryFor = (wfName) => {
-      if (/^phase1/.test(wfName)) return 'run_phase1_template.md';
-      if (/^phase2/.test(wfName)) return 'run_phase2_template.md';
-      if (/^rerun/.test(wfName)) return 'run_phase_re-run_template.md';
+      if (/^phase1/.test(wfName)) return '01_run_phase2.md';
+      if (/^phase2/.test(wfName)) return '01_run_phase3.md';
+      if (/^rerun/.test(wfName)) return '01_run_phase4.md';
       return null;
     };
     for (const wf of fs.readdirSync(WF_DIR).filter((f) => f.endsWith('.md'))) {
@@ -369,7 +398,7 @@ const { boChuThich } = require('./recon_passive.js');
   /*
    * `.claude/commands` LÀ ĐIỂM VÀO THẬT, và danh sách này từng bỏ sót nó.
    *
-   * Người gõ `/phase2` thì agent chạy đúng thứ viết trong file lệnh đó — không khác gì prompt hay
+   * Người gõ `/phase3` thì agent chạy đúng thứ viết trong file lệnh đó — không khác gì prompt hay
    * workflow. Thiếu nó ở đây thì một npm script CHỈ được slash command gọi sẽ bị báo "không nơi nào
    * nhắc tới ⇒ sẽ không ai chạy", trong khi thực tế nó chạy mỗi lượt có người gõ lệnh.
    *

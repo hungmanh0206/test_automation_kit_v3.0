@@ -113,7 +113,7 @@ vừa làm chính phép kiểm canh nó thành rỗng.
 10,13 KB. Đó là đổi tiêu chí này lấy tiêu chí "Kích hoạt skill", và Luật nền của bản chấm đòi hoàn tác
 khi một phép đo chất lượng tụt.
 
-**Dưới 45 KB** cần dời chính phần **luật chặn**: `02_gen_testcases.md` có **27,2 KB** là khối mang luật
+**Dưới 45 KB** cần dời chính phần **luật chặn**: `03_gen_testcases.md` có **27,2 KB** là khối mang luật
 chặn, phần "có thể mở" chỉ 16,4 KB — dời hết vẫn còn 53,3 KB. Và `rule:parity` **không gác
 `prompt_templates/`**, nên một luật mất ở đó không máy nào bắt. Nhát cắt vừa rồi đã suýt chứng minh:
 lệnh `md_to_xlsx.js` — bước 7 bắt buộc — trước đó **chỉ** được nhắc trong khối "Prompt mẫu", và

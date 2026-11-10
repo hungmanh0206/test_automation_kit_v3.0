@@ -2,7 +2,7 @@
 'use strict';
 
 /*
- * dimension_coverage.js — đếm case theo 15 CHIỀU coverage của `prompt_templates/phase1/02_gen_testcases.md`
+ * dimension_coverage.js — đếm case theo 15 CHIỀU coverage của `prompt_templates/phase2/03_gen_testcases.md`
  * (§3–§17) trên bộ testcase ĐÃ SINH, rồi chặn nếu thiếu chiều mà task khai là bắt buộc.
  *
  * VÌ SAO CẦN (đo 14/08/2026, đây là lỗ hổng lớn nhất còn lại của Phase 1):
@@ -15,7 +15,7 @@
  *
  * ĐẢO PHỤ THUỘC: kiểm ở OUTPUT (bộ case đã sinh) thay vì tin agent nhớ nạp mục nào. Nhờ vậy prompt có cắt
  * nhỏ để tiết kiệm token thì "mất text" KHÔNG còn đồng nghĩa "mất chiều" — đây là điều kiện tiên quyết để
- * cắt `02_gen_testcases.md` mà vẫn cam kết được chất lượng không giảm.
+ * cắt `03_gen_testcases.md` mà vẫn cam kết được chất lượng không giảm.
  *
  * TỰ NHẬN DIỆN CHỈ LÀ GỢI Ý, KHÔNG PHẢI SỰ THẬT: script suy chiều bằng tín hiệu văn bản (nhóm con sau dấu
  * `/` trong cột Module + tiêu đề + steps + expected). Nên nó LUÔN in TC ID mẫu cho mỗi chiều để người soi

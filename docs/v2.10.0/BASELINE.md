@@ -81,11 +81,11 @@ chúng là chỉ nạp khi gặp điều kiện; tính vào là thổi phồng s
 
 | Luồng | File bắt buộc | KB |
 |---|---|---|
-| **phase1** | `run_phase1_template.md` | 31,3 |
-| | `phase1/01_setup_engine_fetch_docs.md` | 7,0 |
-| | `phase1/02_gen_testcases.md` | 51,1 |
+| **phase1** | `01_run_phase2.md` | 31,3 |
+| | `phase2/02_setup_engine_fetch_docs.md` | 7,0 |
+| | `phase2/03_gen_testcases.md` | 51,1 |
 | | **TỔNG** | **89,3 KB** (~28583 token) |
-| **phase2** | `run_phase2_template.md` · `phase2/04_execute_fe_playwright.md` | **91,8 KB** |
+| **phase2** | `01_run_phase3.md` · `phase3/02_execute_fe_playwright.md` | **91,8 KB** |
 
 Bản chấm ước phase sinh TC **≈80 KB**; số đo **89,3 KB**.
 
@@ -268,16 +268,16 @@ chuyển sang `core_rules.md §Verify mở rộng`, **không bỏ luật nào**.
 
 | | trước | sau |
 |---|---|---|
-| `run_phase1_template.md` | 31,3 | **11,3** |
-| `phase1/01_setup_engine_fetch_docs.md` | 7,0 | 7,0 |
-| `phase1/02_gen_testcases.md` | 51,1 | 51,1 |
+| `01_run_phase2.md` | 31,3 | **11,3** |
+| `phase2/02_setup_engine_fetch_docs.md` | 7,0 | 7,0 |
+| `phase2/03_gen_testcases.md` | 51,1 | 51,1 |
 | **TỔNG bắt buộc phase1** | **89,3** | **69,7 KB** (−22%) |
 
 ## Nhát cắt: dời khối "Prompt mẫu để chạy" (20,3 KB)
 
 Khối này là mẫu cho **người** chép, điền placeholder rồi gửi cho agent — agent nhận bản **đã điền** qua
 tin nhắn, nên không cần nạp bản mẫu mỗi lượt. Chuyển sang
-`prompt_templates/phase1/references/prompt_mau_phase1.md`, khai ở `load_map.json` `co_dieu_kien`.
+`prompt_templates/phase2/references/prompt_mau_phase1.md`, khai ở `load_map.json` `co_dieu_kien`.
 
 **Căn cứ dời, đo chứ không đoán:** tách khối thành 87 dòng chỉ dẫn, so tập từ khoá với phần CÒN LẠI của
 `run_phase1` + `01_setup` + `02_gen` + `core_rules` + `RULE_GLOBAL`. Kết quả **82/87 dòng đã có ở nơi
@@ -285,14 +285,14 @@ khác**; 2 dòng "có thể riêng" chỉ là ô trống chờ điền URL (`[OP
 
 **`gate:policy` bắt một luật thật bị mất:** lệnh `node scripts/convert_excel/md_to_xlsx.js` trước đây
 **chỉ** được nhắc trong khối "Prompt mẫu". Dời khối đi là bước 7 (xuất Excel) mất đường vào từ điểm vào
-duy nhất của phase. Đã thêm một dòng vào bảng "Gate bắt buộc" của `run_phase1_template.md`.
+duy nhất của phase. Đã thêm một dòng vào bảng "Gate bắt buộc" của `01_run_phase2.md`.
 
 Đó là lý do phải có cửa: 82/87 trùng nghĩa là **5 dòng không trùng**, và một trong số đó là một bước
 bắt buộc. Phép đo của tôi xếp nó vào nhóm "trùng" vì các từ khoá của nó có xuất hiện rải rác ở nơi khác.
 
 ## Đích ≤ 45 KB — CHƯA ĐẠT, thiếu 24,7 KB
 
-Đo `02_gen_testcases.md` (51,1 KB) theo từng khối lớn hơn 1 KB:
+Đo `03_gen_testcases.md` (51,1 KB) theo từng khối lớn hơn 1 KB:
 
 | | KB |
 |---|---|
@@ -309,7 +309,7 @@ trong `prompt_budget.json` rằng đích 45 chưa đạt và vì sao.
 ## Một lỗ đã đóng nhân lúc đo: hai bản sao không ai gác
 
 Bảng 9 loại case tồn tại ở **hai** chỗ — `.agent/config/case_types.json` (5,7 KB, máy đọc) và bảng
-markdown trong `02_gen_testcases.md` (6,0 KB, agent đọc). Đo 05/11: khớp từng chữ, **0 ô lệch** — nhưng
+markdown trong `03_gen_testcases.md` (6,0 KB, agent đọc). Đo 05/11: khớp từng chữ, **0 ô lệch** — nhưng
 `case-type-gate.spec.ts` đọc file JSON mà **chưa bao giờ so với bảng trong prompt**. Sự khớp là **tình cờ**.
 
 Triệu chứng nếu lệch: agent phân loại theo bảng cũ, `md_to_xlsx` chặn theo bảng mới, và một case bị từ

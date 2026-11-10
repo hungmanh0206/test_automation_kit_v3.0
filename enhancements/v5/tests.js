@@ -1,5 +1,0 @@
-#!/usr/bin/env node
-'use strict';const assert=require('node:assert/strict');const {route}=require('./router');const {assess}=require('./quality_check');
-assert.equal(route('FULL RBT').matches[0].status,'BLOCKED_PREREQUISITES');assert.equal(route('FULL RBT',{requirements_available:true}).matches[0].status,'READY_FOR_REVIEW');assert.equal(route('manual execution').execution_authorized,false);assert.equal(route('unrelated task').unmatched,true);assert.equal(route('RBT and traceability').needs_clarification,true);
-const a={skill:'tc_design_guide',requirement_ids:['R1'],testcases:[{id:'TC1',requirement_id:'R1',steps:['open'],expected:'visible'}],evidence:[],verdict:'PASS'};
-assert.equal(assess(a).pass,false);assert.equal(assess({...a,verdict:'INCONCLUSIVE'}).pass,true);assert.equal(assess({...a,evidence:['trace.zip'],execution_verified:true}).pass,true);assert.equal(assess({...a,testcases:[{...a.testcases[0],requirement_id:'R2'}]}).pass,false);console.log('V5 safety/contract unit tests: 9/9 PASS');

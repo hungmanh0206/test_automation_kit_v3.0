@@ -46,7 +46,7 @@ hoặc đã lệch — tìm ra vì sao trước khi chạy task thật, đừng 
 
 | Số đo | GitHub | GitLab |
 |---|---|---|
-| file được track | 1026 | 1026 |
+| file được track | 976 | 976 |
 | `npm run ci:scope` đếm | 194 | 194 |
 
 Hai cột đang bằng nhau vì `.agent/config/gitlab_strip.json` chưa khai mục nào, tức hai cây còn giống
@@ -59,20 +59,26 @@ hệt nhau. Ngày nào danh sách strip có mục thì cột GitLab tụt đúng
 ```
 
 `/start` hỏi năm điều, tạo `profiles/<TASK_KEY>/task.env` và `task.md`, chạy preflight, chỉ lệnh kế tiếp rồi
-**dừng**. Nó không đọc đặc tả, không sinh case và không tự gọi `/phase1` — phase bắt đầu khi bạn tự gõ lệnh đó.
+**dừng**. Nó không đọc đặc tả, không sinh case và không tự gọi `/phase2` — phase bắt đầu khi bạn tự gõ lệnh đó.
 
 Mở file profile vừa tạo và điền **giá trị động**: link Backlog, link requirement, Figma,
 `GOOGLE_SHEET_URL`, tài khoản app. Giá trị **tĩnh** dùng chung cho mọi task thì để ở `.env`.
 
-Sau đó theo luồng chính:
+Sau đó theo **bốn phase**, đúng thứ tự số trong tên lệnh:
 
 ```text
-/phase1 <TASK_KEY>     sinh testcase, dừng lại để bạn review
-/phase2 <TASK_KEY>     execute, xác nhận trước lượt chạm môi trường đầu tiên
-/rerun  <TASK_KEY>     chạy lại case của bug đã fix
+/phase1 <TASK_KEY>   chuẩn bị — gọi /start rồi /discover, dừng sau khi báo bản đồ hệ thống
+/phase2 <TASK_KEY>   sinh testcase, dừng lại để bạn review
+/phase3 <TASK_KEY>   execute, xác nhận trước lượt chạm môi trường đầu tiên
+/phase4 <TASK_KEY>   chạy lại case của bug đã fix
+/release <TASK_KEY>  cửa cuối: chạy cửa ra `done` rồi khuyến nghị go/no-go
 ```
 
-Quên mã task thì `npm run task:which` in danh sách profile đang có để chọn.
+Vừa chạy `/start` ở trên rồi thì `/phase1` chỉ còn phần `/discover`. Giữa hai số là hai lệnh chen
+vào khi cần: `/publish` (đẩy Sheet, sau khi QA duyệt bộ case) và `/gates` (bó gate trước khi chốt).
+
+Quên mã task thì `npm run task:which` in danh sách profile đang có để chọn. Không nhớ đang ở đâu thì
+`npm run check` in dòng **Lệnh tiếp theo**.
 
 Chi tiết từng bước: [`USER_GUIDE.md`](USER_GUIDE.md) mục 3.
 

@@ -5,7 +5,7 @@
  * task_hien_tai.js — XÁC ĐỊNH TASK_KEY cho một lượt chạy slash command.
  *
  * ─────────────────────────────────────────────────────────────────────────────────────────────────────
- * VẤN ĐỀ: 13 slash command đều nhận `$ARGUMENTS` làm mã task. Gõ `/phase2` mà quên mã thì `$ARGUMENTS`
+ * VẤN ĐỀ: 13 slash command đều nhận `$ARGUMENTS` làm mã task. Gõ `/phase3` mà quên mã thì `$ARGUMENTS`
  * rỗng, lệnh bên dưới chạy với `--task ` trống, và chỗ hỏng lộ ra ở một gate nào đó phía sau với thông
  * điệp chẳng liên quan. Tệ hơn: agent dễ tự điền mã task của lượt trước trong cùng cuộc hội thoại.
  *
@@ -83,7 +83,7 @@ if (ds.length === 1) {
  * kết quả vào nhầm task.
  */
 console.error(`[task] ✗ KHÔNG PHÁN ĐƯỢC: có ${ds.length} profile, lệnh không kèm mã task.`);
-console.error('      Chạy lại kèm mã, ví dụ `/phase2 CSDL-9001`. Danh sách (mới sửa xếp trước):');
+console.error('      Chạy lại kèm mã, ví dụ `/phase3 CSDL-9001`. Danh sách (mới sửa xếp trước):');
 for (const x of ds) console.error(`        - ${x.ten}  (task.env sửa ${ngay(x.m)})`);
 console.error('      KHÔNG lấy mã của lượt trước trong cùng cuộc hội thoại — CLAUDE.md §5.');
 process.exit(2);

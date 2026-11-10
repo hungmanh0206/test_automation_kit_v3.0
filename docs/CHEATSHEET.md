@@ -6,24 +6,32 @@
 ## Năm lệnh
 
 ```
-/start  →  /phase1  →  /phase2  →  /rerun  →  /release
+/phase1  →  /phase2  →  /phase3  →  /phase4  →  /release
 ```
 
 cộng **`npm run check`** — gọi lúc nào cũng được.
 
 | Lệnh | Nó làm gì | Xong thì có gì |
 |---|---|---|
-| `/start` | hỏi 5 điều, tạo `profiles/<TASK>/task.env`, chạy preflight, chọn làn | profile và lệnh kế tiếp |
-| `/phase1` | đọc spec, hỏi cho hết mơ hồ, sinh Markdown canonical rồi xuất Excel | `test-cases/*.md` và `*.xlsx` |
-| `/phase2` | execute, ghi verdict và evidence | `test-results/testcase-status.json` |
-| `/rerun` | chạy lại đúng case đỏ, cập nhật evidence và verdict | status đã cập nhật |
+| `/phase1` | **chuẩn bị**: `/start` tạo `profiles/<TASK>/task.env` rồi `/discover` bò app | profile · bản đồ màn và API |
+| `/phase2` | đọc spec, hỏi cho hết mơ hồ, sinh Markdown canonical rồi xuất Excel | `test-cases/*.md` và `*.xlsx` |
+| `/phase3` | execute, ghi verdict và evidence | `test-results/testcase-status.json` |
+| `/phase4` | chạy lại đúng case đỏ, cập nhật evidence và verdict | status đã cập nhật |
 | `/release` | cửa cuối: chạy cửa ra `done` rồi khuyến nghị go/no-go | dấu vết qua cửa |
 | `npm run check` | **một lệnh kiểm**: tự nhận phase, chạy gate của phase, in một bảng gọn | biết còn phải sửa gì |
 
 
-**Sáu lệnh còn lại bạn KHÔNG cần nhớ.** `/publish` · `/discover` · `/explore` · `/manual-run` ·
-`/ui-debug` · `/partial-rerun` được gợi ý đúng lúc ở dòng **Lệnh tiếp theo** trong output của `npm run check`.
+**Chín lệnh còn lại bạn KHÔNG cần nhớ**, vì `npm run check` gợi ý đúng lúc ở dòng **Lệnh tiếp theo**.
 Xem thẳng bằng `npm run next -- --task <KEY>`.
+
+| Nhóm | Lệnh |
+|---|---|
+| Trong dòng chảy chính | `/start`, `/publish` |
+| Công cụ, gọi khi cần | `/discover`, `/preflight`, `/gates`, `/explore`, `/manual-run`, `/ui-debug`, `/partial-rerun` |
+
+Thứ tự chạy nằm ở bảng trên, **không nằm trong tên lệnh**: trong Claude Code tên file chính là tên
+lệnh, nên đánh số file là bắt bạn gõ số mỗi lần. `.agent/workflows/` và `prompt_templates/` thì CÓ
+đánh số, vì chúng là file được đọc chứ không phải lệnh được gõ.
 
 ## Ba cửa ra
 

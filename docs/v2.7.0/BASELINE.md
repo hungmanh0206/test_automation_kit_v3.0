@@ -55,7 +55,7 @@ có phép đối chứng là một gate không ai biết nó còn hoạt động
 | Lệnh npm nhiều nhất trong MỘT command | **5** | `phase1` · `phase2` · `rerun` |
 | Lệnh gate mà cả chuỗi Phase 2 bảo chạy | **43** | điểm vào cộng prompt con cộng workflow |
 | Lệnh gate mà cả chuỗi Phase 1 bảo chạy | **30** | như trên |
-| Dòng trong bảng "Gate bắt buộc" của Phase 2 | **19** | `run_phase2_template.md` |
+| Dòng trong bảng "Gate bắt buộc" của Phase 2 | **19** | `01_run_phase3.md` |
 
 Đích của v2.7.0 là **5 lệnh**. Khoảng cách thật không phải từ 12 xuống 5 — mà là từ **55 lệnh rải khắp
 chuỗi** xuống 5, vì đó là con số người dùng thực sự gặp khi đi hết một task.

@@ -16,7 +16,7 @@
  * Dùng: node scripts/qa/design_gate.js --file <testcase.md> [--dir test-cases/] [--with-rows] [--publish] [--qa-approved]
  *       node scripts/qa/design_gate.js --mode checklist --file <checklist.md>
  *
- * `--mode checklist`: gate 4 tiêu chí cho CHECKLIST RÀ TAY (sub-mode của `05_manual_quick.md`).
+ * `--mode checklist`: gate 4 tiêu chí cho CHECKLIST RÀ TAY (sub-mode của `07_manual_quick.md`).
  * Checklist KHÔNG phải bộ testcase — 7 cột khác hẳn, không Tiền điều kiện, không Các bước — nên nó có
  * parser riêng ở `lib/checklist.js`. Nhưng bộ từ "kỳ vọng chung chung" thì DÙNG LẠI của output_rules,
  * vì hai danh sách từ cấm là hai danh sách lệch nhau.
@@ -99,7 +99,7 @@ function chayChecklist(files, { QA_APPROVED }) {
   }
   console.log('\n[design] ✗ VI PHẠM CHẶN (checklist chưa dùng được để rà tay):');
   problems.forEach((p) => console.log(`  - ${p}`));
-  console.log('\n  Nhắc: khuôn checklist và 4 tiêu chí ở `prompt_templates/phase1/05_manual_quick.md`; ngưỡng số mục ở `.agent/config/checklist_types.json`.');
+  console.log('\n  Nhắc: khuôn checklist và 4 tiêu chí ở `prompt_templates/phase2/07_manual_quick.md`; ngưỡng số mục ở `.agent/config/checklist_types.json`.');
   if (QA_APPROVED) { console.log('\n[design] [--qa-approved] bỏ qua → exit 0 (đã log).'); process.exit(0); }
   console.log('\n[design] BLOCK.');
   process.exit(1);

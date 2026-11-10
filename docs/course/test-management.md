@@ -279,7 +279,7 @@ bỏ qua evidence đã có, thay vì đẻ cycle trùng.
 /*
  * day-ket-qua.js — đẩy testcase-status.json thành một cycle trên công cụ test-management.
  *
- * ĐẦU VÀO GIỮ NGUYÊN là testcase-status.json của Bài 17 — Phase 2 không phải đổi cách ghi kết quả,
+ * ĐẦU VÀO GIỮ NGUYÊN là testcase-status.json của Bài 17 — phase execute không phải đổi cách ghi kết quả,
  * chỉ đích đến là khác.
  *
  * CHẠY GATE TRƯỚC KHI GHI: chất lượng output. Bỏ qua có chủ ý thì --qa-approved.
@@ -474,7 +474,7 @@ Rồi thử ca xấu: xoá `evidence` của một case rồi đẩy lại, nó p
 
 ### Bước 5 — Slash command (10 phút)
 
-Viết `.claude/commands/phase2.md` cho đúng trình tự của bạn. Rồi thử: mở phiên mới, gõ `/phase2 PROJ-1234`,
+Viết `.claude/commands/phase2.md` cho đúng trình tự của bạn. Rồi thử: mở phiên mới, gõ `/phase3 PROJ-1234`,
 xem agent có nạp đúng file và chạy đúng thứ tự gate không.
 
 ### Bước 6 — Commit
@@ -504,7 +504,7 @@ kit-cua-toi/
 ├── .agent/config/
 │   └── mcp_config.md             ← MỚI · một cửa vào cho dữ liệu ngoài, quyền tối thiểu
 ├── .claude/commands/
-│   ├── phase1.md                 ← MỚI · gõ `/phase1 <MÃ>`
+│   ├── phase1.md                 ← MỚI · gõ `/phase2 <MÃ>`
 │   └── phase2.md                 ← MỚI · nạp đúng file + đúng THỨ TỰ gate
 └── scripts/qa/
     ├── publish-testcase.js       ← MỚI · mặc định DRY-RUN, cần 2 cờ mới ghi thật

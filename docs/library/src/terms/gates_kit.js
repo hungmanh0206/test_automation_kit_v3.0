@@ -150,7 +150,7 @@ const TERMS_GATE3 = [
   src:'scripts/qa/scope_anchor.js', rel:['g-dimension_coverage','c-canonical','g-preflight_gate'] },
 { id:'g-gate_index', t:'gates:index', cat:'gate',
   def:'Sinh DANH MỤC GATE của kit từ chính source. Trả lời được "kit có bao nhiêu gate, mỗi cái CHẶN gì, gọi ở đâu".',
-  detail:'Quét source rồi suy mức từ code: exit 1 là CHẶN · ghi artifact là SINH · chỉ in là BÁO CÁO. Bảng hiện tại: 167 máy — 119 CHẶN, 28 SINH, 20 BÁO CÁO. Bản --check chặn khi bảng lệch source.',
+  detail:'Quét source rồi suy mức từ code: exit 1 là CHẶN · ghi artifact là SINH · chỉ in là BÁO CÁO. Bảng hiện tại: 168 máy — 120 CHẶN, 28 SINH, 20 BÁO CÁO. Bản --check chặn khi bảng lệch source.',
   why:'Kit có hơn 30 npm script dạng gate và gần 60 file trong scripts/qa/, nhưng không chỗ nào trả lời được câu trên. Hệ quả không phải bất tiện: luận đề của kit là "luật cần MÁY", mà máy không LIỆT KÊ ĐƯỢC thì không kiểm toán được. Không ai biết một gate đã âm thầm tụt thành cảnh báo, hay đã mất nơi gọi.',
   how:['npm run gates:index để sinh lại bảng.','npm run gates:index:check để chặn khi bảng lệch source.'],
   cmd:'npm run gates:index   ·   npm run gates:index:check',
@@ -588,7 +588,7 @@ const TERMS_GATE3 = [
   how:['Chỉ đọc file trong repo, chạy được offline.','Dòng mồ côi (bảng còn tên mà đĩa không còn) chỉ CẢNH BÁO: quên xoá nhỏ hơn hẳn quên thêm.'],
   cmd:'npm run router:check',
   ex:'Ô "KHÔNG dùng khi" điền dấu `-` cho đủ cũng bị chặn — sàn 25 ký tự, đo từ ô ngắn nhất đang có là 44.',
-  trap:'Bản đầu khoá bảng bằng TÊN TRẦN và nó báo ĐẠT trên bảng thiếu một dòng: `rerun` tồn tại VỪA là lệnh `/rerun` VỪA là workflow `rerun.md`, nên một dòng che hai điểm vào — 31 dòng phủ 32 điểm vào mà vẫn xanh. Khoá phải gồm LOẠI, và vùng phân loại neo bằng comment máy-đọc chứ không bằng câu chữ tiêu đề.',
+  trap:'Bản đầu khoá bảng bằng TÊN TRẦN và nó báo ĐẠT trên bảng thiếu một dòng: `rerun` tồn tại VỪA là lệnh `/phase4` VỪA là workflow `13_tong_quan_rerun.md`, nên một dòng che hai điểm vào — 31 dòng phủ 32 điểm vào mà vẫn xanh. Khoá phải gồm LOẠI, và vùng phân loại neo bằng comment máy-đọc chứ không bằng câu chữ tiêu đề.',
   src:'scripts/qa/router_check.js', rel:['g-gate_index','c-forcing-function','c-gate-real-content','g-skills_index'] },
 
 { id:'g-data_chain', t:'data:chain / data:chain:check', cat:'gate',
@@ -629,5 +629,14 @@ const TERMS_GATE3 = [
   ex:'Đo 29/10/2026 trên 8 file của scripts/qa/discovery: 5 chỗ nghe thụ động, 0 chỗ tự gửi request. Cửa nổ 0 lượt, nên spec có đối chứng dương cho CẢ BẢY mẫu.',
   trap:'Hai mẫu phải đọc trên bản CÒN ruột chuỗi vì thứ chúng tìm nằm TRONG chuỗi: require(https) và spawnSync(curl). Bản đầu cho cả bảy mẫu đọc trên bản đã làm trắng chuỗi nên hai mẫu đó không bao giờ nổ — và một mẫu hỏng chỉ lộ ra vì đối chứng dương của nó đỏ, mẫu còn lại chưa bị phát hiện vì vòng lặp của spec dừng trước đó.',
   src:'scripts/qa/recon_passive.js', rel:['sk-requirements_analyzer','g-recon_check','c-tautology','c-gate-real-content'] },
+{ id:'g-workflow_refs', t:'workflow:refs', cat:'gate',
+  def:'Mọi đường dẫn workflow hoặc prompt được trỏ tới đều phải TỒN TẠI THẬT.',
+  detail:'Quét các bề mặt điều khiển luồng — .claude/commands, .agent/config, .agent/workflows, .agent/skills và prompt_templates — rồi giải từng đường dẫn theo nhiều gốc. Trỏ vào file không có thì chặn, kèm tên file đang trỏ và chỗ trỏ nó.',
+  why:'Đổi tên một workflow mà quên chỗ trỏ tới nó thì slash command vẫn chạy nhưng đọc hư không, và KHÔNG lượt nào đỏ. parity:check chỉ kiểm nhánh CÓ NHẮC TỚI, không kiểm file CÓ THẬT — hai câu hỏi khác nhau, và chỉ câu thứ hai trả lời được gọi lệnh ra có chạy không.',
+  how:['Chạy: npm run workflow:refs. Nằm trong static-check của cả hai CI.','Có SÀN số đường dẫn tra được: dưới sàn thì thoát 2 và nói KHÔNG PHÁN ĐƯỢC, chứ không in đạt.'],
+  cmd:'npm run workflow:refs',
+  ex:'Lượt chạy đầu tiên bắt được một chỗ lệch CÓ SẴN: branch_parity.json trỏ .agent/workflows/phase1_01_analyze_requirements.md, một file không tồn tại ở đâu trong cây.',
+  trap:'Cửa đếm-theo-mẫu luôn hỏng im lặng theo chiều thôi nhìn. Đợt đánh số lại bỏ tiền tố phase khỏi tên workflow, mẫu cũ hết khớp, và cửa tụt từ 103 đường dẫn xuống 4 rồi in ĐẠT. Cái sàn ở trên sinh ra từ đúng lượt đó.',
+  src:'scripts/qa/workflow_refs.js', rel:['f-slash-commands','g-policy_source_check','g-gate_index','c-forcing-function'] }
 
 ];

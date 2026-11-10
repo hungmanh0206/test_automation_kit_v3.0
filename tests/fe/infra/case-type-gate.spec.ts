@@ -128,7 +128,7 @@ test.describe('gate Loại case', () => {
  * BẢNG 9 LOẠI TRONG PROMPT PHẢI KHỚP `case_types.json` — nhóm ca thêm 05/11/2026.
  *
  * Cùng một dữ liệu đang nằm ở HAI chỗ: `case_types.json` (5,7 KB, máy đọc) và bảng markdown trong
- * `prompt_templates/phase1/02_gen_testcases.md` (5,9 KB, agent đọc). Đo 05/11/2026: hai bên khớp từng
+ * `prompt_templates/phase2/03_gen_testcases.md` (5,9 KB, agent đọc). Đo 05/11/2026: hai bên khớp từng
  * chữ, **0 ô lệch** — nhưng KHÔNG máy nào gác chuyện đó. Spec này đọc `case_types.json` từ trước, mà
  * chưa bao giờ so với bảng trong prompt.
  *
@@ -140,7 +140,7 @@ test.describe('gate Loại case', () => {
  * KHÔNG CÓ MÁY GÁC thì sớm muộn lệch — đúng lớp hỏng mà `library:drift` và `rule:parity` sinh ra để chặn.
  */
 test.describe('@infra case_types — bảng trong prompt phải khớp config', () => {
-  const PROMPT = mayThu('GEN_PROMPT_MD', path.join(REPO, 'prompt_templates', 'phase1', '02_gen_testcases.md'));
+  const PROMPT = mayThu('GEN_PROMPT_MD', path.join(REPO, 'prompt_templates', 'phase2', '03_gen_testcases.md'));
   const chuan = (x: unknown) => String(x ?? '').replace(/[`*]/g, '').replace(/\s+/g, ' ').trim().toLowerCase();
 
   type Hang = { so: number; ten: string; dinhNghia: string; chon: string; khong: string };

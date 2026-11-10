@@ -26,7 +26,7 @@ Máy thi hành: `scripts/qa/output_gate.js` (nhận diện tầng bug bằng `la
 Prompt khai **8 chỗ**. Đếm bằng máy trên toàn repo (trừ vùng lịch sử) ra **10 dòng trái luật ở 9 file**.
 Chênh vì hai lý do, cả hai đều là lý do thật:
 
-1. Prompt đếm theo **file**, còn `04_execute_fe_playwright.md` có **hai** dòng trái luật (263 và 267).
+1. Prompt đếm theo **file**, còn `02_execute_fe_playwright.md` có **hai** dòng trái luật (263 và 267).
 2. Prompt chỉ soi `*.md`. Phép quét mở rộng sang `*.js/*.ts/*.json/*.sh` tìm thêm
    **`scripts/utils/evidence_recorder.js:2`** — header của chính cái máy thi hành luật này vẫn ghi
    *"chuẩn hoá evidence Phase 2 để MỌI case (PASS/FAIL) và MỌI step đều có ảnh"*.
@@ -37,10 +37,10 @@ Chênh vì hai lý do, cả hai đều là lý do thật:
 | 2 | `.agent/rules/playwright_fe.md` | 21 | ✓ |
 | 3 | `.agent/rules/playwright_api.md` | 32 | ✓ |
 | 4 | `.agent/skills/phase2/qa_automation_engineer/SKILL.md` | 21 | ✓ |
-| 5 | `prompt_templates/run_phase2_template.md` | 162 | ✓ |
-| 6 | `prompt_templates/phase2/04_execute_fe_playwright.md` | 263 | ✓ |
-| 7 | `prompt_templates/phase2/04_execute_fe_playwright.md` | 267 | ✗ **sót** |
-| 8 | `prompt_templates/phase2/05_execute_api_playwright.md` | 167 | ✓ |
+| 5 | `prompt_templates/phase3/01_run_phase3.md` | 162 | ✓ |
+| 6 | `prompt_templates/phase3/02_execute_fe_playwright.md` | 263 | ✓ |
+| 7 | `prompt_templates/phase3/02_execute_fe_playwright.md` | 267 | ✗ **sót** |
+| 8 | `prompt_templates/phase3/04_execute_api_playwright.md` | 167 | ✓ |
 | 9 | `manual-run/run_manual_execution.md` | 35 | ✓ |
 | 10 | `scripts/utils/evidence_recorder.js` | 2 | ✗ **sót** |
 
@@ -79,7 +79,7 @@ tôi kết luận sai. Là lịch sử, không sửa — nhưng chính nó là t
 
 ### Không phải phát biểu luật
 
-`prompt_templates/phase2/04L_execute_lite.md:64` mô tả **hình dạng JSON** (`steps[]` mỗi step có
+`prompt_templates/phase3/03_execute_lite.md:64` mô tả **hình dạng JSON** (`steps[]` mỗi step có
 `status` và `evidence[]`), tức khai field tồn tại, không đòi field phải không rỗng. Để nguyên.
 Ghi lại vì nó là ca mà gate `rule:consistency` dễ bắt oan nhất.
 

@@ -52,7 +52,7 @@ Phase 2 chỉ execute phần có thể chạy an toàn qua UI/API public-busines
 
 ## Decision Rules
 
-- Nếu task là Phase 1 sinh testcase, dùng `phase1_generate_tc.md`, không dùng skill này.
+- Nếu task là Phase 1 sinh testcase, dùng `02_tong_quan_testcase.md`, không dùng skill này.
 - Nếu Phase 2 bắt đầu sau thời gian chờ Dev implement, đọc lại artifact local trước; không dựa vào context hội thoại cũ.
 - Khi execute, lấy TC ID/steps/expected/status target từ nguồn canonical local (xem Inputs); không gọi Google Sheet/Backlog từng case. (Markdown là source of truth cho nội dung; `.xlsx` và Sheet là bản xuất.)
 - Trước khi generate/execute, chạy Precondition Resolution Pass cho selected TC: đọc Precondition Execution Matrix → map setup method → reuse setup layer `tests/support/setup/` (đặc thù story để ở `<TASK_OUTPUT_DIR>/automation/setup/`) → verify precondition trước assertion chính → cleanup theo `RUN_ID`. Chỉ promote setup helper vào `tests/support/setup/` khi generic và được approve.
@@ -81,7 +81,7 @@ Phase 2 chỉ execute phần có thể chạy an toàn qua UI/API public-busines
 - Không xóa assertion quan trọng, không đổi expected result tùy tiện.
 - Không mock/stub logic chính nếu testcase cần kiểm thử behavior thật.
 - Không upload secret hoặc raw log nhạy cảm vào report/Backlog.
-- Không log Backlog trực tiếp nếu chưa qua điều kiện trong `prompt_templates/phase2/08_log_bug_backlog.md`.
+- Không log Backlog trực tiếp nếu chưa qua điều kiện trong `prompt_templates/phase3/07_log_bug_backlog.md`.
 - Không đưa task-scoped automation vào regression suite chung nếu chưa có approval.
 
 ## Examples

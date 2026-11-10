@@ -181,7 +181,7 @@ test.describe('@infra results:summary — tóm tắt có trần, nhưng KHÔNG m
   });
 
   test('prompt execute DẠY đọc bản tóm tắt, và cấm đọc JSON thô', () => {
-    const p = fs.readFileSync(path.join(REPO, 'prompt_templates/phase2/04_execute_fe_playwright.md'), 'utf8');
+    const p = fs.readFileSync(path.join(REPO, 'prompt_templates/phase3/02_execute_fe_playwright.md'), 'utf8');
     expect(p).toContain('npm run results:summary');
     expect(p, 'phải cấm Read thẳng results.json').toMatch(/KHÔNG `?Read`? thẳng `?results\.json/);
     expect(p, 'phải dạy rerun đúng case đỏ').toMatch(/Rerun ĐÚNG case đỏ/);

@@ -99,7 +99,7 @@ Bảng 3 có bất kỳ dòng nào ở mức chặn thì ghi "CHUA_CHOT" ở cu�
 Không sinh testcase cho tới khi tôi trả lời.
 ```
 
-Lưu khuôn này vào `prompt_templates/phase1/01_phan_tich.md`.
+Lưu khuôn này vào `prompt_templates/phase2/01_phan_tich.md`.
 
 ## Việc 3 — Câu ràng buộc nào có tác dụng (20 phút)
 

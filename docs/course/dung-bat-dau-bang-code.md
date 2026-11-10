@@ -228,7 +228,7 @@ git commit -m "docs(course): bài 6 — phân tích + sinh case qua Ambiguity Ga
 
 ```
 kit-cua-toi/
-├── prompt_templates/phase1/
+├── prompt_templates/phase2/
 │   ├── 01_phan_tich.md           ·  từ Bài 12
 │   └── 02_sinh_testcase.md       ← MỚI · LƯỢT RIÊNG, không gộp với phân tích
 └── outputs/tasks/<MÃ>/

@@ -101,7 +101,7 @@ test.describe('@infra self-review --enforce — chặn thật, không chỉ in b
   });
 
   test('điểm vào Phase 2 phải trỏ bản :enforce, không phải bản advisory', () => {
-    const tpl = fs.readFileSync(path.join(REPO, 'prompt_templates/run_phase2_template.md'), 'utf8');
+    const tpl = fs.readFileSync(path.join(REPO, 'prompt_templates/phase3/01_run_phase3.md'), 'utf8');
     expect(tpl, 'finalize mà dùng bản advisory thì không chặn được gì').toMatch(/self-review:enforce/);
     expect(tpl).toMatch(/expansion:plan/);
   });
@@ -147,9 +147,9 @@ test.describe('@infra luật mở rộng — chặn ở cả finalize lẫn đư
  * chiều đó KHÔNG BAO GIỜ được đếm: prompt bảo làm, máy không biết nó tồn tại, báo cáo coverage vẫn xanh.
  */
 test.describe('@infra chiều coverage — file prompt và canonical phải khớp nhau', () => {
-  const DIM_DIR = path.join(REPO, 'prompt_templates/phase1/dimensions');
+  const DIM_DIR = path.join(REPO, 'prompt_templates/phase2/dimensions');
   const covSrc = fs.readFileSync(path.join(REPO, 'scripts/qa/dimension_coverage.js'), 'utf8');
-  const navSrc = fs.readFileSync(path.join(REPO, 'prompt_templates/phase1/02_gen_testcases.md'), 'utf8');
+  const navSrc = fs.readFileSync(path.join(REPO, 'prompt_templates/phase2/03_gen_testcases.md'), 'utf8');
   const dimFiles = fs.readdirSync(DIM_DIR).filter((f) => /^\d+_.*\.md$/.test(f));
   const secOf = (f: string) => `§${String(f.match(/^(\d+)/)?.[1] ?? '').replace(/^0+/, '')}`;
 
@@ -270,7 +270,7 @@ test.describe('@infra Loại case — cột người khai, không suy từ nhóm
   });
 
   test('template sinh case DẠY đủ 9 loại, kèm ĐỊNH NGHĨA và ca "KHÔNG chọn khi"', () => {
-    const md = fs.readFileSync(path.join(REPO, 'prompt_templates/phase1/02_gen_testcases.md'), 'utf8');
+    const md = fs.readFileSync(path.join(REPO, 'prompt_templates/phase2/03_gen_testcases.md'), 'utf8');
     expect(md).toMatch(/\| TC ID \| Loại case \|/);
     /*
      * Không chỉ đòi có TÊN loại: tên trần thì agent vẫn phải đoán. Bảng phải mang cả ĐỊNH NGHĨA và
@@ -326,7 +326,7 @@ test.describe('@infra §22 inbound callback — 3 mắt xích phải khớp', ()
   });
 
   test('file chiều tồn tại, có checklist thật, và neo vào bug đã xảy ra', () => {
-    const p = path.join(REPO, 'prompt_templates/phase1/dimensions/22_inbound_callback.md');
+    const p = path.join(REPO, 'prompt_templates/phase2/dimensions/22_inbound_callback.md');
     const body = fs.readFileSync(p, 'utf8');
     // Checklist, không phải 5 gạch đầu dòng: mỗi ca phải nói rõ dựng thế nào + oracle đo ở đâu.
     expect(body.split('\n').filter((l) => /^\| \d+ \|/.test(l)).length, 'cần ≥8 ca cụ thể').toBeGreaterThanOrEqual(8);
@@ -336,14 +336,14 @@ test.describe('@infra §22 inbound callback — 3 mắt xích phải khớp', ()
   });
 
   test('§22 có trong bảng chỉ mục chiều của prompt gen (nếu không thì không ai mở file)', () => {
-    const idx = fs.readFileSync(path.join(REPO, 'prompt_templates/phase1/02_gen_testcases.md'), 'utf8');
+    const idx = fs.readFileSync(path.join(REPO, 'prompt_templates/phase2/03_gen_testcases.md'), 'utf8');
     expect(idx).toContain('22_inbound_callback.md');
     expect(idx).toContain('`[Callback]`');
   });
 
   test('§5 và §9 phải trỏ sang §22 — hai chiều dễ bị tưởng đã phủ', () => {
     for (const f of ['05_api.md', '09_side_effect.md']) {
-      const body = fs.readFileSync(path.join(REPO, 'prompt_templates/phase1/dimensions', f), 'utf8');
+      const body = fs.readFileSync(path.join(REPO, 'prompt_templates/phase2/dimensions', f), 'utf8');
       expect(body, `${f} không trỏ §22 ⇒ agent đọc nó sẽ tưởng idempotency/webhook đã phủ hết`).toContain('22_inbound_callback.md');
     }
   });
@@ -369,7 +369,7 @@ test.describe('@infra §23 db persistence — 3 mắt xích + nối pipeline', (
   });
 
   test('file chiều có checklist thật + 4 ràng buộc chống bug ma', () => {
-    const body = fs.readFileSync(path.join(REPO, 'prompt_templates/phase1/dimensions/23_db_persistence.md'), 'utf8');
+    const body = fs.readFileSync(path.join(REPO, 'prompt_templates/phase2/dimensions/23_db_persistence.md'), 'utf8');
     expect(body.split('\n').filter((l) => /^\| \d+ \|/.test(l)).length, 'cần ≥7 ca cụ thể').toBeGreaterThanOrEqual(7);
     for (const must of ['tautology', 'fieldMap.byScreen', 'valueMaps', 'RUN_ID', 'KHÔNG phải evidence']) expect(body, `thiếu "${must}"`).toContain(must);
     // Phải nói rõ giới hạn ĐÃ ĐO, không hứa thứ máy không làm được.
@@ -378,7 +378,7 @@ test.describe('@infra §23 db persistence — 3 mắt xích + nối pipeline', (
   });
 
   test('§23 có trong bảng chỉ mục chiều + Case Type Database có tag', () => {
-    expect(fs.readFileSync(path.join(REPO, 'prompt_templates/phase1/02_gen_testcases.md'), 'utf8')).toContain('23_db_persistence.md');
+    expect(fs.readFileSync(path.join(REPO, 'prompt_templates/phase2/03_gen_testcases.md'), 'utf8')).toContain('23_db_persistence.md');
     // eslint-disable-next-line @typescript-eslint/no-var-requires
     const ct = require(path.join(REPO, '.agent/config/case_types.json'));
     const db = (ct.types || []).find((t: { name?: string; type?: string }) => (t.name || t.type) === 'Database');
@@ -386,8 +386,8 @@ test.describe('@infra §23 db persistence — 3 mắt xích + nối pipeline', (
   });
 
   test('nối CẢ workflow lẫn điểm-vào (F3 đòi 2 chặng)', () => {
-    expect(fs.readFileSync(path.join(REPO, '.agent/workflows/phase2_02_generate_or_update_automation.md'), 'utf8')).toContain('dbVerify');
-    expect(fs.readFileSync(path.join(REPO, 'prompt_templates/run_phase2_template.md'), 'utf8')).toContain('readonly.verify.spec.ts');
+    expect(fs.readFileSync(path.join(REPO, '.agent/workflows/10_generate_or_update_automation.md'), 'utf8')).toContain('dbVerify');
+    expect(fs.readFileSync(path.join(REPO, 'prompt_templates/phase3/01_run_phase3.md'), 'utf8')).toContain('readonly.verify.spec.ts');
   });
 });
 

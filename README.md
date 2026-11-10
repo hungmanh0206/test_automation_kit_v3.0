@@ -8,16 +8,17 @@
 **[`docs/CHEATSHEET.md`](docs/CHEATSHEET.md)** là thứ duy nhất cần đọc trước khi chạy: năm lệnh, ba cửa
 ra, cách đọc output của `npm run check`, và cách xin vượt qua cho hợp lệ.
 
-**Đường ngắn nhất, năm lệnh phải thuộc:**
+**Đường ngắn nhất, năm lệnh phải thuộc — bốn phase cộng cửa cuối:**
 
 ```
-/start  →  /phase1  →  /phase2  →  /rerun  →  /release
+/phase1  →  /phase2  →  /phase3  →  /phase4  →  /release
+ chuẩn bị     sinh case      execute       rerun         cửa ra
 ```
 
-Đây là **rút gọn** của luồng đầy đủ chín bước (xem mục [13 slash command](#13-slash-command)): bốn lệnh
-bị lược đi là `/discover`, `/preflight`, `/gates` và `/publish`. Chúng không cần thuộc vì
-`npm run check` gợi ý đúng lúc ở dòng **Lệnh tiếp theo**, hoặc xem thẳng bằng
-`npm run next -- --task <TASK_KEY>`.
+Đây là bản rút gọn của luồng đầy đủ (xem mục
+[14 slash command](#14-slash-command)); năm lệnh còn lại trong luồng — `/start`, `/discover`,
+`/preflight`, `/gates`, `/publish` — không cần thuộc vì `npm run check` gợi ý đúng lúc ở dòng
+**Lệnh tiếp theo**, hoặc xem thẳng bằng `npm run next -- --task <TASK_KEY>`.
 
 ## Đi đâu tiếp
 
@@ -73,20 +74,20 @@ flowchart TD
 ```text
 test-automation-kit/
 ├── .claude/
-│   └── commands/            13 slash command — điểm vào chuẩn hoá (bảng ngay dưới)
+│   └── commands/            14 slash command — điểm vào chuẩn hoá (bảng ngay dưới)
 │                            chỉ commands/ được commit; settings*.json là cấu hình máy cá nhân
 ├── .agent/
 │   ├── config/              verdict_taxonomy · risk_model · case_types · ci_scope · branch_parity
-│   │                        GATES.md (danh mục 167 máy gác, tự sinh)
+│   │                        GATES.md (danh mục 168 máy gác, tự sinh)
 │   │                        db.conventions.json  quy ước DB + bản đồ cột ↔ nhãn theo màn
 │   │                        locators.schema.json schema cho knowledge/locators/
 │   ├── workflows/           phase1_* · phase2_* · rerun_* — mỗi flow 1 file entry + các bước
 │   ├── skills/              26 skill theo vai trò; INDEX.md là danh mục (tự sinh)
 │   └── rules/               core_rules · playwright_fe · playwright_api · locator
 ├── prompt_templates/
-│   ├── run_phase1_template.md      điểm vào Phase 1
-│   ├── run_phase2_template.md      điểm vào Phase 2
-│   ├── run_phase_re-run_template.md
+│   ├── 01_run_phase2.md      điểm vào Phase 1
+│   ├── 01_run_phase3.md      điểm vào Phase 2
+│   ├── 01_run_phase4.md
 │   ├── phase1/              01 chuẩn bị → 02 sinh testcase → 02b định dạng → 03 test data → 04 publish
 │   │   └── dimensions/      22 chương CHIỀU coverage — mở đúng chiều task cần, không nạp cả bộ
 │   └── phase2/              04 execute FE → 05 execute API → 06 triage → 07 flaky → 08 log bug
@@ -132,17 +133,27 @@ test-automation-kit/
 Chú thích từng file: [`docs/kit-map.md`](docs/kit-map.md).
 Quy ước Playwright: [`.agent/rules/playwright_fe.md`](.agent/rules/playwright_fe.md).
 
-## 13 slash command
+## 14 slash command
 
 Mỗi lệnh là một **điểm vào chuẩn hoá**: nó trỏ tới workflow và prompt thật, liệt kê gate phải qua, rồi
 dừng lại đúng chỗ cần người quyết. Lệnh không chứa luật, nên sửa luật thì sửa ở `RULE_GLOBAL.md`.
 
 Gõ trong Claude Code. Phần sau tên lệnh phải đúng bằng `<TASK_KEY>`, không thêm chữ nào.
 
+**Bảy lệnh là dòng chảy chính, bảy lệnh là công cụ.** Công cụ gọi khi gặp đúng tình huống, không có
+vị trí cố định trong dòng chảy. Thứ tự chạy nằm ở bảng dưới, không nằm trong tên lệnh.
+
+> Vì sao tên lệnh KHÔNG mang số thứ tự, dù `.agent/workflows/` và `prompt_templates/` thì có: trong
+> Claude Code, **tên file lệnh chính là tên lệnh** — lệnh ở `.claude/commands/` không nhận trường
+> `name` để đặt bí danh. Đánh số file là bắt người dùng gõ số mỗi lần. Hai thư mục kia là file được
+> ĐỌC chứ không phải lệnh được GÕ, nên đánh số ở đó không phải trả giá gì.
+
 ### Luồng chính, theo đúng thứ tự chạy
 
 ```text
-/start → /discover → /preflight → /phase1 → /gates → /publish → /phase2 → /rerun → /release
+/start ─┐
+          ├─ /phase1 → /preflight → /phase2 → /gates → /publish → /phase3 → /phase4 → /release
+/discover ┘
 ```
 
 **1. `/start <TASK_KEY>`: mở một task mới**
@@ -151,20 +162,28 @@ Cửa vào khi bạn chưa có gì cả. Nó hỏi đúng 5 điều (task nào, 
 môi trường nào, giới hạn scope), tạo `profiles/<TASK_KEY>/task.env`, chạy preflight, rồi chỉ lệnh kế
 tiếp. Thiếu câu trả lời nào thì nó **dừng và hỏi**, không tự điền.
 
-**2. `/discover`: xem hệ thống có những gì**
+**2. `/phase1 <TASK_KEY>`: PHASE 1 — chuẩn bị**
+
+Gọi lần lượt `/start` rồi `/discover`. Gõ một lệnh này là đủ cho cả bước chuẩn bị; hai lệnh con để
+dành cho khi cần chạy lại riêng một bước.
+
+Nó **không đọc đặc tả và không sinh case** — đó là `/phase2`. Nó dừng sau khi báo bản đồ hệ thống,
+và không tự chạy sang phase sau.
+
+**3. `/discover`: xem hệ thống có những gì**
 
 Bò app bằng script tất định rồi trả về bản đồ màn, danh mục API, vùng mù tài liệu và bề mặt injection.
 Dùng khi mở một hệ thống hoặc module mà **chưa biết nó có gì**. Mẫu số coverage của Phase 1 lấy từ
 đây, nên màn nào tài liệu không nhắc vẫn vào phạm vi. Mọi bản ghi là `observed`, tức quan sát được,
 **không phải** kết luận đúng sai.
 
-**3. `/preflight <TASK_KEY>`: kiểm trước khi vào phase**
+**4. `/preflight <TASK_KEY>`: kiểm trước khi vào phase**
 
 Soát input và config bắt buộc: thiếu file, JSON hỏng, hoặc chưa có testcase canonical thì **chặn**.
 Mục đích là hỏng sớm ở cửa vào, thay vì hỏng giữa chừng khi đã chạy được nửa bộ case. Gặp exit khác 0
 thì sửa nguyên nhân, đừng bỏ qua.
 
-**4. `/phase1 <TASK_KEY>`: sinh bộ testcase**
+**5. `/phase2 <TASK_KEY>`: PHASE 2 — sinh bộ testcase**
 
 Đọc spec, hỏi cho hết chỗ mơ hồ, rồi mới sinh Markdown canonical và xuất Excel. Phase này **không
 execute** gì cả.
@@ -172,18 +191,18 @@ execute** gì cả.
 Chỗ dừng quan trọng là **Ambiguity Gate**: requirement còn mơ hồ ở mức Critical hoặc High thì nó ghi
 câu hỏi ra `reports/phase1-clarifications.md` và **chờ bạn trả lời**, không đoán rồi sinh bừa.
 
-**5. `/gates <TASK_KEY>`: soát lại trước khi chốt**
+**6. `/gates <TASK_KEY>`: soát lại trước khi chốt**
 
 Chạy một bó gate gộp: preflight, thiết kế case, chất lượng từng dòng, kết quả execute, phần cam kết.
 Dùng trước khi finalize hoặc publish. Còn dòng CHẶN thì **sửa nội dung cho đúng**, không nới ngưỡng
 để cho qua.
 
-**6. `/publish <TASK_KEY>`: đẩy lên Google Sheet**
+**7. `/publish <TASK_KEY>`: đẩy lên Google Sheet**
 
 Đồng bộ testcase hoặc kết quả execute lên Sheet. Nó luôn cho bạn **xem bản local trước**, chỉ ghi đè
 Sheet thật sau khi bạn duyệt. Chạy sau khi QA đã xác nhận bộ case ở bước 5.
 
-**7. `/phase2 <TASK_KEY>`: chạy thật**
+**8. `/phase3 <TASK_KEY>`: PHASE 3 — execute thật**
 
 Dựng automation, execute trên môi trường test, chấm verdict theo taxonomy chuẩn. Nó **xác nhận với
 bạn trước lượt chạm UAT đầu tiên**, vì UAT là môi trường dùng chung.
@@ -191,12 +210,12 @@ bạn trước lượt chạm UAT đầu tiên**, vì UAT là môi trường dù
 Fail ở bước dựng tiền điều kiện được tính là `setup_failure`, **không phải** lỗi sản phẩm, nên không
 log bug.
 
-**8. `/rerun <TASK_KEY>`: kiểm lại sau khi Dev fix**
+**9. `/phase4 <TASK_KEY>`: PHASE 4 — rerun sau khi Dev fix**
 
 Chạy lại đúng những case liên quan tới bug đã fix rồi cập nhật kết quả. Nó **không sinh testcase
 mới** — requirement đổi là việc của `/partial-rerun`.
 
-**9. `/release <TASK_KEY>`: cửa cuối**
+**10. `/release <TASK_KEY>`: cửa cuối**
 
 Chạy cửa ra `done` rồi đưa khuyến nghị go hoặc no-go **có căn cứ**, không phải cảm tính. Dùng khi đã
 execute xong và sổ nợ đã sạch; còn nợ thì nó không cho qua.
@@ -209,7 +228,7 @@ Không nằm trong luồng chính. Xoá chúng đi thì luồng chính vẫn ch�
 
 Khi BA, UIUX hoặc BE sửa tài liệu **sau khi** đã có testcase. Nó dựng bản review trước (diff, phần bị
 ảnh hưởng, case draft), và **chỉ merge sau khi bạn duyệt**. Chưa có testcase baseline thì dùng
-`/phase1` chứ không dùng lệnh này.
+`/phase2` chứ không dùng lệnh này.
 
 **`/manual-run <TASK_KEY>`: case không tự động hoá được**
 

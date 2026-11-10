@@ -4,7 +4,7 @@ description: Cửa vào cho người mới — hỏi đúng 5 điều, tạo pro
 
 Task: **$ARGUMENTS**
 
-Kit có 167 gate và 28 skill. Người mới cần **5 điều**. Hỏi đủ 5 câu dưới, **gom thành MỘT lần hỏi**, rồi
+Kit có 168 gate và 28 skill. Người mới cần **5 điều**. Hỏi đủ 5 câu dưới, **gom thành MỘT lần hỏi**, rồi
 làm ba bước. Đừng hỏi lắt nhắt.
 
 > **Phạm vi: CHỈ tạo profile và task.** Không đọc đặc tả, không neo mẫu số, không sinh case, không execute.
@@ -37,8 +37,8 @@ In cho người dùng, **không** phải để agent chạy:
 
 | Phase | Người dùng gõ tiếp |
 |---|---|
-| Phase 1 | `/phase1 <TASK_KEY>` — bước đầu của nó là `scope:anchor:init` |
-| Phase 2 | `/preflight` với `--mode phase2` → `/phase2 <TASK_KEY>` |
+| Phase 1 | `/phase2 <TASK_KEY>` — bước đầu của nó là `scope:anchor:init` |
+| Phase 2 | `/preflight` với `--mode phase2` → `/phase3 <TASK_KEY>` |
 
 ## Dừng khi
 
@@ -47,5 +47,5 @@ In cho người dùng, **không** phải để agent chạy:
   thì lỗi lộ ra giữa lượt execute dưới dạng "FAIL" trông như bug.
 - **Profile đã tồn tại.** `profile:create` không ghi đè — dùng cái đang có, hoặc `--force` nếu chắc.
 - **Đã xong ba bước.** In bảng trên và các giá trị cần tự điền, rồi dừng phiên.
-  **KHÔNG tự gọi `/phase1` hay `/phase2`**, kể cả khi người dùng nhắn "tiếp" — "tiếp" ở đây là làm
+  **KHÔNG tự gọi `/phase2` hay `/phase3`**, kể cả khi người dùng nhắn "tiếp" — "tiếp" ở đây là làm
   nốt bước còn lại của `/start`.

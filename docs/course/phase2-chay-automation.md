@@ -428,7 +428,7 @@ npm run tms:push-exec -- --status <...> --folder "<Sprint>" --apply
 Nếu có case FAIL: rerun 2–3 lần, đọc response để khoanh tầng, điền `tangLoi`, rồi mới log bug.
 ```
 
-Chín lệnh nên có: `/phase1` `/phase2` `/rerun` `/publish` `/kiem-dau-vao` `/gates` `/explore` `/ui-debug`
+Chín lệnh nên có: `/phase2` `/phase3` `/phase4` `/publish` `/kiem-dau-vao` `/gates` `/explore` `/ui-debug`
 `/partial-rerun`.
 
 > Slash command KHÔNG thay thế gate, nó chỉ dẫn đúng đường. Gate vẫn là thứ chặn. Nhưng nó xoá được một

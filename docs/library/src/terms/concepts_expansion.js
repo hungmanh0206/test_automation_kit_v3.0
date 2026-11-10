@@ -52,7 +52,7 @@ const TERMS_CONCEPT2 = [
     'Thời gian lưu ở UTC (đã đo được), nên so mốc giờ phải quy đổi.'
   ],
   trap:'DB không phải evidence, và tuyệt đối không dùng để DỰNG state.',
-  src:'prompt_templates/phase1/dimensions/23_db_persistence.md', rel:['c-db-readonly','c-chieu-coverage','g-persistence_probe','r-uat'] },
+  src:'prompt_templates/phase2/dimensions/23_db_persistence.md', rel:['c-db-readonly','c-chieu-coverage','g-persistence_probe','r-uat'] },
 
 { id:'c-label-oracle', t:'Chữ hiển thị neo vào Figma', cat:'concept',
   def:'Nhãn và chữ trên màn phải đối chiếu với Figma, không phải với file tổng hợp ý định.',

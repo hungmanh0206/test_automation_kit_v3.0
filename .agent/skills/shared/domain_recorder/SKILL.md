@@ -27,7 +27,7 @@ Chưa đủ 3 điều kiện thì rule vẫn thuộc `reports/phase1-clarificati
 ## Điểm bắt tự nhiên nhất: sau khi Ambiguity Gate RESOLVED
 
 Câu trả lời của BA/QA cho `reports/phase1-clarifications.md` **chính là business truth vừa được xác nhận**.
-Ngay sau khi gate chuyển `AMBIGUITY_GATE: RESOLVED` (workflow `phase1_01_prepare_context.md` bước 7):
+Ngay sau khi gate chuyển `AMBIGUITY_GATE: RESOLVED` (workflow `04_prepare_context.md` bước 7):
 
 1. Với mỗi câu Blocking đã được trả lời → chuyển thành 1 rule `domain/` (hoặc bump version rule đã có).
 2. Điền `source` = "clarification <TASK_KEY> Q<n> + <ai> confirm <ngày>" (hoặc tài liệu gốc nếu câu trả lời trích tài liệu).
@@ -75,8 +75,8 @@ mà `covered_by` rỗng (**coverage gap**: có sự thật nghiệp vụ nhưng 
 
 - `knowledge/SCHEMA.md` §`domain/` — schema đầy đủ.
 - [[learning_recorder]] — ghi **cái đã sai** (bug/root cause); skill này ghi **cái đúng**. Hai nửa của learning loop.
-- `.agent/workflows/phase1_01_prepare_context.md` bước 7 (Ambiguity Gate) — điểm bắt rule.
-- prompt gen `02_gen_testcases.md` §12/§13 — nơi oracle phải trích nguồn.
+- `.agent/workflows/04_prepare_context.md` bước 7 (Ambiguity Gate) — điểm bắt rule.
+- prompt gen `03_gen_testcases.md` §12/§13 — nơi oracle phải trích nguồn.
 
 ## Dùng khi · KHÔNG dùng khi
 

@@ -99,7 +99,7 @@ test.describe('@infra [NeedsVerify] — cảnh báo khi thiết kế, CHẶN khi
   });
 
   test('luật "ô khoá là business rule chưa ai viết ra" nằm ở chiều field validation', () => {
-    const fv = fs.readFileSync(path.join(REPO, 'prompt_templates/phase1/dimensions/03_field_validation.md'), 'utf8');
+    const fv = fs.readFileSync(path.join(REPO, 'prompt_templates/phase2/dimensions/03_field_validation.md'), 'utf8');
     expect(fv).toMatch(/disabled/i);
     expect(fv, 'phải đòi case cho CẢ HAI chiều').toMatch(/cả hai chiều/i);
     expect(fv, 'và phải mở câu hỏi chứ không đoán ra rule').toMatch(/Ambiguity Gate/);

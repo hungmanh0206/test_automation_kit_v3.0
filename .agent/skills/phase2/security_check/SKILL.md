@@ -98,7 +98,7 @@ capability còn thiếu.
 - `scripts/qa/accessibility_check.js` — cùng khuôn.
 - [[perf_check]] — cặp non-functional executable.
 - [[precondition_setup_planner]] — `needs_account` khi thiếu 2 tài khoản test.
-- mục 15 `prompt_templates/phase1/02_gen_testcases.md`.
+- mục 15 `prompt_templates/phase2/03_gen_testcases.md`.
 - [[learning_recorder]] — ghi security finding đã confirm theo module (risk-based).
 
 **Câu kích hoạt mẫu:** "kiểm bảo mật cơ bản màn này" · "header và cookie có an toàn chưa" · "tài khoản A xem được dữ liệu của B không" · "có IDOR không"

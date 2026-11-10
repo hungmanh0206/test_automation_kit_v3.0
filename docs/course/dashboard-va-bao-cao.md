@@ -295,7 +295,7 @@ thật, có khoanh đỏ (Bài 17). Dashboard là bức tranh tổng, không ph�
 kit-cua-toi/
 ├── scripts/qa/
 │   └── sinh-dashboard.js             ← MỚI · sinh 1 tệp .html tự chứa, TỰ KIỂM 0 host ngoài
-├── prompt_templates/phase2/
+├── prompt_templates/phase3/
 │   └── 09_bao_cao_stakeholder.md     ← MỚI · 4 phần, kết luận đứng đầu
 └── outputs/metrics/                  ·  ⛔ KHÔNG commit
     ├── lich-su.json                  ← MỚI · mỗi lượt ghi thêm MỘT mốc

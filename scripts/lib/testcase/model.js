@@ -65,14 +65,14 @@ function normalizeHeader(text) {
 /*
  * CỘT CANONICAL CỦA BẢN MARKDOWN — NGUỒN DUY NHẤT cho con số "N cột".
  *
- * VÌ SAO PHẢI KHAI Ở ĐÂY. Tài liệu của kit đã trôi: `phase1_03_validate_export_report.md` ghi "Đủ 11 cột"
- * và `phase1_generate_tc.md` ghi "template 11 cột", trong khi bản Markdown canonical có 10. Muốn có máy gác
+ * VÌ SAO PHẢI KHAI Ở ĐÂY. Tài liệu của kit đã trôi: `06_validate_export_report.md` ghi "Đủ 11 cột"
+ * và `02_tong_quan_testcase.md` ghi "template 11 cột", trong khi bản Markdown canonical có 10. Muốn có máy gác
  * chuyện đó thì phải có MỘT nơi giữ con số.
  *
  * `COL` ngay dưới KHÔNG dùng được cho việc này: nó là bảng KHỚP TÊN cột (12 khoá, gồm cả `risk` của bộ
  * cũ đã bỏ), không phải danh sách cột có thứ tự. Gate đọc `Object.keys(COL).length` sẽ ra 12 và tự nó sai.
  *
- * Nguồn chữ: header trong `prompt_templates/phase1/02_gen_testcases.md`. Đổi template thì đổi ở CẢ HAI,
+ * Nguồn chữ: header trong `prompt_templates/phase2/03_gen_testcases.md`. Đổi template thì đổi ở CẢ HAI,
  * và `tests/fe/infra/column-count.spec.ts` đối chiếu hai nơi đó với nhau.
  *
  * Excel SAU publish có nhiều cột hơn (exporter thêm `Nhóm chức năng`, `Result`, `Note`…) — đó là BẢN XUẤT,

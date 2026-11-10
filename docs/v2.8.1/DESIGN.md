@@ -162,14 +162,14 @@ Oracle là code thuần ⇒ **0 token AI** khi chạy lại, hợp với §F c�
 
 ## 4. Hai chiều Phase 1: §24 Thời gian · §25 Dữ liệu cũ
 
-Thư mục `prompt_templates/phase1/dimensions/` hiện có **20 file**, đánh số tới `23_db_persistence.md`
+Thư mục `prompt_templates/phase2/dimensions/` hiện có **20 file**, đánh số tới `23_db_persistence.md`
 (số không liên tục — thiếu 01, 02, 18). §24/§25 nối tiếp đúng khuôn.
 
 **Bốn chỗ phải sửa cho mỗi chiều** (bài học §22/§23 ghi ngay trong `model.js`: *"thêm ở đây MỚI có tác dụng —
 chiều mới mà quên khai thì case gắn tag vẫn ra 0"*):
 
 1. file `24_time.md` / `25_legacy.md`;
-2. một dòng ở bảng điều hướng của `02_gen_testcases.md`;
+2. một dòng ở bảng điều hướng của `03_gen_testcases.md`;
 3. một dòng ở bảng nguồn/điều kiện mở;
 4. tag `time` / `legacy` vào `DIMENSION_TAGS`.
 

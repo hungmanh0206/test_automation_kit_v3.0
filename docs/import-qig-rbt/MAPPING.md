@@ -18,7 +18,7 @@ Prompt ghi: *"Kiểm không có story nào đang chạy chạm file shared. Có 
 | `scripts/lib/testcase/validate.js` | H1 — check kỹ thuật (hiện **chưa** sửa dở, nhưng nằm cùng module) |
 | `scripts/qa/output_gate.js` | H2 — tái dùng kết quả gen-testcase · H3 — đếm `[NeedsVerify]` |
 | `scripts/qa/dimension_coverage.js` | H1 — đếm theo kỹ thuật |
-| `prompt_templates/phase1/02b_output_format.md` | H1 — bảng phân bố kỹ thuật |
+| `prompt_templates/phase2/04_output_format.md` | H1 — bảng phân bố kỹ thuật |
 | `scripts/convert_excel/md_to_xlsx.js` | H1 — số đếm theo kỹ thuật |
 | `scripts/convert_excel/merge_execution_status.js` | H6 — ghi `Result` cho nhánh chạy tay |
 
@@ -59,7 +59,7 @@ Cột **Quyết định**: NHẬN (lấy nguyên ý) · CHỈNH (lấy ý, đổ
 
 | Ý của A | Kit đã có ở đâu | Quyết định | Lý do | Máy kiểm sẽ là gì |
 |---|---|---|---|---|
-| 6 mã kỹ thuật `EP·BVA·DT·ST·UC·EG` (`SKILL.md:134`) | `02_gen_testcases.md:415-418` chỉ **nhắc tên** 4 kỹ thuật, không đo gì | **NHẬN** | Kit nhắc nhưng không có gì đo xem case có thật sự thiết kế theo kỹ thuật đó | `.agent/config/design_techniques.json` làm nguồn duy nhất, theo mẫu `case_types.json` |
+| 6 mã kỹ thuật `EP·BVA·DT·ST·UC·EG` (`SKILL.md:134`) | `03_gen_testcases.md:415-418` chỉ **nhắc tên** 4 kỹ thuật, không đo gì | **NHẬN** | Kit nhắc nhưng không có gì đo xem case có thật sự thiết kế theo kỹ thuật đó | `.agent/config/design_techniques.json` làm nguồn duy nhất, theo mẫu `case_types.json` |
 | Điều kiện BẮT BUỘC kích hoạt từng kỹ thuật (`SKILL.md:494-498`) | **Chưa có** | **NHẬN** | Đây là phần giá trị nhất của A: nó biến "nên dùng BVA" thành "có field min/max thì PHẢI có BVA" | `dim:coverage` (hoặc script mới): kỹ thuật bị kích hoạt mà 0 case ⇒ CHẶN |
 | Biên test tại `min-1, min, max, max+1` | **Chưa có** | **NHẬN** | Đo được bằng máy | CẢNH BÁO khi `[BVA]` thiếu một trong 4 điểm biên |
 | `[BVA]` mà data không ở biên = 0 điểm | **Chưa có** | **CHỈNH** | Heuristic này dễ báo oan: "biên" của ngày, chuỗi, số là ba kiểu khác nhau | Viết heuristic rồi **ĐO tỉ lệ báo oan trên bộ TC thật trước**, đạt thì CHẶN, không đạt thì để CẢNH BÁO |
@@ -86,7 +86,7 @@ Cột **Quyết định**: NHẬN (lấy nguyên ý) · CHỈNH (lấy ý, đổ
 | Ý của A | Kit đã có ở đâu | Quyết định | Lý do |
 |---|---|---|---|
 | Thứ tự tin cậy `DOM thật > Ảnh evidence > Tài liệu chữ` (`SKILL.md:162`) | `CLAUDE.md` §3: oracle phải **độc lập theo spec**, CẤM app==app | **CHỈNH — đảo ngược** | DOM và ảnh của build **là chính cái app đang kiểm**. Lấy nó làm chuẩn đúng/sai chính là tautology kit cấm |
-| "Tài liệu ghi một đằng, ảnh một nẻo → ảnh thắng" (`:174`) | Ambiguity Gate đã có, `phase1_01_prepare_context.md:29` | **CHỈNH** | Lệch nguồn ⇒ **thành câu hỏi Ambiguity Gate**, không tự chọn bên |
+| "Tài liệu ghi một đằng, ảnh một nẻo → ảnh thắng" (`:174`) | Ambiguity Gate đã có, `04_prepare_context.md:29` | **CHỈNH** | Lệch nguồn ⇒ **thành câu hỏi Ambiguity Gate**, không tự chọn bên |
 | Thứ tự dựng oracle mới | — | **NHẬN (viết lại)** | `knowledge/domain/` đã xác nhận > spec, Figma > ảnh hoặc DOM của build. Ảnh/DOM chỉ **chốt sự thật quan sát** (nhãn, option, mặc định, disabled), không phán đúng/sai |
 | 4 nhóm TC bắt buộc có nguồn chống lưng (`:184`) | **Chưa có** | **NHẬN** | Bố cục · nhãn nguyên văn · giá trị mặc định · định dạng hiển thị |
 | Tag `@NeedsVerify` khi thiếu evidence (`:179`) | **Chưa có** | **NHẬN (đổi cú pháp)** | Thành `[NeedsVerify]` cho khớp cột `Tag`. `/publish` CHẶN khi còn, trừ `--qa-approved` |
@@ -151,13 +151,13 @@ thật là 1-2 file, không phải cả 2.8k.
 
 | Ý của A | Kit đã có ở đâu | Quyết định | Máy kiểm |
 |---|---|---|---|
-| 4 loại checklist + quy mô (`SKILL.md:773-778`) | `05_manual_quick.md` (Phase 1) | **NHẬN** | Thêm **sub-mode**, không tạo pipeline mới |
+| 4 loại checklist + quy mô (`SKILL.md:773-778`) | `07_manual_quick.md` (Phase 1) | **NHẬN** | Thêm **sub-mode**, không tạo pipeline mới |
 | Smoke 10–20 · Post-hotfix 5–15 · Regression 20–40 · Release 30–60 | — | **NHẬN** | Ngưỡng đặt ở config |
 | Gate 4 tiêu chí (`:841`) | Tiêu chí 1 **ĐÃ CÓ** (`VAGUE_EXPECTED`) | **CHỈNH** | `design_gate --mode checklist`: ① tái dùng bộ từ cấm ② luồng sống còn ③ mỗi component ≥1 mục hoặc "không áp dụng" ④ số mục trong ngưỡng, vượt ⇒ CHẶN + gợi ý tách |
 
 #### H5 đã làm — và một lỗi THẬT bắt được trong lúc làm
 
-Vào `05_manual_quick.md` dạng **sub-mode**, không pipeline mới. Ngưỡng 4 loại ở
+Vào `07_manual_quick.md` dạng **sub-mode**, không pipeline mới. Ngưỡng 4 loại ở
 [`.agent/config/checklist_types.json`](../../.agent/config/checklist_types.json), bảng trong prompt là bản
 cho người đọc và có test đối chiếu hai bên.
 
@@ -260,7 +260,7 @@ Prompt yêu cầu ghi rõ để khỏi tốn công:
 | A đề xuất | Kit đã có |
 |---|---|
 | Expected phải đo được | `output_rules.js:269` `VAGUE_EXPECTED` + `output_gate.js:286,288` |
-| Hỏi cho hết mơ hồ trước khi sinh case | Ambiguity Gate, `phase1_01_prepare_context.md:29` (gate cứng) |
+| Hỏi cho hết mơ hồ trước khi sinh case | Ambiguity Gate, `04_prepare_context.md:29` (gate cứng) |
 | Mỗi step một hành động, đánh số | `output_gate.js:289` chặn gộp range |
 | Tiền điều kiện phải dựng được | `validate.js:209` bắt buộc tag cách dựng |
 | Data không được placeholder | Check placeholder đang chạy |

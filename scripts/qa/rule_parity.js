@@ -98,7 +98,7 @@ function conTro(dong, muc) {
   for (const m of dong.matchAll(/`([a-zA-Z0-9_./-]+\.(?:md|json|js|ts))`/g)) {
     const f = m[1];
     /* Tìm theo ĐƯỜNG DẪN trước, rồi theo TÊN FILE trong cây đã track. Con trỏ trong core_rules hay ghi
-     * tên trần (`02_gen_testcases.md`) chứ không ghi đường đầy đủ — bắt oan chúng là làm gate mất uy tín. */
+     * tên trần (`03_gen_testcases.md`) chứ không ghi đường đầy đủ — bắt oan chúng là làm gate mất uy tín. */
     const co = fs.existsSync(path.join(REPO, f)) || tenFileCoThat(path.basename(f));
     ra.push({ loai: 'file', chu: f, ok: co });
   }

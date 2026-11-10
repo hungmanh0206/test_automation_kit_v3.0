@@ -3,7 +3,7 @@ import fs from 'fs';
 import path from 'path';
 
 /*
- * @infra — SUB-MODE CHECKLIST của `05_manual_quick.md` (H5).
+ * @infra — SUB-MODE CHECKLIST của `07_manual_quick.md` (H5).
  *
  * BỐN THỨ ĐƯỢC KHOÁ Ở ĐÂY. Cái thứ tư mới là cái đắt nhất, vì nó là một lỗi ĐÃ XẢY RA:
  *   ① DRIFT. Bảng ngưỡng trong prompt phải khớp `checklist_types.json`. Người ta sửa bảng trong prompt
@@ -27,7 +27,7 @@ const UIC = require(path.join(REPO, '.agent/config/ui_components.json'));
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const { vagueExpectedLines } = require(path.join(REPO, 'scripts/qa/lib/output_rules.js'));
 
-const PROMPT = path.join(REPO, 'prompt_templates/phase1/05_manual_quick.md');
+const PROMPT = path.join(REPO, 'prompt_templates/phase2/07_manual_quick.md');
 
 const HEAD = [
   '| # | ✅ | Hạng mục kiểm tra | Kết quả kỳ vọng | Priority | REQ ID | TC ID liên quan |',

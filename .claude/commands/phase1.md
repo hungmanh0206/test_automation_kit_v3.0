@@ -1,33 +1,57 @@
 ---
-description: Sinh bộ testcase cho một task (Phase 1) — đọc spec, hỏi cho hết mơ hồ, rồi mới sinh Markdown canonical và xuất Excel.
+description: PHASE 1 — chuẩn bị. Tạo profile task rồi khám phá hệ thống; chạy trước mọi thứ khác, không đọc đặc tả và không sinh case.
 ---
 
 Task: **$ARGUMENTS**
 
 Thiếu mã task → `npm run task:which -- $ARGUMENTS`; thoát 2 = KHÔNG PHÁN ĐƯỢC, nó in danh sách profile để chọn. **Đừng suy từ hội thoại cũ** (CLAUDE.md §5).
 
-> **Nạp file nào, và nạp khi nào: [`.agent/config/load_map.json`](../../.agent/config/load_map.json).**
-> Đừng nạp cả chuỗi. Đo bằng `npm run prompt:budget`: chuỗi của `/phase1` là 56 file, 143k token nếu
-> đọc hết, mà chỉ 5,7k trong đó là bắt buộc. File có điều kiện thì chờ đúng điều kiện mới mở.
+Phase 1 làm **đúng hai việc**, theo thứ tự:
 
-Đọc theo thứ tự, làm đúng những gì file nói:
+| Bước | Lệnh | Việc |
+|---|---|---|
+| 1 | [`/start`](start.md) | Hỏi đúng 5 điều, tạo `profiles/<TASK>/task.env`, chạy preflight |
+| 2 | [`/discover`](discover.md) | Bò app: bản đồ màn, API, vùng mù tài liệu, bề mặt injection |
 
-1. `prompt_templates/run_phase1_template.md` (điểm vào)
-2. `.agent/workflows/phase1_00_scope_planning.md`
-3. `.agent/workflows/phase1_01_prepare_context.md`
-4. `.agent/workflows/phase1_generate_tc.md`
+> **Phạm vi: CHỈ chuẩn bị.** Không đọc đặc tả, không neo mẫu số, không sinh case, không execute —
+> những việc đó là `/phase2`.
 
-Gate bắt buộc:
+## Vì sao tách hai bước
 
-```bash
-node scripts/qa/preflight_gate.js --mode phase1 --task $ARGUMENTS
-npm run gate:gen-testcase
-npm run design:gate
-npm run dim:coverage
-npm run risk:gate
+Chúng hỏng theo hai cách khác nhau. Bước 1 **không chạm app**, hỏng thì *không chạy được gì*. Bước 2
+**chạm app nhưng chỉ ĐỌC**, hỏng thì *vẫn chạy được nhưng viết case mù*.
+
+Kết quả bước 2 là **đầu vào của Phase 2**, không phải testcase: bản kê chụp từ build không chứng minh
+build đúng, nên nó **không phải oracle**.
+
+## Chạm UAT: xác nhận TRƯỚC
+
+Bước 2 mở UAT thật. **Hỏi user xác nhận trước mỗi lượt chạm UAT** (CLAUDE.md §2), và chỉ đọc — không
+bấm Ghi, không Xoá, không đổi trạng thái bản ghi nào.
+
+## Chạy
+
+```
+/start <TASK_KEY>
+/discover <TASK_KEY>
 ```
 
-**Dừng khi:** còn câu hỏi mơ hồ về spec — **Ambiguity Gate**: gộp câu hỏi, hỏi user, chờ trả lời, phân
-tích lại, rồi mới sinh testcase. Không đoán rồi sinh.
+## Dừng khi
 
-**Không publish trong lượt chạy lại:** task đã có testcase trên test-management thì dừng ở Markdown canonical cùng bản xuất Excel.
+- **Đã có profile VÀ đã có `requirements/system_map.json`** — chạy lại không thêm thông tin nào.
+- **Preflight chặn ở bước 1** — dựng đúng thứ nó đòi rồi mới đi tiếp.
+- **User chưa xác nhận chạm UAT** — dừng ở bước 1.
+- **Xong bước 2** — báo bản đồ rồi **DỪNG**. KHÔNG tự chạy `/phase2`: đó là lượt khác, cần phiên
+  sạch và một bản bàn giao (`handoff/`).
+
+## Bốn phase — thứ tự chạy
+
+| | Lệnh | Việc |
+|---|---|---|
+| **1** | `/phase1` | tạo profile · khám phá hệ thống |
+| **2** | `/phase2` | đọc tài liệu · sinh testcase · đẩy lên Sheet |
+| **3** | `/phase3` | execute trên UAT · chấm verdict |
+| **4** | `/phase4` | rerun sau khi bug được sửa |
+
+`/publish` chen giữa phase 2 và 3 khi cần đẩy Sheet; `/release` là cửa cuối. `/partial-rerun` là
+**ngoại lệ** ngoài chuỗi bốn phase: dùng khi **requirement đổi** và chỉ một phần bộ case cần sửa.

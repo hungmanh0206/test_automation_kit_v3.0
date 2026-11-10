@@ -9,9 +9,9 @@
  * từ đầu, và câu hỏi của người dùng đang làm việc mà gate lẽ ra phải làm.
  *
  * Chẩn đoán là lỗi THỨ TỰ, không phải bất cẩn. Đo trên chính repo này:
- *   · `.agent/workflows/phase2_03_execute_and_auto_heal.md` dòng 25, chỗ tôi phát hiện và nói ra, đòi
+ *   · `.agent/workflows/11_execute_and_auto_heal.md` dòng 25, chỗ tôi phát hiện và nói ra, đòi
  *     đúng HAI điều kiện: rerun đủ vòng, thu evidence.
- *   · `.agent/workflows/phase2_04_report_and_backlog_gate.md` dòng 30, chỗ log Backlog, mới là bar thật với
+ *   · `.agent/workflows/12_report_and_backlog_gate.md` dòng 30, chỗ log Backlog, mới là bar thật với
  *     khoảng TÁM điều kiện: oracle độc lập, expected đã xác nhận, phân tầng có chứng minh, bản đồ hệ
  *     thống cho bug thiết kế, cấm lấy app làm expected.
  * Tôi nói ở bước 03 nhưng bar nằm ở bước 04. Nên mọi câu "chắc chưa" đều ép tôi làm sớm phần còn lại,

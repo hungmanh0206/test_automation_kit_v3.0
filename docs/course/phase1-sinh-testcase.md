@@ -579,7 +579,7 @@ Bước gộp thì khi FAIL bạn không biết hỏng ở bước nào, và đ�
 
 ```
 kit-cua-toi/
-├── prompt_templates/phase1/
+├── prompt_templates/phase2/
 │   ├── 01_phan_tich.md               ·  từ Bài 15
 │   └── 01b_khao_sat_mo_ho.md         ← MỚI · CẤM sinh testcase, chỉ liệt kê mơ hồ
 ├── scripts/qa/

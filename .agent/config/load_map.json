@@ -1,34 +1,34 @@
 {
   "_doc": "Mỗi bước của mỗi luồng nạp FILE NÀO, và file nào chỉ nạp KHI NÀO. NGUỒN DUY NHẤT — slash command và workflow trỏ vào đây thay vì tự liệt kê lại.",
-  "_vi_sao": "Đo bằng `npm run prompt:budget`: chuỗi của `/phase1` có 56 file, tổng 143,2k token nếu đọc hết. Trong đó chỉ 5,7k là bắt buộc và 13,5k khai điều kiện rõ; còn **124k rơi vào cột chưa-phân-loại** vì câu chứa con trỏ không viết điều kiện ra. Máy không đọc được điều kiện thì agent phải đoán, và đoán rộng tay là nạp hết.",
+  "_vi_sao": "Đo bằng `npm run prompt:budget`: chuỗi của `/phase2` có 56 file, tổng 143,2k token nếu đọc hết. Trong đó chỉ 5,7k là bắt buộc và 13,5k khai điều kiện rõ; còn **124k rơi vào cột chưa-phân-loại** vì câu chứa con trỏ không viết điều kiện ra. Máy không đọc được điều kiện thì agent phải đoán, và đoán rộng tay là nạp hết.",
   "_khong_phai_de_giam_token_truoc_tien": "Đo động cho thấy một lượt chạy task thật chỉ `Read` 0 đến 4 file tài liệu của kit, nên giá trị token trực tiếp của file này nhỏ. Giá trị thật là biến 124k chưa-phân-loại thành LỜI KHAI máy kiểm được: ai thêm file prompt mà không khai điều kiện nạp thì gate bắt được.",
   "_dieu_kien_viet_the_nao": "Trường `khi` là câu tiếng Việt cho người đọc. Trường `may_kiem` (nếu có) là dấu hiệu máy đo được — artifact tồn tại, hoặc khoá trong manifest. Không có `may_kiem` nghĩa là điều kiện này hiện chỉ người kiểm được, và nói thẳng ra thay vì giả vờ đã gác.",
   "luong": {
     "phase1": {
-      "diem_vao": "prompt_templates/run_phase1_template.md",
+      "diem_vao": "prompt_templates/phase2/01_run_phase2.md",
       "bat_buoc": [
-        "prompt_templates/phase1/01_setup_engine_fetch_docs.md",
-        "prompt_templates/phase1/02_gen_testcases.md"
+        "prompt_templates/phase2/02_setup_engine_fetch_docs.md",
+        "prompt_templates/phase2/03_gen_testcases.md"
       ],
       "co_dieu_kien": [
         {
-          "file": ".agent/workflows/phase1_000_system_discovery.md",
+          "file": ".agent/workflows/01_system_discovery.md",
           "khi": "Bước 0, CHỈ khi task chưa có `knowledge/system/discovery/<build>/system_map.json` cho build hiện tại. Có rồi thì đọc `summary.txt` của lượt trước, KHÔNG nạp lại file này."
         },
         {
-          "file": "prompt_templates/phase1/02b_output_format.md",
+          "file": "prompt_templates/phase2/04_output_format.md",
           "khi": "Cuối lượt, lúc viết Summary Report và xuất Excel. KHÔNG nạp ở đầu lượt."
         },
         {
-          "file": "prompt_templates/phase1/03_gen_test_data.md",
+          "file": "prompt_templates/phase2/05_gen_test_data.md",
           "khi": "Task cần bộ dữ liệu test sinh riêng, không dùng dữ liệu có sẵn."
         },
         {
-          "file": "prompt_templates/phase1/06_cross_module.md",
+          "file": "prompt_templates/phase2/08_cross_module.md",
           "khi": "Scope chạm từ hai module trở lên."
         },
         {
-          "file": "prompt_templates/phase1/05_manual_quick.md",
+          "file": "prompt_templates/phase2/07_manual_quick.md",
           "khi": "Chạy nhánh Manual QUICK hoặc sub-mode CHECKLIST, KHÔNG phải pipeline chính."
         },
         {
@@ -36,85 +36,85 @@
           "khi": "Bước 3, khi đang VIẾT testcase (phase1_02) và cần quyết chọn kỹ thuật thiết kế hoặc rà checklist field/component. KHÔNG nạp ở bước khai manifest hay bước xuất Excel. Phần dày nằm ở `references/`, nạp tiếp khi cần."
         },
         {
-          "file": "prompt_templates/phase1/references/prompt_mau_phase1.md",
+          "file": "prompt_templates/phase2/references/prompt_mau_phase1.md",
           "khi": "CHỈ khi người dùng cần MẪU để soạn prompt gửi cho agent. Trong lượt chạy Phase 1, agent đã nhận bản ĐÃ ĐIỀN qua tin nhắn nên KHÔNG nạp file này."
         }
       ]
     },
     "phase1_chieu_coverage": {
-      "_doc": "20 chiều ở `prompt_templates/phase1/dimensions/`. Mở ĐÚNG chiều mà task khai `required`, không nạp cả 20.",
+      "_doc": "20 chiều ở `prompt_templates/phase2/dimensions/`. Mở ĐÚNG chiều mà task khai `required`, không nạp cả 20.",
       "may_kiem": "requirements/dimension_manifest.json — khoá nào `required` thì mở file chiều đó",
       "anh_xa": {
-        "field_validation": "prompt_templates/phase1/dimensions/03_field_validation.md",
-        "ui_display": "prompt_templates/phase1/dimensions/04_ui.md",
-        "api": "prompt_templates/phase1/dimensions/05_api.md",
-        "e2e": "prompt_templates/phase1/dimensions/06_e2e.md",
-        "export_import": "prompt_templates/phase1/dimensions/07_export_import.md",
-        "resilience": "prompt_templates/phase1/dimensions/08_resilience.md",
-        "side_effect": "prompt_templates/phase1/dimensions/09_side_effect.md",
-        "guard": "prompt_templates/phase1/dimensions/10_guard.md",
-        "design_figma": "prompt_templates/phase1/dimensions/11_design.md",
-        "display_conformance": "prompt_templates/phase1/dimensions/12_display.md",
-        "business_logic": "prompt_templates/phase1/dimensions/13_business_logic.md",
-        "be_conformance": "prompt_templates/phase1/dimensions/14_be_conformance.md",
-        "security": "prompt_templates/phase1/dimensions/15_security.md",
-        "perf": "prompt_templates/phase1/dimensions/16_perf.md",
-        "change_impact": "prompt_templates/phase1/dimensions/17_change_impact.md",
-        "ordering": "prompt_templates/phase1/dimensions/19_ordering.md",
-        "bug_history": "prompt_templates/phase1/dimensions/20_bug_history.md",
-        "accessibility": "prompt_templates/phase1/dimensions/21_accessibility.md",
-        "inbound_callback": "prompt_templates/phase1/dimensions/22_inbound_callback.md",
-        "db_persistence": "prompt_templates/phase1/dimensions/23_db_persistence.md",
-        "time_calendar": "prompt_templates/phase1/dimensions/24_time.md",
-        "legacy_data": "prompt_templates/phase1/dimensions/25_legacy.md"
+        "field_validation": "prompt_templates/phase2/dimensions/03_field_validation.md",
+        "ui_display": "prompt_templates/phase2/dimensions/04_ui.md",
+        "api": "prompt_templates/phase2/dimensions/05_api.md",
+        "e2e": "prompt_templates/phase2/dimensions/06_e2e.md",
+        "export_import": "prompt_templates/phase2/dimensions/07_export_import.md",
+        "resilience": "prompt_templates/phase2/dimensions/08_resilience.md",
+        "side_effect": "prompt_templates/phase2/dimensions/09_side_effect.md",
+        "guard": "prompt_templates/phase2/dimensions/10_guard.md",
+        "design_figma": "prompt_templates/phase2/dimensions/11_design.md",
+        "display_conformance": "prompt_templates/phase2/dimensions/12_display.md",
+        "business_logic": "prompt_templates/phase2/dimensions/13_business_logic.md",
+        "be_conformance": "prompt_templates/phase2/dimensions/14_be_conformance.md",
+        "security": "prompt_templates/phase2/dimensions/15_security.md",
+        "perf": "prompt_templates/phase2/dimensions/16_perf.md",
+        "change_impact": "prompt_templates/phase2/dimensions/17_change_impact.md",
+        "ordering": "prompt_templates/phase2/dimensions/19_ordering.md",
+        "bug_history": "prompt_templates/phase2/dimensions/20_bug_history.md",
+        "accessibility": "prompt_templates/phase2/dimensions/21_accessibility.md",
+        "inbound_callback": "prompt_templates/phase2/dimensions/22_inbound_callback.md",
+        "db_persistence": "prompt_templates/phase2/dimensions/23_db_persistence.md",
+        "time_calendar": "prompt_templates/phase2/dimensions/24_time.md",
+        "legacy_data": "prompt_templates/phase2/dimensions/25_legacy.md"
       }
     },
     "publish": {
       "diem_vao": ".claude/commands/publish.md",
       "bat_buoc": [
-        "prompt_templates/phase1/04_auto_publish_backlog.md"
+        "prompt_templates/phase2/06_auto_publish_backlog.md"
       ],
       "co_dieu_kien": []
     },
     "phase2": {
-      "diem_vao": "prompt_templates/run_phase2_template.md",
+      "diem_vao": "prompt_templates/phase3/01_run_phase3.md",
       "bat_buoc": [
-        "prompt_templates/phase2/04_execute_fe_playwright.md"
+        "prompt_templates/phase3/02_execute_fe_playwright.md"
       ],
       "co_dieu_kien": [
         {
-          "file": "prompt_templates/phase2/05_execute_api_playwright.md",
+          "file": "prompt_templates/phase3/04_execute_api_playwright.md",
           "khi": "Bộ TC có case API.",
           "may_kiem": "dimension_manifest.dimensions.api = required, hoặc có case mang tag [API]"
         },
         {
-          "file": "prompt_templates/phase2/06_triage_review.md",
+          "file": "prompt_templates/phase3/05_triage_review.md",
           "khi": "Có case FAIL cần triage."
         },
         {
-          "file": "prompt_templates/phase2/07_triage_flaky.md",
+          "file": "prompt_templates/phase3/06_triage_flaky.md",
           "khi": "Có case xanh-đỏ không ổn định giữa các lượt rerun."
         },
         {
-          "file": "prompt_templates/phase2/08_log_bug_backlog.md",
+          "file": "prompt_templates/phase3/07_log_bug_backlog.md",
           "khi": "Đã có bug qua Bug Claim Gate. KHÔNG nạp khi chưa có bug nào."
         }
       ]
     },
     "rerun": {
-      "diem_vao": "prompt_templates/run_phase_re-run_template.md",
+      "diem_vao": "prompt_templates/phase4/01_run_phase4.md",
       "bat_buoc": [],
       "co_dieu_kien": [
         {
-          "file": "prompt_templates/phase2/04_execute_fe_playwright.md",
+          "file": "prompt_templates/phase3/02_execute_fe_playwright.md",
           "khi": "Case cần rerun là case FE."
         },
         {
-          "file": "prompt_templates/phase2/05_execute_api_playwright.md",
+          "file": "prompt_templates/phase3/04_execute_api_playwright.md",
           "khi": "Case cần rerun là case API."
         },
         {
-          "file": "prompt_templates/phase2/08_log_bug_backlog.md",
+          "file": "prompt_templates/phase3/07_log_bug_backlog.md",
           "khi": "Lượt rerun phát hiện bug mới, hoặc cần cập nhật bug cũ."
         }
       ]
@@ -125,64 +125,64 @@
       "bat_buoc": [],
       "co_dieu_kien": [
         {
-          "file": "prompt_templates/run_phase1_template.md",
-          "khi": "KHÔNG nạp trong /start. Chỉ nạp khi người dùng TỰ gõ /phase1 (câu 3 trả lời Phase 1 chỉ quyết định lệnh nào được BÁO ra, không phải lệnh để agent tự chạy)."
+          "file": "prompt_templates/phase2/01_run_phase2.md",
+          "khi": "KHÔNG nạp trong /start. Chỉ nạp khi người dùng TỰ gõ /phase2 (câu 3 trả lời Phase 1 chỉ quyết định lệnh nào được BÁO ra, không phải lệnh để agent tự chạy)."
         },
         {
-          "file": "prompt_templates/run_phase2_template.md",
-          "khi": "KHÔNG nạp trong /start. Chỉ nạp khi người dùng TỰ gõ /phase2."
+          "file": "prompt_templates/phase3/01_run_phase3.md",
+          "khi": "KHÔNG nạp trong /start. Chỉ nạp khi người dùng TỰ gõ /phase3."
         }
       ]
     },
     "phase2_lite": {
       "_vi_sao": "Bản RÚT GỌN của phase2 (v2.7.0 §A12). Bản đầy đủ nặng ~11,8k token và phần lớn là hướng dẫn viết code mà agent đã biết. Bản Lite giữ nguyên 6 chốt và nguyên bộ máy gác, bỏ phần POM/mẫu code — 1,4k token. Dùng khi `npm run lane` nói làn gọn; làn đầy đủ vẫn nạp bản đầy đủ.",
       "_may_kiem": "tests/fe/infra/execute-lite.spec.ts cài 5 lỗi vào output của một task giả rồi kiểm rằng ĐÚNG cái máy mà chốt tương ứng NÊU TÊN chặn từng lỗi. Cắt prompt execute rất dễ cắt luôn phần gác, và chuyện đó chỉ lộ ra ở lượt đầu tiên có bug thật lọt qua.",
-      "diem_vao": "prompt_templates/run_phase2_template.md",
+      "diem_vao": "prompt_templates/phase3/01_run_phase3.md",
       "bat_buoc": [
-        "prompt_templates/phase2/04L_execute_lite.md"
+        "prompt_templates/phase3/03_execute_lite.md"
       ],
       "co_dieu_kien": [
         {
-          "file": "prompt_templates/phase2/04_execute_fe_playwright.md",
+          "file": "prompt_templates/phase3/02_execute_fe_playwright.md",
           "khi": "Cần mẫu code Playwright/POM, hoặc `npm run lane` nói làn ĐẦY ĐỦ.",
           "may_kiem": "npm run lane"
         },
         {
-          "file": "prompt_templates/phase2/05_execute_api_playwright.md",
+          "file": "prompt_templates/phase3/04_execute_api_playwright.md",
           "khi": "Bộ TC có case API."
         },
         {
-          "file": "prompt_templates/phase2/06_triage_review.md",
+          "file": "prompt_templates/phase3/05_triage_review.md",
           "khi": "Có case FAIL cần triage."
         },
         {
-          "file": "prompt_templates/phase2/08_log_bug_backlog.md",
+          "file": "prompt_templates/phase3/07_log_bug_backlog.md",
           "khi": "Đã có bug qua Bug Claim Gate."
         }
       ]
     }
   },
-  "_bay_da_biet": "Một file nằm trong `co_dieu_kien` của luồng này vẫn có thể là `bat_buoc` của luồng khác — `04_execute_fe_playwright.md` bắt buộc ở phase2 nhưng có điều kiện ở rerun. Spec kiểm theo TỪNG luồng, không gộp.",
+  "_bay_da_biet": "Một file nằm trong `co_dieu_kien` của luồng này vẫn có thể là `bat_buoc` của luồng khác — `02_execute_fe_playwright.md` bắt buộc ở phase2 nhưng có điều kiện ở rerun. Spec kiểm theo TỪNG luồng, không gộp.",
   "_subagent_la_gi": "Việc máy móc được giao cho subagent để vòng lặp đọc-kết-quả không nằm trong context chính. Mỗi lượt gọi tool ở context chính là một message kèm cả context (~510k token, đo 10/10/2026); subagent chạy trong context riêng rồi trả về vài trăm token tóm tắt. Định nghĩa ở `.claude/agents/`. Kết quả xác minh hợp đồng: `docs/v2.4.1/AGENTS_VERIFY.md`.",
   "subagent": {
     "test-runner": {
       "dung_o_buoc": [
-        ".agent/workflows/phase2_03_execute_and_auto_heal.md bước 1"
+        ".agent/workflows/11_execute_and_auto_heal.md bước 1"
       ],
       "viec": "Chạy spec của task, trả bản tóm tắt 3 phần.",
       "khong_lam": "Không chấm verdict, không đọc results.json thô, không mở ảnh."
     },
     "case-debugger": {
       "dung_o_buoc": [
-        ".agent/workflows/phase2_03_execute_and_auto_heal.md bước 4"
+        ".agent/workflows/11_execute_and_auto_heal.md bước 4"
       ],
       "viec": "Gỡ MỘT case đỏ: đọc log và ảnh, soi DOM, sửa spec hoặc locator, chạy lại chính case đó.",
       "khong_lam": "Không chấm verdict cuối, không log Backlog, không nới assertion, không sửa file shared."
     },
     "excel-convert": {
       "dung_o_buoc": [
-        ".agent/workflows/phase1_03_validate_export_report.md",
-        ".agent/workflows/phase1_04_auto_publish_backlog.md"
+        ".agent/workflows/06_validate_export_report.md",
+        ".agent/workflows/07_auto_publish_backlog.md"
       ],
       "viec": "Convert Markdown sang Excel, và ghi kết quả execute vào cột Result.",
       "khong_lam": "Chỉ ghi cột Result; không upload Drive; không sửa Markdown nguồn; không chấm verdict.",

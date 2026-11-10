@@ -11,7 +11,7 @@
  *      khai", nhưng không máy nào kiểm được rằng người đã khai — nên thực tế agent tự khai.
  *   2. "Tổng requirement in-scope = 12" trong `phase1-summary.md` — agent tự đếm ⇒ coverage 10/12 = 83,3%.
  *      Nếu số thật là 30 thì coverage là 33%, và KHÔNG gì trong kit phát hiện được.
- *   3. `ui_catalog.json` — dựng từ ảnh chụp build, trong khi `run_phase1_template.md` §2b CẤM đúng việc đó
+ *   3. `ui_catalog.json` — dựng từ ảnh chụp build, trong khi `01_run_phase2.md` §2b CẤM đúng việc đó
  *      (oracle tautological).
  *
  * TRIỆU CHỨNG NGƯỜI DÙNG THẤY: Phase 1 sinh 50 case, QA đọc thấy thiếu, yêu cầu rà lại ⇒ lượt sau ra nhiều
@@ -276,7 +276,7 @@ function gateScopeAnchor(taskDir) {
     const fromBuild = /screenshot|anh chup|anh build|tu build|from build|http/.test(src);
     const marked = /observation/i.test(JSON.stringify(cat));
     if (fromBuild && !marked) {
-      problems.push('`ui_catalog.json` khai nguồn từ BUILD (ảnh chụp/URL) mà không đánh dấu máy đọc được. `run_phase1_template.md` §2b cấm lấy expected hiển thị từ build đang chạy — làm vậy là app==app, case sẽ xanh kể cả khi build sai. Ghi cảnh báo bằng văn xuôi trong `_source`/`.md` là KHÔNG đủ: không gate nào đọc được văn xuôi. Thêm `"oracle": "OBSERVATION"` ở gốc file, rồi mọi case hiển thị dựa vào catalog này không được kết luận PASS/FAIL.');
+      problems.push('`ui_catalog.json` khai nguồn từ BUILD (ảnh chụp/URL) mà không đánh dấu máy đọc được. `01_run_phase2.md` §2b cấm lấy expected hiển thị từ build đang chạy — làm vậy là app==app, case sẽ xanh kể cả khi build sai. Ghi cảnh báo bằng văn xuôi trong `_source`/`.md` là KHÔNG đủ: không gate nào đọc được văn xuôi. Thêm `"oracle": "OBSERVATION"` ở gốc file, rồi mọi case hiển thị dựa vào catalog này không được kết luận PASS/FAIL.');
     } else if (!isFilled(cat.source || cat._source || cat.provenance || '')) {
       warnings.push('`ui_catalog.json` không ghi `source` — không biết expected hiển thị lấy từ tài liệu nào, nên không kiểm được nó có phải oracle độc lập không.');
     }

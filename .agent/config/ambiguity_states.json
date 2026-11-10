@@ -52,5 +52,5 @@
   "_che_do_y": "`di_tru` = chỉ CHẶN ca rõ ràng sai (`PENDING` + đã có case). Trạng thái lạ hoặc thiếu khoá ⇒ CẢNH BÁO và ghi `reports/gate-debt.json`. `chat` = chặn mọi vi phạm nghĩa vụ. Bật `chat` khi sổ nợ về 0 — bật sớm thì 3/5 task đang chạy đỏ ngay ngày đầu, và một cửa đỏ oan là cửa người ta tắt.",
 
   "_duong_dan_clarifications": "reports/phase1-clarifications.md",
-  "_vi_sao_reports": "Đo 16/10/2026: 5/5 task thật dùng `reports/`, 0 task dùng `requirements/`. Hai tài liệu của kit (`gate_codes.json`, `phase1_000_system_discovery.md`) từng ghi `requirements/` — đã sửa ở v2.9.2. Gate đọc nhầm nhánh thì nó KHÔNG THẤY FILE, và 'không thấy file' rất dễ bị cho qua."
+  "_vi_sao_reports": "Đo 16/10/2026: 5/5 task thật dùng `reports/`, 0 task dùng `requirements/`. Hai tài liệu của kit (`gate_codes.json`, `01_system_discovery.md`) từng ghi `requirements/` — đã sửa ở v2.9.2. Gate đọc nhầm nhánh thì nó KHÔNG THẤY FILE, và 'không thấy file' rất dễ bị cho qua."
 }

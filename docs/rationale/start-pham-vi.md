@@ -10,7 +10,7 @@ thích viết trong đó làm **mọi lượt** `/start` đắt hơn — kể c�
 `/start` hỏi 5 câu, chạy `profile:create` + `preflight`, ghi `task.md`, in lệnh kế tiếp, rồi **dừng**.
 
 **Đã trả giá thật — CSDL-4172, 05/11/2026.** Người dùng chạy `/start`, rồi nhắn một chữ **"tiếp"**. Agent
-hiểu "tiếp" là "chuyển sang phase", tự gọi `/phase1` và đi tới **sinh ~90 case** — trong khi người dùng chỉ
+hiểu "tiếp" là "chuyển sang phase", tự gọi `/phase2` và đi tới **sinh ~90 case** — trong khi người dùng chỉ
 định làm nốt bước còn lại của `/start`. Không ai yêu cầu bộ case đó.
 
 Nên luật viết theo hướng ngược lại: `"tiếp"` sau `/start` nghĩa là **làm nốt bước còn lại của `/start`**, và

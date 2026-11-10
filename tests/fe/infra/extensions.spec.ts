@@ -49,8 +49,16 @@ test.describe('@infra extension — 5 cửa mới phải có đường chạy', 
      * thứ người nhận cần. Nên ca này chỉ phán được TRONG REPO. Bỏ qua KÈM LÝ DO, không cho xanh:
      * `verify_release` đếm số skip, nên nó không lặng lẽ phình lên.
      */
-    const DS = ['docs/v2.11.0/ENHANCED_V3_RELEASE_NOTES.md', 'docs/v2.11.0/KIT_A_INTEGRATION.md'];
-    for (const f of DS) canTaiLieu(REPO, f, 'lệnh mà tài liệu bản nhập về dạy phải tồn tại');
+    /*
+     * ĐỔI NGUỒN 10/11/2026 — hai file ghi chú của bản nhập về đã bị xoá (chủ dự án hỏi vì sao chúng
+     * nằm trong kit; chúng là tài liệu nhà cung cấp, không ai đọc, và git history vẫn giữ).
+     *
+     * Nếu cứ trỏ vào hai file đã xoá thì `canTaiLieu` sẽ tự bỏ qua và ca này thành ĐỒ TRANG TRÍ —
+     * vẫn xanh, vẫn được đếm, mà không còn gác gì. Nên đổi sang nguồn ĐANG SỐNG: trang thư viện, nơi
+     * mỗi cửa khai `how:[...]` và chính `library:drift` gác cho nó khớp repo.
+     */
+    const DS = ['docs/library/src/terms/gates_kit.js'];
+    for (const f of DS) canTaiLieu(REPO, f, 'lệnh mà trang thư viện dạy phải tồn tại');
     const docs = DS.map((f) => fs.readFileSync(path.join(REPO, f), 'utf8')).join('\n');
     const nhac = [...docs.matchAll(/npm run (extension:[a-z]+)/g)].map((m) => m[1]);
     expect(nhac.length, 'không tài liệu nào nhắc lệnh extension ⇒ ca này RỖNG').toBeGreaterThan(0);

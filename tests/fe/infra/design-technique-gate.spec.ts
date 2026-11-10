@@ -4,7 +4,7 @@ import path from 'path';
 /*
  * @infra — KỸ THUẬT THIẾT KẾ (EP · BVA · DT · ST · UC · EG) có máy kiểm.
  *
- * Vì sao có file này: `02_gen_testcases.md` §2 vốn đã NHẮC TÊN bốn kỹ thuật, nhưng không gì đo xem case có
+ * Vì sao có file này: `03_gen_testcases.md` §2 vốn đã NHẮC TÊN bốn kỹ thuật, nhưng không gì đo xem case có
  * thật sự được thiết kế theo kỹ thuật đó hay không. Nhắc tên là lời dặn, và lời dặn không có máy đứng sau
  * thì lần nào quên cũng không ai biết.
  *

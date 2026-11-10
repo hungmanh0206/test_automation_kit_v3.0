@@ -176,7 +176,7 @@ không gọi k6, không chạm UAT, không tiêu quota cloud).
 ## Related
 
 - [[perf_check]] — Loại A single-user (trong kit, Playwright). load_check là Loại B (tool ngoài).
-- mục 16 `prompt_templates/phase1/02_gen_testcases.md` (load = opt-in tool ngoài).
+- mục 16 `prompt_templates/phase2/03_gen_testcases.md` (load = opt-in tool ngoài).
 - JMeter là lựa chọn thay thế nếu team đã chuẩn hoá; k6 hợp kit JS/CLI/CI hơn. Katalon KHÔNG phải load tool.
 
 ## KHÔNG dùng khi

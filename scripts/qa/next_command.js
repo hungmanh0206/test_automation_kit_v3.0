@@ -88,7 +88,7 @@ const GOI_Y = [
     nhom: 'gợi ý đúng lúc',
   },
   {
-    lenh: '/phase1',
+    lenh: '/phase2',
     khi: (s) => s.co_profile && !s.co_case_md,
     vi_sao: 'chưa có `test-cases/*.md` — đây là bước sinh bộ case',
     nhom: 'năm lệnh',
@@ -134,7 +134,7 @@ const GOI_Y = [
     nhom: 'gợi ý đúng lúc',
   },
   {
-    lenh: '/phase2',
+    lenh: '/phase3',
     khi: (s) => s.co_case_md && !s.co_status,
     vi_sao: 'chưa có file status — đây là bước execute',
     nhom: 'năm lệnh',
@@ -146,7 +146,7 @@ const GOI_Y = [
     nhom: 'gợi ý đúng lúc',
   },
   {
-    lenh: '/rerun',
+    lenh: '/phase4',
     khi: (s) => s.co_status && s.so_no !== null && s.so_no > 0,
     vi_sao: 'có kết quả rồi nhưng sổ nợ chưa sạch — sửa rồi chạy lại đúng case đỏ',
     nhom: 'năm lệnh',
@@ -217,7 +217,7 @@ function main() {
       for (const g of ds.slice(1)) console.log(`    ${g.lenh.padEnd(38)} ${g.vi_sao}`);
     }
   }
-  console.log('\n  NĂM LỆNH bạn cần nhớ: /start → /phase1 → /phase2 → /rerun → /release · cộng /check lúc nào cũng được.');
+  console.log('\n  NĂM LỆNH bạn cần nhớ: /start → /phase2 → /phase3 → /phase4 → /release · cộng /check lúc nào cũng được.');
   console.log('  Mấy lệnh dưới đây KHÔNG cần nhớ — chúng được gợi ý khi đúng tình huống:');
   for (const t of THEO_TINH_HUONG) console.log(`    ${t.lenh.padEnd(16)} ${t.khi}`);
 }

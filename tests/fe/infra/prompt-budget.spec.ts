@@ -38,7 +38,7 @@ const chay = (args: string[] = []) => {
  * Dựng CÂY TẠM mang đúng những file mà `load_map` và `prompt_budget` nhắc tới, rồi đo trên đó.
  *
  * Vì sao không sửa file thật rồi trả lại: Playwright chạy song song theo FILE, nên một spec khác đọc
- * `run_phase1_template.md` trong lúc nó đang phình sẽ đỏ ngẫu nhiên. Kiểm-âm không được có tác dụng lề.
+ * `01_run_phase2.md` trong lúc nó đang phình sẽ đỏ ngẫu nhiên. Kiểm-âm không được có tác dụng lề.
  */
 function dungCayTam(phinhThem: Record<string, number> = {}) {
   const goc = fs.mkdtempSync(path.join(os.tmpdir(), 'pb-'));

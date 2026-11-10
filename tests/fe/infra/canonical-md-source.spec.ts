@@ -256,10 +256,10 @@ test.describe('@infra tài liệu KHÔNG còn gọi Excel hay Sheet là canonica
   const BE_MAT = [
     'README.md', 'QUICKSTART.md', 'USER_GUIDE.md', 'RULE_GLOBAL.md', 'CLAUDE.md',
     '.agent/AUDIT_REFERENCES.md',
-    '.agent/workflows/phase1_generate_tc.md',
-    '.agent/workflows/phase1_04_auto_publish_backlog.md',
+    '.agent/workflows/02_tong_quan_testcase.md',
+    '.agent/workflows/07_auto_publish_backlog.md',
     '.agent/skills/shared/backlog_testcase_publisher/SKILL.md',
-    'prompt_templates/phase1/04_auto_publish_backlog.md',
+    'prompt_templates/phase2/06_auto_publish_backlog.md',
     'partial-rerun/run_testcase_cleanup.md',
   ];
 
@@ -301,11 +301,11 @@ test.describe('@infra tài liệu KHÔNG còn gọi Excel hay Sheet là canonica
      * Cú tải Sheet mỗi lượt vừa tốn token vừa thêm một nguồn thứ ba. Execute đọc MD canonical local.
      */
     const PROMPT = [
-      'prompt_templates/phase2/04_execute_fe_playwright.md',
-      'prompt_templates/phase2/04L_execute_lite.md',
-      'prompt_templates/phase2/05_execute_api_playwright.md',
-      'prompt_templates/run_phase2_template.md',
-      'prompt_templates/run_phase_re-run_template.md',
+      'prompt_templates/phase3/02_execute_fe_playwright.md',
+      'prompt_templates/phase3/03_execute_lite.md',
+      'prompt_templates/phase3/04_execute_api_playwright.md',
+      'prompt_templates/phase3/01_run_phase3.md',
+      'prompt_templates/phase4/01_run_phase4.md',
     ];
     const xau: string[] = [];
     for (const f of PROMPT) {

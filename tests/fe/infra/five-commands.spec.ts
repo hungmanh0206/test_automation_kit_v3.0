@@ -20,7 +20,18 @@ const NEXT = path.join(REPO, 'scripts/qa/next_command.js');
 // eslint-disable-next-line @typescript-eslint/no-var-requires, global-require
 const nc = require(NEXT);
 
-const NAM_LENH = ['start', 'phase1', 'phase2', 'rerun', 'release'];
+/*
+ * NĂM LỆNH PHẢI NHỚ — đổi 10/11/2026 theo bốn phase mà chủ dự án chốt.
+ *
+ * Cũ: start · phase1 · phase2 · rerun · release. Mới: bốn phase liên tục + release.
+ * `/start` và `/discover` KHÔNG biến mất — chúng nằm TRONG `/phase1`, và người mới chỉ cần nhớ
+ * một tên cho cả bước chuẩn bị thay vì hai.
+ *
+ * ĐÁNH SỐ 10/11/2026 — tên file lệnh mang luôn thứ tự chạy. Trong Claude Code tên file CHÍNH LÀ tên
+ * lệnh, nên đây không phải việc trang trí thư mục: `/phase1` không còn gõ được, phải gõ `/phase1`.
+ * Bảy lệnh phụ trợ cố ý KHÔNG có số — chúng gọi khi cần, không có vị trí trong dòng chảy.
+ */
+const NAM_LENH = ['phase1', 'phase2', 'phase3', 'phase4', 'release'];
 const GOI_Y_DUNG_LUC = ['publish', 'discover', 'explore', 'manual-run', 'ui-debug', 'partial-rerun'];
 
 test.describe.configure({ mode: 'default' });
@@ -165,12 +176,12 @@ test.describe('@infra next — gợi ý suy từ TRẠNG THÁI ARTIFACT', () => 
     expect(nc.goiY(s).map((g: { lenh: string }) => g.lenh)).toContain('/release');
   });
 
-  test('sổ nợ CÒN MÓN ⇒ gợi ý `/rerun`, KHÔNG gợi ý `/release`', () => {
+  test('sổ nợ CÒN MÓN ⇒ gợi ý `/phase4`, KHÔNG gợi ý `/release`', () => {
     /* Qua cửa cuối với sổ nợ còn món là đúng thứ §A2 chặn; gợi ý `/release` ở đó là dẫn người ta vào tường. */
     const t = dungTask({ case: true, mauSo: true, status: true, soNoCon: true });
     const s = { ...nc.trangThai('T-NEXT', t.taskDir), co_profile: true };
     const ds = nc.goiY(s).map((g: { lenh: string }) => g.lenh);
-    expect(ds).toContain('/rerun');
+    expect(ds).toContain('/phase4');
     expect(ds).not.toContain('/release');
   });
 
@@ -212,9 +223,9 @@ test.describe('@infra next — gợi ý suy từ TRẠNG THÁI ARTIFACT', () => 
      * thời điểm là nhiễu, và nhiễu làm người ta thôi đọc dòng này.
      */
     const thuTu = nc.GOI_Y.map((g: { lenh: string }) => g.lenh);
-    expect(thuTu.indexOf('/start')).toBeLessThan(thuTu.indexOf('/phase1'));
-    expect(thuTu.indexOf('/phase1')).toBeLessThan(thuTu.indexOf('/phase2'));
-    expect(thuTu.indexOf('/phase2')).toBeLessThan(thuTu.indexOf('/release'));
+    expect(thuTu.indexOf('/start')).toBeLessThan(thuTu.indexOf('/phase2'));
+    expect(thuTu.indexOf('/phase2')).toBeLessThan(thuTu.indexOf('/phase3'));
+    expect(thuTu.indexOf('/phase3')).toBeLessThan(thuTu.indexOf('/release'));
   });
 
   test('CHỈ gợi ý — không tự chạy, không tự ghi', () => {

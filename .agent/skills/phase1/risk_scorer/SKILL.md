@@ -38,9 +38,9 @@ Likelihood có **prior = Impact**, blend theo lượng data: `L = confidence·ob
 
 | Bước | Việc |
 |---|---|
-| `phase1_00_scope_planning.md` | `npm run risk` → đưa register + thứ tự execute vào `phase1-summary.md`; QA chốt/override band. |
+| `03_scope_planning.md` | `npm run risk` → đưa register + thứ tự execute vào `phase1-summary.md`; QA chốt/override band. |
 | `phase1_03` / `tc_validator` | `npm run risk:gate` sau khi có testcase; gap High-risk = Critical gap → không PASS coverage gate. |
-| `phase2_01_prepare_execution.md` | Execute theo `executeOrder` của register (High trước). |
+| `09_prepare_execution.md` | Execute theo `executeOrder` của register (High trước). |
 | Sau Phase 2 | `learning_recorder` ghi bug/historical → lần sau `risk_score` tự tính lại với data tươi. |
 
 ## Commands
@@ -77,7 +77,7 @@ Likelihood có **prior = Impact**, blend theo lượng data: `L = confidence·ob
 - [[learning_recorder]] — nguồn `knowledge/bugs`+`historical_execution` cho Likelihood.
 - [[git_impact_analyzer]] — `git-impact.md` bơm module bị đụng vào register.
 - [[tc_validator]] — Risk depth gate (risk_gate là bản executable).
-- `.agent/workflows/phase1_00_scope_planning.md`, `phase2_01_prepare_execution.md`.
+- `.agent/workflows/03_scope_planning.md`, `09_prepare_execution.md`.
 
 ## Dùng khi · KHÔNG dùng khi
 

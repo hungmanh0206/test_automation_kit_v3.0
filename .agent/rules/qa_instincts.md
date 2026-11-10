@@ -1,6 +1,6 @@
 # QA Instincts — Nhạy bén & Phản xạ điều tra khi Execute (Phase 2)
 
-Reference dạy agent cách một QA giỏi "ngửi" ra vấn đề và điều tra trong lúc chạy test, thay vì tin vào bề mặt. Đọc kèm `prompt_templates/phase2/04_execute_fe_playwright.md` (section "Quan sát sâu") và `prompt_templates/phase2/05_execute_api_playwright.md`. Mọi ràng buộc trong `RULE_GLOBAL.md` và `.agent/rules/*.md` vẫn áp dụng.
+Reference dạy agent cách một QA giỏi "ngửi" ra vấn đề và điều tra trong lúc chạy test, thay vì tin vào bề mặt. Đọc kèm `prompt_templates/phase3/02_execute_fe_playwright.md` (section "Quan sát sâu") và `prompt_templates/phase3/04_execute_api_playwright.md`. Mọi ràng buộc trong `RULE_GLOBAL.md` và `.agent/rules/*.md` vẫn áp dụng.
 
 ## Tư duy nền tảng: KHÔNG tin bề mặt
 
@@ -63,7 +63,7 @@ Thấy field/khu vực trống (hoặc `null`, `-`, `N/A`, `0`):
 - **CORS / bị chặn / mixed content**: → Console báo rõ; request đỏ trong Network. → Thường là cấu hình môi trường (`BLOCKED`) hoặc bug.
 
 ### Nhóm 4 — Dữ liệu & môi trường
-- **Kết quả khác nhau giữa 2 lần / 2 máy / 2 account**: nghi data test khác, quyền khác, state rò rỉ. → Cố định data/account rồi thử lại; vẫn đổi → nghi **FLAKY** (theo flaky policy: `.agent/skills/phase2/flaky_test_analyzer`, `prompt_templates/phase2/07_triage_flaky.md`).
+- **Kết quả khác nhau giữa 2 lần / 2 máy / 2 account**: nghi data test khác, quyền khác, state rò rỉ. → Cố định data/account rồi thử lại; vẫn đổi → nghi **FLAKY** (theo flaky policy: `.agent/skills/phase2/flaky_test_analyzer`, `prompt_templates/phase3/06_triage_flaky.md`).
 - **Chỉ sai với một số bản ghi**: nghi data edge (null, ký tự đặc biệt, số âm, chuỗi dài, emoji). → Tìm đặc điểm chung của bản ghi lỗi.
 - **Sai khi có người khác cũng đang test**: nghi shared env, data bị đè. → Ghi nhận rủi ro môi trường.
 - **"Local ok, staging fail"**: nghi khác config/env/version/data. → Đối chiếu version + biến môi trường; thường lộ bug thật.
@@ -85,4 +85,4 @@ Thấy field/khu vực trống (hoặc `null`, `-`, `N/A`, `0`):
 
 ## Danh mục mở rộng (tra khi gặp tình huống cụ thể)
 
-Áp cùng khung "thấy → nghi → kiểm tra → phân loại tầng" cho các nhóm sau: nhập liệu & biên; session/điều hướng; đồng thời & tương tác nhanh (double-submit, race); quyền/**IDOR** (đổi id sang resource user khác); nhất quán chéo (cùng data ở nhiều màn/endpoint phải khớp); vòng đời CRUD (delta trước/sau); xử lý lỗi (message đúng, không nuốt lỗi thành 200 rỗng); tín hiệu bảo mật (lộ field nhạy cảm, token trên URL, mass-assignment); tích hợp/config; log & observability; visual/UX; hồi quy lân cận. Chi tiết logic/data/security các nhóm này: mục 13–16 ở `prompt_templates/phase1/dimensions/`.
+Áp cùng khung "thấy → nghi → kiểm tra → phân loại tầng" cho các nhóm sau: nhập liệu & biên; session/điều hướng; đồng thời & tương tác nhanh (double-submit, race); quyền/**IDOR** (đổi id sang resource user khác); nhất quán chéo (cùng data ở nhiều màn/endpoint phải khớp); vòng đời CRUD (delta trước/sau); xử lý lỗi (message đúng, không nuốt lỗi thành 200 rỗng); tín hiệu bảo mật (lộ field nhạy cảm, token trên URL, mass-assignment); tích hợp/config; log & observability; visual/UX; hồi quy lân cận. Chi tiết logic/data/security các nhóm này: mục 13–16 ở `prompt_templates/phase2/dimensions/`.

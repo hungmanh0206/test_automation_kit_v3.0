@@ -294,7 +294,7 @@ test.describe('@infra preflight DB verify — nối vào gate thật', () => {
   });
 
   test('§23 phải nhắc lệnh preflight (gate không ai gọi thì không phải gate)', () => {
-    const doc = fs.readFileSync(path.join(REPO, 'prompt_templates/phase1/dimensions/23_db_persistence.md'), 'utf8');
+    const doc = fs.readFileSync(path.join(REPO, 'prompt_templates/phase2/dimensions/23_db_persistence.md'), 'utf8');
     expect(doc).toMatch(/preflight_gate|npm run preflight/);
   });
 });

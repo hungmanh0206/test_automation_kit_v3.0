@@ -47,7 +47,7 @@ const REQUIRED_COLS = [
 const REQUIRED_FIELDS = [['module', 'Module'], ['title', 'Trường hợp kiểm thử'], ['stepsRaw', 'Các bước thực hiện'], ['priority', 'Ưu tiên']];
 
 // GIÁ TRỊ hợp lệ. `Ưu tiên` phải là 1 trong 5 priority CÓ THẬT trên Backlog: bug được log lấy Priority TỪ CHÍNH
-// cột này (prompt `08_log_bug_backlog.md`), giá trị lạ (`Critical`, `P0`…) ⇒ Backlog không set được ⇒ bug rơi về
+// cột này (prompt `07_log_bug_backlog.md`), giá trị lạ (`Critical`, `P0`…) ⇒ Backlog không set được ⇒ bug rơi về
 // default, mất luôn tín hiệu ưu tiên. Trước đây prompt §7/§8 có quy định nhưng KHÔNG có gì kiểm.
 /*
  * Thang ƯU TIÊN canonical = thang của công cụ cũ: Critical|High|Medium|Low|Lowest.

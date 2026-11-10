@@ -25,7 +25,7 @@ const GATE = path.join(REPO, 'scripts/qa/dimension_coverage.js');
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const CFG = require(path.join(REPO, '.agent/config/ui_components.json'));
 
-const DIM_DIR = path.join(REPO, 'prompt_templates/phase1/dimensions');
+const DIM_DIR = path.join(REPO, 'prompt_templates/phase2/dimensions');
 
 /* Artifact giả cho nhánh XUNG ĐỘT: `knowSystem()` đọc knowledge/system/ thật, nên phải đặt file ở đó rồi
  * xoá đi — cùng cách `ui-contract-check.spec.ts` đã làm. ID cố ý nhìn là biết fixture. */

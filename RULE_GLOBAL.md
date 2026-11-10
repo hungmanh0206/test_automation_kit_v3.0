@@ -66,9 +66,9 @@
 | 31 | [Chi phí một lượt chạy — đếm SỐ LƯỢT, không đếm độ dài](#chi-phí-một-lượt-chạy-đếm-số-lượt-không-đếm-độ-dài) | 837-867 | 477 | npm run rule -- 31 |
 | 32 | [Cleanup Rules](#cleanup-rules) | 868-895 | 388 | npm run rule -- 32 |
 | 33 | [Examples](#examples) | 896-903 | 80 | npm run rule -- 33 |
-| 34 | [References](#references) | 904-912 | 84 | npm run rule -- 34 |
+| 34 | [References](#references) | 904-912 | 83 | npm run rule -- 34 |
 
-> Cả file ~19872 token. Tra MỘT mục thay vì đọc cả file: npm run rule -- <số|từ khoá>
+> Cả file ~19871 token. Tra MỘT mục thay vì đọc cả file: npm run rule -- <số|từ khoá>
 <!-- MỤC-LỤC:KẾT-THÚC -->
 
 ## Purpose
@@ -160,7 +160,7 @@ không phải AI đọc, nhưng vẫn đúng template"*.
   màn khác hẳn. Màn chỉ tới được bằng thao tác nên URL không đổi thì ghi URL gần nhất cộng một dòng
   đường đi. Che PII trong URL theo §1. Thiếu dòng này thì việc đầu tiên dev làm là đi hỏi lại, và vòng
   hỏi đáp đó tốn hơn toàn bộ thời gian viết bug. Chi tiết thao tác:
-  `prompt_templates/phase2/08_log_bug_backlog.md`.
+  `prompt_templates/phase3/07_log_bug_backlog.md`.
 
 Máy kiểm: `npm run writing:lint <file>`. Ngưỡng ở `.agent/config/writing_style.json` đặt ở **mức cao
 nhất** của 34 bài mẫu, không phải phân vị 75. Mốc mà đánh 25% mẫu là mốc sai, vì mẫu chính là đích.
@@ -190,7 +190,7 @@ việc khác, và không làm.
   ① **chỉ `SELECT`** — câu `UPDATE`/`DELETE`/`INSERT`/`TRUNCATE`… ở thế lệnh-để-chạy là **CHẶN**, vì người copy đi chạy là mutate UAT;
   ② **không literal PII** — email hay số điện thoại thật trong câu SQL là **CHẶN**, dùng tham số (`:email`) hoặc lọc theo id của chính lượt test;
   ③ case mang `[DbPersist]` mà không có `SELECT` nào thì **cảnh báo**.
-  TRÍCH DẪN hành vi của proc (vd nêu `DELETE FROM …` để nói proc đó xoá cứng) **không** bị chặn — gate phân biệt bằng marker chạy đứng trước. Chi tiết và ví dụ: `prompt_templates/phase1/dimensions/23_db_persistence.md` mục *KÈM CÂU SQL*.
+  TRÍCH DẪN hành vi của proc (vd nêu `DELETE FROM …` để nói proc đó xoá cứng) **không** bị chặn — gate phân biệt bằng marker chạy đứng trước. Chi tiết và ví dụ: `prompt_templates/phase2/dimensions/23_db_persistence.md` mục *KÈM CÂU SQL*.
 - Không yêu cầu AI đọc toàn bộ source backend để execute testcase. Phase 2 chỉ dùng UI/API public-business contract, artifact Phase 1, credential test, fixture có sẵn, test hook và sandbox nếu team cung cấp.
 
 ### Project And Output
@@ -318,7 +318,7 @@ việc khác, và không làm.
 Bộ testcase có **hai trục**. *Module hoặc màn* trả lời "test **ở đâu**". *Chiều* trả lời "hỏi **loại câu hỏi nào**": validate field, hiển thị, công thức, BE conformance, guard, bảo mật, hiệu năng, change-impact. Phủ kín trục thứ nhất mà trống một ô trục thứ hai thì bộ **vẫn trông đầy đủ**, và đó là đường mà bug thật đã lọt. Đo trên một bộ 530 case: §6 E2E **0 case**, §17 change-impact **0–1**, case hiển thị **≈12%** dù mục đó là BẮT BUỘC.
 
 1. **Khai phạm vi chiều TRƯỚC khi gen.** `<TASK_OUTPUT_DIR>/requirements/dimension_manifest.json`: mỗi chiều là `"required"` hoặc `"n/a"`, và **`n/a` PHẢI có lý do** trong `na_reasons`. Khai `n/a` cho chiều mà artifact chứng minh là có (vd có `requirements/figma/**` mà khai `design: n/a`) ⇒ **CHẶN**.
-2. **Mỗi case gắn TAG CHIỀU trong tiêu đề**, cạnh tag loại: `[Positive][Display] …`. Không thêm cột — tag nằm trong cột `Trường hợp kiểm thử`. Bảng chiều→tag ở `prompt_templates/phase1/02_gen_testcases.md` §0b; nội dung từng chiều ở `prompt_templates/phase1/dimensions/`.
+2. **Mỗi case gắn TAG CHIỀU trong tiêu đề**, cạnh tag loại: `[Positive][Display] …`. Không thêm cột — tag nằm trong cột `Trường hợp kiểm thử`. Bảng chiều→tag ở `prompt_templates/phase2/03_gen_testcases.md` §0b; nội dung từng chiều ở `prompt_templates/phase2/dimensions/`.
 3. **Gắn tag rồi thì `Kết quả mong đợi` phải mang BẰNG CHỨNG của chiều đó.** Cụ thể:
 
    | Tag | Bằng chứng bắt buộc trong `Kết quả mong đợi` |
@@ -908,4 +908,4 @@ Không xóa:
 | [README.md](README.md) | Architecture và overview. |
 | [QUICKSTART.md](QUICKSTART.md) | Setup và chạy lần đầu. |
 | `.agent/rules/` | Rule chi tiết theo domain. |
-| `prompt_templates/run_phase_re-run_template.md` | Prompt canonical cho Re-run bug/case fail và cập nhật evidence/status. |
+| `prompt_templates/phase4/01_run_phase4.md` | Prompt canonical cho Re-run bug/case fail và cập nhật evidence/status. |

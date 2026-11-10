@@ -136,7 +136,7 @@ const TERMS_GATE2 = [
 { id:'g-prompt_budget', t:'prompt_budget', cat:'gate',
   def:'Mỗi điểm vào bảo AI đọc bao nhiêu token hướng dẫn.',
   detail:'Lần theo chuỗi slash command, workflow, template, sub-prompt, rule của từng điểm vào. Tách ba loại: bắt buộc, có điều kiện, và đoạn chỉ để người đọc. Còn báo đoạn trùng ý giữa các lớp. Có --enforce để chặn khi vượt ngưỡng.',
-  why:'Kit có 10 điểm vào, mỗi cái dẫn tới một chuỗi bốn lớp. Không chỗ nào trả lời được câu chạy /phase2 thì AI phải nạp bao nhiêu chữ trước khi làm việc đầu tiên. Không có số thì mọi quyết định cắt gọt về sau là cảm tính.',
+  why:'Kit có 10 điểm vào, mỗi cái dẫn tới một chuỗi bốn lớp. Không chỗ nào trả lời được câu chạy /phase3 thì AI phải nạp bao nhiêu chữ trước khi làm việc đầu tiên. Không có số thì mọi quyết định cắt gọt về sau là cảm tính.',
   cmd:'npm run prompt:budget',
   src:'scripts/qa/prompt_budget.js', rel:['g-token_audit','g-doc_budget'] },
 

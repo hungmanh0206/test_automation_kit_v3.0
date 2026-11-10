@@ -23,7 +23,7 @@ và Dashboard (Giai đoạn 2).
 
 Chỉ ghi entry khi tất cả đúng:
 
-1. **Bug đã qua Backlog gate** ở `.agent/workflows/phase2_04_report_and_backlog_gate.md` (đã loại
+1. **Bug đã qua Backlog gate** ở `.agent/workflows/12_report_and_backlog_gate.md` (đã loại
    flaky/setup/data/prompt) — tức đã xác nhận là product bug thật, có evidence.
 2. `confirmed_via_gate = true`. Bug fail do setup/flaky/prompt (`BLOCKED_SETUP`/`SKIP_SETUP`/
    `setup_failure`) **KHÔNG** được ghi — chúng không phải product bug.
@@ -83,8 +83,8 @@ Chỉ ghi entry khi tất cả đúng:
 ## Related
 
 - [[precondition_setup_planner]] — phân loại `BLOCKED_SETUP`/`SKIP_SETUP`; recorder KHÔNG ghi các nhãn này thành bug.
-- Neo workflow: `.agent/workflows/phase2_04_report_and_backlog_gate.md` (ghi entry sau gate),
-  `.agent/workflows/rerun_03_update_backlog_and_report.md` (đồng bộ trạng thái khi Done).
+- Neo workflow: `.agent/workflows/12_report_and_backlog_gate.md` (ghi entry sau gate),
+  `.agent/workflows/16_update_backlog_and_report.md` (đồng bộ trạng thái khi Done).
 - Consumer: `git_impact_analyzer` (risk theo module), Dashboard (Giai đoạn 2).
 
 ## Dùng khi · KHÔNG dùng khi

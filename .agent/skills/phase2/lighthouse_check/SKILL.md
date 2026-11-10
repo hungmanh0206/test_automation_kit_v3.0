@@ -74,7 +74,7 @@ Catalog block `lighthouse` (schema đầy đủ ở `scripts/qa/README.md`):
 - [[perf_check]] — vitals thô (không cần dep); Lighthouse là bản "điểm số" opt-in nặng, bổ sung.
 - `scripts/qa/accessibility_check.js` — a11y sâu bằng axe-core (rule-level); Lighthouse a11y là điểm tổng quan. Đây là một SCRIPT, không phải skill: dạng `[[…]]` ở đây từng làm người đọc đi tìm một skill không tồn tại.
 - [[load_check]] — cùng kiểu opt-in tool ngoài (skip nếu thiếu).
-- mục 16 `prompt_templates/phase1/02_gen_testcases.md`.
+- mục 16 `prompt_templates/phase2/03_gen_testcases.md`.
 
 ## Dùng khi · KHÔNG dùng khi
 

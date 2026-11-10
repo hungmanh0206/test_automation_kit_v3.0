@@ -269,7 +269,7 @@ Với mỗi tiền điều kiện, ghi bốn thứ. Đặt trong `requirements/s
 
 Ba lý do hợp đồng này đáng viết:
 
-1. Case chết giữa chừng lộ ra ở Phase 1, không phải giữa lúc execute.
+1. Case chết giữa chừng lộ ra ở phase sinh case (`/phase2`), không phải giữa lúc execute.
 2. **Phần verify** là thứ hay bị bỏ. Dựng xong mà không kiểm thì bạn không biết nó đã dựng đúng.
 3. **Phần dọn** viết ra thì mới có người làm.
 

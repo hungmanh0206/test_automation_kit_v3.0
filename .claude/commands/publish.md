@@ -14,11 +14,11 @@ Task: **$ARGUMENTS**
 
 **Publish testcase** (sau khi Phase 1 xuất `.xlsx` canonical) — đọc và làm theo:
 
-1. `prompt_templates/phase1/04_auto_publish_backlog.md` (điểm vào, có khối QA confirmation)
-2. `.agent/workflows/phase1_04_auto_publish_backlog.md` (preconditions + các bước Drive MCP)
+1. `prompt_templates/phase2/06_auto_publish_backlog.md` (điểm vào, có khối QA confirmation)
+2. `.agent/workflows/07_auto_publish_backlog.md` (preconditions + các bước Drive MCP)
 3. Skill: `.agent/skills/shared/backlog_testcase_publisher/SKILL.md`
 
-**Đồng bộ kết quả execute** (sau Phase 2) — đọc `.agent/workflows/phase2_04_report_and_backlog_gate.md`.
+**Đồng bộ kết quả execute** (sau Phase 2) — đọc `.agent/workflows/12_report_and_backlog_gate.md`.
 Lệnh merge:
 
 ```bash

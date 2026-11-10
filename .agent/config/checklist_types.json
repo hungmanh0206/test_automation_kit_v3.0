@@ -1,5 +1,5 @@
 {
-  "_doc": "Bốn loại checklist rà tay và quy mô của từng loại. NGUỒN DUY NHẤT — `05_manual_quick.md` và `design_gate.js --mode checklist` đọc file này, KHÔNG chép ngưỡng ra chỗ khác.",
+  "_doc": "Bốn loại checklist rà tay và quy mô của từng loại. NGUỒN DUY NHẤT — `07_manual_quick.md` và `design_gate.js --mode checklist` đọc file này, KHÔNG chép ngưỡng ra chỗ khác.",
 
   "_vi_sao": "Checklist sống bằng việc RÀ NHANH. Dài quá ngưỡng là nó mất đúng công dụng đó: người chạy bỏ giữa, hoặc tick cho xong. Nên số mục không phải chuyện thẩm mỹ, nó là điều kiện để checklist còn là checklist. Và loại checklist phải được KHAI, vì cùng một module thì Smoke và Release-readiness có mẫu số khác nhau hoàn toàn.",
 

@@ -178,6 +178,10 @@ jobs:
       - name: Bảng định tuyến phủ mọi điểm vào (router:check)
         run: npm run router:check
 
+      # Đổi tên một workflow mà quên chỗ trỏ tới nó: lệnh vẫn "chạy" nhưng đọc hư không.
+      - name: Đường dẫn workflow/template được trỏ tới đều TỒN TẠI (workflow:refs)
+        run: npm run workflow:refs
+
       # Bảng nghiệm thu là lớp DẪN XUẤT viết tay, và mọi bảng viết tay trong kit đều đã trôi ít nhất một
       # lần. Bảng nghiệm thu trôi thì tệ hơn bảng thường: nó là thứ người ta đọc để tin đợt làm đã xong.
       # Cửa chặn dòng để trống, chặn tên máy bịa, và chặn cả khối "CHƯA CÓ MÁY" rỗng — một đợt làm không

@@ -291,7 +291,7 @@ kit-cua-toi/
 │       └── kit-layers.md             ← Bài 29 · ranh giới tầng CHUNG ↔ tầng DỰ ÁN
 │
 ├── .claude/
-│   └── commands/                     ← Bài 16 · gõ `/phase2 <MÃ>` thay vì 6 lệnh
+│   └── commands/                     ← Bài 16 · gõ `/phase3 <MÃ>` thay vì 6 lệnh
 │
 ├── prompt_templates/                 ← Bài 15 · bản mẫu ra lệnh cho agent
 │   ├── phase1/                       ·  requirement → test case
@@ -556,7 +556,7 @@ khi tạo bug.
 - Không chỉ bám chữ trong case: mở rộng 5 trục quanh mỗi case đã chạy
 - Luật sống còn: mở rộng không neo được vào mã luật thì là `OBSERVATION`, không phải PASS hay FAIL
 - **Xây gate:** `gate-mo-rong.js` hạ phát hiện không neo xuống `OBSERVATION`
-- Gộp cả chuỗi vào một lệnh `/phase2 <MÃ>` thay vì nhớ sáu lệnh
+- Gộp cả chuỗi vào một lệnh `/phase3 <MÃ>` thay vì nhớ sáu lệnh
 
 ### [Bài 17 — Test đỏ chưa có nghĩa là Bug](course/triage-va-rerun.md) *(2.5h · vừa)* ⭐
 
