@@ -52,7 +52,7 @@ test-automation-kit/
 │   ├── integrations/   # backlog/ (bug + fetch tài liệu nguồn/Figma) · google_doc/ · google_sheet/ (legacy)
 │   └── qa/   # công cụ QA chạy thật: dashboard, accessibility, perf, security, load, risk_score/gate, ui_conformance
 ├── tests/
-│   ├── fe/infra/        # 188 spec KIỂM CHÍNH KIT (gate tự kiểm) — chạy offline, vào CI
+│   ├── fe/infra/        # 189 spec KIỂM CHÍNH KIT (gate tự kiểm) — chạy offline, vào CI
 │   ├── support/setup/   # setup layer dùng chung (factory/hook/fixture/mock/cleanup/contract)
 │   ├── support/setup/db/  # DB Verification Layer (§23) — đọc bản ghi để KHOANH TẦNG lỗi UI vs BE
 │   │                      #   read-only tuyệt đối; so sánh theo NGHĨA (money/instant/text)

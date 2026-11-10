@@ -161,19 +161,28 @@ test.describe('@infra /start — lệnh nhắc tới phải chạy được TH�
      * ra 0: bảng thật có bốn mức — `CHẶN` (35), `CHẶN (có cờ --enforce)` (32), `SINH` (18), `BÁO CÁO`
      * (10). Đoán hình dạng bảng rồi đếm là cách tự tạo ra một con số sai.
      */
+    /*
+     * SO VỚI CON SỐ `GATES.md` TỰ KHAI, KHÔNG ĐẾM LẠI DÒNG (10/11/2026).
+     *
+     * Bản đầu đếm số DÒNG bảng, và nó lệch hợp lệ với số MÁY mà GATES.md khai (168 dòng ↔ 167 máy),
+     * nên phải nới dung sai 5 để không đỏ oan. Nhưng dung sai ấy nuốt luôn mọi trôi: `/start` ghi
+     * **162** trong khi cây thật đã **167**, và nó chỉ lộ ra khi lệch vượt 5 — tức con số dạy người
+     * mới đã sai suốt nhiều đợt phát hành mà không cửa nào nói.
+     *
+     * `GATES.md` là bản SINH, dòng "Tổng N máy" là con số chính nó công bố. So với con số đó thì hết
+     * chênh lệch hợp lệ, nên đòi KHỚP CHÍNH XÁC được — và hết chỗ cho trôi.
+     */
     const gatesMd = fs.readFileSync(path.join(REPO, '.agent/config/GATES.md'), 'utf8');
-    const gateThat = gatesMd.split(/\r?\n/).filter((l) => {
-      if (!l.startsWith('| ')) return false;
-      const c = l.split('|')[1].trim();
-      return c !== 'Mức' && !/^[-: ]+$/.test(c);
-    }).length;
+    const mTong = gatesMd.match(/Tổng\s*\*\*(\d+)\*\*\s*máy/);
+    expect(mTong, '`GATES.md` không còn dòng "Tổng **N** máy" — phép kiểm này mất nguồn, KHÔNG phải đạt').not.toBeNull();
+    const gateThat = Number(mTong![1]);
     const s = spawnSync(process.execPath, [path.join(REPO, 'scripts/qa/skills_index.js'), '--check'],
       { cwd: REPO, encoding: 'utf8', env: gateEnv() });
     const skillThat = Number((`${s.stdout}${s.stderr}`.match(/(\d+) skill/) || [])[1]);
 
     expect(gateThat, 'không đếm được dòng gate nào trong GATES.md — sửa phép đếm').toBeGreaterThan(50);
     expect(skillThat, 'không đọc được số skill').toBeGreaterThan(10);
-    expect(Math.abs(nGate - gateThat), `command ghi ${nGate} gate, thật là ${gateThat}`).toBeLessThanOrEqual(5);
+    expect(nGate, `command ghi ${nGate} gate, GATES.md khai ${gateThat} — con số dạy người mới phải KHỚP CHÍNH XÁC`).toBe(gateThat);
     expect(Math.abs(nSkill - skillThat), `command ghi ${nSkill} skill, thật là ${skillThat}`).toBeLessThanOrEqual(5);
   });
 });

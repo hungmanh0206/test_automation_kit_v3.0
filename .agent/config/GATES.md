@@ -7,7 +7,7 @@
 > **T1** chỉ chặn ở cửa ra, lúc đang làm thì cảnh báo và ghi `reports/gate-debt.json` · **T2** không
 > bao giờ chặn. T0 khai tay trong `.agent/config/gate_tiers.json`; không khai thì mặc định T1.
 
-Tổng **166** máy — **119 CHẶN** · 27 SINH (ghi artifact) · 20 BÁO CÁO (chỉ in).
+Tổng **167** máy — **119 CHẶN** · 28 SINH (ghi artifact) · 20 BÁO CÁO (chỉ in).
 
 SINH/BÁO CÁO **không phải gate bị nới** — chúng không kiểm vi phạm. Ví dụ `bugs:checklist` in brief bug
 lịch sử, còn việc CHẶN nằm ở `dim:coverage` (chiều `bug_history` §20).
@@ -160,6 +160,7 @@ lịch sử, còn việc CHẶN nằm ở `dim:coverage` (chiều `bug_history` 
 | T2 | SINH | `tc:doi-chieu` | đối chiếu bộ testcase của kit với BỘ NGƯỜI VIẾT, ở mức FIELD. | `scripts/qa/tc_doi_chieu.js` | tests/fe/infra |
 | T2 | SINH | `inventory:gate` | Chống "CI false green" (F1). | `scripts/qa/test_inventory_gate.js` | docs/kit-map.md |
 | T2 | SINH | `token:audit` | ĐO ĐỘNG: một lượt chạy thật đã tiêu token vào đâu. | `scripts/qa/token_audit.js` | RULE_GLOBAL.md · docs/kit-map.md · tests/fe/infra |
+| T2 | SINH | `write:proof` | case có hành động GHI thì lượt chạy có nghiệm thu bằng KÊNH ĐỘC LẬP không? | `scripts/qa/write_proof.js` | tests/fe/infra |
 | T2 | BÁO CÁO | `docs:health` | trả lời "tài liệu tôi đang đọc có còn đúng không" bằng MỘT LỆNH. | `scripts/phase1/docs_health.js` | prompt_templates |
 | T2 | BÁO CÁO | `ambiguity:gate` | CỔNG MƠ HỒ, nay có CODE đứng sau chứ không chỉ có lời dặn. | `scripts/qa/ambiguity_gate.js` | .agent/workflows · prompt_templates · tests/fe/infra |
 | T2 | BÁO CÁO | `bug:tc-match` | ĐỀ XUẤT (không tự ghi) TC canonical cho bug đang `module: "(unmapped)"`. | `scripts/qa/bug_tc_matcher.js` | docs/kit-map.md · .claude/commands |
