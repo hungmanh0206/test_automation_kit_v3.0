@@ -279,7 +279,7 @@ bỏ qua evidence đã có, thay vì đẻ cycle trùng.
 /*
  * day-ket-qua.js — đẩy testcase-status.json thành một cycle trên công cụ test-management.
  *
- * ĐẦU VÀO GIỮ NGUYÊN là testcase-status.json của Bài 17 — Phase 2 không phải đổi cách ghi kết quả,
+ * ĐẦU VÀO GIỮ NGUYÊN là testcase-status.json của Bài 17 — phase execute không phải đổi cách ghi kết quả,
  * chỉ đích đến là khác.
  *
  * CHẠY GATE TRƯỚC KHI GHI: chất lượng output. Bỏ qua có chủ ý thì --qa-approved.

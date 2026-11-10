@@ -283,8 +283,8 @@ Kit chỉ được coi là đã chuyển giao khi nó đi hết một vòng trê
 - [ ] `mutants.json` — 5 mutant theo API thật (Bài 25)
 
 ### Chạy thật MỘT vòng
-- [ ] Phase 1: một requirement thật → testcase → `gate-mo-ho` ĐẠT → publish dry-run
-- [ ] Phase 2: execute → bằng chứng có khoanh đỏ → verdict có tầng lỗi → `self-review` ĐẠT
+- [ ] Phase 2 (`/3_phase2`): một requirement thật → testcase → `gate-mo-ho` ĐẠT → publish dry-run
+- [ ] Phase 3 (`/5_phase3`): execute → bằng chứng có khoanh đỏ → verdict có tầng lỗi → `self-review` ĐẠT
 - [ ] Log **một** bug thật (human gate: bạn bấm)
 - [ ] Đo mutation lần đầu, ghi mốc gốc (Bài 25–22)
 
