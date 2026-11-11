@@ -552,6 +552,6 @@ async function main() {
   }
 }
 
-module.exports = { doMotPhien, nguonCua, mauCua, CHARS_PER_TOK };
+module.exports = { doMotPhien, nguonCua, mauCua, CHARS_PER_TOK, thuMucTranscript };
 
 if (require.main === module) main();

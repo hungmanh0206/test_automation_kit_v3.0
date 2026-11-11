@@ -9,6 +9,7 @@ Thiếu mã task → `npm run task:which -- $ARGUMENTS`; thoát 2 = KHÔNG PHÁN
 ```bash
 npm run exit:gate -- --cua done --task $ARGUMENTS
 npm run release:summary -- --task $ARGUMENTS
+npm run agent:scorecard -- --task $ARGUMENTS
 ```
 
 ## Hai bước, hai việc khác nhau
@@ -16,6 +17,9 @@ npm run release:summary -- --task $ARGUMENTS
 **`exit:gate --cua done`** là CỬA: nó chặn. Nó đòi sổ nợ `reports/gate-debt.json` sạch, rồi chạy
 `self-review:enforce` · `run:analysis` · `unit:stamp` · `expected:check`. Mọi vi phạm T1 đã hoãn từ lúc
 đang làm quay lại ở đây — đó là lý do §A1 được phép hoãn chúng.
+
+**`agent:scorecard`** ghi số VẬN HÀNH của task: giờ làm việc, câu hỏi chặn QA, tỉ lệ tự khắc phục, tỉ lệ
+claim bị bác, token trên mỗi verdict xác minh. Nó không chặn. Chỉ số nào thiếu nguồn thì ghi KHÔNG PHÁN ĐƯỢC.
 
 **`release:summary`** là KHUYẾN NGHỊ: nó không chặn và không tự quyết. Nó chấm tiêu chí đo được rồi nói
 go hay no-go, kèm căn cứ. Tiêu chí nào không đo được thì nó ghi "không đo được" — **không** quy về đạt.
