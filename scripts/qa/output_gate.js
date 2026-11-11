@@ -395,20 +395,85 @@ function gateTestExecution(doc, { fix = false, chayTay = false } = {}) {
   const daChay = tests.filter((t) => isExecuted(t.status));
 
   /*
-   * COMMENT RỖNG RUỘT — case đã chạy mà lời ghi không nói được gì (11/11/2026).
+   * ──────────────────────────────────────────────────────────────────────────────────────────────
+   * SIẾT CHO LƯỢT MỚI, KHÔNG LÀM ĐỎ VIỆC ĐÃ XONG — và dấu `run` là thứ phân biệt được.
    *
-   * `Executed`, `OK`, `Done` nói đúng một điều người đọc đã biết, và chiếm chỗ của expected/actual/
-   * nguồn đo. Đo trên CSDL-4008: 0/241 case dính — đây là lỗ TIỀM ẨN ở giá trị mặc định của recorder,
-   * nên cửa này giữ cho nó đừng sống lại. Mức CẢNH BÁO và GỘP: hôm nay 0, nên nó không gây nhiễu.
+   * Ba phép kiểm dưới đây nói về những lỗ hổng CÓ THẬT và ĐANG SỐNG, đo trên toàn corpus 1161 bản ghi:
+   *   · 124 case comment đúng chữ `Executed` (106 trong đó ở CSDL-9004)
+   *   · 154 case PASS KHÔNG có bản ghi step nào (toàn bộ ở CSDL-9003)
+   *   ·   8 case FAIL tầng product_bug/api_bug mà KHÔNG step nào đỏ
+   *
+   * Chặn thẳng cả ba là làm đỏ bốn task đã xong cùng lúc, và một cửa đỏ-sẵn thì bị tắt trong một
+   * ngày — lúc đó luật mất hẳn. Nhưng để mãi ở mức cảnh báo thì nó không gác gì cho lượt sắp tới.
+   *
+   * Đường ra: `run.evidenceDir` chỉ có ở bản ghi do recorder SAU 11/11/2026 ghi. Nó là một dấu MÁY
+   * ĐẶT, không phải lời khai, nên không ai "chọn" được mức nghiêm ngặt cho mình:
+   *   · bản ghi CŨ (không có dấu)  → CẢNH BÁO, gộp một dòng
+   *   · bản ghi MỚI (có dấu)       → CHẶN, nêu đích danh case
+   *
+   * Cùng khuôn hai-giai-đoạn đã dùng cho `requireBuild` và `_truoc_la_canh_bao`, nhưng mốc ở đây
+   * không phải ngày tháng mà là MỘT THUỘC TÍNH ĐO ĐƯỢC của chính bản ghi.
+   */
+  const banGhiMoi = (t) => Boolean(t && t.run && t.run.evidenceDir);
+  const sietHoacKeu = (ds, nhan, viSao) => {
+    if (!ds.length) return;
+    const moi = ds.filter(banGhiMoi);
+    const cu = ds.filter((t) => !banGhiMoi(t));
+    for (const t of moi) problems.push(`${t.tcId || '(không rõ TC)'}: ${nhan}. ${viSao}`);
+    if (cu.length) {
+      warnings.push(`${cu.length}/${daChay.length} case ${nhan} — bản ghi CŨ (chưa có dấu \`run\`), `
+        + `nên đây là CẢNH BÁO: ${cu.slice(0, 3).map((t) => t.tcId).join(', ')}${cu.length > 3 ? ' …' : ''}. `
+        + `${viSao} Lượt chạy MỚI sẽ bị CHẶN ở chỗ này.`);
+    }
+  };
+
+  /*
+   * ⑤ COMMENT RỖNG RUỘT. `Executed`, `OK`, `Done` nói đúng một điều người đọc đã biết, và chiếm chỗ
+   * của expected/actual/nguồn đo.
+   *
+   * TÔI ĐÃ ĐO SAI CHỖ NÀY MỘT LẦN: báo "0/241 — lỗ tiềm ẩn, chưa phải lỗi đang sống" sau khi nhìn
+   * đúng MỘT task. Toàn corpus là **124 case**. Một phép đo trên tập con không nói được gì về toàn cục,
+   * và tôi đã đọc nó như thể có.
    */
   const RONG_RUOT = /^(executed|ok|done|pass(ed)?|fail(ed)?|n\/a|-|\(chưa khai\).*)$/i;
-  const cmtRong = daChay.filter((t) => RONG_RUOT.test(String(t.comment || '').trim()));
-  if (cmtRong.length) {
-    warnings.push(`${cmtRong.length}/${daChay.length} case đã chạy có comment RỖNG RUỘT `
-      + `(${cmtRong.slice(0, 3).map((t) => `${t.tcId}="${String(t.comment || '').trim().slice(0, 24)}"`).join(', ')}${cmtRong.length > 3 ? ' …' : ''}). `
-      + 'Comment phải nêu EXPECTED, ACTUAL và NGUỒN ĐO — một chữ "Executed" nói đúng điều người đọc đã biết, '
-      + 'và chiếm chỗ của thứ đáng đọc.');
-  }
+  sietHoacKeu(
+    daChay.filter((t) => RONG_RUOT.test(String(t.comment || '').trim())),
+    'có comment RỖNG RUỘT',
+    'Comment phải nêu EXPECTED, ACTUAL và NGUỒN ĐO.',
+  );
+
+  /*
+   * VERIFIED EXECUTION Ở CẤP CASE: PASS mà KHÔNG có bản ghi step nào.
+   *
+   * 154 case như vậy, toàn bộ ở CSDL-9003. Một case PASS không bước nào được ghi thì artifact không
+   * chứng minh được điều gì đã xảy ra — nó chỉ còn là lời khai. `exec:proof` đo "ghi ít bước hơn
+   * khai"; đây là ca cực đoan của chính nó: ghi KHÔNG bước nào.
+   *
+   * Lượt CHẠY TAY (`chayTay`, do `manual_run_check.js` đặt ở phía gọi — không phải bản ghi tự khai)
+   * được miễn RIÊNG luật này: không có recorder nên không bao giờ có step, và bằng chứng của nó là
+   * ảnh + comment, đã có phép kiểm riêng. Hai luật còn lại vẫn áp cho lượt chạy tay.
+   */
+  sietHoacKeu(
+    chayTay ? [] : tests.filter((t) => /^(pass|passed)$/i.test(String(t.status || '').trim()) && !(Array.isArray(t.steps) && t.steps.length)),
+    'ghi PASS mà KHÔNG có bản ghi step nào',
+    'Không bước nào được ghi thì artifact không chứng minh được điều gì đã xảy ra — verdict chỉ còn là lời khai.',
+  );
+
+  /*
+   * FAIL ĐỔ LỖI CHO SẢN PHẨM mà KHÔNG step nào đỏ.
+   *
+   * Mẫu phải HẸP: 16 case có "FAIL mà mọi step PASS", nhưng 8 trong đó là `doc_outdated` — app chạy
+   * đúng, ĐẶC TẢ mới là thứ sai, nên không step nào đỏ là HỢP LÝ. Chỉ 8 case còn lại đổ lỗi cho sản
+   * phẩm (`product_bug`/`api_bug`) mà chuỗi bằng chứng không chỉ ra chỗ vỡ.
+   */
+  sietHoacKeu(
+    tests.filter((t) => FAIL_RE.test(String(t.status || '').trim())
+      && /^(product_bug|api_bug)$/.test(String(t.failureLayer || ''))
+      && Array.isArray(t.steps) && t.steps.length
+      && t.steps.every((s) => /^(pass|passed)$/i.test(String(s.status || '').trim()))),
+    'chấm FAIL tầng bug sản phẩm/api mà KHÔNG step nào đỏ',
+    'Nói sản phẩm sai thì chuỗi bằng chứng phải chỉ ra BƯỚC NÀO vỡ — dev dựng lại từ đó, không dựng lại từ một kết luận.',
+  );
 
   const thieuNguonGoc = daChay.filter((t) => !t.run || !t.run.evidenceDir);
   if (thieuNguonGoc.length && !chayTay) {

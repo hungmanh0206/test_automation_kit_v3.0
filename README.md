@@ -104,7 +104,7 @@ test-automation-kit/
 │   ├── lib/ · utils/        hàm dùng chung, runtime_config, evidence_recorder
 │   └── ci/                  khai biến CI
 ├── tests/
-│   ├── fe/infra/            195 spec KIỂM CHÍNH KIT — chạy offline, vào CI
+│   ├── fe/infra/            196 spec KIỂM CHÍNH KIT — chạy offline, vào CI
 │   ├── fe/lib/ · pages/     thư viện bước và page object dùng chung
 │   ├── support/setup/       setup layer: factory · hook · fixture · mock · cleanup · contract
 │   │   └── db/              DB Verification Layer, read-only tuyệt đối, chỉ để khoanh tầng lỗi

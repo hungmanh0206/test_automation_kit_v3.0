@@ -37,7 +37,10 @@ const ban = (status: string, comment: string, steps: unknown[] = [{ name: 'b', s
   tests: [{ tcId: 'TC_O', status, comment, evidence: ['a/step-01-passed.png'], steps, run: { evidenceDir: 'e/TC_O' } }],
 });
 const locP = (d: unknown) => ((og.gateTestExecution(d).problems || []) as string[]).filter((p) => /ghi PASS trong khi/.test(p));
-const locW = (d: unknown) => ((og.gateTestExecution(d).warnings || []) as string[]).filter((p) => /RỖNG RUỘT/.test(p));
+const locW = (d: unknown) => ((og.gateTestExecution(d).warnings || []) as string[]).filter((p) => /comment RỖNG RUỘT/.test(p));
+/* Fixture mang dấu `run` (bản ghi MỚI) nên từ 11/11/2026 comment rỗng ruột bị CHẶN chứ không còn chỉ cảnh báo.
+ * Hai mức cũ/mới gác ở `verified-execution.spec.ts`; ở đây chỉ giữ mẫu nào là rỗng ruột. */
+const locRong = (d: unknown) => ((og.gateTestExecution(d).problems || []) as string[]).filter((p) => /comment RỖNG RUỘT/.test(p));
 
 test.describe('@infra #2 oracle confidence — PASS không đứng trên câu hỏi còn treo', () => {
   test('ĐỐI CHỨNG DƯƠNG: PASS + "cần chủ dự án chốt" ⇒ CHẶN, và chỉ đúng verdict thay thế', () => {
@@ -141,17 +144,19 @@ test.describe('@infra #2 oracle confidence — PASS không đứng trên câu h�
 });
 
 test.describe('@infra #5 chất lượng lời ghi — comment rỗng ruột', () => {
-  test('ĐỐI CHỨNG DƯƠNG: `Executed` ⇒ cảnh báo', () => {
-    expect(locW(ban('PASSED', 'Executed'))).toHaveLength(1);
-    expect(locW(ban('PASSED', 'OK'))).toHaveLength(1);
+  test('ĐỐI CHỨNG DƯƠNG: `Executed` ⇒ CHẶN (bản ghi mới)', () => {
+    expect(locRong(ban('PASSED', 'Executed'))).toHaveLength(1);
+    expect(locRong(ban('PASSED', 'OK'))).toHaveLength(1);
   });
 
   test('giá trị mặc định mới cũng bị bắt — nó TỰ TỐ CÁO mình', () => {
-    expect(locW(ban('PASSED', '(CHƯA KHAI) — comment phải nêu expected, actual và nguồn đo'))).toHaveLength(1);
+    expect(locRong(ban('PASSED', '(CHƯA KHAI) — comment phải nêu expected, actual và nguồn đo'))).toHaveLength(1);
   });
 
   test('ĐỐI CHỨNG ÂM: lời ghi có nội dung ⇒ im lặng', () => {
-    expect(locW(ban('PASSED', 'Lưới 38 dòng khớp SQL theo DD, mã 112 đúng BR-EMISDN-017'))).toHaveLength(0);
+    const sach = ban('PASSED', 'Lưới 38 dòng khớp SQL theo DD, mã 112 đúng BR-EMISDN-017');
+    expect(locW(sach)).toHaveLength(0);
+    expect(locRong(sach)).toHaveLength(0);
   });
 
   test('recorder KHÔNG còn ghi `Executed` làm mặc định', () => {
