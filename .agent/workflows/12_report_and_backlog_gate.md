@@ -82,6 +82,7 @@ Dùng `--full` khi muốn xem nguyên output của mọi bước, kể cả bư�
    - Actual result có evidence rõ.
 4b. **Gate chất lượng output là THỰC THI và tự chạy, không phải kiểm bằng mắt.**
    - Test Execution: `npm run gate:output -- --status <testcase-status.json>` **tự chạy `scripts/qa/output_gate.js`** → CHẶN khi comment run-on/dính debug `key=value`, step thiếu status/evidence, evidence không phải ảnh/video, hoặc case phức tạp thiếu video (thêm `--fix` để tự dọn comment).
+   - **Siết cho lượt MỚI, cảnh báo cho bản ghi CŨ** — ba luật: comment rỗng ruột (`Executed`/`OK`/`(CHƯA KHAI)`), PASS **không có step nào**, FAIL tầng `product_bug`/`api_bug` mà **không step nào đỏ**. Bản ghi có dấu `run.evidenceDir` (recorder ghi từ 11/11/2026 — dấu MÁY đặt, không phải lời khai) ⇒ **CHẶN** đích danh case; bản ghi cũ ⇒ **một dòng cảnh báo gộp**. Đo toàn corpus 1161 bản ghi: 124 · 154 · 8 case — và 0 case bị chặn trên 6 task đã xong. `doc_outdated` mà mọi step PASS là hợp lệ (app đúng, đặc tả sai) nên không bị gắn cờ. Regression: `tests/fe/infra/verified-execution.spec.ts`.
    - Đơn vị đã đo: `npm run unit:stamp`, bản chặn là `unit:stamp:enforce`. Mọi verdict ĐÃ CHẠY phải
      khai đơn vị nào đã đo. Đo trên CSDL-9003: một task trải trên bốn đơn vị. Kỳ vọng rút ở đơn vị này
      được dùng chấm case ở đơn vị khác. Case vẫn PASS, và không máy nào thấy.
