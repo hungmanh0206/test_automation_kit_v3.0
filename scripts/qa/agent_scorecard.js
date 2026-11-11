@@ -268,5 +268,5 @@ async function main() {
   console.log('Lợi thế so với plugin A chỉ kết luận được khi CÙNG task được làm bằng cả hai và đo bằng CÙNG định nghĩa này.');
 }
 
-if (require.main === module) main().catch((e) => { console.error(e); process.exit(1); });
+if (require.main === module) main().catch((e) => { console.error(`[scorecard] KHÔNG PHÁN ĐƯỢC — lỗi khi đo: ${e && e.message}`); process.exit(2); });
 module.exports = { doPhien, soExecute, soKetCuc, mauKey, CHUA_KET_LUAN, KET_LUAN };
