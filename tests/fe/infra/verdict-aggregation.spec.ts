@@ -33,14 +33,18 @@ const og = require(path.join(REPO, 'scripts/qa/output_gate.js'));
 
 const TRANG = 'data:text/html,<html><body><h1>gop verdict</h1></body></html>';
 
-type Buoc = { ten: string; status: string };
+/* `xacMinh: true` ⇒ ghi qua `xacMinhLai()`; `ok` là kết quả assert của nó, `status` (nếu có) là lời tự khai mà hàm phải BỎ QUA. */
+type Buoc = { ten: string; status?: string; xacMinh?: boolean; ok?: boolean };
 
 /** Một lượt chạy thật qua recorder, trả về bản ghi đã vào sổ. */
 async function ghi(page: any, buoc: Buoc[], khai?: string, opts: Record<string, unknown> = {}) {
   const goc = fs.mkdtempSync(path.join(os.tmpdir(), 'gopverdict-'));
   const rec = new EvidenceRecorder({ taskKey: 'T-GOP', projectOutputDir: 'out', repoRoot: goc, log: false });
   const tc = rec.case('TC_GOP');
-  for (const b of buoc) await tc.step(page, b.ten, { status: b.status, comment: `đo ${b.ten}` });
+  for (const b of buoc) {
+    if (b.xacMinh) await tc.xacMinhLai(page, b.ten, { assert: () => b.ok !== false, ...(b.status ? { status: b.status } : {}) });
+    else await tc.step(page, b.ten, { status: b.status, comment: `đo ${b.ten}` });
+  }
   await tc.finish(khai, opts);
   await rec.write();
   const p = path.join(goc, 'out/tasks/T-GOP/test-results/testcase-status.json');
@@ -52,6 +56,8 @@ async function ghi(page: any, buoc: Buoc[], khai?: string, opts: Record<string, 
 const SACH: Buoc[] = [{ ten: 'mở màn', status: 'PASSED' }, { ten: 'đọc lưới', status: 'PASSED' }];
 const CO_CHAN: Buoc[] = [{ ten: 'mở màn', status: 'PASSED' }, { ten: 'dựng tiền đề', status: 'BLOCKED' }];
 const CO_FAIL: Buoc[] = [{ ten: 'mở màn', status: 'PASSED' }, { ten: 'so số', status: 'FAILED' }];
+const DA_SUA: Buoc[] = [...CO_CHAN, { ten: 'tiền đề đã có sau khi dựng lại', xacMinh: true }];
+const LOI = { phucHoi: 'dựng lại tiền đề qua UI rồi chạy lại bước 2, lần này đạt' };
 
 test.describe('@infra gộp verdict — đường GHI (EvidenceRecorder.finish)', () => {
   test('ĐỐI CHỨNG ÂM: mọi step sạch, không khai verdict ⇒ PASSED như cũ', async ({ page }) => {
@@ -104,11 +110,61 @@ test.describe('@infra gộp verdict — đường GHI (EvidenceRecorder.finish)'
     expect(e.failureLayer).toBe('script_error');
   });
 
-  test('ĐƯỜNG THOÁT: khai `phucHoi` đủ dài ⇒ GIỮ PASSED, và lời khai vào sổ', async ({ page }) => {
+  test('ĐƯỜNG THOÁT: `phucHoi` + step `xacMinhLai()` PASSED sau step xấu ⇒ GIỮ PASSED, cả hai vào sổ', async ({ page }) => {
     await page.goto(TRANG);
-    const e = await ghi(page, CO_CHAN, 'PASSED', { phucHoi: 'dựng lại tiền đề qua UI rồi chạy lại bước 2, lần này đạt' });
+    const e = await ghi(page, DA_SUA, 'PASSED', LOI);
     expect(e.status).toBe('PASSED');
     expect(e.comment, 'lời khai phải ở lại trong sổ để review lại được').toMatch(/PHỤC HỒI: dựng lại tiền đề/);
+    expect(e.comment, 'và chỉ ra step nào là bằng chứng').toMatch(/xác minh lại: XÁC MINH LẠI · tiền đề đã có/);
+    const bc = e.steps[e.steps.length - 1];
+    expect(bc.xacMinhLai, 'cờ do recorder đặt phải vào sổ để cửa đọc nhận ra').toBe(true);
+    expect(bc.evidence[0], 'bằng chứng phải có ảnh').toMatch(/\.png$/);
+  });
+
+  test('SIẾT 11/11: `phucHoi` đủ dài mà KHÔNG có step xác minh lại ⇒ vẫn bị HẠ — lời khai không phải phép đo', async ({ page }) => {
+    /*
+     * Đây chính là đường thoát cũ: trước 11/11 nó giữ PASSED. Đo corpus 1161 bản ghi: 0 case dùng nó,
+     * nên đổi bây giờ không làm đỏ việc nào.
+     */
+    await page.goto(TRANG);
+    const e = await ghi(page, CO_CHAN, 'PASSED', LOI);
+    expect(e.status).toBe('BLOCKED_SETUP');
+    expect(e.comment, 'phải nói rõ thiếu cái gì').toMatch(/KHÔNG có step `xacMinhLai\(\)` PASSED/);
+  });
+
+  test('xác minh lại nằm TRƯỚC step xấu ⇒ không tính — xác minh xong rồi lại hỏng là chưa phục hồi', async ({ page }) => {
+    await page.goto(TRANG);
+    const truoc: Buoc[] = [{ ten: 'mở màn', status: 'PASSED' }, { ten: 'đã có từ trước', xacMinh: true }, { ten: 'dựng tiền đề', status: 'BLOCKED' }];
+    const e = await ghi(page, truoc, 'PASSED', LOI);
+    expect(e.status).toBe('BLOCKED_SETUP');
+  });
+
+  test('`xacMinhLai()` BỎ QUA `status` tự khai — assert sai thì step FAILED dù khai PASSED', async ({ page }) => {
+    /* Không bỏ qua thì `xacMinhLai(page, 'x', { status: 'PASSED', assert: () => false })` là lời khai mặc áo step. */
+    await page.goto(TRANG);
+    const gia: Buoc[] = [...CO_CHAN, { ten: 'khai bừa', xacMinh: true, ok: false, status: 'PASSED' }];
+    const e = await ghi(page, gia, 'FAILED', { failureLayer: 'setup_failure' });
+    expect(e.steps[e.steps.length - 1].status).toBe('FAILED');
+  });
+
+  test('`xacMinhLai()` không có `assert` ⇒ NÉM ngay chỗ viết sai', async ({ page }) => {
+    await page.goto(TRANG);
+    const goc = fs.mkdtempSync(path.join(os.tmpdir(), 'gopverdict-'));
+    const rec = new EvidenceRecorder({ taskKey: 'T-GOP', projectOutputDir: 'out', repoRoot: goc, log: false });
+    const tc = rec.case('TC_GOP');
+    await expect(tc.xacMinhLai(page, 'không đo gì')).rejects.toThrow(/phải có `assert`/);
+    fs.rmSync(goc, { recursive: true, force: true });
+  });
+
+  test('step FAILED + `phucHoi` mà KHÔNG có bằng chứng ⇒ NÉM, và chỉ đúng chỗ thiếu', async ({ page }) => {
+    await page.goto(TRANG);
+    await expect(ghi(page, CO_FAIL, 'PASSED', LOI)).rejects.toThrow(/KHÔNG có step `xacMinhLai\(\)`/);
+  });
+
+  test('step FAILED + `phucHoi` + xác minh lại PASSED ⇒ GIỮ PASSED', async ({ page }) => {
+    await page.goto(TRANG);
+    const e = await ghi(page, [...CO_FAIL, { ten: 'so lại số sau khi sửa dữ liệu nguồn', xacMinh: true }], 'PASSED', LOI);
+    expect(e.status).toBe('PASSED');
   });
 
   test('`phucHoi` quá ngắn KHÔNG phải lời khai ⇒ vẫn bị HẠ', async ({ page }) => {
@@ -146,10 +202,51 @@ test.describe('@infra gộp verdict — cửa ĐỌC SỔ (output_gate)', () => 
     expect(p[0], 'phải nói vì sao đây là vấn đề, không chỉ nói sai').toMatch(/chưa ai kiểm/);
   });
 
-  test('comment khai phục hồi ⇒ KHÔNG chặn', () => {
-    const p = loc(soTay('PASSED', [{ name: 'a', status: 'PASSED' }, { name: 'b', status: 'BLOCKED' }],
-      'PHỤC HỒI: dựng lại qua UI rồi xác minh lại ở bước b'));
-    expect(p).toHaveLength(0);
+  const LOI_KHAI = 'PHỤC HỒI: dựng lại qua UI rồi xác minh lại ở bước b';
+  const XAU = [{ name: 'a', status: 'PASSED' }, { name: 'b', status: 'BLOCKED' }];
+  const BC = { name: 'XÁC MINH LẠI · b đã dựng được', status: 'PASSED' };
+  const moi = (doc: any) => ({ tests: doc.tests.map((t: any) => ({ ...t, run: { evidenceDir: 'e/TC_SO' } })) });
+  const canh = (doc: unknown) => ((og.gateTestExecution(doc) || {}).warnings || []).filter((w: string) => /LỜI khai phục hồi/.test(w));
+
+  test('bản ghi CŨ: comment khai phục hồi ⇒ KHÔNG chặn, nhưng CẢNH BÁO — lời khai không phải phép đo', () => {
+    const d = soTay('PASSED', XAU, LOI_KHAI);
+    expect(loc(d)).toHaveLength(0);
+    expect(canh(d), 'phải kêu, im lặng thì luật không tồn tại').toHaveLength(1);
+  });
+
+  test('bản ghi MỚI: comment khai phục hồi mà KHÔNG có step xác minh lại ⇒ CHẶN', () => {
+    const p = loc(moi(soTay('PASSED', XAU, LOI_KHAI)));
+    expect(p).toHaveLength(1);
+    expect(p[0], 'phải nói rõ thứ đang có chỉ là lời').toMatch(/chỉ có LỜI khai phục hồi/);
+  });
+
+  test('chữ "phục hồi" nói về HỆ THỐNG không còn là đường thoát (câu thật từ CSDL-9004)', () => {
+    /* Trước 11/11 câu này khớp regex của cửa, và sẽ cho PASS đứng trên step xấu. */
+    expect(loc(moi(soTay('PASSED', XAU, 'Ý 4: hệ phục hồi sau khi rút tải — nền sau med 410ms.')))).toHaveLength(1);
+  });
+
+  test('bản ghi MỚI: step XÁC MINH LẠI PASSED, có ảnh, SAU step xấu ⇒ KHÔNG chặn, KHÔNG cảnh báo', () => {
+    const d = moi(soTay('PASSED', [...XAU, BC], LOI_KHAI));
+    expect(loc(d)).toHaveLength(0);
+    expect(canh(d)).toHaveLength(0);
+  });
+
+  test('step XÁC MINH LẠI KHÔNG có ảnh ⇒ không tính là bằng chứng', () => {
+    const d = moi(soTay('PASSED', [...XAU, BC], LOI_KHAI));
+    d.tests[0].steps[2].evidence = ['a/ket-qua.json'];
+    expect(loc(d)).toHaveLength(1);
+  });
+
+  test('step XÁC MINH LẠI nằm TRƯỚC step xấu ⇒ không tính', () => {
+    expect(loc(moi(soTay('PASSED', [XAU[0], BC, XAU[1]], LOI_KHAI)))).toHaveLength(1);
+  });
+
+  test('KHỨ HỒI: bản ghi recorder sinh bằng `xacMinhLai()` qua được cửa đọc', async ({ page }) => {
+    /* Hai tầng phải cùng định nghĩa "bằng chứng". Lệch nhau thì recorder ghi PASS mà cửa chặn, hoặc ngược lại. */
+    await page.goto(TRANG);
+    const e = await ghi(page, DA_SUA, 'PASSED', LOI);
+    expect(e.run && e.run.evidenceDir, 'recorder phải đặt dấu `run` — thiếu thì ca này chỉ đo mức CŨ').toBeTruthy();
+    expect(loc({ tests: [e] })).toHaveLength(0);
   });
 
   test('case FAILED có step xấu ⇒ KHÔNG đụng tới (luật chỉ nói về PASS)', () => {

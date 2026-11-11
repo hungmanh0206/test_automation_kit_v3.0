@@ -254,6 +254,7 @@ class Case {
     this.steps.push({
       name: sanitize(name), status, comment: sanitize(comment), evidence: [rel],
       ...(opts.tienDe ? { tienDe: true } : {}),
+      ...(opts.xacMinhLai ? { xacMinhLai: true } : {}),
     }); // #3: mask PII lỡ quên
     if (this.rec.log) console.log(`   [step ${idx}] ${status} — ${name} → ${path.basename(file)}`);
     return status;
@@ -284,6 +285,34 @@ class Case {
    */
   async tienDe(page, moTa, opts = {}) {
     return this.step(page, `TIỀN ĐỀ · ${moTa}`, { ...opts, tienDe: true });
+  }
+
+  /**
+   * Ghi BẰNG CHỨNG PHỤC HỒI: đo LẠI đúng điều mà step xấu trước đó chưa đo được, sau khi đã sửa.
+   *
+   * Dùng: `await ca.xacMinhLai(page, 'lưới đủ 38 dòng sau khi dựng lại tiền đề', { assert: () => … })`
+   * rồi `finish('PASSED', { phucHoi: 'dựng lại tiền đề qua UI rồi đếm lại lưới' })`.
+   *
+   * ────────────────────────────────────────────────────────────────────────────────────────────────
+   * VÌ SAO CẦN HÀM NÀY — trước 11/11/2026 đường thoát chỉ là LỜI
+   *
+   * `finish()` cho PASS đứng trên step xấu khi có `phucHoi` ≥ 25 ký tự; cửa đọc thì nhận khi comment có
+   * chữ "phục hồi". Cả hai chỉ đếm chữ. Đo trên corpus 1161 bản ghi: **0** case đi qua đường đó — nên
+   * siết bây giờ không làm đỏ việc nào, còn đợi tới khi có người dùng mới siết là làm đỏ việc của họ.
+   * Và chữ khớp nhầm có thật: CSDL-9004 ghi *"hệ phục hồi sau khi rút tải"* — nói về HỆ THỐNG, không
+   * nói về lượt test — vẫn khớp regex của cửa đọc.
+   *
+   * BẮT BUỘC có `assert`, và `status` tự khai bị BỎ QUA. Không có assert thì `step()` mặc định
+   * PASSED, và "bằng chứng phục hồi" chỉ còn là lời khai mặc áo step — đúng cái lỗ hàm này sinh ra
+   * để bịt. Ảnh do `step()` chụp sẵn — cửa đọc đòi ảnh ở CHÍNH step xác minh lại này.
+   */
+  async xacMinhLai(page, moTa, opts = {}) {
+    if (typeof opts.assert !== 'function') {
+      throw new Error(`${this.tcId}: xacMinhLai("${moTa}") phải có \`assert\` — không có phép đo thì step mặc định PASSED, `
+        + 'và bằng chứng phục hồi chỉ còn là lời khai.');
+    }
+    const { status: _boQua, ...conLai } = opts; // eslint-disable-line no-unused-vars
+    return this.step(page, `XÁC MINH LẠI · ${moTa}`, { ...conLai, xacMinhLai: true });
   }
 
   /**
@@ -426,15 +455,25 @@ class Case {
      * VÌ SAO HẠ CHỨ KHÔNG NÉM: ném sẽ cắt ngang lượt chạy và làm mất verdict của mọi case sau — đúng
      * lớp "lượt chết cụt" kit đã trả giá. Sổ phải ghi được điều đã xảy ra, kể cả khi nó xấu.
      *
-     * ĐƯỜNG THOÁT DUY NHẤT là `opts.phucHoi`: một câu nói rõ đã phục hồi bằng cách nào và đã xác minh
-     * lại ở bước nào. Có sàn độ dài, cùng khuôn với `minLyDoMienChars` của `bug_claim` — một chữ "ok"
-     * không phải lời khai.
+     * ĐƯỜNG THOÁT DUY NHẤT cần HAI thứ (siết 11/11/2026):
+     *   · `opts.phucHoi` — LỜI: đã phục hồi bằng cách nào. Sàn 25 ký tự, cùng khuôn `minLyDoMienChars`.
+     *   · một step `xacMinhLai()` PASSED nằm SAU step xấu cuối — BẰNG CHỨNG: có assert, có ảnh.
+     * Trước đây chỉ cần lời: một câu đủ dài là qua, dù không bước nào đo lại điều đã hỏng.
+     * Phải nằm SAU step xấu CUỐI: xác minh lại xong rồi lại hỏng tiếp thì chưa phục hồi gì cả.
      */
     const xau = this.steps.filter((s) => Case._stepXau(s));
     if (xau.length && chuanHoaVerdict(status) === 'PASS') {
       const phucHoi = String(opts.phucHoi || '').trim();
-      if (phucHoi.length >= 25) {
-        opts.comment = `${opts.comment || ''}\nPHỤC HỒI: ${phucHoi} (step xấu: ${xau.map((s) => `${s.name}=${s.status}`).join(' · ')})`.trim();
+      let viTriXauCuoi = -1;
+      this.steps.forEach((s, i) => { if (Case._stepXau(s)) viTriXauCuoi = i; });
+      const bangChung = this.steps.slice(viTriXauCuoi + 1)
+        .find((s) => s.xacMinhLai && chuanHoaVerdict(s.status) === 'PASS');
+      const thieuBangChung = phucHoi.length >= 25 && !bangChung
+        ? 'Có khai `phucHoi` nhưng KHÔNG có step `xacMinhLai()` PASSED nằm SAU step xấu cuối — lời khai không có phép đo đứng sau. '
+        : '';
+      if (phucHoi.length >= 25 && bangChung) {
+        opts.comment = `${opts.comment || ''}\nPHỤC HỒI: ${phucHoi} (step xấu: ${xau.map((s) => `${s.name}=${s.status}`).join(' · ')}`
+          + ` · xác minh lại: ${bangChung.name})`.trim();
       } else if (xau.some((s) => laFail(s.status)) && !opts.failureLayer) {
         /*
          * STEP FAILED + khai PASS + không khai tầng lỗi ⇒ NÉM, và đây là ngoại lệ có lý do.
@@ -450,15 +489,15 @@ class Case {
          * trong chính spec, không phải một tình huống chạy. Nó phải lộ ra ngay chỗ viết sai. Còn
          * BLOCKED là chuyện có thật lúc chạy, nên nó được ghi vào sổ chứ không làm chết lượt.
          */
-        throw new Error(`${this.tcId}: khai PASS trong khi step "${xau.find((s) => laFail(s.status)).name}" FAILED. `
+        throw new Error(`${this.tcId}: khai PASS trong khi step "${xau.find((s) => laFail(s.status)).name}" FAILED. ${thieuBangChung}`
           + 'Chọn một trong hai: khai `failureLayer` để case thành FAILED đúng tầng, hoặc khai `phucHoi` '
-          + '(≥25 ký tự) nói rõ đã phục hồi bằng cách nào và xác minh lại ở bước nào.');
+          + '(≥25 ký tự) VÀ ghi một step `xacMinhLai()` PASSED sau step xấu cuối.');
       } else {
         const te = xau.map((s) => chuanHoaVerdict(s.status));
         const haXuong = te.includes('FAIL') ? 'FAILED' : (te.includes('BLOCKED_SETUP') ? 'BLOCKED_SETUP' : te[0]);
         const vi = `GỘP VERDICT: HẠ từ "${status}" xuống "${haXuong}" — còn ${xau.length} step xấu `
-          + `(${xau.map((s) => `${s.name}=${s.status}`).join(' · ')}) mà không khai \`phucHoi\`. `
-          + 'PASS chỉ được ghi khi nói rõ đã phục hồi bằng cách nào và xác minh lại ở bước nào (tối thiểu 25 ký tự).';
+          + `(${xau.map((s) => `${s.name}=${s.status}`).join(' · ')}) mà chưa chứng minh đã phục hồi. ${thieuBangChung}`
+          + 'PASS chỉ được ghi khi khai `phucHoi` (tối thiểu 25 ký tự) VÀ có step `xacMinhLai()` PASSED sau step xấu cuối.';
         if (this.rec && this.rec.log) console.log(`   [verdict] ${this.tcId}: ${vi}`);
         opts.comment = `${opts.comment || ''}\n${vi}`.trim();
         status = haXuong;
