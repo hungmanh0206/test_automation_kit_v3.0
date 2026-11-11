@@ -60,6 +60,7 @@ trong một lượt. Nó gọi đúng script gốc rồi gom kết quả, không
    Sáu tiêu chí máy chấm đủ, hai tiêu chí máy chỉ chấm một phần và gắn cờ `AI` — **không được coi cờ đó là đạt**.
    Các gate trên đo bộ case có ĐỦ không; gate này đo từng case có DÙNG ĐƯỢC không. Thiếu nó thì một bộ phủ đủ chiều
    vẫn có thể gồm toàn case mơ hồ, và không gì nói ra điều đó. Báo cáo ở `reports/tc-review.md`.
+6e2. **Ngữ nghĩa so với bảng trường của đặc tả:** `npm run tc:semantic -- --task <KEY> --chi-tiet`. Ba trục: trường có ràng buộc mà thiếu case negative hoặc boundary · case thử biên lệch đặc tả · case giả định sai tính bắt buộc. Đặc tả không có bảng trường thì máy trả KHÔNG PHÁN ĐƯỢC. Giai đoạn 1 chỉ báo cáo.
 
 6f. **Ba bảng đối soát cuối bộ:** `TASK_ENV=... npm run phase1:tables -- --enforce` — sinh vào
    `reports/phase1-summary.md`. Ba bảng: ① rule × số TC × dương/âm/biên · ② case `[Display]` có chống
