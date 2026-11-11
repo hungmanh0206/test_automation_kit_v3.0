@@ -1,6 +1,6 @@
 import { expect, type Page } from '@playwright/test';
 import fs from 'fs';
-import { seedSession } from './auth/seedSession';
+import { seedSession } from './session/seedSession';
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const sessionCache = require('../../../scripts/utils/auth/session_cache');
 
@@ -730,9 +730,16 @@ export async function loginOps(page: Page): Promise<void> {
 
   // Dùng CHUNG `seedSession` với `ensureOpsAuth` — một bản duy nhất, nên UAT smoke nghiệm thu được cả hai
   // đường. (Bản đầu tôi copy logic seed vào đây: hai bản sao sẽ phân kỳ và smoke chỉ phủ một bản.)
+  /*
+   * KIỂM PHIÊN Ở TRANG ĐÒI ĐĂNG NHẬP, không ở gốc — sửa 11/11/2026.
+   * Gốc `/` của QEMIS LUÔN chuyển về /Login.aspx kể cả khi phiên còn sống, nên kiểm ở đó thì phiên nào cũng
+   * bị coi là chết và mỗi test lại đăng nhập + captcha. `/ChonNam.aspx` có ở mọi cấp và phân biệt đúng: có
+   * phiên thì ở lại, không phiên thì về /Login.aspx?returnUrl=… (đo bằng probe, xem seedSession.ts).
+   */
+  const TRANG_KIEM_PHIEN = process.env.OPS_SEED_CHECK_PATH || '/ChonNam.aspx';
   const seed = async (): Promise<boolean> => {
     const rec = sessionCache.load(key);
-    return seedSession(page, context, rec && rec.storageState, OPS_BASE);
+    return seedSession(page, context, rec && rec.storageState, OPS_BASE, OPS_BASE ? `${OPS_BASE}${TRANG_KIEM_PHIEN}` : '');
   };
 
   if (sessionCache.isFresh(key, ttl) && await seed()) return;
