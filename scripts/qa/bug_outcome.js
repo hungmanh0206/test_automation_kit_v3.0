@@ -209,5 +209,9 @@ function baoCao() {
   return 0;
 }
 
-const ma = has('ghi') || arg('ghi') ? ghi() : baoCao();
-if (ma) process.exit(1);
+/* Dùng lại được từ máy khác (`agent_scorecard`) — chỉ chạy CLI khi được gọi trực tiếp. */
+if (require.main === module) {
+  const ma = has('ghi') || arg('ghi') ? ghi() : baoCao();
+  if (ma) process.exit(1);
+}
+module.exports = { liet, NHAN, SAI, HAN_NGAY };
