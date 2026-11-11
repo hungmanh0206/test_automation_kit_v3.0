@@ -862,7 +862,7 @@ body.lropen{overflow:hidden}
 
     <h3 class="subhead"><span class="num">5</span>Lệnh hay dùng</h3>
     <p class="sectip">Danh mục gate của kit là <b>tự sinh từ source</b>, không viết tay — bản hiện tại đếm được
-      <b>171 máy: 121 CHẶN · 30 SINH · 20 BÁO CÁO</b>. Sinh lại bằng <code>npm run gates:index</code>.
+      <b>172 máy: 121 CHẶN · 30 SINH · 21 BÁO CÁO</b>. Sinh lại bằng <code>npm run gates:index</code>.
       Phiên bản kit: <b>2.11.0</b>.</p>
     <div id="cmdList"></div>
 
@@ -994,7 +994,7 @@ body.lropen{overflow:hidden}
       </ul>
 
       <h3>Vì sao cần</h3>
-      <p>Kit có 28 skill, 171 máy kiểm (121 trong đó CHẶN thật) và một bộ từ vựng riêng (oracle độc lập, tautology, failureLayer,
+      <p>Kit có 28 skill, 172 máy kiểm (121 trong đó CHẶN thật) và một bộ từ vựng riêng (oracle độc lập, tautology, failureLayer,
         readiness, TRI, chiều coverage…). Người mới vào phải đọc rải rác nhiều file mới ghép được bức tranh.
         Trang này gom lại một chỗ, giữ nguyên nguồn, và cố tình <b>không</b> diễn giải thêm ngoài những gì repo đã ghi.</p>
 
@@ -1784,6 +1784,14 @@ const TERMS_GATE3 = [
   cmd:'npm run tc:review   ·   npm run tc:review:enforce',
   trap:'Tiêu chí gắn cờ AI KHÔNG được tính là đạt chỉ vì máy không kêu. Cộng điểm cho thứ chưa ai nhìn là cách nhanh nhất biến máy chấm thành máy phát chứng chỉ. Bộ chưa dùng tag kỹ thuật thì tiêu chí 8 là n/a và mẫu số co lại còn 14, không phải cho 0 điểm — cho 0 là phạt bộ cũ vì một luật ra đời sau nó.',
   src:'scripts/qa/tc_review.js', rel:['g-design_gate','g-dimension_coverage','c-canonical','sk-tc_reviewer'] },
+{ id:'g-tc_semantic', t:'tc:semantic', cat:'gate',
+  def:'Đối chiếu bộ testcase với bảng trường của đặc tả: trường nào thiếu case negative hoặc boundary, case nào thử biên lệch đặc tả, case nào giả định sai tính bắt buộc.',
+  detail:'Đọc cột Bắt buộc và câu ràng buộc trong mô tả ("tối đa N ký tự", "chỉ nhận số", "đủ N chữ số") rồi suy nghĩa vụ cho từng trường gõ được. Case được neo vào trường bằng "Stt N" hoặc bằng tên trường còn duy nhất. Tên ngắn hay trùng thì máy ghi "không neo được", không đoán. Đặc tả không có bảng trường thì máy trả KHÔNG PHÁN ĐƯỢC.',
+  why:'Các gate khác đo hình thức: expected có nguồn, không tautology, bộ có ít nhất một case negative. Không cái nào hỏi expected có khớp ràng buộc của đặc tả không. Bản đầu của máy này có độ chính xác 0/4 ở hai trục khó nhất, nên nó đi qua ba lượt đọc tay và một bộ cấy lỗi trước khi được tin.',
+  how:['npm run tc:semantic -- --task <KEY> để xem số.','Thêm --chi-tiet để xem từng trường thiếu và từng case lệch.'],
+  cmd:'npm run tc:semantic -- --task <KEY> --chi-tiet',
+  trap:'Con số "phủ" là chặn trên: máy thấy case nhắc đúng dữ liệu, chưa thấy case đúng. Combobox mang kiểu cột nvarchar(N) không phải ô gõ được, nên không có nghĩa vụ độ dài. Case dẫn BR mà lệch bảng trường được tách ra "cần đối chiếu nguồn", không gọi là giả định sai.',
+  src:'scripts/qa/tc_semantic.js', rel:['g-tc_review','g-design_gate','g-dimension_coverage'] },
 
 { id:'g-scope_anchor', t:'scope:anchor', cat:'gate',
   def:'Neo MẪU SỐ của Phase 1: kiểm xuất xứ của con số mà mọi tỉ lệ coverage chia cho.',
@@ -1795,7 +1803,7 @@ const TERMS_GATE3 = [
   src:'scripts/qa/scope_anchor.js', rel:['g-dimension_coverage','c-canonical','g-preflight_gate'] },
 { id:'g-gate_index', t:'gates:index', cat:'gate',
   def:'Sinh DANH MỤC GATE của kit từ chính source. Trả lời được "kit có bao nhiêu gate, mỗi cái CHẶN gì, gọi ở đâu".',
-  detail:'Quét source rồi suy mức từ code: exit 1 là CHẶN · ghi artifact là SINH · chỉ in là BÁO CÁO. Bảng hiện tại: 171 máy — 121 CHẶN, 30 SINH, 20 BÁO CÁO. Bản --check chặn khi bảng lệch source.',
+  detail:'Quét source rồi suy mức từ code: exit 1 là CHẶN · ghi artifact là SINH · chỉ in là BÁO CÁO. Bảng hiện tại: 172 máy — 121 CHẶN, 30 SINH, 21 BÁO CÁO. Bản --check chặn khi bảng lệch source.',
   why:'Kit có hơn 30 npm script dạng gate và gần 60 file trong scripts/qa/, nhưng không chỗ nào trả lời được câu trên. Hệ quả không phải bất tiện: luận đề của kit là "luật cần MÁY", mà máy không LIỆT KÊ ĐƯỢC thì không kiểm toán được. Không ai biết một gate đã âm thầm tụt thành cảnh báo, hay đã mất nơi gọi.',
   how:['npm run gates:index để sinh lại bảng.','npm run gates:index:check để chặn khi bảng lệch source.'],
   cmd:'npm run gates:index   ·   npm run gates:index:check',
@@ -3496,7 +3504,7 @@ const TERMS_FLOW2 = [
 
 { id:'f-gate-catalog', t:'Danh mục gate (tự sinh)', cat:'flow',
   def:'Bảng liệt kê mọi máy của kit kèm mức chặn, sinh tự động từ source.',
-  detail:'Con số hiện tại: 171 máy — 121 CHẶN · 30 SINH (ghi artifact) · 20 BÁO CÁO (chỉ in). Mức được suy từ code chứ không khai tay: exit 1 là CHẶN, ghi artifact là SINH, chỉ in là BÁO CÁO. Bảng còn ghi mỗi máy được gọi từ đâu, và ghi ra .agent/config/GATES.md.',
+  detail:'Con số hiện tại: 172 máy — 121 CHẶN · 30 SINH (ghi artifact) · 21 BÁO CÁO (chỉ in). Mức được suy từ code chứ không khai tay: exit 1 là CHẶN, ghi artifact là SINH, chỉ in là BÁO CÁO. Bảng còn ghi mỗi máy được gọi từ đâu, và ghi ra .agent/config/GATES.md.',
   why:'Luận đề của kit là "luật cần MÁY". Nhưng máy mà không liệt kê được thì không kiểm toán được. Không ai biết một gate đã âm thầm tụt xuống thành cảnh báo, hay đã mất hết nơi gọi và thành mồ côi.',
   how:['Sinh lại: npm run gates:index.','Chặn khi bảng lệch source: npm run gates:index:check.'],
   trap:'SINH và BÁO CÁO không phải gate bị nới. Chúng không kiểm vi phạm, chỉ tạo dữ liệu cho máy khác chặn.',
@@ -3908,7 +3916,7 @@ const CMD_GROUPS = [
     ['npm run merge:execution-status -- --task <KEY>','Ghép kết quả execute vào bộ canonical']
   ]},
   { g:'Kit: tự kiểm toán & phát hành', items:[
-    ['npm run gates:index  ·  npm run gates:index:check','Danh mục gate tự sinh — 171 máy, 121 CHẶN; :check chặn khi bảng lệch source'],
+    ['npm run gates:index  ·  npm run gates:index:check','Danh mục gate tự sinh — 172 máy, 121 CHẶN; :check chặn khi bảng lệch source'],
     ['npm run rule -- <mục>  ·  npm run rule:toc','Tra RULE_GLOBAL theo mục (287 token) thay vì đọc cả file (12,8k)'],
     ['npm run version:check','Chặn phát hành thiếu số phiên bản; kiểm khớp tag'],
     ['npm run package:kit','Đóng gói dist/ CHỈ lớp GENERIC — không để lọt secret hay oracle của dự án khác'],
