@@ -78,7 +78,7 @@ test-automation-kit/
 │                            chỉ commands/ được commit; settings*.json là cấu hình máy cá nhân
 ├── .agent/
 │   ├── config/              verdict_taxonomy · risk_model · case_types · ci_scope · branch_parity
-│   │                        GATES.md (danh mục 171 máy gác, tự sinh)
+│   │                        GATES.md (danh mục 172 máy gác, tự sinh)
 │   │                        db.conventions.json  quy ước DB + bản đồ cột ↔ nhãn theo màn
 │   │                        locators.schema.json schema cho knowledge/locators/
 │   ├── workflows/           16 file đánh số PHẲNG 01–16 theo đúng thứ tự chạy, không mang tiền tố phase

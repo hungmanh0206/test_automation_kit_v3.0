@@ -13,6 +13,7 @@
 import { test, expect } from '@playwright/test';
 import * as path from 'path';
 import { spawnSync } from 'child_process';
+import { gateEnv } from './_gate_env';
 
 const REPO = path.resolve(__dirname, '..', '..', '..');
 // eslint-disable-next-line @typescript-eslint/no-var-requires
@@ -173,7 +174,7 @@ test.describe('@infra tc:semantic — "không phán được" không phải "đ�
   });
 
   test('CLI: task không có bảng trường ⇒ exit 2 và nói rõ KHÔNG đồng nghĩa với "đạt"', () => {
-    const r = spawnSync(process.execPath, [path.join(REPO, 'scripts/qa/tc_semantic.js'), '--task', 'KHONG-CO-TASK-NAY'], { encoding: 'utf8', cwd: REPO });
+    const r = spawnSync(process.execPath, [path.join(REPO, 'scripts/qa/tc_semantic.js'), '--task', 'KHONG-CO-TASK-NAY'], { encoding: 'utf8', cwd: REPO, env: gateEnv() });
     expect(r.status).toBe(2);
     expect(r.stdout).toMatch(/KHÔNG PHÁN ĐƯỢC/);
     expect(r.stdout).toMatch(/KHÔNG đồng nghĩa với "đạt"/);
