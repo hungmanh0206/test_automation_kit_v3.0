@@ -8,6 +8,13 @@ import { type Page, type BrowserContext } from '@playwright/test';
  * cách xác minh) chắc chắn phân kỳ, và tệ hơn: UAT smoke chỉ nghiệm thu MỘT bản. Đặt ở module thứ ba để cả hai
  * dùng chung mà không sinh import vòng (`opsAuth` đã import `opsLogin`).
  *
+ * VÌ SAO Ở `support/session/`, KHÔNG Ở `support/auth/` — dời 11/11/2026. `ci:scope` coi mọi import từ
+ * `support/auth/` là dấu hiệu spec CẦN app sống + credential (đúng với `opsAuth.ts`). File này thì không:
+ * nó chỉ import kiểu của Playwright, không đọc env, không biết credential. Để nó trong `auth/` thì spec
+ * offline kiểm nó (`tests/fe/infra/seed-session-check.spec.ts`, server HTTP ở 127.0.0.1) bị gắn cờ "drive
+ * UAT". Dời ra cho giả định của gate đúng trở lại — KHÔNG thêm miễn trừ (danh sách đó khoá ở 1 file). Thêm
+ * import credential vào đây là phải dời nó về `auth/`.
+ *
  * Điểm dễ sai nhất: localStorage phải vào TRƯỚC mọi navigation. `addInitScript` chạy trước script trang nên app
  * thấy token ngay lúc check auth ⇒ không bị redirect `/auth/login`. Seed sau khi `goto` là quá muộn (bẫy đã gặp
  * thật khi làm ensureOpsAuth).

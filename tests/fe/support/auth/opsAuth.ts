@@ -1,6 +1,6 @@
 import { type Page, type BrowserContext } from '@playwright/test';
 import { loginOpsForm, OPS_USER } from '../opsLogin';
-import { seedSession } from './seedSession';
+import { seedSession } from '../session/seedSession';
 
 // JS libs (CommonJS) — pure logic đã offline-test.
 // eslint-disable-next-line @typescript-eslint/no-var-requires
@@ -35,7 +35,7 @@ export async function ensureOpsAuth(page: Page, context: BrowserContext, opts: E
 
   if (method === 'storage') {
     const rec = sessionCache.load(key);
-    // Dùng CHUNG seedSession với loginOps — xem tests/fe/support/auth/seedSession.ts
+    // Dùng CHUNG seedSession với loginOps — xem tests/fe/support/session/seedSession.ts
     await seedSession(page, context, rec && rec.storageState, process.env.OPS_BASE_URL || '');
     return 'storage(reuse)';
   }

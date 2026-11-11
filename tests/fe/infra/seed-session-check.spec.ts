@@ -17,7 +17,7 @@ import * as fs from 'fs';
 import * as http from 'http';
 import type { AddressInfo } from 'net';
 import * as path from 'path';
-import { seedSession } from '../support/auth/seedSession';
+import { seedSession } from '../support/session/seedSession';
 
 /*
  * SERVER HTTP THẬT trên 127.0.0.1, không phải `page.route`.
@@ -98,5 +98,17 @@ test.describe('@infra seedSession — trang kiểm phiên phải phân biệt đ
     const src = fs.readFileSync(path.resolve(__dirname, '../support/opsLogin.ts'), 'utf8');
     expect(src).toMatch(/OPS_SEED_CHECK_PATH \|\| '\/ChonNam\.aspx'/);
     expect(src).toMatch(/seedSession\(page, context, rec && rec\.storageState, OPS_BASE, OPS_BASE \? `\$\{OPS_BASE\}\$\{TRANG_KIEM_PHIEN\}` : ''\)/);
+  });
+
+  test('seedSession KHÔNG đụng credential — điều kiện để nó được ở ngoài `support/auth/`', () => {
+    /*
+     * File được dời khỏi `auth/` (11/11/2026) vì `ci:scope` coi import từ đó là "spec cần app sống". Lý do
+     * chỉ đứng được khi file THẬT SỰ không cần: không đọc env, không import helper đăng nhập. Ai thêm vào
+     * thì ca này đỏ — và lúc đó phải dời nó về `auth/`, không phải sửa ca.
+     */
+    const src = fs.readFileSync(path.resolve(__dirname, '../support/session/seedSession.ts'), 'utf8');
+    expect(src, 'không đọc env').not.toMatch(/process\.env/);
+    const imp = [...src.matchAll(/from\s+['"]([^'"]+)['"]/g)].map((m) => m[1]);
+    expect(imp, 'chỉ import kiểu của Playwright').toEqual(['@playwright/test']);
   });
 });

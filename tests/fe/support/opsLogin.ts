@@ -1,6 +1,6 @@
 import { expect, type Page } from '@playwright/test';
 import fs from 'fs';
-import { seedSession } from './auth/seedSession';
+import { seedSession } from './session/seedSession';
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const sessionCache = require('../../../scripts/utils/auth/session_cache');
 
