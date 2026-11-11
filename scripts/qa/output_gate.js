@@ -91,6 +91,8 @@ function gateTestExecution(doc, { fix = false, chayTay = false } = {}) {
   const warnings = [];
   const fixes = [];
   let executed = 0;
+  /* Bản ghi CŨ thoát luật gộp verdict chỉ bằng LỜI khai phục hồi — gom lại, cảnh báo một dòng sau vòng lặp. */
+  const phucHoiBangLoi = [];
 
   for (const t of tests) {
     const id = t.testKey || t.tcId || t.id || '(no-id)';
@@ -188,8 +190,19 @@ function gateTestExecution(doc, { fix = false, chayTay = false } = {}) {
      * Vì sao `BLOCKED` phải tính là xấu ngang `FAIL`: taxonomy xếp nó vào "chưa thực thi". Một case
      * ghi PASS trong khi một bước CHƯA CHẠY ĐƯỢC là khai đã kiểm một thứ chưa ai kiểm.
      *
-     * ĐƯỜNG THOÁT: comment nêu rõ đã PHỤC HỒI và xác minh lại. Nhận cả chữ do recorder sinh
-     * (`PHỤC HỒI:`) lẫn chữ người viết tay, miễn có nói tới việc chạy lại/xác minh lại bước đó.
+     * ĐƯỜNG THOÁT — SIẾT 11/11/2026: phải có BẰNG CHỨNG, không chỉ có lời.
+     *
+     * Trước đây cửa nhận khi comment có chữ "phục hồi" hay "xác minh lại". Chữ khớp nhầm có thật:
+     * CSDL-9004 ghi *"hệ phục hồi sau khi rút tải"* — nói về HỆ THỐNG chứ không nói lượt test đã sửa
+     * gì — vẫn khớp. Nay bằng chứng là một step XÁC MINH LẠI (`xacMinhLai()` của recorder: bắt buộc có
+     * assert, tự chụp ảnh) mà:
+     *   · PASSED, có ảnh hoặc video;
+     *   · nằm SAU step xấu CUỐI — xác minh lại xong rồi lại hỏng tiếp thì chưa phục hồi gì cả.
+     *
+     * Hai mức, cùng mốc `run.evidenceDir` với ba luật siết ở cuối hàm:
+     *   · bản ghi MỚI: thiếu bằng chứng ⇒ CHẶN, kể cả khi comment có khai phục hồi.
+     *   · bản ghi CŨ: lời khai vẫn được nhận, nhưng CẢNH BÁO — recorder cũ chưa có `xacMinhLai()`.
+     * Đo trên corpus 1161 bản ghi: **0** case đi qua đường thoát này, nên siết không làm đỏ việc nào.
      */
     const PASS_CHINH_THUC = /^(pass|passed)$/i.test(String(t.status || '').trim());
     if (PASS_CHINH_THUC && steps.length) {
@@ -198,11 +211,22 @@ function gateTestExecution(doc, { fix = false, chayTay = false } = {}) {
         return v === 'FAIL' || v === 'BLOCKED_SETUP' || v === 'SKIP_SETUP' || v === 'SKIP';
       });
       const khaiPhucHoi = /PHỤC HỒI:|phục hồi|xác minh lại|chạy lại (và|rồi) (đạt|pass)/i.test(String(t.comment || ''));
-      if (stepXau.length && !khaiPhucHoi) {
+      let viTriXauCuoi = -1;
+      steps.forEach((s, i) => { if (stepXau.includes(s)) viTriXauCuoi = i; });
+      const coBangChung = stepXau.length > 0 && steps.slice(viTriXauCuoi + 1).some((s) =>
+        (s.xacMinhLai === true || /^XÁC MINH LẠI/.test(String(s.name || '').trim()))
+        && /^(pass|passed)$/i.test(String(s.status || '').trim())
+        && evList(s.evidence).concat(evList(s.evidences)).some(rules.isVisualEvidence));
+      const moi = Boolean(t.run && t.run.evidenceDir);
+      if (stepXau.length && !coBangChung && (moi || !khaiPhucHoi)) {
         problems.push(`${id}: ghi PASS trong khi ${stepXau.length}/${steps.length} step còn XẤU `
           + `(${stepXau.slice(0, 3).map((s) => `${s.name || 'step'}=${s.status}`).join(' · ')}${stepXau.length > 3 ? ' …' : ''}) `
-          + 'mà comment KHÔNG khai đã phục hồi. PASS đứng trên một bước chưa chạy được là khai đã kiểm '
-          + 'một thứ chưa ai kiểm — hạ verdict, hoặc nói rõ đã phục hồi bằng cách nào và xác minh lại ở bước nào.');
+          + `mà ${khaiPhucHoi ? 'chỉ có LỜI khai phục hồi trong comment' : 'comment KHÔNG khai đã phục hồi'}. `
+          + 'PASS đứng trên một bước chưa chạy được là khai đã kiểm '
+          + 'một thứ chưa ai kiểm — hạ verdict, hoặc ghi một step XÁC MINH LẠI (`xacMinhLai()`, có assert, có ảnh) '
+          + 'PASSED nằm SAU step xấu cuối.');
+      } else if (stepXau.length && !coBangChung) {
+        phucHoiBangLoi.push(id);
       }
     }
     /*
@@ -474,6 +498,12 @@ function gateTestExecution(doc, { fix = false, chayTay = false } = {}) {
     'chấm FAIL tầng bug sản phẩm/api mà KHÔNG step nào đỏ',
     'Nói sản phẩm sai thì chuỗi bằng chứng phải chỉ ra BƯỚC NÀO vỡ — dev dựng lại từ đó, không dựng lại từ một kết luận.',
   );
+
+  if (phucHoiBangLoi.length) {
+    warnings.push(`${phucHoiBangLoi.length} case ghi PASS trên step xấu và thoát bằng LỜI khai phục hồi — bản ghi CŨ, `
+      + `nên đây là CẢNH BÁO: ${phucHoiBangLoi.slice(0, 3).join(', ')}${phucHoiBangLoi.length > 3 ? ' …' : ''}. `
+      + 'Lời khai không phải phép đo. Lượt chạy MỚI phải có step XÁC MINH LẠI PASSED, có ảnh, nằm sau step xấu cuối.');
+  }
 
   const thieuNguonGoc = daChay.filter((t) => !t.run || !t.run.evidenceDir);
   if (thieuNguonGoc.length && !chayTay) {

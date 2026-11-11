@@ -62,6 +62,8 @@ nó đang nổ 0 lượt trên 2.873 test — giữ luật để ngày có ca đ
 | EvidenceRecorder | `c.step(page, 'nhãn', { assert: async () => sau === truoc + 1 })` | có |
 | Verdict suy ra | `c.step(page, 'nhãn', { status: coChu ? 'PASSED' : 'FAILED' })` | có |
 | Verdict viết cứng | `c.step(page, 'nhãn', { status: 'PASSED' })` | **KHÔNG** — đúng thứ `CLAUDE.md` §6 cấm |
+| Đo lại sau step xấu | `c.xacMinhLai(page, 'nhãn', { assert })` đặt SAU step xấu cuối | có — hàm bắt buộc `assert`, bỏ qua `status` tự khai |
+| Phục hồi bằng lời | `c.finish('PASSED', { phucHoi: '…' })` mà không có `xacMinhLai()` | **KHÔNG** — recorder hạ verdict, `gate:output` chặn bản ghi mới |
 
 Đo 29/10/2026: một detector chỉ biết `expect(` cho **4/5 dương tính giả**, cả bốn vì nó không biết API
 của chính kit. Người review mắc đúng lỗi đó thì sẽ đòi sửa những spec đang kiểm đúng.
