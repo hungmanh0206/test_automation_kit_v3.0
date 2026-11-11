@@ -7,8 +7,9 @@
  *
  * Người review (P1): *"Phải đo testcase AI có expected đúng nghiệp vụ, có thiếu negative/boundary và có
  * giả định sai không."* Kiểm kê 11/11/2026 cho thấy ba trục đó có máy theo HÌNH THỨC, không theo NỘI DUNG:
- *   · `output_gate` / `domain_rules` / `expected_ledger` — expected có NGUỒN, không tautology, không bị
- *     sửa lén. Không máy nào so NỘI DUNG expected với đặc tả (đặc tả "tối đa 150", case kỳ vọng 250).
+ *   · `output_gate` / `domain_rules` — expected có NGUỒN, không tautology. `expected_ledger` gác việc ĐỔI
+ *     expected (chụp mốc, đòi lý do). Cả ba nhìn nguồn và lịch sử của expected; phần đối chiếu NỘI DUNG
+ *     expected với ràng buộc đặc tả (đặc tả "tối đa 150", case kỳ vọng 250) là việc của máy này.
  *   · `design_gate` — đếm ≥1 `[Negative]` cho CẢ BỘ. Một bộ 300 case có đúng một case negative là "đạt".
  *   · giả định sai (case coi một trường là bắt buộc trong khi đặc tả ghi N) — không máy nào đo.
  *
