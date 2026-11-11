@@ -7,7 +7,7 @@
 > **T1** chỉ chặn ở cửa ra, lúc đang làm thì cảnh báo và ghi `reports/gate-debt.json` · **T2** không
 > bao giờ chặn. T0 khai tay trong `.agent/config/gate_tiers.json`; không khai thì mặc định T1.
 
-Tổng **172** máy — **121 CHẶN** · 30 SINH (ghi artifact) · 21 BÁO CÁO (chỉ in).
+Tổng **173** máy — **121 CHẶN** · 31 SINH (ghi artifact) · 21 BÁO CÁO (chỉ in).
 
 SINH/BÁO CÁO **không phải gate bị nới** — chúng không kiểm vi phạm. Ví dụ `bugs:checklist` in brief bug
 lịch sử, còn việc CHẶN nằm ở `dim:coverage` (chiều `bug_history` §20).
@@ -136,6 +136,7 @@ lịch sử, còn việc CHẶN nằm ở `dim:coverage` (chiều `bug_history` 
 | T1 | CHẶN (có cờ --enforce) | `typecheck:task`, `typecheck:task:enforce` | chạy `tsc --noEmit` trên automation CỦA MỘT TASK. | `scripts/qa/typecheck_task.js` | prompt_templates |
 | T0 | CHẶN (có cờ --enforce) | `unit:stamp`, `unit:stamp:enforce` | mọi verdict ĐÃ CHẠY phải khai ĐƠN VỊ đã đo. | `scripts/qa/unit_stamp_check.js` | .agent/workflows · prompt_templates · .claude/commands |
 | T2 | SINH | `accessibility` | tái dùng hạ tầng của ui_conformance_check.js (login/pre-steps/catalog schema | `scripts/qa/accessibility_check.js` | README.md · USER_GUIDE.md · scripts/qa/README.md · docs/kit-map.md · .agent/rules · .agent/skills · prompt_templates · tests/fe/infra |
+| T2 | SINH | `agent:scorecard` | ĐO LỢI THẾ VẬN HÀNH của agent, THEO TỪNG TASK. | `scripts/qa/agent_scorecard.js` | .claude/commands · tests/fe/infra |
 | T2 | SINH | `dashboard` | đọc dữ liệu ĐÃ CÓ (knowledge/ + flaky-triage.md), KHÔNG thu thập lại, | `scripts/qa/dashboard_generate.js` | .gitlab-ci.yml · RULE_GLOBAL.md · README.md · USER_GUIDE.md · scripts/qa/README.md · docs/kit-map.md · .github/workflows · .agent/workflows · .agent/skills · prompt_templates · tests/fe/infra |
 | T2 | SINH | `dep:graph` | GỘP traceability + impact-map thành 1 graph query-được. | `scripts/qa/dependency_graph.js` | scripts/qa/README.md · docs/kit-map.md |
 | T2 | SINH | `exec:proof` | artifact có ĐỦ ĐỂ CHỨNG MINH một case PASSED đã chạy hết bước không? | `scripts/qa/exec_proof.js` | tests/fe/infra |
