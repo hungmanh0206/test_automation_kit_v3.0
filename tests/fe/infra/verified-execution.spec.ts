@@ -77,6 +77,22 @@ test.describe('@infra siết cho lượt MỚI — bản ghi cũ chỉ cảnh b�
     }
   });
 
+  test('lượt CHẠY TAY miễn RIÊNG luật "PASS không step" — hai luật kia vẫn áp', () => {
+    /*
+     * Chạy tay không có recorder nên không bao giờ có step: bắt nó là báo oan, và `manual-run-gate.spec.ts`
+     * đã đỏ đúng vì thế. Nhưng miễn trừ phải HẸP — nếu `chayTay` nới luôn comment rỗng ruột hay FAIL
+     * không step đỏ thì nhánh chạy tay thành đường lách.
+     */
+    const tay = (d: unknown) => {
+      const g = og.gateTestExecution(d, { chayTay: true });
+      return [...(g.problems || []), ...(g.warnings || [])].filter((x: string) => M.test(x));
+    };
+    expect(tay(ban(KHONG_STEP, false)), 'PASS không step ở lượt chạy tay: im lặng').toHaveLength(0);
+    expect(tay(ban(RONG, false)), 'comment rỗng ruột vẫn bị nêu').toHaveLength(1);
+    expect(tay(ban(BUG_KHONG_DO, false)), 'FAIL bug không step đỏ vẫn bị nêu').toHaveLength(1);
+    expect(P(ban(KHONG_STEP, true)), 'và KHÔNG có cờ thì vẫn chặn như cũ').toHaveLength(1);
+  });
+
   test('mốc là THUỘC TÍNH của bản ghi, không phải ngày trong config', () => {
     /*
      * `run.evidenceDir` do recorder đặt, không phải người khai. Nếu một ngày ai đó đổi sang so ngày

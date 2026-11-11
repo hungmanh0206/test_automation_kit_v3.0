@@ -448,9 +448,13 @@ function gateTestExecution(doc, { fix = false, chayTay = false } = {}) {
    * 154 case như vậy, toàn bộ ở CSDL-9003. Một case PASS không bước nào được ghi thì artifact không
    * chứng minh được điều gì đã xảy ra — nó chỉ còn là lời khai. `exec:proof` đo "ghi ít bước hơn
    * khai"; đây là ca cực đoan của chính nó: ghi KHÔNG bước nào.
+   *
+   * Lượt CHẠY TAY (`chayTay`, do `manual_run_check.js` đặt ở phía gọi — không phải bản ghi tự khai)
+   * được miễn RIÊNG luật này: không có recorder nên không bao giờ có step, và bằng chứng của nó là
+   * ảnh + comment, đã có phép kiểm riêng. Hai luật còn lại vẫn áp cho lượt chạy tay.
    */
   sietHoacKeu(
-    tests.filter((t) => /^(pass|passed)$/i.test(String(t.status || '').trim()) && !(Array.isArray(t.steps) && t.steps.length)),
+    chayTay ? [] : tests.filter((t) => /^(pass|passed)$/i.test(String(t.status || '').trim()) && !(Array.isArray(t.steps) && t.steps.length)),
     'ghi PASS mà KHÔNG có bản ghi step nào',
     'Không bước nào được ghi thì artifact không chứng minh được điều gì đã xảy ra — verdict chỉ còn là lời khai.',
   );
