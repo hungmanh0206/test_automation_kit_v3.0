@@ -35,8 +35,8 @@ test.beforeAll(async () => {
   server = http.createServer((req, res) => {
     const u = new URL(req.url || '/', 'http://127.0.0.1');
     const coPhien = /ASP\.NET_SessionId=song/.test(req.headers.cookie || '');
-    const di = (loc: string) => { res.writeHead(302, { Location: loc }); res.end(); };
-    const html = (t: string, ma = 200) => { res.writeHead(ma, { 'Content-Type': 'text/html; charset=utf-8' }); res.end(`<html><body>${t}</body></html>`); };
+    const di = (loc: string) => { res.writeHead(302, { Location: loc, Connection: 'close' }); res.end(); };
+    const html = (t: string, ma = 200) => { res.writeHead(ma, { 'Content-Type': 'text/html; charset=utf-8', Connection: 'close' }); res.end(`<html><body>${t}</body></html>`); };
     const p = u.pathname.toLowerCase();
     if (p === '/') return di('/Login.aspx');
     if (p === '/login.aspx') return html('đăng nhập');
@@ -49,7 +49,9 @@ test.beforeAll(async () => {
   await new Promise<void>((ok) => server.listen(0, '127.0.0.1', () => ok()));
   GOC = `http://127.0.0.1:${(server.address() as AddressInfo).port}`;
 });
-test.afterAll(async () => { await new Promise((ok) => server.close(() => ok(null))); });
+/* Đóng HẾT kết nối trước khi close: trình duyệt cấp worker giữ keep-alive, `close()` chờ chúng và treo
+ * worker — đo 11/11/2026: chạy chung với discovery-* thì 2 ca bên đó hết giờ `page.goto`. */
+test.afterAll(async () => { server.closeAllConnections(); await new Promise((ok) => server.close(() => ok(null))); });
 
 async function dungSiteGia(_context: any) { /* server đã dựng ở beforeAll */ }
 
