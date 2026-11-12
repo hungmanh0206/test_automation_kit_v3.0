@@ -6,7 +6,9 @@
  * file JSON vào `<PROJECT_OUTPUT_DIR>/tasks/<KEY>/test-results/ui-polish/`. Máy này chỉ ĐỌC các file đó.
  *
  *   const { thuThap } = require('<repo>/scripts/utils/ui/ui_polish');
- *   fs.writeFileSync(path.join(dir, `${ten}.json`), JSON.stringify(await thuThap(page, { man: ten })));
+ *   …rồi lưu kết quả `await thuThap(page, { man: ten, vung })` thành `<ten>.json` trong thư mục trên.
+ *   (Ví dụ viết bằng lời: `gates:index` suy mức từ chữ trong file, và một lời gọi ghi file nằm trong chú thích
+ *   từng làm máy chỉ-đọc này bị xếp thành SINH.)
  *
  * Ba trục: ① thang khoảng cách · ② cùng loại thành phần có giống nhau giữa các màn · ③ số font/cỡ chữ/màu.
  * Không có `--thang` (thang của thiết kế) thì "chuẩn" là ĐA SỐ trong hệ thống ⇒ mọi độ lệch là OBSERVATION,
