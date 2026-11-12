@@ -34,6 +34,8 @@ test.describe('@infra ui:polish — thu thập', () => {
     expect(s, 'nút visibility:hidden không được vào dữ liệu').not.toContain('nutVoHinh');
     expect(s, 'giá trị ô nhập có thể là PII khách').not.toContain('0912345678');
     expect(m.theoLoai.nut.map((x: any) => x.chu)).toEqual(['Ghi', 'Hủy', 'In']);
+    expect(m.theoLoai.nhan.map((x: any) => x.chu), 'chữ nhãn để chỉ đúng trường — nhãn không có id thì thiếu nó là không biết nhãn nào').toContain('Tên trường');
+    expect(m.theoLoai.o_chu.every((x: any) => !x.chu), 'ô nhập KHÔNG mang chữ').toBe(true);
   });
 });
 
@@ -99,7 +101,7 @@ test.describe('@infra ui:polish — phân tích', () => {
     expect(k.dongNhat.nut.cao.lech, 'nút cao 30px giữa đa số 32px').toEqual(['lech: button#luu "Lưu" = 30']);
     expect(k.dongNhat.nut.padding.daSo).toBe('0 16 0 16');
     expect(k.dongNhat.nut.padding.soLech).toBe(1);
-    expect(k.dongNhat.nhan.font.lech).toEqual(['lech: label#ghiChu = comic sans ms']);
+    expect(k.dongNhat.nhan.font.lech).toEqual(['lech: label#ghiChu "Ghi chú" = comic sans ms']);
     expect(k.heThong.soFont, 'roboto · comic sans (nhãn) · helvetica neue (ô chữ kiểu Telerik)').toBe(3);
   });
 

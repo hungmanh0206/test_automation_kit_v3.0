@@ -62,7 +62,11 @@ function thuThapTrongTrang(opts) {
       daThay.add(e);
       const s = getComputedStyle(e);
       const r = e.getBoundingClientRect();
-      const chu = loai === 'nut' ? String((e.value && e.tagName === 'INPUT') ? e.value : e.textContent || '').trim().replace(/\s+/g, ' ').slice(0, 20) : '';
+      /* Chữ của NÚT (≤20) và NHÃN (≤30) là chữ cố định của giao diện, không phải dữ liệu người dùng — giữ để chỉ ra
+       * ĐÚNG thành phần nào lệch. Nhãn không có id (`label.control-label`) thì thiếu chữ là không biết nhãn của trường
+       * nào (lượt 5 cấp 12/11/2026). KHÔNG đọc chữ của ô nhập. */
+      const chu = loai === 'nut' ? String((e.value && e.tagName === 'INPUT') ? e.value : e.textContent || '').trim().replace(/\s+/g, ' ').slice(0, 20)
+        : (loai === 'nhan' ? String(e.textContent || '').trim().replace(/\s+/g, ' ').slice(0, 30) : '');
       /* Nút KHÔNG CÓ CHỮ (icon, phân trang lưới `rgPage*`) là thành phần khác loại — gộp với nút có chữ thì
        * 20 nút phân trang thành "20 nút lệch" (đo 12/11/2026). */
       const dich = loai === 'nut' && !chu ? 'nut_icon' : loai;
