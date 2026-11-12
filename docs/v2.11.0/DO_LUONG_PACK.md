@@ -125,7 +125,7 @@ trả về **đối tượng có cấu trúc** rồi chấm **trường**, thay 
 "có nói chữ *mẫu số* không" | `mau_so: {tu, mau, nguon}` — thiếu trường ⇒ chặn |
 "có nêu nguyên nhân đối thủ không" | `nguyen_nhan_doi_thu: []` rỗng ⇒ cấm kết luận `product_bug` |
 
-Hợp đồng đó đã có sẵn trong [`enhancements/v10/packs/qemis.md`](../../enhancements/v10/packs/qemis.md)
+Hợp đồng đó đã có sẵn trong [`.agent/extensions/kit-a/packs/qemis.md`](../../.agent/extensions/kit-a/packs/qemis.md)
 §Mandatory output contract — bộ chấm chỉ việc dùng nó, thay vì đi khớp chữ.
 
 ## Trạng thái hiện tại, nói thẳng
