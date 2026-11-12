@@ -26,7 +26,7 @@ Nó là cách IN khác, không phải cách LỌC — mọi vi phạm vẫn có 
 lời giải thích đầy đủ của một mã.
 
 Gate lẻ khi cần xem riêng nguyên nhân: `gate:output` · `gate:gen-testcase` · `design:gate` ·
-`dim:coverage` · `tc:review` · `tc:semantic` · `ui:polish` · `expansion:audit` · `bugs:checklist` · `gate:policy` · `mutation:check` ·
+`dim:coverage` · `tc:review` · `tc:semantic` · `ui:polish` (thu thập: `ui:polish:gen`) · `expansion:audit` · `bugs:checklist` · `gate:policy` · `mutation:check` ·
 `unit:stamp` (mọi verdict đã chạy phải khai ĐƠN VỊ đã đo — `unit:stamp:enforce` để chặn).
 
 **Dừng khi:** còn dòng CHẶN. Sửa nội dung cho đúng luật — **không** nới ngưỡng gate, không dùng cờ bỏ qua

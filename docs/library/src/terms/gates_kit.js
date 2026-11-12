@@ -174,7 +174,7 @@ const TERMS_GATE3 = [
   src:'scripts/qa/scope_anchor.js', rel:['g-dimension_coverage','c-canonical','g-preflight_gate'] },
 { id:'g-gate_index', t:'gates:index', cat:'gate',
   def:'Sinh DANH MỤC GATE của kit từ chính source. Trả lời được "kit có bao nhiêu gate, mỗi cái CHẶN gì, gọi ở đâu".',
-  detail:'Quét source rồi suy mức từ code: exit 1 là CHẶN · ghi artifact là SINH · chỉ in là BÁO CÁO. Bảng hiện tại: 175 máy — 121 CHẶN, 32 SINH, 22 BÁO CÁO. Bản --check chặn khi bảng lệch source.',
+  detail:'Quét source rồi suy mức từ code: exit 1 là CHẶN · ghi artifact là SINH · chỉ in là BÁO CÁO. Bảng hiện tại: 176 máy — 122 CHẶN, 32 SINH, 22 BÁO CÁO. Bản --check chặn khi bảng lệch source.',
   why:'Kit có hơn 30 npm script dạng gate và gần 60 file trong scripts/qa/, nhưng không chỗ nào trả lời được câu trên. Hệ quả không phải bất tiện: luận đề của kit là "luật cần MÁY", mà máy không LIỆT KÊ ĐƯỢC thì không kiểm toán được. Không ai biết một gate đã âm thầm tụt thành cảnh báo, hay đã mất nơi gọi.',
   how:['npm run gates:index để sinh lại bảng.','npm run gates:index:check để chặn khi bảng lệch source.'],
   cmd:'npm run gates:index   ·   npm run gates:index:check',
@@ -697,9 +697,10 @@ const TERMS_GATE3 = [
   def:'Đo độ chỉn chu UI xuyên màn: khoảng cách có theo một thang không, cùng loại thành phần có giống nhau ở mọi màn không, hệ thống dùng bao nhiêu font, cỡ chữ, màu.',
   detail:'Spec của task gọi thuThap(page) trên từng màn rồi ghi JSON. Máy đọc style tính được của nút, ô nhập, nhãn, tiêu đề và mọi padding, margin, gap. Có thang thiết kế thì so với thang. Không có thì suy bước phủ ít nhất 80% số lần dùng, và lấy giá trị đa số của từng thuộc tính làm mốc.',
   why:'Các máy khác đo từng element (bị đè, tràn, cắt chữ) hoặc nội dung (nhãn, cột). Không máy nào hỏi nút Ghi ở màn này cao 32px mà màn kia 28px. Lỗi đó người dùng thấy ngay, còn mọi assertion vẫn xanh.',
-  how:['Trong spec task: require scripts/utils/ui/ui_polish và ghi kết quả thuThap(page, { man }) vào test-results/ui-polish/.','npm run ui:polish -- --task <KEY> để báo cáo.','Thêm --thang 4,8,12,16,24,32 khi có thang từ thiết kế.'],
-  cmd:'npm run ui:polish -- --task <KEY> [--thang 4,8,16,24]',
-  trap:'Không có thang thiết kế thì đa số chỉ là mốc so, không phải chuẩn: lệch đa số là OBSERVATION, không phải bug, và đa số có thể chính là cái sai. Máy không đọc giá trị ô nhập vì màn thật có thể chứa thông tin khách.',
+  how:['Khai màn cần đo ở requirements/ui_polish_man.json của task. Có file mẫu: npm run ui:polish:gen -- --task <KEY> --init.','npm run ui:polish:gen -- --task <KEY> sinh spec thu thập vào automation/. Spec chỉ đọc nhưng vẫn đăng nhập UAT, nên phải xác nhận trước mỗi lượt chạy.','npm run ui:polish -- --task <KEY> để báo cáo. Thêm --thang 4,8,12,16,24,32 khi có thang từ thiết kế.'],
+  cmd:'npm run ui:polish:gen -- --task <KEY>  ·  npm run ui:polish -- --task <KEY> [--thang 4,8,16,24]',
+  ex:'Lượt đo 5 cấp QEMIS: 58 màn đo được, 3 màn không đo được. DanhMucMonHoc trả 404, MN/LopMon trả 500, QuanLyPhanHieu có 0 thành phần trong vùng. Ba màn đó nằm trong _bo-qua.json kèm lý do, và báo cáo in chúng ra riêng.',
+  trap:'Không có thang thiết kế thì đa số chỉ là mốc so, không phải chuẩn: lệch đa số là OBSERVATION, không phải bug, và đa số có thể chính là cái sai. Máy không đọc giá trị ô nhập vì màn thật có thể chứa thông tin khách. Màn không đo được không có nghĩa là màn đó chỉn chu.',
   src:'scripts/qa/ui_polish.js', rel:['g-ui_conformance_check'] }
 
 ];

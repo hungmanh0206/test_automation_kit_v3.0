@@ -36,8 +36,24 @@ function main() {
     : (lay('--task') ? path.resolve(REPO, po, 'tasks', lay('--task'), 'test-results', 'ui-polish') : '');
   /* ĐỆ QUY: mỗi cấp một thư mục con (`ui-polish/MN/`, `ui-polish/THCS/`…) để một lượt so được GIỮA các cấp. */
   const lietKe = (d) => fs.readdirSync(d, { withFileTypes: true }).flatMap((e) => (e.isDirectory() ? lietKe(path.join(d, e.name)).map((x) => path.join(e.name, x)) : (e.name.endsWith('.json') ? [e.name] : [])));
-  const files = dir && fs.existsSync(dir) ? lietKe(dir) : [];
+  const tatCa = dir && fs.existsSync(dir) ? lietKe(dir) : [];
+  /* File mở đầu bằng `_` là sổ của lượt thu thập (`_bo-qua.json`: màn KHÔNG đo được và lý do), không phải một màn. */
+  const files = tatCa.filter((f) => !path.basename(f).startsWith('_'));
+  const boQua = [];
+  for (const f of tatCa.filter((x) => path.basename(x) === '_bo-qua.json')) {
+    try {
+      const j = JSON.parse(fs.readFileSync(path.join(dir, f), 'utf8'));
+      for (const x of j.boQua || []) boQua.push({ ...x, cap: j.cap || path.dirname(f) });
+    } catch (e) { console.log(`[ui-polish] bỏ ${f}: không đọc được`); }
+  }
+  const inBoQua = () => {
+    if (!boQua.length) return;
+    console.log(`  ✗ KHÔNG đo được ${boQua.length} màn — không nằm trong số liệu, và không có nghĩa là chúng chỉn chu:`);
+    for (const x of boQua.slice(0, 15)) console.log(`     ${x.cap}/${x.ten}: ${x.lyDo}`);
+    if (boQua.length > 15) console.log(`     … và ${boQua.length - 15} màn khác`);
+  };
   if (!files.length) {
+    inBoQua();
     console.log(`[ui-polish] KHÔNG PHÁN ĐƯỢC — không có dữ liệu thu thập${dir ? ` ở ${path.relative(REPO, dir)}` : ' (thiếu --task hoặc --thu-muc)'}. Đây KHÔNG đồng nghĩa với "UI chỉn chu".`);
     return 2;
   }
@@ -45,7 +61,7 @@ function main() {
   for (const f of files) { try { maus.push(JSON.parse(fs.readFileSync(path.join(dir, f), 'utf8'))); } catch (e) { console.log(`[ui-polish] bỏ ${f}: không đọc được`); } }
   const thang = lay('--thang') ? lay('--thang').split(',').map(Number).filter(Number.isFinite) : null;
   const k = phanTich(maus, { thang });
-  if (a.includes('--json')) { console.log(JSON.stringify(k, null, 2)); return 0; }
+  if (a.includes('--json')) { console.log(JSON.stringify({ ...k, khongDoDuoc: boQua }, null, 2)); return 0; }
 
   const kc = k.khoangCach;
   console.log(`[ui-polish] ${k.soMan} màn · chuẩn: ${kc.nguon === 'thang thiết kế' ? `THANG THIẾT KẾ [${kc.thang.join(', ')}]` : `ĐA SỐ trong hệ thống (không có thang thiết kế) — mọi độ lệch dưới đây là OBSERVATION, KHÔNG phải bug`}`);
@@ -71,6 +87,7 @@ function main() {
   if (Object.values(k.dongNhat).some((tts) => tts.font && tts.font.bienThe > 1)) console.log('  ℹ font ở trên là font KHAI BÁO, không phải font hiển thị — máy thiếu font thì trình duyệt thay. Xem ảnh trước khi nói người dùng thấy khác.');
   const h = k.heThong;
   console.log(`  ③ hệ thống: ${h.soFont} font · ${h.soCoChu} cỡ chữ · ${h.soMau} màu chữ`);
+  inBoQua();
   return 0;
 }
 

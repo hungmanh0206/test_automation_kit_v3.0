@@ -20,6 +20,7 @@
     "accessibility": "node scripts/qa/accessibility_check.js",
     "ui:conformance": "node scripts/qa/ui_conformance_check.js",
     "ui:polish": "node scripts/qa/ui_polish.js",
+    "ui:polish:gen": "node scripts/qa/reuse/ui_polish_gen.js",
     "perf": "node scripts/qa/perf_check.js",
     "security": "node scripts/qa/security_check.js",
     "load": "node scripts/qa/load_check.js",
