@@ -312,7 +312,7 @@ giống `domain/`. Kiểm: `npm run system:check`.
 |---|---|
 | `states` / `initial` / `terminal` | tập state; `terminal` là state "chốt" (⚑) — chuyển ra khỏi nó thường là bug toàn vẹn dữ liệu |
 | `transitions[]` | **chỉ khai cái HỢP PHÁP**: `from`, `to`, `trigger` (hành động/API), `roles?`, `guard?`, `covered_by[]` |
-| `illegal_verified[]` | cặp bất hợp pháp **đã có case chứng minh bị chặn**: `expected` phải kiểm được (mã 4xx/5xx, state giữ nguyên, số cụ thể) |
+| `illegal_verified[]` | cặp bất hợp pháp **đã có case kiểm** (case có ≠ hệ thống đã chặn — chỉ verdict PASS chứng minh): `expected` phải kiểm được (mã 4xx/5xx, state giữ nguyên, số cụ thể) |
 
 **Suy ra nghĩa vụ test**: mọi cặp `(from,to)` không nằm trong `transitions` là **bất hợp pháp** → phải có case
 chứng minh hệ thống chặn. `system_map.js` in ma trận + liệt kê cặp còn trống (ưu tiên `‼` cặp xuất phát từ state

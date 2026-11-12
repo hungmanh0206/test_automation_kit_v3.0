@@ -13,7 +13,7 @@
  * suy từ app (app cho làm ⇒ tưởng hợp pháp) — đúng thứ tautology kit cấm — hoặc log bug đoán rồi bị bounce.
  *
  * Khác `domain/` ở chỗ bản đồ này SINH RA NGHĨA VỤ TEST, không chỉ để đọc:
- *   - mọi cặp (from,to) KHÔNG khai trong `transitions` = chuyển state bất hợp pháp → PHẢI có case chứng minh bị chặn
+ *   - mọi cặp (from,to) KHÔNG khai trong `transitions` = chuyển state bất hợp pháp → PHẢI có case kiểm bị chặn (chặn thật hay không là việc của verdict)
  *   - mọi ô role×action KHÔNG có trong `allow` = phải 403/không đổi dữ liệu → PHẢI có case guard
  *   - `shared_surface` bị sửa → mọi `consumers` phải vào scope regression
  *
@@ -359,7 +359,7 @@ function printMatrix(d) {
       const cells = states.map((t) => (f === t ? '—' : (legal.get(pairKey(f, t)) || '·')).slice(0, 11).padEnd(13));
       console.log(`         ${`${f}${term.has(f) ? ' ⚑' : ''}`.padEnd(20)}${cells.join('')}`);
     }
-    console.log('         (trigger = hợp pháp · "·" = BẤT HỢP PHÁP, phải có case chứng minh bị chặn · ⚑ terminal)');
+    console.log('         (trigger = hợp pháp · "·" = BẤT HỢP PHÁP, phải có case kiểm bị chặn · ⚑ terminal)');
   } else {
     for (const t of d.transitions || []) console.log(`         ✓ ${pairKey(t.from, t.to)}  [${t.trigger}]${t.roles ? ` roles=${t.roles.join(',')}` : ''}`);
     console.log(`         (${states.length} state → không in ma trận; cặp không liệt kê ở trên là BẤT HỢP PHÁP)`);
@@ -420,13 +420,13 @@ if (flag('gaps') || wantReport) {
         const v = verified.get(pairKey(f, t));
         if (v && Array.isArray(v.covered_by) && v.covered_by.length) continue;
         // ưu tiên cặp xuất phát từ state terminal: đó là chỗ sinh bug toàn vẹn dữ liệu (vd huỷ đơn đã thanh toán)
-        gaps.push({ p: term.has(f) ? 0 : 1, m: `${d.id} · ${pairKey(f, t)} BẤT HỢP PHÁP${term.has(f) ? ' (từ state terminal ⚑)' : ''} — chưa có case chứng minh hệ thống CHẶN` });
+        gaps.push({ p: term.has(f) ? 0 : 1, m: `${d.id} · ${pairKey(f, t)} BẤT HỢP PHÁP${term.has(f) ? ' (từ state terminal ⚑)' : ''} — chưa có case kiểm hệ thống CHẶN` });
       }
       const nHopPhap = (d.transitions || []).length;
       const nHopPhapPhu = (d.transitions || []).filter((t) => daPhu(t.covered_by)).length;
       const nCam = states.length * (states.length - 1) - legal.size;
       const nCamPhu = [...verified.values()].filter((t) => !legal.has(pairKey(t.from, t.to)) && daPhu(t.covered_by)).length;
-      phu.push(`${d.id}: chuyển hợp pháp có case ${nHopPhapPhu}/${nHopPhap} · cặp bất hợp pháp đã chứng minh bị chặn ${nCamPhu}/${nCam}`);
+      phu.push(`${d.id}: chuyển hợp pháp có case ${nHopPhapPhu}/${nHopPhap} · cặp bất hợp pháp có case kiểm chặn ${nCamPhu}/${nCam} (có case ≠ đã chặn: chỉ verdict PASS mới chứng minh)`);
     } else if (d.type === 'permission_matrix') {
       const roles = (d.roles || []).map(String); const actions = (d.actions || []).map(String);
       Object.values(d.covered_by || {}).forEach((list, i) => checkTc(d.id, list, `covered_by[${i}]`));
