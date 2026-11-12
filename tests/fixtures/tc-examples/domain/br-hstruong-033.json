@@ -1,0 +1,11 @@
+{
+  "_y": "FIXTURE cho tests/fe/infra/tc-examples.spec.ts — rule mà ví dụ trong techniques.md trích nguyên văn. Đã trung lập hoá (v3.0.0).",
+  "id": "BR-HSTRUONG-033",
+  "rule": "Diện tích xây dựng không lớn hơn diện tích đất — Stt 27 Diện tích xây dựng (m2) là số nguyên dương tối đa 5 chữ số và không được lớn hơn giá trị Stt 26 Diện tích đất (m2); lớn hơn thì chặn lưu.",
+  "examples": [
+    {
+      "input": "Diện tích đất = 5000, Diện tích xây dựng = 5001, bấm [Cập nhật]",
+      "expected": "Bị chặn lưu, dữ liệu trên DB không đổi. Với Diện tích xây dựng = 5000 (bằng đúng diện tích đất) thì lưu thành công."
+    }
+  ]
+}

@@ -23,6 +23,12 @@ import { gateEnv } from './_gate_env';
 
 const REPO = path.resolve(__dirname, '..', '..', '..');
 const TECH = path.join(REPO, '.agent/skills/phase1/tc_design_guide/references/techniques.md');
+/*
+ * KHO RULE của ví dụ (v3.0.0): fixture đi KÈM test, không đọc `knowledge/domain/` của máy. Bản trước đọc kho
+ * của dự án đang chạy — ở dự án khác hay trong gói thì kho rỗng và hai ca dưới lặng lẽ `skip`, tức tài liệu
+ * dạy viết oracle-ref lại không ai gác oracle-ref của chính nó.
+ */
+const KHO_VI_DU = path.join(REPO, 'tests/fixtures/tc-examples/domain');
 const RE_VD = /^\|\s*(HSTRUONG|BCDN|NHANSU)_TC_/;
 
 function bocViDu() {
@@ -109,13 +115,8 @@ test.describe('@infra ví dụ TC — oracle-ref phải là rule CÓ THẬT', ()
     const { rows } = bocViDu();
     const refs = [...new Set(rows.join('\n').match(/BR-[A-Z0-9]+-\d{3}/g) || [])];
     expect(refs.length, 'ví dụ phải mang oracle-ref').toBeGreaterThanOrEqual(3);
-    const kho = path.join(REPO, 'knowledge/domain');
-    const co = new Set(
-      fs.existsSync(kho)
-        ? fs.readdirSync(kho).filter((f) => f.endsWith('.json')).map((f) => f.replace(/\.json$/, '').toUpperCase())
-        : [],
-    );
-    test.skip(co.size === 0, 'kho `knowledge/domain/` rỗng (gói phát hành không mang lớp PROJECT)');
+    const co = new Set(fs.readdirSync(KHO_VI_DU).filter((f) => f.endsWith('.json')).map((f) => f.replace(/\.json$/, '').toUpperCase()));
+    expect(co.size, 'kho rule ví dụ rỗng ⇒ phép đối chiếu rỗng').toBeGreaterThanOrEqual(3);
     const thieu = refs.filter((r) => !co.has(r));
     expect(thieu, `oracle-ref không có rule thật: ${thieu.join(' · ')}`).toEqual([]);
   });
@@ -126,11 +127,9 @@ test.describe('@infra ví dụ TC — oracle-ref phải là rule CÓ THẬT', ()
      * phải khớp ô `rule` của chính file neo — nếu không, nó là lời diễn giải của tôi đội tên đặc tả.
      */
     const src = fs.readFileSync(TECH, 'utf8');
-    const kho = path.join(REPO, 'knowledge/domain');
-    test.skip(!fs.existsSync(kho), 'không có lớp PROJECT');
     for (const id of ['BR-HSTRUONG-033', 'BR-BCDN-002', 'BR-NHANSU-003']) {
-      const f = path.join(kho, `${id.toLowerCase()}.json`);
-      test.skip(!fs.existsSync(f), `thiếu ${id}`);
+      const f = path.join(KHO_VI_DU, `${id.toLowerCase()}.json`);
+      expect(fs.existsSync(f), `thiếu rule ${id} mà ví dụ trích`).toBe(true);
       const rule = String(JSON.parse(fs.readFileSync(f, 'utf8')).rule || '');
       /* Lấy một cụm đủ dài và đủ đặc trưng từ rule rồi đòi nó xuất hiện trong tài liệu. */
       const cum = rule.split(/[;.]/).map((x) => x.trim()).filter((x) => x.length > 28)[0];

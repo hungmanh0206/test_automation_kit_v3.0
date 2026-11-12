@@ -1,0 +1,23 @@
+{
+  "_y": "FIXTURE cho tests/fe/infra/tc-examples.spec.ts — rule mà ví dụ trong techniques.md trích nguyên văn. Đã trung lập hoá (v3.0.0).",
+  "id": "BR-BCDN-002",
+  "rule": "Hoc sinh duoc tinh vao bao cao BCX dau nam theo trang thai va moc 30/9: TINH 01 Dang hoc, 02 Chuyen den K1, 03 Nghi hoc xin hoc lai K1 khi NGAY_TRANG_THAI < 01/10; TINH 04 Chuyen di K1, 05 Thoi hoc K1 khi NGAY_TRANG_THAI > 30/9; LUON TINH 08 Chuyen di K2, 09 Thoi hoc K2, 10 Chuyen den trong he; KHONG TINH 06, 07 Nghi hoc xin hoc lai K2, 11 Chuyen di trong he, 12. Quy tac trang thai ap ca cho cac dong chi tiet (khuyet tat, chinh sach, dan toc), khong chi dong tong.",
+  "examples": [
+    {
+      "input": "HS trang thai 01 Dang hoc, NGAY_TRANG_THAI = 30/09/2026",
+      "expected": "Duoc tinh"
+    },
+    {
+      "input": "HS trang thai 01 Dang hoc, NGAY_TRANG_THAI = 01/10/2026",
+      "expected": "Khong tinh"
+    },
+    {
+      "input": "HS trang thai 04 Chuyen di K1, NGAY_TRANG_THAI = 01/10/2026",
+      "expected": "Duoc tinh (chuyen di sau moc)"
+    },
+    {
+      "input": "HS trang thai 11 Chuyen di trong he",
+      "expected": "Khong tinh"
+    }
+  ]
+}
