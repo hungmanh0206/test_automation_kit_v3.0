@@ -7,7 +7,7 @@
 > **T1** chỉ chặn ở cửa ra, lúc đang làm thì cảnh báo và ghi `reports/gate-debt.json` · **T2** không
 > bao giờ chặn. T0 khai tay trong `.agent/config/gate_tiers.json`; không khai thì mặc định T1.
 
-Tổng **175** máy — **121 CHẶN** · 32 SINH (ghi artifact) · 22 BÁO CÁO (chỉ in).
+Tổng **176** máy — **122 CHẶN** · 32 SINH (ghi artifact) · 22 BÁO CÁO (chỉ in).
 
 SINH/BÁO CÁO **không phải gate bị nới** — chúng không kiểm vi phạm. Ví dụ `bugs:checklist` in brief bug
 lịch sử, còn việc CHẶN nằm ở `dim:coverage` (chiều `bug_history` §20).
@@ -66,6 +66,7 @@ lịch sử, còn việc CHẶN nằm ở `dim:coverage` (chiều `bug_history` 
 | T1 | CHẶN | `steps:promote` | THĂNG BƯỚC `draft` → `active` (v2.8.0 §E). | `scripts/qa/reuse/steps_promote.js` | tests/fe/infra |
 | T1 | CHẶN | `steps:stats` | ĐO THỐNG KÊ CỦA TỪNG BƯỚC TỪ LƯỢT CHẠY THẬT (v2.8.0 §E). | `scripts/qa/reuse/steps_stats.js` | tests/fe/infra |
 | T1 | CHẶN | `stt:map` | SUY BẢN ĐỒ `Stt đặc tả → nhãn của từng cấp`, và TỪ CHỐI GHI KHI CÒN NHẬP NHẰNG (v2.8.0 §A0). | `scripts/qa/reuse/stt_map.js` | **KHÔNG BỀ MẶT NÀO** |
+| T1 | CHẶN | `ui:polish:gen` | SINH SPEC THU THẬP độ chỉn chu UI cho MỘT task, từ danh sách màn của task. 0 token AI. | `scripts/qa/reuse/ui_polish_gen.js` | .claude/commands · tests/fe/infra |
 | T1 | CHẶN | `router:check` | BẢNG ĐỊNH TUYẾN phải phủ MỌI điểm vào, và mỗi dòng phải nói RANH GIỚI. | `scripts/qa/router_check.js` | .github/workflows · .agent/skills · tests/fe/infra |
 | T1 | CHẶN | `rule:consistency` | luật đổi ở MỘT chỗ, nhưng được nhắc lại ở hàng chục chỗ. | `scripts/qa/rule_consistency.js` | .github/workflows · .agent/skills · tests/fe/infra |
 | T1 | CHẶN | `rule:coverage`, `rule:coverage:check` | BẢN ĐỒ LUẬT → GATE → SPEC (v2.7.0 §A10.7). | `scripts/qa/rule_coverage.js` | .gitlab-ci.yml · .github/workflows · tests/fe/infra |
