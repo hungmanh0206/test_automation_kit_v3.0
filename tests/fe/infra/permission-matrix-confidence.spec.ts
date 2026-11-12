@@ -144,3 +144,66 @@ test.describe('@infra ma trận quyền — dòng tổng ba mức bằng chứng
     expect(s, 'phải nói rõ hậu quả là bị bỏ qua im lặng').toMatch(/BỎ QUA\s*\*{0,2}im lặng/i);
   });
 });
+
+test.describe('@infra nghĩa vụ test — ba mức ở PHẦN SINH NGHĨA VỤ, và độ phủ có mẫu số (đo 12/11/2026)', () => {
+  /*
+   * Bản đồ thật đầu tiên (PM-EMISBC-001, CSDL-4008): phần nghĩa vụ in 8 dòng "‼ … = DENY — chưa có TC (guard…)"
+   * cho đúng 8 ô mà phần tổng bên dưới gọi là `unknown` "đừng dựng case 403 trên ô này". Bản sửa ba mức đã vá
+   * phần kiểm và phần tổng nhưng sót phần sinh nghĩa vụ — tức kit tự sinh yêu cầu bịa, xếp ưu tiên cao nhất.
+   */
+  const chayVoi = (records: Record<string, unknown>[], tcIds: string[] = []) => {
+    const d = fs.mkdtempSync(path.join(os.tmpdir(), 'pmgap-'));
+    const tc = path.join(d, 'tc');
+    fs.mkdirSync(tc);
+    fs.writeFileSync(path.join(tc, 'a.md'), [
+      '| TC ID | Loại case | Tag | Module | Trường hợp kiểm thử | Tiền điều kiện | Dữ liệu Test | Các bước thực hiện | Kết quả mong đợi | Ưu tiên |',
+      '|---|---|---|---|---|---|---|---|---|---|',
+      ...tcIds.map((id) => `| ${id} | Functional | [Positive] | Demo | t | [ui] x | - | 1. a | 1. b | High |`),
+    ].join('\n'));
+    records.forEach((r, i) => fs.writeFileSync(path.join(d, `m-${i}.json`), JSON.stringify(r, null, 2), 'utf8'));
+    const r = spawnSync(process.execPath, [SM, '--dir', d, '--tc-dir', tc], { cwd: REPO, encoding: 'utf8', env: gateEnv() });
+    fs.rmSync(d, { recursive: true, force: true });
+    return `${r.stdout || ''}${r.stderr || ''}`;
+  };
+  const nghiaVu = (out: string) => (out.split('Nghĩa vụ test còn TRỐNG')[1] || '').split('[system]')[0];
+
+  test('ô `unknown` KHÔNG vào danh sách nghĩa vụ — nó là câu hỏi; deny_verified và deny_inferred thì vào', () => {
+    const out = chayVoi([PM]);
+    const nv = nghiaVu(out);
+    expect(nv, 'Teacher:view chưa ai nói là cấm — case 403 ở đó là yêu cầu bịa').not.toMatch(/Teacher × view/);
+    expect(nv).toMatch(/Teacher × cancel = DENY \(đã xác nhận\)/);
+    expect(nv).toMatch(/Guest × view = DENY \(SUY từ màn cấu hình quyền Demo/);
+    expect(out).toMatch(/Ô quyền CHƯA RÕ \(5\)[\s\S]*\? PM-DEMO-001 · Teacher × view/);
+  });
+
+  test('bản ghi CŨ (chưa khai deny_* nào) vẫn theo luật whitelist cũ — nhưng nói rõ là luật cũ', () => {
+    const cu: Record<string, unknown> = { ...PM };
+    delete cu.deny_verified; delete cu.deny_inferred; delete cu.inferred_from;
+    const nv = nghiaVu(chayVoi([cu]));
+    expect(nv).toMatch(/Teacher × view = DENY theo luật whitelist CŨ/);
+  });
+
+  test('độ phủ có MẪU SỐ; TC ma không tính là phủ', () => {
+    const sm = {
+      id: 'SM-DEMO-001', type: 'state_machine', entity: 'Demo', modules: ['Demo'],
+      states: ['A', 'B', 'C'], initial: 'A', terminal: [],
+      transitions: [
+        { from: 'A', to: 'B', trigger: 'x', covered_by: ['X_TC_001'] },
+        { from: 'B', to: 'C', trigger: 'y', covered_by: ['X_TC_999'] },
+      ],
+      illegal_verified: [{ from: 'C', to: 'A', expected: 'state giữ C', covered_by: ['X_TC_001'] }],
+      source: 'FSD Demo §4', confirmed_by: 'BA', confirmed_at: '2026-10-28', version: 1, status: 'active',
+    };
+    const pm = { ...PM, covered_by: { 'Admin:view': ['X_TC_001'], 'Teacher:cancel': ['X_TC_001'] } };
+    const out = chayVoi([sm, pm], ['X_TC_001']);
+    expect(out).toMatch(/SM-DEMO-001: chuyển hợp pháp có case 1\/2 · cặp bất hợp pháp đã chứng minh bị chặn 1\/4/);
+    expect(out).toMatch(/PM-DEMO-001: ô được phép có case 1\/5 · ô bị cấm có case chặn 1\/2 · ô chưa rõ 5/);
+  });
+
+  test('chỉ có bản đồ nháp ⇒ độ phủ KHÔNG PHÁN ĐƯỢC, không phải "nghĩa vụ trống 0 = đã phủ"', () => {
+    const nhap = { id: 'PM-DEMO-002', type: 'permission_matrix', modules: ['Demo'], status: 'draft', todo: 'hỏi BA ma trận quyền' };
+    const out = chayVoi([nhap]);
+    expect(out).toMatch(/KHÔNG PHÁN ĐƯỢC — chưa có bản đồ trạng thái/);
+    expect(out).toMatch(/Nghĩa vụ test còn TRỐNG: 0/);
+  });
+});
