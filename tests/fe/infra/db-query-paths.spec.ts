@@ -228,9 +228,9 @@ test.describe('@infra db:paths:check — quét đường vòng trong CODE', () =
   test('miễn trừ phải có LÝ DO và HẠN rà soát', () => {
     /* v3.0.0: danh sách miễn trừ là lớp PROJECT (đường dẫn file task thật), không vào gói — gói chỉ có bản mẫu rỗng. */
     const f = path.join(REPO, '.agent/config/db-paths.allow.json');
-    test.skip(!fs.existsSync(f), 'không có db-paths.allow.json (lớp PROJECT) — cây này chưa khai miễn trừ nào để soát');
-    const j = JSON.parse(fs.readFileSync(f, 'utf8'));
-    expect(j.mien_tru.length, 'danh sách rỗng thì test này vô nghĩa — kiểm lại').toBeGreaterThan(0);
+    /* release:verify chép bản .example (danh sách RỖNG) thành file thật ⇒ có file mà không có miễn trừ nào để soát. */
+    const j = fs.existsSync(f) ? JSON.parse(fs.readFileSync(f, 'utf8')) : { mien_tru: [] };
+    test.skip(!(j.mien_tru || []).length, 'chưa khai miễn trừ nào (db-paths.allow.json là lớp PROJECT; gói chỉ có bản mẫu rỗng)');
     for (const m of j.mien_tru) {
       expect(String(m.ly_do || '').length, `${m.file} khai miễn trừ mà không nói vì sao`).toBeGreaterThan(60);
       expect(String(m.ra_soat_truoc || ''), `${m.file} thiếu hạn rà soát — miễn trừ không hạn là vĩnh viễn`).toMatch(/^\d{4}-\d{2}-\d{2}$/);
