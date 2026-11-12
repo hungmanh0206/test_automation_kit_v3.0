@@ -7,7 +7,7 @@
 > **T1** chỉ chặn ở cửa ra, lúc đang làm thì cảnh báo và ghi `reports/gate-debt.json` · **T2** không
 > bao giờ chặn. T0 khai tay trong `.agent/config/gate_tiers.json`; không khai thì mặc định T1.
 
-Tổng **174** máy — **121 CHẶN** · 32 SINH (ghi artifact) · 21 BÁO CÁO (chỉ in).
+Tổng **175** máy — **121 CHẶN** · 32 SINH (ghi artifact) · 22 BÁO CÁO (chỉ in).
 
 SINH/BÁO CÁO **không phải gate bị nới** — chúng không kiểm vi phạm. Ví dụ `bugs:checklist` in brief bug
 lịch sử, còn việc CHẶN nằm ở `dim:coverage` (chiều `bug_history` §20).
@@ -185,6 +185,7 @@ lịch sử, còn việc CHẶN nằm ở `dim:coverage` (chiều `bug_history` 
 | T2 | BÁO CÁO | `select:tests` | Intelligent Test Selection từ git diff. | `scripts/qa/select_tests.js` | docs/kit-map.md · tests/fe/infra |
 | T2 | BÁO CÁO | `results:summary` | đọc `results.json` của Playwright, in BẢN TÓM TẮT có TRẦN DÒNG. | `scripts/qa/summarize_results.js` | docs/kit-map.md · .agent/workflows · .agent/rules · .agent/skills · prompt_templates · tests/fe/infra |
 | T2 | BÁO CÁO | `tc:semantic` | CHẤM NGỮ NGHĨA bộ testcase: đối chiếu từng case với RÀNG BUỘC trong bảng trường của đặc tả. | `scripts/qa/tc_semantic.js` | .agent/workflows · .claude/commands · tests/fe/infra |
+| T2 | BÁO CÁO | `ui:polish` | báo cáo ĐỘ CHỈN CHU UI từ dữ liệu đã thu bằng `scripts/utils/ui/ui_polish.js` → `thuThap()`. | `scripts/qa/ui_polish.js` | .claude/commands · tests/fe/infra |
 | T2 | BÁO CÁO | `extension:verify` | const {spawnSync}=require('child_process'),path=require('path'); | `scripts/qa/v4_verify.js` | **KHÔNG BỀ MẶT NÀO** |
 | T2 | BÁO CÁO | `report` | const { spawnSync } = require('child_process'); | `scripts/show_report.js` | .gitlab-ci.yml · RULE_GLOBAL.md · CLAUDE.md · README.md · USER_GUIDE.md · scripts/qa/README.md · docs/kit-map.md · .github/workflows · .agent/workflows · .agent/rules · .agent/skills · prompt_templates · exploratory · partial-rerun · manual-run · .claude/commands · tests/fe/infra |
 | T2 | BÁO CÁO | `task:which` | XÁC ĐỊNH TASK_KEY cho một lượt chạy slash command. | `scripts/utils/task_hien_tai.js` | README.md · USER_GUIDE.md · QUICKSTART.md · .claude/commands |

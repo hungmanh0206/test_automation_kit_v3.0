@@ -862,7 +862,7 @@ body.lropen{overflow:hidden}
 
     <h3 class="subhead"><span class="num">5</span>Lệnh hay dùng</h3>
     <p class="sectip">Danh mục gate của kit là <b>tự sinh từ source</b>, không viết tay — bản hiện tại đếm được
-      <b>174 máy: 121 CHẶN · 32 SINH · 21 BÁO CÁO</b>. Sinh lại bằng <code>npm run gates:index</code>.
+      <b>175 máy: 121 CHẶN · 32 SINH · 22 BÁO CÁO</b>. Sinh lại bằng <code>npm run gates:index</code>.
       Phiên bản kit: <b>2.11.0</b>.</p>
     <div id="cmdList"></div>
 
@@ -994,7 +994,7 @@ body.lropen{overflow:hidden}
       </ul>
 
       <h3>Vì sao cần</h3>
-      <p>Kit có 28 skill, 174 máy kiểm (121 trong đó CHẶN thật) và một bộ từ vựng riêng (oracle độc lập, tautology, failureLayer,
+      <p>Kit có 28 skill, 175 máy kiểm (121 trong đó CHẶN thật) và một bộ từ vựng riêng (oracle độc lập, tautology, failureLayer,
         readiness, TRI, chiều coverage…). Người mới vào phải đọc rải rác nhiều file mới ghép được bức tranh.
         Trang này gom lại một chỗ, giữ nguyên nguồn, và cố tình <b>không</b> diễn giải thêm ngoài những gì repo đã ghi.</p>
 
@@ -1819,7 +1819,7 @@ const TERMS_GATE3 = [
   src:'scripts/qa/scope_anchor.js', rel:['g-dimension_coverage','c-canonical','g-preflight_gate'] },
 { id:'g-gate_index', t:'gates:index', cat:'gate',
   def:'Sinh DANH MỤC GATE của kit từ chính source. Trả lời được "kit có bao nhiêu gate, mỗi cái CHẶN gì, gọi ở đâu".',
-  detail:'Quét source rồi suy mức từ code: exit 1 là CHẶN · ghi artifact là SINH · chỉ in là BÁO CÁO. Bảng hiện tại: 174 máy — 121 CHẶN, 32 SINH, 21 BÁO CÁO. Bản --check chặn khi bảng lệch source.',
+  detail:'Quét source rồi suy mức từ code: exit 1 là CHẶN · ghi artifact là SINH · chỉ in là BÁO CÁO. Bảng hiện tại: 175 máy — 121 CHẶN, 32 SINH, 22 BÁO CÁO. Bản --check chặn khi bảng lệch source.',
   why:'Kit có hơn 30 npm script dạng gate và gần 60 file trong scripts/qa/, nhưng không chỗ nào trả lời được câu trên. Hệ quả không phải bất tiện: luận đề của kit là "luật cần MÁY", mà máy không LIỆT KÊ ĐƯỢC thì không kiểm toán được. Không ai biết một gate đã âm thầm tụt thành cảnh báo, hay đã mất nơi gọi.',
   how:['npm run gates:index để sinh lại bảng.','npm run gates:index:check để chặn khi bảng lệch source.'],
   cmd:'npm run gates:index   ·   npm run gates:index:check',
@@ -2336,7 +2336,16 @@ const TERMS_GATE3 = [
   cmd:'npm run rerun:classify -- --task <TASK_KEY>',
   ex:'Máy xếp được HAI loại. ① flaky: verdict đổi TRONG CÙNG một lượt — mã và môi trường chưa kịp đổi nên không còn lời giải thích nào khác. ② automation đã đổi: vân tay spec khác lượt trước.',
   trap:'"Fix bug" và "đổi môi trường" để lại CÙNG một dấu vết đo được — verdict đổi mà spec không đổi. Máy KHÔNG phân biệt được, và chọn bừa một trong hai là bịa nguyên nhân, đúng thứ failureLayer đã cấm. Và specDoi chỉ nói automation CÓ ĐỔI, không nói đổi đó GÂY RA verdict mới: sửa một dòng chú thích cũng làm vân tay đổi.',
-  src:'scripts/qa/rerun_classify.js', rel:['s-layer-flaky','g-exec_proof','f-verdict-taxonomy','g-setup_proof'] }
+  src:'scripts/qa/rerun_classify.js', rel:['s-layer-flaky','g-exec_proof','f-verdict-taxonomy','g-setup_proof'] },
+
+{ id:'g-ui_polish', t:'ui:polish', cat:'gate',
+  def:'Đo độ chỉn chu UI xuyên màn: khoảng cách có theo một thang không, cùng loại thành phần có giống nhau ở mọi màn không, hệ thống dùng bao nhiêu font, cỡ chữ, màu.',
+  detail:'Spec của task gọi thuThap(page) trên từng màn rồi ghi JSON. Máy đọc style tính được của nút, ô nhập, nhãn, tiêu đề và mọi padding, margin, gap. Có thang thiết kế thì so với thang. Không có thì suy bước phủ ít nhất 80% số lần dùng, và lấy giá trị đa số của từng thuộc tính làm mốc.',
+  why:'Các máy khác đo từng element (bị đè, tràn, cắt chữ) hoặc nội dung (nhãn, cột). Không máy nào hỏi nút Ghi ở màn này cao 32px mà màn kia 28px. Lỗi đó người dùng thấy ngay, còn mọi assertion vẫn xanh.',
+  how:['Trong spec task: require scripts/utils/ui/ui_polish và ghi kết quả thuThap(page, { man }) vào test-results/ui-polish/.','npm run ui:polish -- --task <KEY> để báo cáo.','Thêm --thang 4,8,12,16,24,32 khi có thang từ thiết kế.'],
+  cmd:'npm run ui:polish -- --task <KEY> [--thang 4,8,16,24]',
+  trap:'Không có thang thiết kế thì đa số chỉ là mốc so, không phải chuẩn: lệch đa số là OBSERVATION, không phải bug, và đa số có thể chính là cái sai. Máy không đọc giá trị ô nhập vì màn thật có thể chứa thông tin khách.',
+  src:'scripts/qa/ui_polish.js', rel:['g-ui_conformance_check'] }
 
 ];
 
@@ -3520,7 +3529,7 @@ const TERMS_FLOW2 = [
 
 { id:'f-gate-catalog', t:'Danh mục gate (tự sinh)', cat:'flow',
   def:'Bảng liệt kê mọi máy của kit kèm mức chặn, sinh tự động từ source.',
-  detail:'Con số hiện tại: 174 máy — 121 CHẶN · 32 SINH (ghi artifact) · 21 BÁO CÁO (chỉ in). Mức được suy từ code chứ không khai tay: exit 1 là CHẶN, ghi artifact là SINH, chỉ in là BÁO CÁO. Bảng còn ghi mỗi máy được gọi từ đâu, và ghi ra .agent/config/GATES.md.',
+  detail:'Con số hiện tại: 175 máy — 121 CHẶN · 32 SINH (ghi artifact) · 22 BÁO CÁO (chỉ in). Mức được suy từ code chứ không khai tay: exit 1 là CHẶN, ghi artifact là SINH, chỉ in là BÁO CÁO. Bảng còn ghi mỗi máy được gọi từ đâu, và ghi ra .agent/config/GATES.md.',
   why:'Luận đề của kit là "luật cần MÁY". Nhưng máy mà không liệt kê được thì không kiểm toán được. Không ai biết một gate đã âm thầm tụt xuống thành cảnh báo, hay đã mất hết nơi gọi và thành mồ côi.',
   how:['Sinh lại: npm run gates:index.','Chặn khi bảng lệch source: npm run gates:index:check.'],
   trap:'SINH và BÁO CÁO không phải gate bị nới. Chúng không kiểm vi phạm, chỉ tạo dữ liệu cho máy khác chặn.',
@@ -3932,7 +3941,7 @@ const CMD_GROUPS = [
     ['npm run merge:execution-status -- --task <KEY>','Ghép kết quả execute vào bộ canonical']
   ]},
   { g:'Kit: tự kiểm toán & phát hành', items:[
-    ['npm run gates:index  ·  npm run gates:index:check','Danh mục gate tự sinh — 174 máy, 121 CHẶN; :check chặn khi bảng lệch source'],
+    ['npm run gates:index  ·  npm run gates:index:check','Danh mục gate tự sinh — 175 máy, 121 CHẶN; :check chặn khi bảng lệch source'],
     ['npm run rule -- <mục>  ·  npm run rule:toc','Tra RULE_GLOBAL theo mục (287 token) thay vì đọc cả file (12,8k)'],
     ['npm run version:check','Chặn phát hành thiếu số phiên bản; kiểm khớp tag'],
     ['npm run package:kit','Đóng gói dist/ CHỈ lớp GENERIC — không để lọt secret hay oracle của dự án khác'],

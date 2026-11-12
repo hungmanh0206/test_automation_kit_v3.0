@@ -1,0 +1,26 @@
+<!doctype html><html lang="vi"><head><meta charset="utf-8"><title>Màn chuẩn</title>
+<style>
+  body { margin: 0; font-family: Roboto, Arial, sans-serif; font-size: 14px; color: rgb(33, 33, 33); }
+  .khung { padding: 16px 24px; display: flex; flex-direction: column; row-gap: 16px; }
+  h2 { margin: 0 0 8px 0; font-size: 20px; }
+  .dong { display: flex; column-gap: 8px; align-items: center; }
+  label { width: 160px; font-size: 14px; }
+  input, select { height: 32px; box-sizing: border-box; padding: 4px 8px; font-size: 14px; font-family: Roboto, Arial, sans-serif; border-radius: 4px; border: 1px solid #ccc; }
+  button { height: 32px; padding: 0 16px; font-size: 14px; font-family: Roboto, Arial, sans-serif; border-radius: 4px; border: 0; }
+  .an { display: none; }
+  .dau-trang { padding: 30px; } .dau-trang button { height: 40px; padding: 0 30px; }
+  .RadComboBox { display: inline-block; height: 32px; width: 200px; box-sizing: border-box; padding: 4px 8px; font-size: 14px; font-family: Roboto, Arial, sans-serif; border-radius: 4px; border: 1px solid #ccc; }
+  .RadComboBox .rcbInput { height: 20px; padding: 0; border: 0; font-size: 13px; }
+  .icon { height: 24px; width: 24px; padding: 0; }
+</style></head><body>
+<div class="dau-trang"><button id="nutDau">Đăng xuất</button></div>
+<div class="khung">
+  <h2>Hồ sơ trường</h2>
+  <div class="dong"><label for="a">Tên trường</label><input id="a" type="text" value="Trường A"></div>
+  <div class="dong"><label for="b">Điện thoại</label><input id="b" type="text" value="0912345678"></div>
+  <div class="dong"><label for="c">Loại hình</label><select id="c"><option>Công lập</option></select></div>
+  <div class="dong"><label for="f">Tên gọi đầy đủ theo quyết định thành lập của cơ quan có thẩm quyền</label><div class="RadComboBox"><table><tr><td class="rcbInputCell"><input id="f" class="rcbInput" type="text" value="Chọn"></td></tr></table></div></div>
+  <div class="dong"><button id="ghi">Ghi</button><button id="trangSau" class="icon" aria-label="Trang sau"></button><button id="huy">Hủy</button><button id="in">In</button></div>
+  <div class="an"><button id="nutAn" style="height: 99px; padding: 13px">Ẩn</button></div>
+  <button id="nutVoHinh" style="visibility: hidden; height: 77px; padding: 11px">Vô hình</button>
+</div></body></html>
