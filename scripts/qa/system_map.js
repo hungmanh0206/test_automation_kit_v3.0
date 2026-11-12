@@ -397,7 +397,9 @@ if (flag('matrix') || wantReport) {
 
 if (flag('gaps') || wantReport) {
   const real = realTcIds();
-  const gaps = []; const ghosts = [];
+  const gaps = []; const ghosts = []; const cauHoi = []; const phu = [];
+  /* Một ô/chuyển chỉ tính là PHỦ khi mọi TC trong `covered_by` có thật — trỏ vào TC ma thì không phủ gì. */
+  const daPhu = (list) => Array.isArray(list) && list.length > 0 && list.every((tc) => !real.size || real.has(String(tc)));
   const checkTc = (id, list, where) => (list || []).filter((tc) => real.size && !real.has(String(tc))).forEach((tc) => ghosts.push(`${id} ${where}: \`covered_by\` trỏ TC KHÔNG TỒN TẠI "${tc}"`));
   for (const r of maps) {
     const d = r.data || {};
@@ -420,23 +422,58 @@ if (flag('gaps') || wantReport) {
         // ưu tiên cặp xuất phát từ state terminal: đó là chỗ sinh bug toàn vẹn dữ liệu (vd huỷ đơn đã thanh toán)
         gaps.push({ p: term.has(f) ? 0 : 1, m: `${d.id} · ${pairKey(f, t)} BẤT HỢP PHÁP${term.has(f) ? ' (từ state terminal ⚑)' : ''} — chưa có case chứng minh hệ thống CHẶN` });
       }
+      const nHopPhap = (d.transitions || []).length;
+      const nHopPhapPhu = (d.transitions || []).filter((t) => daPhu(t.covered_by)).length;
+      const nCam = states.length * (states.length - 1) - legal.size;
+      const nCamPhu = [...verified.values()].filter((t) => !legal.has(pairKey(t.from, t.to)) && daPhu(t.covered_by)).length;
+      phu.push(`${d.id}: chuyển hợp pháp có case ${nHopPhapPhu}/${nHopPhap} · cặp bất hợp pháp đã chứng minh bị chặn ${nCamPhu}/${nCam}`);
     } else if (d.type === 'permission_matrix') {
       const roles = (d.roles || []).map(String); const actions = (d.actions || []).map(String);
       Object.values(d.covered_by || {}).forEach((list, i) => checkTc(d.id, list, `covered_by[${i}]`));
+      /*
+       * BA MỨC, ở ĐÂY nữa — không chỉ ở phần kiểm và phần tổng.
+       *
+       * Đo 12/11/2026 trên bản đồ thật đầu tiên (PM-EMISBC-001): phần nghĩa vụ in 8 dòng "‼ Truong × duyet = DENY —
+       * chưa có TC (guard…)" cho đúng 8 ô mà phần tổng ngay bên dưới nói là `unknown` "đừng dựng case 403 trên ô
+       * này". Bản sửa 10/10 vá phần kiểm và phần tổng, còn phần sinh nghĩa vụ vẫn coi ô không khai là cấm — tức sinh
+       * ra yêu cầu tự bịa, xếp ưu tiên cao nhất. Bản ghi CŨ (không khai `deny_*` nào) vẫn theo luật whitelist cũ, có
+       * ghi chú; bản ghi đã chuyển sang ba mức thì ô `unknown` là CÂU HỎI, không phải nghĩa vụ.
+       */
+      const baMuc = d.deny_verified !== undefined || d.deny_inferred !== undefined;
+      const coO = (k, role, a) => Array.isArray(d[k] && d[k][role]) && d[k][role].map(String).includes(a);
+      let nAllow = 0; let nAllowPhu = 0; let nDeny = 0; let nDenyPhu = 0;
       for (const role of roles) for (const a of actions) {
-        const allowed = Array.isArray(d.allow && d.allow[role]) && d.allow[role].map(String).includes(a);
+        const allowed = coO('allow', role, a);
+        const denyV = coO('deny_verified', role, a);
+        const denyI = coO('deny_inferred', role, a);
         const cov = (d.covered_by || {})[`${role}:${a}`];
-        if (Array.isArray(cov) && cov.length) continue;
-        gaps.push({ p: allowed ? 2 : 0, m: `${d.id} · ${role} × ${a} = ${allowed ? 'ALLOW' : 'DENY'} — chưa có TC${allowed ? '' : ` (guard, kỳ vọng: ${d.deny_expected})`}` });
+        const covered = Array.isArray(cov) && cov.length;
+        if (allowed) { nAllow += 1; if (daPhu(cov)) nAllowPhu += 1; } else if (denyV || denyI || !baMuc) { nDeny += 1; if (daPhu(cov)) nDenyPhu += 1; }
+        if (covered) continue;
+        if (allowed) gaps.push({ p: 2, m: `${d.id} · ${role} × ${a} = ALLOW — chưa có TC` });
+        else if (denyV) gaps.push({ p: 0, m: `${d.id} · ${role} × ${a} = DENY (đã xác nhận) — chưa có TC guard, kỳ vọng: ${d.deny_expected}` });
+        else if (denyI) gaps.push({ p: 1, m: `${d.id} · ${role} × ${a} = DENY (SUY từ ${d.inferred_from}) — chưa có TC guard, kỳ vọng: ${d.deny_expected}` });
+        else if (!baMuc) gaps.push({ p: 0, m: `${d.id} · ${role} × ${a} = DENY theo luật whitelist CŨ (bản ghi chưa khai deny_*) — chưa có TC guard, kỳ vọng: ${d.deny_expected}` });
+        else cauHoi.push(`${d.id} · ${role} × ${a}`);
       }
+      phu.push(`${d.id}: ô được phép có case ${nAllowPhu}/${nAllow} · ô bị cấm có case chặn ${nDenyPhu}/${nDeny}${baMuc ? ` · ô chưa rõ ${roles.length * actions.length - nAllow - nDeny} (câu hỏi, không tính)` : ''}`);
     } else if (d.type === 'shared_surface') {
       checkTc(d.id, d.covered_by, 'covered_by');
     }
   }
   gaps.sort((a, b) => a.p - b.p);
+  /* Độ phủ, không chỉ danh sách thiếu: "còn trống 0" mà không có mẫu số thì không ai biết là đã phủ hết hay chưa có
+   * gì để phủ. 0 bản đồ trạng thái/quyền ⇒ KHÔNG PHÁN ĐƯỢC, không phải "đã phủ". */
+  console.log('\n[system] Độ phủ case trên bản đồ (TC phải có thật trong testcase canonical mới tính):');
+  if (phu.length) phu.forEach((x) => console.log(`  ${x}`));
+  else console.log('  KHÔNG PHÁN ĐƯỢC — chưa có bản đồ trạng thái (SM-*) hay ma trận quyền (PM-*) nào ở trạng thái active. "Nghĩa vụ trống 0" bên dưới KHÔNG có nghĩa là đã phủ.');
   console.log(`\n[system] Nghĩa vụ test còn TRỐNG: ${gaps.length}`);
   gaps.slice(0, MAX_ROWS).forEach((g) => console.log(`  ${g.p === 0 ? '‼' : '~'} ${g.m}`));
   if (gaps.length > MAX_ROWS) console.log(`  … còn ${gaps.length - MAX_ROWS} dòng nữa (đã cắt để dễ đọc — xem hết: --max ${gaps.length})`);
+  if (cauHoi.length) {
+    console.log(`\n[system] Ô quyền CHƯA RÕ (${cauHoi.length}) — KHÔNG phải nghĩa vụ; là câu hỏi cho BA trước khi dựng case nào:`);
+    cauHoi.slice(0, MAX_ROWS).forEach((x) => console.log(`  ? ${x}`));
+  }
   if (ghosts.length) { console.log(`\n[system] TC ma (${ghosts.length}):`); ghosts.slice(0, MAX_ROWS).forEach((g) => console.log(`  ~ ${g}`)); }
   if (real.size) console.log(`[system] (đối chiếu với ${real.size} TC ID thật trong testcase canonical)`);
   else console.log('[system] (không tìm thấy testcase canonical → không kiểm được TC ma; chạy kèm --task <TASK_KEY> hoặc --tc-dir)');

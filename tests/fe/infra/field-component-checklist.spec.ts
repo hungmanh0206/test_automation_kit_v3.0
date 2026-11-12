@@ -27,10 +27,13 @@ const CFG = require(path.join(REPO, '.agent/config/ui_components.json'));
 
 const DIM_DIR = path.join(REPO, 'prompt_templates/phase2/dimensions');
 
-/* Artifact giả cho nhánh XUNG ĐỘT: `knowSystem()` đọc knowledge/system/ thật, nên phải đặt file ở đó rồi
- * xoá đi — cùng cách `ui-contract-check.spec.ts` đã làm. ID cố ý nhìn là biết fixture. */
-const KS_DIR = path.join(REPO, 'knowledge', 'system');
-const KS_FILE = path.join(KS_DIR, 'PM-TEST-999.json');
+/* Kho bản đồ hệ thống của ca nằm ở THƯ MỤC TẠM (`DIM_KNOWLEDGE_SYSTEM_DIR`), không phải knowledge/system/ thật.
+ * Bản trước ghi fixture vào kho thật rồi xoá, và mọi ca khác đọc thẳng kho thật — đo 12/11/2026: bản đồ đầu tiên
+ * của dự án (SM-EMISBC-001) làm 4 ca của file này đỏ trên máy QA trong khi CI vẫn xanh. ID cố ý nhìn là biết fixture. */
+const PM_FIXTURE = (extra: Record<string, unknown> = {}) => ({
+  type: 'permission_matrix', id: 'PM-TEST-999', source: 'fixture test — không phải ma trận thật', status: 'active',
+  modules: ['M'], roles: ['admin'], actions: ['xem'], allow: { admin: ['xem'] }, deny_expected: '403', ...extra,
+});
 
 const HEAD = [
   '| TC ID | Loại case | Tag | Module | Trường hợp kiểm thử | Tiền điều kiện | Dữ liệu Test | Các bước thực hiện | Kết quả mong đợi | Ưu tiên |',
@@ -43,8 +46,11 @@ const row = (id: string) =>
 const LY_DO = 'Màn này không có thành phần đó, đã rà ngày 09/10/2026 trên cả năm cấp học.';
 
 /** Dựng task tạm (manifest + bộ TC) rồi chạy gate đúng như pipeline chạy. */
-function chay(manifest: Record<string, unknown> | null, { enforce = false, soCase = 3 } = {}) {
+function chay(manifest: Record<string, unknown> | null, { enforce = false, soCase = 3, banDo = [] as Record<string, unknown>[] } = {}) {
   const pod = fs.mkdtempSync(path.join(os.tmpdir(), 'uic-'));
+  const ks = path.join(pod, 'knowledge-system');
+  fs.mkdirSync(ks);
+  banDo.forEach((b, i) => fs.writeFileSync(path.join(ks, `b-${i}.json`), JSON.stringify(b), 'utf8'));
   const taskDir = path.join(pod, 'tasks', 'T-1');
   fs.mkdirSync(path.join(taskDir, 'test-cases'), { recursive: true });
   fs.mkdirSync(path.join(taskDir, 'requirements'), { recursive: true });
@@ -58,7 +64,7 @@ function chay(manifest: Record<string, unknown> | null, { enforce = false, soCas
     const r = spawnSync(process.execPath, [GATE, ...(enforce ? ['--enforce'] : [])], {
       cwd: REPO,
       encoding: 'utf8',
-      env: { ...gateEnv(), PROJECT_OUTPUT_DIR: pod, TASK_KEY: 'T-1' } as NodeJS.ProcessEnv,
+      env: { ...gateEnv(), PROJECT_OUTPUT_DIR: pod, TASK_KEY: 'T-1', DIM_KNOWLEDGE_SYSTEM_DIR: ks } as NodeJS.ProcessEnv,
     });
     return { code: r.status, out: `${r.stdout || ''}${r.stderr || ''}` };
   } finally {
@@ -194,22 +200,26 @@ test.describe('@infra loại field + component — danh mục đọc từ config
      * sợ báo oan: artifact có thật thì component đó áp dụng, hết bàn. Chiều ngược lại KHÔNG đúng và cố ý
      * không cài — artifact vắng không chứng minh được component không áp dụng.
      */
-    fs.mkdirSync(KS_DIR, { recursive: true });
-    fs.writeFileSync(KS_FILE, JSON.stringify({
-      type: 'permission_matrix', id: 'PM-TEST-999', source: 'fixture test — không phải ma trận thật',
-      roles: ['admin'], actions: ['xem'], allow: [['admin', 'xem']], deny_expected: '403',
-    }, null, 2), 'utf8');
-    try {
-      const m = base(cpNa()) as { dimensions: Record<string, string> };
-      // Cửa CHIỀU chặn trước cửa COMPONENT, nên muốn đo được cửa sau thì cửa trước phải thông. Và đó
-      // chính là ca mà chỉ cửa component bắt được: chiều khai `required` mà component khai `n/a`.
-      m.dimensions.security = 'required';
-      const r = chay(m, { enforce: true });
-      expect(r.code).toBe(1);
-      expect(r.out).toMatch(/XUNG ĐỘT: component "Permission \/ Role"/);
-      expect(r.out).toMatch(/permission_matrix/);
-    } finally {
-      fs.rmSync(KS_FILE, { force: true });
+    const m = base(cpNa()) as { dimensions: Record<string, string> };
+    // Cửa CHIỀU chặn trước cửa COMPONENT, nên muốn đo được cửa sau thì cửa trước phải thông. Và đó
+    // chính là ca mà chỉ cửa component bắt được: chiều khai `required` mà component khai `n/a`.
+    m.dimensions.security = 'required';
+    const r = chay(m, { enforce: true, banDo: [PM_FIXTURE()] });
+    expect(r.code).toBe(1);
+    expect(r.out).toMatch(/XUNG ĐỘT: component "Permission \/ Role"/);
+    expect(r.out).toMatch(/permission_matrix/);
+  });
+
+  test('ĐỐI CHỨNG ÂM — bản đồ của MODULE KHÁC, hoặc bản NHÁP, KHÔNG chứng minh gì cho task này', () => {
+    /*
+     * Kho bản đồ dùng chung cho mọi task. Bản đầu của `knowSystem()` chỉ hỏi "kho có bản ghi loại này không":
+     * bản đồ luồng gửi báo cáo EMIS (CSDL-4008) làm MỌI task khai `guard: n/a` bị chặn XUNG ĐỘT.
+     */
+    const m = base(cpNa()) as { dimensions: Record<string, string> };
+    m.dimensions.security = 'required';
+    for (const banDo of [[PM_FIXTURE({ modules: ['Gửi báo cáo'] })], [PM_FIXTURE({ status: 'draft' })]]) {
+      const r = chay(m, { enforce: true, banDo });
+      expect(r.out, JSON.stringify(banDo[0].modules) + ' ' + banDo[0].status).not.toMatch(/XUNG ĐỘT/);
     }
   });
 
