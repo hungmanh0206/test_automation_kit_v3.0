@@ -226,7 +226,10 @@ test.describe('@infra db:paths:check — quét đường vòng trong CODE', () =
   });
 
   test('miễn trừ phải có LÝ DO và HẠN rà soát', () => {
-    const j = JSON.parse(fs.readFileSync(path.join(REPO, '.agent/config/db-paths.allow.json'), 'utf8'));
+    /* v3.0.0: danh sách miễn trừ là lớp PROJECT (đường dẫn file task thật), không vào gói — gói chỉ có bản mẫu rỗng. */
+    const f = path.join(REPO, '.agent/config/db-paths.allow.json');
+    test.skip(!fs.existsSync(f), 'không có db-paths.allow.json (lớp PROJECT) — cây này chưa khai miễn trừ nào để soát');
+    const j = JSON.parse(fs.readFileSync(f, 'utf8'));
     expect(j.mien_tru.length, 'danh sách rỗng thì test này vô nghĩa — kiểm lại').toBeGreaterThan(0);
     for (const m of j.mien_tru) {
       expect(String(m.ly_do || '').length, `${m.file} khai miễn trừ mà không nói vì sao`).toBeGreaterThan(60);
