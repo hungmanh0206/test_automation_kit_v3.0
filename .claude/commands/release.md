@@ -10,6 +10,7 @@ Thiếu mã task → `npm run task:which -- $ARGUMENTS`; thoát 2 = KHÔNG PHÁN
 npm run exit:gate -- --cua done --task $ARGUMENTS
 npm run release:summary -- --task $ARGUMENTS
 npm run bug:outcome:backlog
+npm run bug:tac-gia -- --quet
 npm run agent:scorecard -- --task $ARGUMENTS
 npm run pass:audit -- --task $ARGUMENTS
 ```
@@ -23,7 +24,8 @@ npm run pass:audit -- --task $ARGUMENTS
 **`agent:scorecard`** ghi số VẬN HÀNH của task: giờ làm việc, câu hỏi chặn QA, tỉ lệ tự khắc phục, tỉ lệ
 claim bị bác, token trên mỗi verdict xác minh. Nó không chặn. Chỉ số nào thiếu nguồn thì ghi KHÔNG PHÁN ĐƯỢC.
 `bug:outcome:backlog` chạy trước nó: CHỈ ĐỌC Backlog, cập nhật sổ DEV nhận hay bác từng bug. Bug Resolved hay Closed
-thì máy không tự đoán, phải gắn tay bằng `--nhan`, kèm lời DEV.
+thì máy không tự đoán, phải gắn tay bằng `--nhan`, kèm lời DEV. `bug:tac-gia` tách tỉ lệ đó theo ai tạo bug: agent,
+người chạy script, hay KHÔNG RÕ. "Không rõ" không phải "người".
 
 **`pass:audit`** đo phía còn lại: tỉ lệ PASS SAI. Sổ bug chỉ thấy FAIL, còn một PASS sai thì không sinh bug nào.
 Bốc mẫu bằng `--chon 20`, đưa phiếu cho NGƯỜI chấm, rồi `--ghi <phiếu>`. Agent không được tự chấm phiếu.

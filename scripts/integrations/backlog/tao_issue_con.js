@@ -155,6 +155,8 @@ async function taiAnh(duongDan) {
 
   const moi = await api('POST', '/api/v2/issues', form);
   console.log(`\n[OK] đã tạo ${moi.issueKey} — ${BASE}/view/${moi.issueKey}`);
+  /* Sổ tác giả ở máy QA (không đánh dấu trên Backlog — chủ dự án không muốn thấy dấu của kit trong mô tả bug). */
+  require(path.join(__dirname, '..', '..', 'qa', 'bug_tac_gia.js')).ghi({ issueKey: moi.issueKey, qua: 'tao_issue_con' }, { base: BASE });
 
   /* NGHIỆM THU bằng cách đọc lại từ server, không tin mã trả về của lượt POST: `attachmentId[]` sai
    * kiểu thì Backlog vẫn trả 201 kèm issue không có tệp nào. */
