@@ -66,16 +66,20 @@ function gop(soCu, issuesMoi) {
   return ra;
 }
 
-/** Gắn nhãn tay — có điều kiện, không gọi mạng. */
+/**
+ * Gắn nhãn tay — có điều kiện, không gọi mạng. Trả `{ so }` hoặc `{ loi }`, KHÔNG ném: lỗi đầu vào ở đây là
+ * người gõ sai, không phải đường CHẶN của luồng nào. (`gates:index` coi mọi lệnh ném lỗi là đường ra chặn —
+ * và nó đúng với các cửa; máy này là sổ ghi, nên trả lỗi như một giá trị.)
+ */
 function ganTay(so, key, nhan, viSao) {
   const i = (so.issues || {})[key];
-  if (!i) throw new Error(`${key} chưa có trong sổ — chạy đọc Backlog trước`);
-  if (!NHAN[nhan]) throw new Error(`nhãn "${nhan}" không hợp lệ. Chọn: ${Object.keys(NHAN).join(' · ')}`);
-  if (String(viSao || '').trim().length < SAN_LY_DO) throw new Error(`lý do phải ≥ ${SAN_LY_DO} ký tự — trích lời DEV hoặc nơi có kết cục`);
-  if (CHUA_XONG.test(i.trangThai)) throw new Error(`${key} đang "${i.trangThai}" — chưa có kết cục để gắn nhãn`);
+  if (!i) return { loi: `${key} chưa có trong sổ — chạy đọc Backlog trước` };
+  if (!NHAN[nhan]) return { loi: `nhãn "${nhan}" không hợp lệ. Chọn: ${Object.keys(NHAN).join(' · ')}` };
+  if (String(viSao || '').trim().length < SAN_LY_DO) return { loi: `lý do phải ≥ ${SAN_LY_DO} ký tự — trích lời DEV hoặc nơi có kết cục` };
+  if (CHUA_XONG.test(i.trangThai)) return { loi: `${key} đang "${i.trangThai}" — chưa có kết cục để gắn nhãn` };
   so.issues[key] = { ...i, nhan, nguonNhan: 'tay', viSao: String(viSao).trim(), luc: new Date().toISOString() };
   delete so.issues[key].lech;
-  return so;
+  return { so };
 }
 
 /** Tỉ lệ từ sổ — HÀM THUẦN. */
@@ -99,26 +103,33 @@ async function docBacklog(duAn) {
   const BASE = String(process.env.BACKLOG_BASE_URL || process.env.BACKLOG_URL || '').replace(/\/+$/, '');
   const KEY = process.env.BACKLOG_API_KEY || '';
   if (!BASE || !KEY) return null;
+  /* Lỗi mạng/HTTP trả về `{ loi }` — đo hỏng là KHÔNG PHÁN ĐƯỢC, không phải đường chặn. */
+  const loiHttp = {};
   const get = async (d) => {
     const r = await fetch(`${BASE}/api/v2/${d}${d.includes('?') ? '&' : '?'}apiKey=${encodeURIComponent(KEY)}`);
-    if (!r.ok) throw new Error(`${d.split('?')[0]} → HTTP ${r.status}`);
+    if (!r.ok) { loiHttp.loi = `${d.split('?')[0]} → HTTP ${r.status}`; return null; }
     return r.json();
   };
   const toi = await get('users/myself');
-  const pj = await get(`projects/${encodeURIComponent(duAn)}`);
-  const loai = (await get(`projects/${pj.id}/issueTypes`)).filter((t) => /bug/i.test(t.name));
-  if (!loai.length) throw new Error(`dự án ${duAn} không có loại issue Bug`);
+  const pj = toi && await get(`projects/${encodeURIComponent(duAn)}`);
+  const kieu = pj && await get(`projects/${pj.id}/issueTypes`);
+  if (!kieu) return { loi: loiHttp.loi || 'không đọc được dự án' };
+  const loai = kieu.filter((t) => /bug/i.test(t.name));
+  if (!loai.length) return { loi: `dự án ${duAn} không có loại issue Bug` };
   const tat = [];
   for (let off = 0; ; off += 100) {
     const p = await get(`issues?projectId[]=${pj.id}&createdUserId[]=${toi.id}${loai.map((t) => `&issueTypeId[]=${t.id}`).join('')}&count=100&offset=${off}`);
+    /* Một trang hỏng giữa chừng ⇒ KHÔNG trả danh sách cụt: sổ dựng trên danh sách cụt thì bug thiếu bị coi
+     * là chưa từng tồn tại, và tỉ lệ đẹp lên một cách lặng lẽ. */
+    if (!p) return { loi: loiHttp.loi || 'đọc danh sách bug hỏng giữa chừng' };
     tat.push(...p);
     if (p.length < 100) break;
   }
   const cha = new Map();
-  for (const id of [...new Set(tat.map((i) => i.parentIssueId).filter(Boolean))]) { const c = await get(`issues/${id}`); cha.set(id, c.issueKey); }
-  return tat.map((i) => ({ key: i.issueKey, cha: i.parentIssueId ? cha.get(i.parentIssueId) : null,
+  for (const id of [...new Set(tat.map((i) => i.parentIssueId).filter(Boolean))]) { const c = await get(`issues/${id}`); cha.set(id, c ? c.issueKey : `#${id}`); }
+  return { ds: tat.map((i) => ({ key: i.issueKey, cha: i.parentIssueId ? cha.get(i.parentIssueId) : null,
     trangThai: i.status && i.status.name, resolution: i.resolution && i.resolution.name,
-    tao: String(i.created || '').slice(0, 10), sua: String(i.updated || '').slice(0, 10) }));
+    tao: String(i.created || '').slice(0, 10), sua: String(i.updated || '').slice(0, 10) })) };
 }
 
 function baoCao(so) {
@@ -138,12 +149,17 @@ async function main() {
   const a = process.argv.slice(2);
   const lay = (k) => { const i = a.indexOf(k); return i >= 0 ? a[i + 1] : ''; };
   if (a.includes('--nhan')) {
-    try { ghiSo(ganTay(docSo(), lay('--nhan'), lay('--la'), lay('--vi-sao'))); console.log(`[outcome-backlog] đã gắn ${lay('--nhan')} = ${lay('--la')}`); return 0; } catch (e) { console.error(`[outcome-backlog] ✗ KHÔNG GHI — ${e.message}`); return 2; }
+    const r = ganTay(docSo(), lay('--nhan'), lay('--la'), lay('--vi-sao'));
+    if (r.loi) { console.error(`[outcome-backlog] ✗ KHÔNG GHI — ${r.loi}`); return 2; }
+    ghiSo(r.so);
+    console.log(`[outcome-backlog] đã gắn ${lay('--nhan')} = ${lay('--la')}`);
+    return 0;
   }
   if (a.includes('--bao-cao')) { baoCao(docSo()); return 0; }
   const moi = await docBacklog(lay('--project') || 'CSDL');
   if (!moi) { console.log('[outcome-backlog] KHÔNG PHÁN ĐƯỢC — thiếu BACKLOG_BASE_URL hoặc BACKLOG_API_KEY. Đây KHÔNG đồng nghĩa với "không có bug sai".'); return 2; }
-  const so = gop(docSo(), moi);
+  if (moi.loi) { console.log(`[outcome-backlog] KHÔNG PHÁN ĐƯỢC — ${moi.loi}. Sổ cũ giữ nguyên, không ghi danh sách cụt.`); return 2; }
+  const so = gop(docSo(), moi.ds);
   ghiSo(so);
   baoCao(so);
   return 0;

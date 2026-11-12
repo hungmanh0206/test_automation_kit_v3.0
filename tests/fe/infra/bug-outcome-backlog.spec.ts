@@ -41,27 +41,27 @@ test.describe('@infra bug:outcome:backlog — nhãn tay', () => {
   const so0 = () => ob.gop({ issues: {} }, [bug('B-1', 'Resolved'), bug('B-2', 'Open'), bug('B-3', 'Ready for Product')]);
 
   test('gắn tay đòi lý do đủ dài — một chữ "ok" không phải căn cứ', () => {
-    expect(() => ob.ganTay(so0(), 'B-1', 'rejected', 'ok')).toThrow(/lý do/);
-    expect(ob.ganTay(so0(), 'B-1', 'rejected', 'DEV: "bảng này k dùng nữa" — claim dựa vào bảng đã bỏ').issues['B-1'].nhan).toBe('rejected');
+    expect(ob.ganTay(so0(), 'B-1', 'rejected', 'ok').loi).toMatch(/lý do/);
+    expect(ob.ganTay(so0(), 'B-1', 'rejected', 'DEV: "bảng này k dùng nữa" — claim dựa vào bảng đã bỏ').so.issues['B-1'].nhan).toBe('rejected');
   });
 
   test('KHÔNG cho gắn khi bug còn mở — chưa ai phán thì chưa có kết cục', () => {
-    expect(() => ob.ganTay(so0(), 'B-2', 'accepted', 'DEV nói sẽ sửa trong sprint tới')).toThrow(/chưa có kết cục/);
+    expect(ob.ganTay(so0(), 'B-2', 'accepted', 'DEV nói sẽ sửa trong sprint tới').loi).toMatch(/chưa có kết cục/);
   });
 
   test('nhãn không có trong danh sách ⇒ từ chối', () => {
-    expect(() => ob.ganTay(so0(), 'B-1', 'fixed', 'DEV đã sửa trên môi trường dev')).toThrow(/không hợp lệ/);
+    expect(ob.ganTay(so0(), 'B-1', 'fixed', 'DEV đã sửa trên môi trường dev').loi).toMatch(/không hợp lệ/);
   });
 
   test('nhãn TAY sống qua lượt đọc Backlog sau; nhãn TỰ GẮN tính lại theo trạng thái mới', () => {
-    const coTay = ob.ganTay(so0(), 'B-1', 'by_design', 'DEV: "form này đúng thiết kế, không cần modal"');
+    const coTay = ob.ganTay(so0(), 'B-1', 'by_design', 'DEV: "form này đúng thiết kế, không cần modal"').so;
     const lai = ob.gop(coTay, [bug('B-1', 'Resolved'), bug('B-2', 'Open'), bug('B-3', 'Open')]);
     expect(lai.issues['B-1'].nhan, 'nhãn tay giữ nguyên').toBe('by_design');
     expect(lai.issues['B-3'].nhan, 'Ready for Product bị mở lại ⇒ mất nhãn tự gắn').toBeUndefined();
   });
 
   test('nhãn tay lệch trạng thái hiện tại ⇒ được nêu ra, không lặng lẽ đè', () => {
-    const coTay = ob.ganTay(ob.gop({ issues: {} }, [bug('B-1', 'Resolved')]), 'B-1', 'rejected', 'DEV bác: dữ liệu nguồn đã đổi');
+    const coTay = ob.ganTay(ob.gop({ issues: {} }, [bug('B-1', 'Resolved')]), 'B-1', 'rejected', 'DEV bác: dữ liệu nguồn đã đổi').so;
     const lai = ob.gop(coTay, [bug('B-1', 'Ready for Product')]);
     expect(ob.tinh(lai).lech).toHaveLength(1);
   });
@@ -70,7 +70,7 @@ test.describe('@infra bug:outcome:backlog — nhãn tay', () => {
 test.describe('@infra bug:outcome:backlog — tỉ lệ', () => {
   test('sai = rejected + by_design + duplicate trên số CÓ NHÃN; nhóm theo issue cha', () => {
     let so = ob.gop({ issues: {} }, [bug('A', 'Ready for Product', 'P-1'), bug('B', 'Ready for Product', 'P-1'), bug('C', 'Resolved', 'P-2'), bug('D', 'Resolved', 'P-2'), bug('E', 'Open', 'P-2')]);
-    so = ob.ganTay(so, 'C', 'by_design', 'DEV: yêu cầu đã đổi sau đặc tả');
+    so = ob.ganTay(so, 'C', 'by_design', 'DEV: yêu cầu đã đổi sau đặc tả').so;
     const t = ob.tinh(so);
     expect(t).toMatchObject({ tong: 5, coNhan: 3, sai: 1, chuaXong: 1, canNguoi: ['D:Resolved'] });
     expect(t.theoCha['P-2']).toEqual({ tong: 3, coNhan: 1, sai: 1, chuaXong: 1 });
