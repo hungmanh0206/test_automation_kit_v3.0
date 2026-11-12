@@ -1,6 +1,7 @@
 # Đối chứng kit A với kit B — quy trình để so cho công bằng
 
-Viết ngày **12/11/2026**. Đây là quy trình, **chưa phải kết quả**. Chưa có lượt đối chứng nào chạy theo nó.
+Viết ngày **12/11/2026**. Đây là quy trình, **chưa phải kết quả**. Chưa có lượt đối chứng nào chạy theo nó. Máy cho
+từng bước ở mục 7.
 
 ## Câu hỏi được phép trả lời
 
@@ -81,15 +82,24 @@ M2 là phép đo mạnh nhất, vì bug đã được DEV nhận là lỗi thậ
 | Chấm M2 và M3 | Người không tham gia viết testcase của bên nào |
 | Duyệt file đăng ký | QA-Lead, trước lượt chạy đầu tiên |
 
-## 7. Còn thiếu gì trước khi chạy được
+## 7. Máy cho từng bước (`npm run ab:doi-chung`)
 
-Ba thứ chưa có máy. Phải dựng trước lượt đầu tiên, nếu không mỗi lượt sẽ tự làm tay theo một kiểu:
+Ba máy ghi là "còn thiếu" ở bản đầu của tài liệu này đã có, thêm ngày 12/11/2026:
 
-1. **Đóng gói và băm đầu vào** cho từng task, kèm danh sách đường dẫn bị cấm trong workspace.
-2. **Bộ chuyển khuôn của A** sang khuôn trung lập, kèm phép kiểm "không đổi nội dung".
-3. **Phiếu chấm mù cho M2**: liệt kê bug đã biết và bộ case đã gỡ tên kit, nhận câu trả lời có cấu trúc.
+| Bước | Lệnh | Chặn gì |
+|---|---|---|
+| Đăng ký | `-- --dang-ky dang-ky.json` | Thiếu task đối chứng, dưới 3 task, dưới 3 lượt, thiếu ngưỡng, thiếu danh sách đường cấm. Băm mọi file đầu vào vào `dang-ky.khoa.json`; khoá rồi thì không khoá lại |
+| Kiểm đăng ký | `-- --kiem-dang-ky dang-ky.json` | File đầu vào hay chính đăng ký bị đổi sau khi khoá ⇒ lượt đối chứng mất giá trị |
+| Chuyển khuôn | `-- --chuyen A --nguon <file/thư mục> --ra bo-a.json` | Chỉ nhận bảng có ĐỦ cột của bản đồ. Đo trên CSDL-4008: dò mỗi cột "TC ID" ra 368 dòng thay vì 312, vì vơ cả bảng truy vết |
+| Kiểm khuôn | `-- --kiem-khuon bo-a.json` | Bộ trung lập khác nguồn ở bất kỳ trường nào |
+| M1 | `-- --m1 bo-a.json --danh-muc dm.json` | Chỉ đếm mã trong danh mục chung; mã kit tự đặt báo riêng, không tính |
+| Phiếu M2 | `-- --phieu-m2 --bug bugs.json --bo A=bo-a.json --bo B=bo-b.json --ra phieu/` | Đánh lại mã case, vì mã gốc tự lộ kit. Mô tả bug có email hoặc số điện thoại thì từ chối. Bảng đối chiếu nằm ở `niem-phong.json`, người chấm không được mở |
+| Chấm M2 | `-- --cham-m2 phieu/` | Ô chưa chấm, mã không thuộc bộ, ghi mã mà không nói vì sao, phiếu không khớp niêm phong |
 
 Phần M3 dùng lại được `pass:audit`. Phần chặn rò dùng lại được cơ chế của `skills:practice`.
+
+Mỗi task phải có một **danh mục yêu cầu** với mã cố định (vd `INV-01`) nằm trong gói đầu vào, và cả hai kit được yêu
+cầu trích mã đó. Không có nó thì M1 không có mẫu số chung: A tự gán `REQ-<MODULE>-NN`, B dùng `BR-*`.
 
 ## Bài học đã trả giá mà quy trình này mang theo
 

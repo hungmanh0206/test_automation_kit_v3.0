@@ -78,7 +78,7 @@ test-automation-kit/
 │                            chỉ commands/ được commit; settings*.json là cấu hình máy cá nhân
 ├── .agent/
 │   ├── config/              verdict_taxonomy · risk_model · case_types · ci_scope · branch_parity
-│   │                        GATES.md (danh mục 178 máy gác, tự sinh)
+│   │                        GATES.md (danh mục 179 máy gác, tự sinh)
 │   │                        db.conventions.json  quy ước DB + bản đồ cột ↔ nhãn theo màn
 │   │                        locators.schema.json schema cho knowledge/locators/
 │   ├── workflows/           16 file đánh số PHẲNG 01–16 theo đúng thứ tự chạy, không mang tiền tố phase
@@ -104,7 +104,7 @@ test-automation-kit/
 │   ├── lib/ · utils/        hàm dùng chung, runtime_config, evidence_recorder
 │   └── ci/                  khai biến CI
 ├── tests/
-│   ├── fe/infra/            204 spec KIỂM CHÍNH KIT — chạy offline, vào CI
+│   ├── fe/infra/            205 spec KIỂM CHÍNH KIT — chạy offline, vào CI
 │   ├── fe/lib/ · pages/     thư viện bước và page object dùng chung
 │   ├── support/setup/       setup layer: factory · hook · fixture · mock · cleanup · contract
 │   │   └── db/              DB Verification Layer, read-only tuyệt đối, chỉ để khoanh tầng lỗi
