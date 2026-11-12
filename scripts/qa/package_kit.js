@@ -300,7 +300,11 @@ const DENY = [
    * Spec đọc MÃ NGUỒN helper đăng nhập của dự án (`tests/fe/support/opsLogin.ts`, lớp PROJECT, đã bị loại ở
    * dòng trên) — trong gói nó chỉ tự bỏ qua, mà chữ trong nó lại kể tên biến của ứng dụng. v3.0.0.
    */
-  /^tests\/fe\/infra\/ops-login-combobox\.spec\.ts$/,
+  /*
+   * `seed-session-check` import thẳng `tests/fe/support/session/seedSession` — trong gói file đó không có, nên
+   * playwright --list chết ở collect và gói ra "0 test" (lượt release v3.0.0 đỏ đúng chỗ này).
+   */
+  /^tests\/fe\/infra\/(ops-login-combobox|seed-session-check)\.spec\.ts$/,
   /^\.agent\/config\/context_pins\.json$/,
   /\.spec\.ts-snapshots\//,           // ảnh baseline visual là của dự án, không phải của kit
   /*
