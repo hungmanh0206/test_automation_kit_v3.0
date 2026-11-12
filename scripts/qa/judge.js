@@ -368,7 +368,9 @@ function main() {
     const cfg = doc(CALIB, 'bộ hiệu chuẩn');
     console.log(`[judge] BỘ HIỆU CHUẨN — ${cfg.ca.length} ca. Chấm từng ca là \`dat\` hoặc \`khong_dat\`,`);
     console.log('  rồi ghi ra file JSON dạng [{"id":"CAL-01","cham":"khong_dat"}, …] và chạy `--calib-score <file>`.');
-    console.log(`  GIỚI HẠN: ${cfg._gioi_han_phai_doc}\n`);
+    console.log(`  GIỚI HẠN: ${cfg._gioi_han_phai_doc}`);
+    /* Kho mã GIẢ ĐỊNH của bộ — mục ORACLE_DOC_LAP cần biết mã nào "có thật", và kho thật khác nhau giữa các máy. */
+    console.log(`  KHO TRI THỨC của bộ này chỉ có các mã: ${(cfg._kho_ma_gia_dinh || []).join(', ') || '(trống)'} — mã khác là mã KHÔNG tồn tại.\n`);
     for (const c of cfg.ca) console.log(`${c.id} [${c.muc}]  ${c.dau_vao}`);
     return;
   }

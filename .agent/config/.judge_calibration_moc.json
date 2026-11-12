@@ -1,10 +1,18 @@
 {
   "_y": "MỐC HIỆU CHUẨN của tầng chấm §A11. Hết hạn thì mọi lời chấm thành CHƯA ĐƯỢC GÁC.",
-  "luc": "2026-10-12T03:32:05.156Z",
+  "luc": "2026-11-12T04:34:46.835Z",
   "so_ca": 20,
-  "so_sai": 0,
-  "ti_le": 1,
-  "cham_boi": "subagent general-purpose (chấm mù, không thấy nhãn) — 12/10/2026",
+  "so_sai": 1,
+  "ti_le": 0.95,
+  "cham_boi": "subagent general-purpose claude-opus-5-5 (chấm mù, không thấy nhãn, phiếu tự đủ có kho mã giả định) — 12/11/2026",
   "tu_cham": false,
-  "sai": []
+  "sai": [
+    {
+      "id": "CAL-15",
+      "muc": "ORACLE_DOC_LAP",
+      "cham": "khong_dat",
+      "nhan": "dat",
+      "vi_sao_nhan": "nêu URL và element cụ thể, kiểm lại được mà không cần tin app"
+    }
+  ]
 }
