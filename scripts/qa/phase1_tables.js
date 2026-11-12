@@ -100,7 +100,7 @@ for (const tc of tests) {
  * BA TRẠNG THÁI, không phải hai — sửa 28/10/2026 ngay trong lượt dựng.
  *
  * Bản đầu chỉ có `chiDuong`, và chú thích trong bảng lại dùng một điều kiện KHÁC (`am===0 && bien===0`,
- * bỏ qua `duong`). Hậu quả đo được ngay trên ba ví dụ: `BR-EMISDN-002` ra 0/0/0 nhưng bảng ghi "⛔ chỉ có
+ * bỏ qua `duong`). Hậu quả đo được ngay trên ba ví dụ: `BR-BCDN-002` ra 0/0/0 nhưng bảng ghi "⛔ chỉ có
  * case dương" — một nhãn SAI. Hai điều kiện cho cùng một kết luận thì sớm muộn chúng nói ngược nhau.
  *
  * Và 0/0/0 là một lỗ RIÊNG, nặng hơn: case không khai dương/âm/biên thì không ai biết rule đó được

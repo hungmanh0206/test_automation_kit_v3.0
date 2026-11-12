@@ -269,7 +269,7 @@ test.describe('@infra toàn vẹn file .xlsx xuất ra', () => {
 
   test('xuất lại KHÔNG xoá cột Result — Markdown không mang verdict', async () => {
     /*
-     * Ca thật (CSDL-9001, đo 06/10/2026): `reports/case-chua-co-ket-qua.md` đếm được 468 ô kết quả
+     * Ca thật (TASK-9001, đo 06/10/2026): `reports/case-chua-co-ket-qua.md` đếm được 468 ô kết quả
      * trong Excel, nhưng file `.xlsx` cùng ngày chỉ còn **0/921** — chênh lệch đúng bằng một lượt
      * `md_to_xlsx`. Lý do: exporter dựng workbook MỚI từ Markdown rồi ghi đè, mà Markdown không
      * mang verdict. §6 đặt Markdown canonical làm nguồn của NỘI DUNG case; KẾT QUẢ là trục khác, và

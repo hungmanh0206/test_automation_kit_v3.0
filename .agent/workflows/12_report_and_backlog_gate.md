@@ -84,7 +84,7 @@ Dùng `--full` khi muốn xem nguyên output của mọi bước, kể cả bư�
    - Test Execution: `npm run gate:output -- --status <testcase-status.json>` **tự chạy `scripts/qa/output_gate.js`** → CHẶN khi comment run-on/dính debug `key=value`, step thiếu status/evidence, evidence không phải ảnh/video, hoặc case phức tạp thiếu video (thêm `--fix` để tự dọn comment).
    - **Siết cho lượt MỚI, cảnh báo cho bản ghi CŨ.** Ba luật. Comment rỗng ruột như `Executed` hay `(CHƯA KHAI)`. Case PASS không có step nào. Case FAIL tầng `product_bug` hoặc `api_bug` mà không step nào đỏ. Bản ghi có dấu `run.evidenceDir` thì bị CHẶN, nêu đích danh case. Dấu đó do recorder đặt từ 11/11/2026, không phải lời khai. Bản ghi cũ chỉ sinh một dòng cảnh báo gộp. Đo trên 1161 bản ghi: 124, 154 và 8 case. Không case nào trong 6 task đã xong bị chặn. Case `doc_outdated` mà mọi step PASS là hợp lệ, vì app đúng còn đặc tả sai. Regression: `tests/fe/infra/verified-execution.spec.ts`.
    - Đơn vị đã đo: `npm run unit:stamp`, bản chặn là `unit:stamp:enforce`. Mọi verdict ĐÃ CHẠY phải
-     khai đơn vị nào đã đo. Đo trên CSDL-9003: một task trải trên bốn đơn vị. Kỳ vọng rút ở đơn vị này
+     khai đơn vị nào đã đo. Đo trên TASK-9003: một task trải trên bốn đơn vị. Kỳ vọng rút ở đơn vị này
      được dùng chấm case ở đơn vị khác. Case vẫn PASS, và không máy nào thấy.
    - **Gate CHẶN → TỰ SỬA trong session rồi chạy lại tới khi PASS**; KHÔNG ghi kèm vi phạm, KHÔNG chờ user nhắc. Chỉ `--qa-approved` khi QA có lý do rõ (được log).
    - **Bắt buộc tạo bug và ghi kết quả execute QUA script kit**: `bug_reporter.js` cho bug, `merge_execution_status.js` cho status.

@@ -28,7 +28,7 @@ const tmpDir = () => fs.mkdtempSync(path.join(os.tmpdir(), 'ovr-'));
 test.describe('@infra override — T0 KHÔNG có đường nào', () => {
   test('mã T0 ⇒ từ chối, VÀ không ghi file nào', () => {
     const d = tmpDir();
-    const r = ov.tao({ taskKey: 'T-OV', ma: 'PII', tcIds: ['CSDL_HSTRUONG_TC_001'], lyDo: LY_DO, by: 'QA-Lead', dir: d });
+    const r = ov.tao({ taskKey: 'T-OV', ma: 'PII', tcIds: ['APP_HSTRUONG_TC_001'], lyDo: LY_DO, by: 'QA-Lead', dir: d });
     expect(r.ok).toBe(false);
     expect(r.tang).toBe('T0');
     expect(r.vi_sao).toContain('KHÔNG có cờ override nào');
@@ -41,7 +41,7 @@ test.describe('@infra override — T0 KHÔNG có đường nào', () => {
     expect(ds.length, 'phải có mã T0 để test này nói được gì').toBeGreaterThan(5);
     for (const m of ds) {
       const d = tmpDir();
-      const r = ov.tao({ taskKey: 'T-OV', ma: m.code, tcIds: ['CSDL_HSTRUONG_TC_001'], lyDo: LY_DO, by: 'QA-Lead', dir: d });
+      const r = ov.tao({ taskKey: 'T-OV', ma: m.code, tcIds: ['APP_HSTRUONG_TC_001'], lyDo: LY_DO, by: 'QA-Lead', dir: d });
       expect(r.ok, `${m.code} là T0 mà vẫn cho override`).toBe(false);
       expect(fs.readdirSync(d), `${m.code}: T0 mà vẫn ghi file`).toEqual([]);
     }
@@ -63,7 +63,7 @@ test.describe('@infra override — T0 KHÔNG có đường nào', () => {
   test('`check --override` với mã T0 ⇒ exit 1 và không ghi gì', () => {
     const goc = tmpDir();
     const r = spawnSync(process.execPath, [path.join(REPO, 'scripts/qa/check.js'),
-      '--task', 'T-OV', '--override', 'SQL_CAM', '--tc', 'CSDL_HSTRUONG_TC_001', '--reason', LY_DO, '--by', 'PO'],
+      '--task', 'T-OV', '--override', 'SQL_CAM', '--tc', 'APP_HSTRUONG_TC_001', '--reason', LY_DO, '--by', 'PO'],
     { cwd: REPO, encoding: 'utf8', env: { ...gateEnv(), PROJECT_OUTPUT_DIR: goc, TASK_KEY: 'T-OV' } });
     expect(r.status).toBe(1);
     expect(`${r.stderr}`).toContain('KHÔNG có cờ override nào');
@@ -86,7 +86,7 @@ test.describe('@infra override — ba hàng rào còn lại', () => {
   test('lý do NGẮN ⇒ từ chối', () => {
     const d = tmpDir();
     for (const ly of ['', 'ok', 'cần gấp']) {
-      const r = ov.tao({ taskKey: 'T-OV', ma: 'QUY_MO', tcIds: ['CSDL_HSTRUONG_TC_001'], lyDo: ly, by: 'QA-Lead', dir: d });
+      const r = ov.tao({ taskKey: 'T-OV', ma: 'QUY_MO', tcIds: ['APP_HSTRUONG_TC_001'], lyDo: ly, by: 'QA-Lead', dir: d });
       expect(r.ok, `"${ly}" không được tính là lý do`).toBe(false);
     }
     expect(fs.readdirSync(d)).toEqual([]);
@@ -95,7 +95,7 @@ test.describe('@infra override — ba hàng rào còn lại', () => {
   test('vai trò LẠ ⇒ từ chối, và nêu ba vai trò hợp lệ', () => {
     const d = tmpDir();
     for (const by of ['QA', 'Intern', '', 'Dev']) {
-      const r = ov.tao({ taskKey: 'T-OV', ma: 'QUY_MO', tcIds: ['CSDL_HSTRUONG_TC_001'], lyDo: LY_DO, by, dir: d });
+      const r = ov.tao({ taskKey: 'T-OV', ma: 'QUY_MO', tcIds: ['APP_HSTRUONG_TC_001'], lyDo: LY_DO, by, dir: d });
       expect(r.ok, `"${by}" không được quyền miễn trừ`).toBe(false);
       expect(r.vi_sao).toContain('QA-Lead');
     }
@@ -109,7 +109,7 @@ test.describe('@infra override — ba hàng rào còn lại', () => {
      * finding nào. Người ta tin là đã được che rồi đi tiếp — tệ hơn hẳn việc bị từ chối ngay.
      */
     const d = tmpDir();
-    for (const tc of ['TC_001', 'tc_001', '001', 'CSDL-HSTRUONG-TC-001']) {
+    for (const tc of ['TC_001', 'tc_001', '001', 'APP-HSTRUONG-TC-001']) {
       const r = ov.tao({ taskKey: 'T-OV', ma: 'QUY_MO', tcIds: [tc], lyDo: LY_DO, by: 'PO', dir: d });
       expect(r.ok, `"${tc}" sai khuôn mà vẫn cho ghi`).toBe(false);
       expect(r.vi_sao).toContain('sai khuôn');
@@ -125,7 +125,7 @@ test.describe('@infra override — ba hàng rào còn lại', () => {
 
   test('mã KHÔNG TỒN TẠI ⇒ từ chối', () => {
     const d = tmpDir();
-    const r = ov.tao({ taskKey: 'T-OV', ma: 'MA_BIA_RA', tcIds: ['CSDL_HSTRUONG_TC_001'], lyDo: LY_DO, by: 'PO', dir: d });
+    const r = ov.tao({ taskKey: 'T-OV', ma: 'MA_BIA_RA', tcIds: ['APP_HSTRUONG_TC_001'], lyDo: LY_DO, by: 'PO', dir: d });
     expect(r.ok).toBe(false);
     expect(r.vi_sao).toContain('không có trong');
     expect(fs.readdirSync(d)).toEqual([]);
@@ -144,10 +144,10 @@ test.describe('@infra override — ba hàng rào còn lại', () => {
 test.describe('@infra override — bản ghi: có hạn, khoanh case, hợp schema', () => {
   test('đủ điều kiện ⇒ ghi bản ghi, hết hạn sau 30 ngày', () => {
     const d = tmpDir();
-    const r = ov.tao({ taskKey: 'T-OV', ma: 'QUY_MO', tcIds: ['CSDL_HSTRUONG_TC_001', 'CSDL_HSTRUONG_TC_002'], lyDo: LY_DO, by: 'QA-Lead', dir: d });
+    const r = ov.tao({ taskKey: 'T-OV', ma: 'QUY_MO', tcIds: ['APP_HSTRUONG_TC_001', 'APP_HSTRUONG_TC_002'], lyDo: LY_DO, by: 'QA-Lead', dir: d });
     expect(r.ok).toBe(true);
     const j = JSON.parse(fs.readFileSync(r.duong, 'utf8'));
-    expect(j.scope.tc_ids).toEqual(['CSDL_HSTRUONG_TC_001', 'CSDL_HSTRUONG_TC_002']);
+    expect(j.scope.tc_ids).toEqual(['APP_HSTRUONG_TC_001', 'APP_HSTRUONG_TC_002']);
     expect(j.status).toBe('active');
     const ngay = (new Date(j.expires_at).getTime() - new Date(j.decided_at).getTime()) / 86400000;
     expect(Math.round(ngay)).toBe(30);
@@ -160,7 +160,7 @@ test.describe('@infra override — bản ghi: có hạn, khoanh case, hợp sche
      * `risk:score` đọc nó như một override band ở task sau.
      */
     const d = tmpDir();
-    const r = ov.tao({ taskKey: 'T-OV', ma: 'QUY_MO', tcIds: ['CSDL_HSTRUONG_TC_001'], lyDo: LY_DO, by: 'PO', dir: d });
+    const r = ov.tao({ taskKey: 'T-OV', ma: 'QUY_MO', tcIds: ['APP_HSTRUONG_TC_001'], lyDo: LY_DO, by: 'PO', dir: d });
     const j = JSON.parse(fs.readFileSync(r.duong, 'utf8'));
     expect(j.type).toBe('test_approach');
   });
@@ -168,7 +168,7 @@ test.describe('@infra override — bản ghi: có hạn, khoanh case, hợp sche
   test('bản ghi HỢP SCHEMA của `decisions.js`', () => {
     /* Ghi một bản ghi mà `decisions:check` bác là tạo nợ ở một sổ khác. */
     const d = tmpDir();
-    ov.tao({ taskKey: 'T-OV', ma: 'QUY_MO', tcIds: ['CSDL_HSTRUONG_TC_001'], lyDo: LY_DO, by: 'QA-Lead', evidence: 'reports/scope_inventory.md', dir: d });
+    ov.tao({ taskKey: 'T-OV', ma: 'QUY_MO', tcIds: ['APP_HSTRUONG_TC_001'], lyDo: LY_DO, by: 'QA-Lead', evidence: 'reports/scope_inventory.md', dir: d });
     const r = spawnSync(process.execPath, [path.join(REPO, 'scripts/qa/decisions.js'), '--dir', d, '--enforce'],
       { cwd: REPO, encoding: 'utf8', env: gateEnv() });
     expect(r.status, `decisions:check bác bản ghi: ${r.stdout}${r.stderr}`).toBe(0);
@@ -177,14 +177,14 @@ test.describe('@infra override — bản ghi: có hạn, khoanh case, hợp sche
 
   test('`Dev-Lead` map sang `Dev` để khớp danh mục `decided_by` của sổ', () => {
     const d = tmpDir();
-    const r = ov.tao({ taskKey: 'T-OV', ma: 'QUY_MO', tcIds: ['CSDL_HSTRUONG_TC_001'], lyDo: LY_DO, by: 'Dev-Lead', dir: d });
+    const r = ov.tao({ taskKey: 'T-OV', ma: 'QUY_MO', tcIds: ['APP_HSTRUONG_TC_001'], lyDo: LY_DO, by: 'Dev-Lead', dir: d });
     expect(r.ok).toBe(true);
     expect(JSON.parse(fs.readFileSync(r.duong, 'utf8')).decided_by).toBe('Dev');
   });
 
   test('bản ghi nói rõ hết hạn thì phải quyết định MỚI, không sửa ngày', () => {
     const d = tmpDir();
-    const r = ov.tao({ taskKey: 'T-OV', ma: 'QUY_MO', tcIds: ['CSDL_HSTRUONG_TC_001'], lyDo: LY_DO, by: 'PO', dir: d });
+    const r = ov.tao({ taskKey: 'T-OV', ma: 'QUY_MO', tcIds: ['APP_HSTRUONG_TC_001'], lyDo: LY_DO, by: 'PO', dir: d });
     const j = JSON.parse(fs.readFileSync(r.duong, 'utf8'));
     expect(String(j._het_han_thi_sao)).toContain('quyết định MỚI');
   });
@@ -196,7 +196,7 @@ test.describe('@infra override — hiệu lực tự hết, và khớp theo CẢ
      * Một miễn trừ chỉ hết tác dụng khi có người đi dọn là một miễn trừ VĨNH VIỄN trên thực tế.
      */
     const d = tmpDir();
-    ov.tao({ taskKey: 'T-OV', ma: 'QUY_MO', tcIds: ['CSDL_HSTRUONG_TC_001'], lyDo: LY_DO, by: 'PO', hanNgay: 1, dir: d });
+    ov.tao({ taskKey: 'T-OV', ma: 'QUY_MO', tcIds: ['APP_HSTRUONG_TC_001'], lyDo: LY_DO, by: 'PO', hanNgay: 1, dir: d });
     expect(ov.dangHieuLuc('T-OV', { dir: d }).length).toBe(1);
     /* Giả hôm nay là 10 ngày sau. */
     const sau = new Date(Date.now() + 10 * 86400000).toISOString().slice(0, 10);
@@ -205,7 +205,7 @@ test.describe('@infra override — hiệu lực tự hết, và khớp theo CẢ
 
   test('`status: superseded` thì thôi che', () => {
     const d = tmpDir();
-    const r = ov.tao({ taskKey: 'T-OV', ma: 'QUY_MO', tcIds: ['CSDL_HSTRUONG_TC_001'], lyDo: LY_DO, by: 'PO', dir: d });
+    const r = ov.tao({ taskKey: 'T-OV', ma: 'QUY_MO', tcIds: ['APP_HSTRUONG_TC_001'], lyDo: LY_DO, by: 'PO', dir: d });
     const j = JSON.parse(fs.readFileSync(r.duong, 'utf8'));
     j.status = 'superseded';
     fs.writeFileSync(r.duong, JSON.stringify(j, null, 2), 'utf8');
@@ -214,16 +214,16 @@ test.describe('@infra override — hiệu lực tự hết, và khớp theo CẢ
 
   test('miễn trừ của task KHÁC không che task này', () => {
     const d = tmpDir();
-    ov.tao({ taskKey: 'T-KHAC', ma: 'QUY_MO', tcIds: ['CSDL_HSTRUONG_TC_001'], lyDo: LY_DO, by: 'PO', dir: d });
+    ov.tao({ taskKey: 'T-KHAC', ma: 'QUY_MO', tcIds: ['APP_HSTRUONG_TC_001'], lyDo: LY_DO, by: 'PO', dir: d });
     expect(ov.dangHieuLuc('T-OV', { dir: d }).length).toBe(0);
     expect(ov.dangHieuLuc('T-KHAC', { dir: d }).length).toBe(1);
   });
 
   test('khớp theo CẢ mã VÀ TC ID — cùng mã khác case thì KHÔNG che', () => {
-    const mienTru = [{ ma: 'QUY_MO', tc_ids: ['CSDL_HSTRUONG_TC_001'], ly_do: LY_DO, by: 'PO', het_han: '2099-01-01', id: 'DEC-X-001' }];
+    const mienTru = [{ ma: 'QUY_MO', tc_ids: ['APP_HSTRUONG_TC_001'], ly_do: LY_DO, by: 'PO', het_han: '2099-01-01', id: 'DEC-X-001' }];
     const findings = [
-      { level: 'FAIL', message: 'CSDL_HSTRUONG_TC_001: số lượng vượt ngưỡng đã khai' },
-      { level: 'FAIL', message: 'CSDL_HSTRUONG_TC_999: số lượng vượt ngưỡng đã khai' },
+      { level: 'FAIL', message: 'APP_HSTRUONG_TC_001: số lượng vượt ngưỡng đã khai' },
+      { level: 'FAIL', message: 'APP_HSTRUONG_TC_999: số lượng vượt ngưỡng đã khai' },
     ];
     const kq = ov.apDung(findings, mienTru, { maCua: engine.maCua, tcIdTrong: engine.tcIdTrong });
     expect(kq.da_vuot_qua.length, 'chỉ case được khoanh mới được che').toBe(1);
@@ -233,7 +233,7 @@ test.describe('@infra override — hiệu lực tự hết, và khớp theo CẢ
 
   test('finding không có TC ID thì KHÔNG bị che', () => {
     /* Không xác định được case thì không xác định được miễn trừ có áp cho nó hay không. */
-    const mienTru = [{ ma: 'QUY_MO', tc_ids: ['CSDL_HSTRUONG_TC_001'], ly_do: LY_DO, by: 'PO', het_han: '2099-01-01', id: 'DEC-X-001' }];
+    const mienTru = [{ ma: 'QUY_MO', tc_ids: ['APP_HSTRUONG_TC_001'], ly_do: LY_DO, by: 'PO', het_han: '2099-01-01', id: 'DEC-X-001' }];
     const findings = [{ level: 'FAIL', message: 'số lượng vượt ngưỡng đã khai' }];
     const kq = ov.apDung(findings, mienTru, { maCua: engine.maCua, tcIdTrong: engine.tcIdTrong });
     expect(kq.da_vuot_qua.length).toBe(0);

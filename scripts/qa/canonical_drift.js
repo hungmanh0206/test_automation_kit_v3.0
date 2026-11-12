@@ -12,7 +12,7 @@
  * Nhưng QA sửa case TRÊN GOOGLE SHEET là chuyện có thật và hợp lệ. Lúc đó bản xuất đi trước, Markdown
  * ở lại, và Phase 2 vẫn đọc Markdown — nghĩa là lượt chạy đó dùng bộ CŨ, mọi verdict của nó nói về một
  * bộ case không còn tồn tại, mà KHÔNG CÓ GÌ BÁO. Đây đúng họ lỗi "hai nguồn phân kỳ âm thầm" đã trả giá
- * một lần: ngày 08/10/2026, task CSDL-9001 mất 129 ô kết quả vì bản xuất bị sinh lại đè.
+ * một lần: ngày 08/10/2026, task TASK-9001 mất 129 ô kết quả vì bản xuất bị sinh lại đè.
  *
  * `result_ledger` canh cột `Result` (verdict). Máy này canh các cột NỘI DUNG. Hai máy, hai thứ khác nhau.
  *
@@ -151,7 +151,7 @@ function gomTheoTcId(docs) {
 /*
  * TRƯỜNG NÀO SO ĐƯỢC — và vì sao phải hỏi câu này thay vì so cả mười.
  *
- * Lượt chạy đầu trên bộ thật (CSDL-9001, 213 case) báo **428 ô khác**, nghe như bộ đã trôi hoàn toàn.
+ * Lượt chạy đầu trên bộ thật (TASK-9001, 213 case) báo **428 ô khác**, nghe như bộ đã trôi hoàn toàn.
  * Đo ra thì gần hết là trường KHÔNG TỒN TẠI ở một phía:
  *   · bản xuất của bộ đó là bố cục 24 cột và KHÔNG có cột `Tag` lẫn `Loại case` ⇒ md có, xlsx rỗng;
  *   · `Nhóm chức năng` thì ngược lại: exporter suy từ TÊN SHEET, Markdown không có cột đó;

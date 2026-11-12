@@ -5,8 +5,8 @@
  * TOÀN CORPUS (1161 bản ghi, 6 task) thì **cả ba đều đúng**, và hai trong ba là chỗ tôi đã nói sai:
  *
  *   · 124 case comment đúng chữ `Executed` — tôi từng báo "0/241, lỗ tiềm ẩn, chưa phải lỗi đang
- *     sống" sau khi nhìn ĐÚNG MỘT task. 106 trong số đó nằm ở CSDL-9004, task tôi không mở.
- *   · 154 case PASS KHÔNG có bản ghi step nào — toàn bộ ở CSDL-9003. Tôi từng báo "0 ở cả ba task".
+ *     sống" sau khi nhìn ĐÚNG MỘT task. 106 trong số đó nằm ở TASK-9004, task tôi không mở.
+ *   · 154 case PASS KHÔNG có bản ghi step nào — toàn bộ ở TASK-9003. Tôi từng báo "0 ở cả ba task".
  *   ·  16 case FAIL mà mọi step PASS — khớp y hệt con số họ đưa.
  *
  * CÙNG MỘT KIỂU SAI HAI LẦN: đo trên tập con rồi phát biểu như toàn cục.
@@ -60,7 +60,7 @@ test.describe('@infra siết cho lượt MỚI — bản ghi cũ chỉ cảnh b�
   }
 
   test('ĐỐI CHỨNG ÂM: bản ghi MỚI mà sạch ⇒ im lặng hoàn toàn', () => {
-    const d = ban({ status: 'PASSED', comment: 'Lưới 38 dòng khớp SQL theo DD; mã 112 đúng BR-EMISDN-017' }, true);
+    const d = ban({ status: 'PASSED', comment: 'Lưới 38 dòng khớp SQL theo DD; mã 112 đúng BR-BCDN-017' }, true);
     expect(P(d)).toHaveLength(0);
     expect(W(d)).toHaveLength(0);
   });
@@ -115,7 +115,7 @@ test.describe('@infra siết cho lượt MỚI — bản ghi cũ chỉ cảnh b�
 });
 
 test.describe('@infra dữ liệu THẬT — không task cũ nào bị chặn, nhưng tất cả đều được KÊU', () => {
-  const BASE = path.join(REPO, 'outputs/CSDL/tasks');
+  const BASE = path.join(REPO, 'outputs/DEMO/tasks');
 
   test('0 case bị CHẶN trên mọi task hiện có (chưa task nào có dấu `run`)', () => {
     if (!fs.existsSync(BASE)) { test.skip(true, 'không có outputs trong checkout này'); return; }

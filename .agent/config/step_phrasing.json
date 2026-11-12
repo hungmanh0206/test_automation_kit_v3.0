@@ -2,7 +2,7 @@
   "_y": "MỘT NGUỒN cho cách diễn đạt câu bước (v2.8.0 §K). `steps:match` (§C2) và `tc_reviewer` tiêu chí 9 cùng đọc file này. Hai bản sao sẽ trôi khỏi nhau — đợt này đã trả giá đúng chuyện đó hai lần.",
   "_do_tren": {
     "ngay": "2026-10-12",
-    "nguon": "5 task thật: CSDL-3544 · 9001 · 9002 · 9003 · 9004",
+    "nguon": "5 task thật: TASK-3544 · 9001 · 9002 · 9003 · 9004",
     "mau_so": "952 case · 4080 câu bước · 5338 mệnh đề sau khi tách",
     "_y": "Mọi luật dưới đây có một con số đi kèm. Luật không đo được thì không đưa vào đây."
   },

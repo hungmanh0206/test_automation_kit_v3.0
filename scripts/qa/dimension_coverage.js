@@ -84,7 +84,7 @@ const DIMS = [
 
   // Chiều thêm 23/08/2026 sau khi ĐO: kit có idempotency phía GỬI (§5/§8) và webhook ĐI RA (§9), nhưng
   // KHÔNG chiều nào đứng ở phía NHẬN callback bên thứ ba — nơi mình không kiểm soát số lần/thứ tự gửi.
-  // Bằng chứng là bug thật: callback thanh toán trùng làm Paid Amount cộng đôi (CSDL-28236), do NGƯỜI
+  // Bằng chứng là bug thật: callback thanh toán trùng làm Paid Amount cộng đôi (TASK-28236), do NGƯỜI
   // phát hiện chứ không máy nào bắt.
   { id: 'inbound_callback', sec: '§22', label: 'Inbound Callback / Webhook (phía NHẬN)', group: /callback|webhook|ipn/, re: /callback|webhook|\bipn\b|secure ?hash|hmac|chu ky (sai|hop le)|replay|gui lai callback|callback trung|at[- ]least[- ]once|vnp_/ },
 
@@ -193,7 +193,7 @@ const globExists = (dir, re) => { const d = path.join(taskDir, dir); if (!fs.exi
  * Bản đồ hệ thống chỉ chứng minh chiều ÁP DỤNG cho task khi nó nói về MODULE CỦA TASK, và đang `active`.
  *
  * Bản đầu hỏi "trong kho có bản ghi loại này không" — kho dùng chung cho mọi task. Đo 12/11/2026: bản đồ đầu tiên
- * của kho (SM-EMISBC-001, module "Gửi báo cáo" của CSDL-4008) làm MỌI task khai `guard: n/a` bị chặn XUNG ĐỘT, kể
+ * của kho (SM-BCGUI-001, module "Gửi báo cáo" của TASK-4008) làm MỌI task khai `guard: n/a` bị chặn XUNG ĐỘT, kể
  * cả hồ sơ trường — một bản đồ của module khác không chứng minh gì cho task này. Bản nháp (`draft`) cũng chưa ai
  * chốt nên không chứng minh gì.
  *
@@ -331,7 +331,7 @@ if (!beMatCanCase) {
   const lyDo = (manifest && manifest.na_reasons) || {};
   if (!khaiBeMat) {
     console.error(`[dim] ✗ bản đồ injection có ${beMatCanCase.length} bề mặt ưu tiên cao QUAN SÁT ĐƯỢC mà manifest chưa có khối \`injection_surfaces\`.`);
-    console.error('      Khuôn: { "injection_surfaces": { "sort@/api/truong": "CSDL_TC_041", "filter@/bao-cao": "n/a" }, "na_reasons": { "filter@/bao-cao": "cột lọc là enum cố định phía server, không nhận chuỗi tự do" } }');
+    console.error('      Khuôn: { "injection_surfaces": { "sort@/api/truong": "APP_TC_041", "filter@/bao-cao": "n/a" }, "na_reasons": { "filter@/bao-cao": "cột lọc là enum cố định phía server, không nhận chuỗi tự do" } }');
     for (const b of beMatCanCase) console.error(`      - ${b.khoa}  (${b.uu_tien}, gộp ${b.so_diem_nhap} điểm nhập: ${b.diem_nhap_id.join(', ')})`);
     if (ENFORCE) process.exit(1);
   } else {

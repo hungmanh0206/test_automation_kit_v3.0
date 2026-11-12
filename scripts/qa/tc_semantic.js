@@ -44,7 +44,7 @@
  * buộc đọc được ⇒ không sinh nghĩa vụ, và được ĐẾM ra để người đọc biết mẫu số. Giai đoạn 1: chỉ BÁO CÁO.
  *
  * Dùng:
- *   node scripts/qa/tc_semantic.js --task CSDL-9001 [--project-output outputs/CSDL] [--json] [--chi-tiet]
+ *   node scripts/qa/tc_semantic.js --task TASK-9001 [--project-output outputs/DEMO] [--json] [--chi-tiet]
  *   node scripts/qa/tc_semantic.js --spec <đặc tả.md> --cases <testcase.md> [--json]
  */
 'use strict';
@@ -383,7 +383,7 @@ function main() {
   const a = process.argv.slice(2);
   const lay = (k) => { const i = a.indexOf(k); return i >= 0 ? a[i + 1] : ''; };
   const task = lay('--task') || process.env.TASK_KEY || '';
-  const po = lay('--project-output') || process.env.PROJECT_OUTPUT_DIR || 'outputs/CSDL';
+  const po = lay('--project-output') || process.env.PROJECT_OUTPUT_DIR || 'outputs/DEMO';
   let spec = lay('--spec'); let cases = lay('--cases') ? [lay('--cases')] : [];
   if (!spec && task) { const t = timTep(task, po); spec = t.spec; cases = t.cases; }
   if (!spec || !cases.length) {

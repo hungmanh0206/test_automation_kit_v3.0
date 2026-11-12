@@ -17,7 +17,7 @@ import { gateEnv } from './_gate_env';
  *   - `SELECT` hợp lệ phải đi qua.
  *   - Câu tiếng Việt "Cập nhật đơn hàng" / "Xoá dòng" KHÔNG phải SQL.
  *   - **TRÍCH DẪN** hành vi của proc (`DELETE FROM …` trong ngoặc, không có marker chạy) phải đi qua.
- *     Ca thứ ba là ca thật: bản đầu của luật đã báo oan `CSDL_HS_TC_062`, nơi câu DELETE được trích để
+ *     Ca thứ ba là ca thật: bản đầu của luật đã báo oan `APP_HS_TC_062`, nơi câu DELETE được trích để
  *     NÓI RA rằng proc xoá cứng và không dọn bảng liên quan — phát hiện có giá trị nhất của case đó.
  */
 const REPO = path.resolve(__dirname, '..', '..', '..');
@@ -94,7 +94,7 @@ test.describe('@infra SQL kèm testcase — chặn câu GHI và PII, không ch�
     expect(r.code, 'tiếng Việt thường không được tính là SQL').toBe(0);
   });
 
-  test('ÂM TÍNH: TRÍCH DẪN hành vi của proc không bị chặn (ca thật CSDL_HS_TC_062)', () => {
+  test('ÂM TÍNH: TRÍCH DẪN hành vi của proc không bị chặn (ca thật APP_HS_TC_062)', () => {
     const r = runGate([row('OK_TC_003', '[Negative][Impact]',
       '1. Tạo học sinh test rồi nhập điểm<br>2. Kích "Xóa học sinh", xác nhận',
       '1. Lưới hiện học sinh test<br>2. Dữ liệu liên quan phải được xử lý nhất quán. '

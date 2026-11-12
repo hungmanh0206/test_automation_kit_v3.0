@@ -5,7 +5,7 @@
  *
  * HAI PHÉP ĐO ĐÃ BỊ BỎ, và chúng là lý do phép đo hiện tại có hình dạng này. Hướng đầu tiên là ĐỌC
  * SPEC — xem khối `beforeAll` có dựng và có nghiệm thu tiền đề không:
- *   · bản CHẶT (đòi `expect` ngay trong thân `beforeAll`) gắn cờ **267/303 case** của CSDL-4008. Tố
+ *   · bản CHẶT (đòi `expect` ngay trong thân `beforeAll`) gắn cờ **267/303 case** của TASK-4008. Tố
  *     oan: khối dựng gọi `damBaoDonVi()`, `bamLayDuLieu()` trong `lib/`, và helper mới là chỗ ném lỗi.
  *   · bản NỚI (đi theo đường nhập, chấp nhận `throw` ở bất kỳ lib nào) gắn cờ **0**. Vô nghĩa theo
  *     chiều ngược lại: gần như lib nào cũng có một `throw`.

@@ -5,7 +5,7 @@
  * rerun_failed.js — chạy lại ĐÚNG case đỏ của lượt vừa rồi, bằng MỘT lệnh.
  *
  * VÌ SAO, và đây là số đo đáng chú ý nhất của đợt token-diet: trong 4 lượt chạy task thật
- * (CSDL-9001 đến 9004), `npx playwright test` được gọi **2.076 lần**. Trong đó:
+ * (TASK-9001 đến 9004), `npx playwright test` được gọi **2.076 lần**. Trong đó:
  *
  *     chạy cả file hoặc cả suite : 2.070
  *     có `--grep`                :     6

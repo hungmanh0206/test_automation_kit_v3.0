@@ -4,7 +4,7 @@
  * BỐI CẢNH. Chủ dự án nêu, ưu tiên #3: *"Liên kết testcase với đúng Playwright run, step và evidence
  * của lần chạy đó, kể cả khi sổ testcase-status không lưu step trực tiếp."*
  *
- * ĐO TRƯỚC KHI SỬA, trên CSDL-4008: bản ghi có `tcId status comment evidence steps recordedAt scope`
+ * ĐO TRƯỚC KHI SỬA, trên TASK-4008: bản ghi có `tcId status comment evidence steps recordedAt scope`
  * — **không có `runId`, không có liên kết nào tới lượt Playwright**. `runId` tồn tại trong schema
  * nhưng ở mức FILE, và file đó còn vắng luôn trường ấy.
  *

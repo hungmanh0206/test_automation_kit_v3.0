@@ -152,7 +152,7 @@ function lietKe(o) {
     }
     /*
      * ⑤ NỘI DUNG FILE IMPORT. `observed` vì ô upload có thật trên DOM. Ưu tiên cao vì nội dung Excel đi
-     * thẳng vào DB, và kit đã biết bảng lỗi import của QEMIS rỗng ⇒ phản hồi mù.
+     * thẳng vào DB, và kit đã biết bảng lỗi import của app mẫu rỗng ⇒ phản hồi mù.
      */
     for (const f of (s.fields || [])) {
       if (f.code_loai !== 'file_upload') continue;

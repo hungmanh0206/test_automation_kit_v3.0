@@ -220,7 +220,7 @@ test.describe('@infra skills:practice — năm bài, và bộ chấm không đư
   const KQ = () => JSON.parse(fs.readFileSync(path.join(FIXTURE, 'ket_qua.dapan.json'), 'utf8'));
 
   const MA_BAI = ['review-5-loi', 'doc-ket-qua', 'bug-than-backlog', 'du-lieu-run-id', 'dac-ta-ban-phan',
-    'qemis-bieu-emis', 'qemis-luoi-lop'];
+    'appmau-bieu-bcx', 'appmau-luoi-lop'];
 
   test('đủ 5 bài, mỗi bài một skill KHÁC nhau', () => {
     const s = src();
@@ -233,7 +233,7 @@ test.describe('@infra skills:practice — năm bài, và bộ chấm không đư
 
     /*
      * DUY NHẤT CHỈ ÁP CHO BÀI ĐO SKILL — bản đầu ghim `toBe(5)` cho cả hai dòng, nên lúc thêm bài A/B
-     * `qemis-trieu-chung` nó đỏ vì một lý do SAI. Luật thật là: *"hai bài cùng skill thì bài thứ hai
+     * `appmau-trieu-chung` nó đỏ vì một lý do SAI. Luật thật là: *"hai bài cùng skill thì bài thứ hai
      * không đo thêm gì"*. Bài có `pack` KHÔNG đo skill — nó đo **tài liệu chuyên sâu**, bằng cách chạy
      * CÙNG skill ở hai nhánh có/không pack. Dùng chung skill ở đó là bắt buộc, không phải trùng lặp.
      */

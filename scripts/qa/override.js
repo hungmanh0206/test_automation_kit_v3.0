@@ -104,7 +104,7 @@ function kiem({ ma, tcIds, lyDo, by }) {
   /* ②b TC ID phải ĐÚNG KHUÔN mà kit dùng để nhận ra nó trong thông điệp.
    *
    * ĐÂY LÀ MỘT LỖ THẬT, phát hiện lúc viết spec. `gate_engine.tcIdTrong()` nhận TC ID theo khuôn
-   * `<TIỀN TỐ>_TC_<số>` (vd `CSDL_HSTRUONG_TC_001`). Truyền `--tc TC_001` trần thì bản ghi miễn trừ
+   * `<TIỀN TỐ>_TC_<số>` (vd `APP_HSTRUONG_TC_001`). Truyền `--tc TC_001` trần thì bản ghi miễn trừ
    * VẪN ĐƯỢC GHI nhưng KHÔNG BAO GIỜ khớp finding nào — và đó tệ hơn bị từ chối, vì người ta tin là
    * đã được che rồi đi tiếp.
    *
@@ -117,7 +117,7 @@ function kiem({ ma, tcIds, lyDo, by }) {
       ok: false,
       vi_sao: [
         `TC ID sai khuôn: ${sai.join(', ')}.`,
-        '  Kit nhận TC ID trong thông điệp gate theo khuôn `<TIỀN TỐ>_TC_<số>`, ví dụ `CSDL_HSTRUONG_TC_001`.',
+        '  Kit nhận TC ID trong thông điệp gate theo khuôn `<TIỀN TỐ>_TC_<số>`, ví dụ `APP_HSTRUONG_TC_001`.',
         '  Truyền mã trần như `TC_001` thì bản ghi vẫn ghi được nhưng KHÔNG BAO GIỜ khớp vi phạm nào, và',
         '  điều đó tệ hơn bị từ chối: bạn tin là đã được che rồi đi tiếp.',
       ].join('\n'),

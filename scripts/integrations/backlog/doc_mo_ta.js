@@ -4,7 +4,7 @@
 /*
  * doc_mo_ta.js — in NGUYÊN VĂN mô tả của một issue Backlog (chỉ GET).
  *
- *   TASK_ENV=profiles/<TASK>/task.env node scripts/integrations/backlog/doc_mo_ta.js CSDL-3922
+ *   TASK_ENV=profiles/<TASK>/task.env node scripts/integrations/backlog/doc_mo_ta.js TASK-3922
  *
  * Dùng để soát lại bug đã log có nói đúng thứ đã đo hay không. Đọc từ Backlog chứ không đọc file
  * payload ở máy: payload là thứ TÔI ĐỊNH gửi, mô tả là thứ DEV THẬT SỰ ĐỌC — hai thứ có thể lệch.

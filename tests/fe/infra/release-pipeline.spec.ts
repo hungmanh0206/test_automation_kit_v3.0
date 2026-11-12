@@ -148,7 +148,7 @@ test.describe('@infra phát hành kit — gói chỉ mang lớp GENERIC', () => 
     fs.writeFileSync(path.join(tmp, 'a.json'), '{"entity":"bang_don_hang"}');
     fs.writeFileSync(path.join(tmp, 'b.ts'), '// ví dụ: bang_don_hang lưu tiền dạng bigint');
     fs.writeFileSync(path.join(tmp, 'c.md'), 'tài liệu kể lại db-uat.example.vn');
-    const r = kit.scanPackage(tmp, ['a.json', 'b.ts', 'c.md']);
+    const r = kit.scanPackage(tmp, ['a.json', 'b.ts', 'c.md'], tmp);
     fs.rmSync(tmp, { recursive: true, force: true });
     expect(r.hits.join(' '), 'file DỮ LIỆU mang tên bảng của dự án phải CHẶN').toMatch(/a\.json/);
     expect(r.hits.join(' '), 'code chỉ NHẮC trong comment thì không được chặn').not.toMatch(/b\.ts/);
@@ -167,10 +167,55 @@ test.describe('@infra phát hành kit — gói chỉ mang lớp GENERIC', () => 
     declareTables(tmp, ['bang_don_hang']);
     fs.writeFileSync(path.join(sub, 'd.md'), 'DB này: `bang_don_hang` không có cột audit.');
     fs.writeFileSync(path.join(tmp, 'e.md'), 'README kể lại `bang_don_hang` như một ví dụ.');
-    const r = kit.scanPackage(tmp, ['prompt_templates/phase2/d.md', 'e.md']);
+    const r = kit.scanPackage(tmp, ['prompt_templates/phase2/d.md', 'e.md'], tmp);
     fs.rmSync(tmp, { recursive: true, force: true });
     expect(r.hits.join(' '), 'prompt template mang tên bảng dự án phải CHẶN').toMatch(/d\.md/);
     expect([...r.hits, ...r.warns].join(' '), '.md ngoài hai thư mục đó vẫn được kể ví dụ').not.toMatch(/e\.md/);
+  });
+  /*
+   * v3.0.0 — TỪ CẤM của dự án. Danh sách nằm ở lớp PROJECT (chính nó là định danh) và được đọc từ gốc NGUỒN,
+   * không từ cây gói: bản trước suy marker từ cây gói, mà config lớp PROJECT không bao giờ có trong gói, nên
+   * marker tên bảng chưa từng được áp.
+   */
+  function gocTuCam(): string {
+    const goc = fs.mkdtempSync(path.join(os.tmpdir(), 'pkgcam-'));
+    fs.mkdirSync(path.join(goc, '.agent', 'config'), { recursive: true });
+    fs.writeFileSync(path.join(goc, '.agent', 'config', 'package_deny_terms.json'),
+      JSON.stringify({ tu_cam: [{ name: 'tên sản phẩm', re: 'san-pham-x', flags: 'i' }] }));
+    return goc;
+  }
+
+  test('từ cấm của dự án trong BẤT KỲ file chữ nào của gói (kể cả .md, .example) ⇒ CHẶN, nêu file:dòng', () => {
+    const goc = gocTuCam();
+    const goi = fs.mkdtempSync(path.join(os.tmpdir(), 'pkggoi-'));
+    fs.writeFileSync(path.join(goi, 'README.md'), ['dòng 1', 'kể chuyện SAN-PHAM-X ở đây'].join('\n'));
+    fs.writeFileSync(path.join(goi, 'a.example.json'), '{"ten":"san-pham-x"}');
+    fs.writeFileSync(path.join(goi, 'sach.md'), 'không nhắc gì');
+    const r = kit.scanPackage(goi, ['README.md', 'a.example.json', 'sach.md'], goc);
+    fs.rmSync(goc, { recursive: true, force: true }); fs.rmSync(goi, { recursive: true, force: true });
+    expect(r.hits.join(' ')).toMatch(/README\.md:2 — từ cấm/);
+    expect(r.hits.join(' '), 'bản .example cũng không được kể tên dự án').toMatch(/a\.example\.json/);
+    expect(r.hits.join(' '), 'file sạch không bị tố').not.toMatch(/sach\.md/);
+  });
+
+  test('từ cấm đọc từ gốc NGUỒN: gốc nguồn chưa khai ⇒ không chặn oan', () => {
+    const rong = fs.mkdtempSync(path.join(os.tmpdir(), 'pkgrong-'));
+    const goi = fs.mkdtempSync(path.join(os.tmpdir(), 'pkggoi2-'));
+    fs.writeFileSync(path.join(goi, 'README.md'), 'san-pham-x');
+    const r = kit.scanPackage(goi, ['README.md'], rong);
+    fs.rmSync(rong, { recursive: true, force: true }); fs.rmSync(goi, { recursive: true, force: true });
+    expect(r.hits, 'kit vừa cài chưa khai từ cấm ⇒ không chặn').toEqual([]);
+  });
+
+  test('danh sách từ cấm và các config lớp PROJECT của v3.0.0 KHÔNG vào gói, bản mẫu thì có', () => {
+    canRepoGit(REPO, 'danh sách gói không chứa từ cấm');
+    const files: string[] = kit.collect();
+    for (const f of ['.agent/config/package_deny_terms.json', '.agent/config/context_pins.json', '.agent/config/db-paths.allow.json']) {
+      expect(files, `"${f}" là lớp PROJECT, KHÔNG được đóng gói`).not.toContain(f);
+    }
+    for (const f of ['.agent/config/package_deny_terms.example.json', '.agent/config/context_pins.example.json', '.agent/config/db-paths.allow.example.json']) {
+      expect(files, `thiếu bản mẫu "${f}"`).toContain(f);
+    }
   });
 });
 

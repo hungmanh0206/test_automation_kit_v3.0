@@ -8,15 +8,15 @@
  * nên `npm run typecheck` CHƯA BAO GIỜ soi `outputs/**\/automation/**`. Mọi câu "typecheck sạch" nói
  * về spec của task đều rỗng — công cụ không nhìn vào đó.
  *
- * Giá phải trả, đo 09/10/2026 trên CSDL-9001: hai thuộc tính KHÔNG TỒN TẠI (`ScreenField.hidden` và
+ * Giá phải trả, đo 09/10/2026 trên TASK-9001: hai thuộc tính KHÔNG TỒN TẠI (`ScreenField.hidden` và
  * `ScreenField.value`) được dùng ở 17 chỗ. `undefined !== true` luôn đúng nên phép kiểm "ô có hiện
  * không" thực chất chỉ kiểm "ô có trong DOM không" ⇒ TC_148 báo PASS giả; `f.value` luôn `undefined`
  * nên mọi phép đọc giá trị gốc ra rỗng ⇒ TC_055 chấm FAIL oan. TypeScript bắt được CẢ 17 ngay khi
  * được chỉ đúng file.
  *
  * VÌ SAO THEO TASK, KHÔNG BẬT TOÀN CỤC. Thêm `outputs` vào `tsconfig.json` chung thì một task đang
- * sửa dở làm CHẶN mọi task khác — đúng thứ luật isolation §5 cấm. Đo cùng ngày: CSDL-9001 sạch 0 lỗi
- * trong khi CSDL-9004 còn 17 lỗi ở file phiên khác đang viết. Mỗi task tự gác phần của mình.
+ * sửa dở làm CHẶN mọi task khác — đúng thứ luật isolation §5 cấm. Đo cùng ngày: TASK-9001 sạch 0 lỗi
+ * trong khi TASK-9004 còn 17 lỗi ở file phiên khác đang viết. Mỗi task tự gác phần của mình.
  *
  * Dùng:
  *   node scripts/qa/typecheck_task.js --task <TASK_KEY>              # báo cáo, luôn exit 0

@@ -12,7 +12,7 @@
  *     (mỗi field: số thứ tự, nhãn, id, kiểu, bắt buộc, maxlength, validator)
  *   · đầu chạy — spec Playwright neo element bằng `[id$="<đuôi id>"]`
  *
- * Khúc giữa hiện là NGƯỜI GÕ LẠI BẰNG TAY. Đo 09/10/2026 trên CSDL-9003: `lib/csdl9003Form.ts` có bảng
+ * Khúc giữa hiện là NGƯỜI GÕ LẠI BẰNG TAY. Đo 09/10/2026 trên TASK-9003: `lib/csdl9003Form.ts` có bảng
  * `O` gõ tay ~42 ô, trong khi probe đã đo 58–72 ô cho MỖI cấp trong 5 cấp. Và chính comment trong bảng
  * tay đó ghi lại hai lần trả giá:
  *

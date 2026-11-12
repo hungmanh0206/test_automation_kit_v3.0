@@ -1,7 +1,7 @@
 /**
  * bug:outcome:backlog — sổ kết cục THEO ISSUE BACKLOG (11/11/2026).
  *
- * Đo trên Backlog: tài khoản QA log 96 bug trong CSDL, chỉ 17 có file claim trỏ tới — sổ claim thấy được 18%.
+ * Đo trên Backlog: tài khoản QA log 96 bug trong dự án mẫu, chỉ 17 có file claim trỏ tới — sổ claim thấy được 18%.
  * Máy chỉ tự gắn ĐÚNG MỘT trường hợp: *Ready for Product* (quy trình dự án: DEV báo sửa ⇒ Ready For Test ⇒ QA
  * chạy lại ⇒ Ready for Product). "Resolved" trên dự án này có lúc là đã sửa, có lúc là bác ("bảng này k dùng
  * nữa"), có lúc là tranh chấp tài liệu, và `resolution` luôn trống — nên người gắn, kèm lý do.

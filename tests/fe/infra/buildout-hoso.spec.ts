@@ -12,7 +12,7 @@ import * as form from '../lib/steps/form';
  * ─────────────────────────────────────────────────────────────────────────────────────────────────────
  * BA CON SỐ ĐO ĐƯỢC TRÊN DỮ LIỆU THẬT ĐỊNH HÌNH CẢ BỘ TẦNG NÀY (12/10/2026):
  *
- *   · Catalog của CSDL-9001 có neo control ở ĐÚNG MỘT cấp: THCS 87/89 (98%). Mầm non, Tiểu học, THPT,
+ *   · Catalog của TASK-9001 có neo control ở ĐÚNG MỘT cấp: THCS 87/89 (98%). Mầm non, Tiểu học, THPT,
  *     GDTX đều **0**. Tổng 87/433 = 20%. Nên L1 phải TRẢ VỀ ĐƯỢC trạng thái "màn chưa có neo".
  *   · Loại control của màn: input/text 67 · input/checkbox 18 · textarea 2. **KHÔNG CÓ RadComboBox
  *     nào** — sáu bước đầu của danh mục (toàn combobox) không dùng được cho module này.
@@ -73,7 +73,7 @@ const CAT: screens.Catalog = {
         },
       }],
     },
-    /* Màn CHƯA CÓ NEO — bốn trên năm màn của CSDL-9001 đang ở đúng trạng thái này. */
+    /* Màn CHƯA CÓ NEO — bốn trên năm màn của TASK-9001 đang ở đúng trạng thái này. */
     { name: 'Hồ sơ fixture — Mầm non', url: '/ho-so', fields: [{ name: 'I', expectedFields: ['Cơ sở GDMN'] }] },
   ],
 };
@@ -90,7 +90,7 @@ test.describe('@infra §A0 L1 — mô hình màn', () => {
   });
 
   test('màn CHƯA CÓ NEO trả về trạng thái đó, KHÔNG ném khi dựng', () => {
-    /* 4/5 màn của CSDL-9001 ở trạng thái này — ném khi dựng thì không ai đọc được báo cáo độ phủ. */
+    /* 4/5 màn của TASK-9001 ở trạng thái này — ném khi dựng thì không ai đọc được báo cáo độ phủ. */
     const m = screens.man(CAT, 'Mầm non');
     expect(m.chua_co_neo).toBe(true);
     expect(m.so_expected).toBe(1);

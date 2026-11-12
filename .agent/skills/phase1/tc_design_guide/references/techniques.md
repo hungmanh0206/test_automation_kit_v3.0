@@ -175,7 +175,7 @@ sai**, nó không chứng minh được off-by-one. Case này đi điểm `max+1
 
 ## Ví dụ 2 — DT, bảng quyết định CÓ nhánh else
 
-Neo: **`BR-EMISDN-002`** (nguyên văn, bỏ dấu như trong kho) — *"Hoc sinh duoc tinh vao bao cao EMIS dau
+Neo: **`BR-BCDN-002`** (nguyên văn, bỏ dấu như trong kho) — *"Hoc sinh duoc tinh vao bao cao BCX dau
 nam theo trang thai va moc 30/9: TINH 01 Dang hoc, 02 Chuyen den K1, 03 Nghi hoc xin hoc lai K1 khi
 NGAY_TRANG_THAI < 01/10; TINH 04 Chuyen di K1, 05 Thoi hoc K1 khi NGAY_TRANG_THAI > 30/9; LUON TINH 08
 Chuyen di K2, 09 Thoi hoc K2, 10 Chuyen den trong he; KHONG TINH 06, 07, 11, 12."*
@@ -193,7 +193,7 @@ không chứng minh "ai KHÔNG được tính" — mà đếm thừa một học
 
 | TC ID | Loại case | Tag | Module | Trường hợp kiểm thử | Tiền điều kiện | Dữ liệu Test | Các bước thực hiện | Kết quả mong đợi | Ưu tiên |
 |---|---|---|---|---|---|---|---|---|---|
-| EMISDN_TC_310 | Negative | `[Negative][Data][Calculation][DT][BR-EMISDN-002]` | Báo cáo EMIS đầu năm | Luật L4: học sinh mã trạng thái `06` KHÔNG được tính vào biểu, bất kể ngày trạng thái | `[factory]` Tài khoản vai trò Quản trị trường đã đăng nhập; trường test có đúng `1` học sinh lớp `1A`, mã trạng thái `06`, `NGAY_TRANG_THAI` = `15/09/2026`; năm học `2026-2027` | Mã trạng thái = `06`; `NGAY_TRANG_THAI` = `15/09/2026`; mẫu số trước khi thêm = `0` | 1. Mở màn `Lập báo cáo đầu năm` của trường test<br>2. Đọc ô tổng số học sinh của biểu `1.1.1`<br>3. So với mẫu số đã ghi ở Tiền điều kiện | 1. Màn `Lập báo cáo đầu năm` mở đúng trường test và năm học `2026-2027`<br>2. Ô tổng đọc ra giá trị `0`<br>3. Giá trị `0` KHỚP mẫu số — học sinh mã `06` không được cộng vào biểu | Cao |
+| BCDN_TC_310 | Negative | `[Negative][Data][Calculation][DT][BR-BCDN-002]` | Báo cáo BCX đầu năm | Luật L4: học sinh mã trạng thái `06` KHÔNG được tính vào biểu, bất kể ngày trạng thái | `[factory]` Tài khoản vai trò Quản trị trường đã đăng nhập; trường test có đúng `1` học sinh lớp `1A`, mã trạng thái `06`, `NGAY_TRANG_THAI` = `15/09/2026`; năm học `2026-2027` | Mã trạng thái = `06`; `NGAY_TRANG_THAI` = `15/09/2026`; mẫu số trước khi thêm = `0` | 1. Mở màn `Lập báo cáo đầu năm` của trường test<br>2. Đọc ô tổng số học sinh của biểu `1.1.1`<br>3. So với mẫu số đã ghi ở Tiền điều kiện | 1. Màn `Lập báo cáo đầu năm` mở đúng trường test và năm học `2026-2027`<br>2. Ô tổng đọc ra giá trị `0`<br>3. Giá trị `0` KHỚP mẫu số — học sinh mã `06` không được cộng vào biểu | Cao |
 
 ## Ví dụ 3 — ST, chuyển trạng thái VÀ đường phải bị chặn
 
@@ -206,7 +206,7 @@ Ma trận chuyển trạng thái — **ô hợp lệ VÀ ô bị chặn, cả ha
 | Từ ↓ \ Tới → | Chưa lưu | Đã lưu (có mã địa phương) | Đã đồng bộ (có mã Bộ) | Đỏ (lệch KEY) |
 |---|---|---|---|---|
 | **Chưa lưu** | — | ✅ bấm `Ghi` | ⛔ **chặn** — mã Bộ không sinh tại chỗ | — |
-| **Đã lưu** | — | — | ✅ đồng bộ lên CSDL Bộ | ✅ sửa một thành phần bộ KEY |
+| **Đã lưu** | — | — | ✅ đồng bộ lên CSDL trung tâm | ✅ sửa một thành phần bộ KEY |
 | **Đã đồng bộ** | — | — | — | ✅ sửa một thành phần bộ KEY |
 | **Đỏ** | — | — | ✅ đồng bộ lại | — |
 

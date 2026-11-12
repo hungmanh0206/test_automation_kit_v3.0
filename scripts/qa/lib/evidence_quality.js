@@ -5,9 +5,9 @@
  *
  * VÌ SAO, và đây là hai ca THẬT trong repo này chứ không phải tình huống nghĩ ra:
  *
- *   · `CSDL_HSTRUONG_TC_138/step-01-passed.png` — 1280×720, 4 KB, **trắng hoàn toàn**. Nó là evidence
+ *   · `APP_HSTRUONG_TC_138/step-01-passed.png` — 1280×720, 4 KB, **trắng hoàn toàn**. Nó là evidence
  *     của một step đã chấm `passed`.
- *   · `CSDL_NHANSU_TC_121/step-01-failed.png` — 1280×720, 9 KB, nội dung là **trang lỗi HTTP 503**
+ *   · `APP_NHANSU_TC_121/step-01-failed.png` — 1280×720, 9 KB, nội dung là **trang lỗi HTTP 503**
  *     "Service Unavailable". Không phải màn đang kiểm.
  *
  *   Và commit `a39c7df` ghi thêm một ca nữa: "ảnh evidence của nó là popup trắng đang quay spinner",

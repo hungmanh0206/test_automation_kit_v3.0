@@ -54,7 +54,7 @@ function chuanHoa(s) {
 /**
  * Nhãn này có nằm trong danh sách nút cấm bấm? Khớp theo TỪ trọn, không khớp chuỗi con.
  *
- * NGOẠI LỆ CHỈ-ĐỌC xét TRƯỚC. Lý do đo được khi viết hàm này: `"ghi"` phải nằm trong danh sách vì QEMIS
+ * NGOẠI LỆ CHỈ-ĐỌC xét TRƯỚC. Lý do đo được khi viết hàm này: `"ghi"` phải nằm trong danh sách vì app mẫu
  * có nút **"Ghi"** ở cả 5 cấp học — đó là nút lưu thật. Nhưng `"ghi"` cũng đứng thành TỪ RIÊNG trong
  * những nhãn chỉ-đọc (`"Ghi chú"`, `"Ghi nhận"`), nên khớp theo ranh giới từ chặn oan chúng và làm lượt
  * bò MẤT MÀN. Bỏ `"ghi"` thì mất nút lưu thật ở 5 cấp. Nên: giữ, và khai ngoại lệ tường minh trong

@@ -117,7 +117,7 @@ function mdReport(report) {
    *
    * Hàm `login()` bên dưới giả định form đăng nhập phẳng `input[name=username]` + `input[name=password]`.
    * Ứng dụng nào bắt captcha, hoặc dựng form bằng ASP.NET WebForms với chuỗi 5 combobox phụ thuộc nhau
-   * (QEMIS), thì nó timeout ở `page.fill` và cả lượt quét hỏng — dù kit ĐÃ có sẵn phiên nạp bằng tay ở
+   * (app mẫu), thì nó timeout ở `page.fill` và cả lượt quét hỏng — dù kit ĐÃ có sẵn phiên nạp bằng tay ở
    * `.auth/`. Máy quét a11y không có lý do gì phải tự đăng nhập lại. */
   const STORAGE = arg('storage-state', '');
   const ctx = await browser.newContext(

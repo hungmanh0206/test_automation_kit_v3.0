@@ -54,7 +54,7 @@ test.describe('§D — bộ biên dịch sinh được file CHẠY ĐƯỢC', ()
 
   test('gom theo ĐOẠN ĐẦU của Module, không theo module đầy đủ', () => {
     /*
-     * Đo trên CSDL-9001: 213 case có 196 module đầy đủ khác nhau nhưng chỉ 5 đoạn đầu. Gom theo module
+     * Đo trên TASK-9001: 213 case có 196 module đầy đủ khác nhau nhưng chỉ 5 đoạn đầu. Gom theo module
      * đầy đủ sinh ra 196 file cho 213 case — đúng kỹ thuật, và vô dụng.
      *
      * Dựng một MD canonical thật ở đây (6 case, 6 module đầy đủ khác nhau, CÙNG một đoạn đầu) rồi biên
@@ -73,7 +73,7 @@ test.describe('§D — bộ biên dịch sinh được file CHẠY ĐƯỢC', ()
 
   test('tên file TRÙNG sau khi cắt 60 ký tự thì KHÔNG được ghi đè im lặng', () => {
     /*
-     * Lỗi thật ở CSDL-9001: hai module `… ở cấp THCS` và `… ở cấp Mầm non` cắt còn 60 ký tự ra cùng một
+     * Lỗi thật ở TASK-9001: hai module `… ở cấp THCS` và `… ở cấp Mầm non` cắt còn 60 ký tự ra cùng một
      * slug, file thứ hai ghi đè file thứ nhất, và `compile:spec` báo 196 file trong khi trên đĩa có 195.
      * Cùng lớp lỗi với chuyện Excel mất 129 ô: con số báo ra và hiện thực lệch nhau mà không ai thấy.
      *
@@ -184,7 +184,7 @@ test.describe('§D — bộ biên dịch KHÔNG bịa giá trị kỳ vọng', (
      * Có giá trị KHÔNG có nghĩa là biết phải kiểm cái gì với nó. Đây là chỗ một bộ biên dịch dễ trượt
      * nhất: thấy một chuỗi trong nháy rồi sinh đại một `expect`, và bộ kiểm sinh ra so app với app.
      */
-    expect(cs.rutKyVong('Tham chiếu tài liệu "QEMIS - THCS.md" ở dòng 302')).toBeNull();
+    expect(cs.rutKyVong('Tham chiếu tài liệu "app mẫu - THCS.md" ở dòng 302')).toBeNull();
   });
 
   test('nhận dòng thông báo có giá trị bọc nháy', () => {

@@ -23,7 +23,7 @@ function stripEmoji(text) {
 
 // Excel/Google Sheet không hiểu Markdown: `**x**` hiện nguyên dấu sao, `~~x~~` hiện nguyên dấu ngã.
 // Bóc chúng như đã bóc backtick — nếu không, ô testcase đọc lên đầy ký tự rác.
-// Đo 30/09/2026 trên CSDL-9004: backtick được bóc 52/52 ô, còn `**` lọt nguyên 18/18 ô vào .xlsx.
+// Đo 30/09/2026 trên TASK-9004: backtick được bóc 52/52 ô, còn `**` lọt nguyên 18/18 ô vào .xlsx.
 function stripMarkdownInline(text) {
   // `COUNT(*)` trong SQL phải sống sót — cất tạm rồi trả lại (xem model.js, hai bản phải khớp nhau).
   const GIU = "\u0000SAO\u0000";
@@ -81,7 +81,7 @@ const FUNC_HEADERS = [
 ];
 const FUNC_COL_WIDTHS = [10, 16, 42, 28, 30, 46, 40, 16, 11, 13, 16, 12, 22, 8.71, 8.71, 8.71, 16, 22];
 /*
- * BỐ CỤC "CÓ SCRIPT" — nhân bản header của bộ testcase EMIS QA dùng ("Testcase EMIS 2025.xlsx", dòng 5):
+ * BỐ CỤC "CÓ SCRIPT" — nhân bản header của bộ testcase BCX QA dùng ("Testcase BCX 2025.xlsx", dòng 5):
  * cột SCRIPT đứng ngay sau Expected Result, chứa câu SQL đối chiếu của case cần truy vấn.
  * Chỉ bật khi bảng Markdown CÓ cột "SCRIPT". Dropdown và công thức đếm dò cột theo TÊN, nên chèn cột không
  * làm lệch Test Type/Priority/Result như khi đóng cứng chữ cái.
@@ -129,7 +129,7 @@ const DROPDOWN = {
   // `Pending` THÊM 17/10/2026. Trước đó danh sách là `Pass,Fail,Blocked,N/A` — tức KIT GHI RA MỘT GIÁ
   // TRỊ MÀ CHÍNH NÓ CẤM: `.agent/config/verdict_taxonomy.json` quy đổi BA trạng thái (SKIP,
   // BLOCKED_SETUP, SKIP_SETUP) thành `Pending`, và `merge-theo-cap.js` ghi thẳng chuỗi đó vào đúng các
-  // cột này. Ở CSDL-9001 có 94 ô như vậy. Hệ quả: Excel đánh dấu chúng là dữ liệu ngoài danh sách, và
+  // cột này. Ở TASK-9001 có 94 ô như vậy. Hệ quả: Excel đánh dấu chúng là dữ liệu ngoài danh sách, và
   // người sửa tay không chọn được `Pending` từ dropdown. Công thức sheet tiến độ thì nhận cả
   // `Pending` lẫn `Blocked` nên CON SỐ vẫn đúng — lỗi nằm ở tính hợp lệ của ô, không ở phép đếm.
   // Mở rộng danh sách chứ không đổi 94 ô: taxonomy là nguồn sự thật, đổi ô là đi ngược nguồn.
@@ -159,7 +159,7 @@ const COLOR = {
  */
 /*
  * MỞ RỘNG 25/09/2026 — bảng này trước đó ánh xạ 13/25 tag chiều mà kit định nghĩa, nên MỌI case chỉ mang
- * tag thuộc 12 chiều còn lại đều ra `Test Type` RỖNG. Đo trên bộ CSDL-9001 (142 case): 13 case trống, tất
+ * tag thuộc 12 chiều còn lại đều ra `Test Type` RỖNG. Đo trên bộ TASK-9001 (142 case): 13 case trống, tất
  * cả đều dạng `[Edge][Ordering]` / `[Edge][Calc]` / `[Edge][Impact]` — tức càng dùng đúng các chiều §13,
  * §17, §19 thì càng nhiều ô trống. Người mở Excel thấy cột trống sẽ tưởng QA quên khai, trong khi nguyên
  * nhân nằm ở đây.
@@ -329,7 +329,7 @@ function estimateRowHeight(row, colWidths) {
   }, 1);
   // Trần 409 = giới hạn CỨNG của Excel (409.5pt); trước đây là 150 và đó là lỗi hiển thị, không phải quy
   // ước từ file mẫu QA: `wrapText` bật nhưng dòng bị ép thấp hơn nội dung nên chữ BỊ CẮT. Đo trên bộ
-  // CSDL-3544 (60 case) trước khi sửa: 55/60 dòng (92%) cần cao hơn 150pt, dòng nặng nhất cần ~375pt ⇒
+  // TASK-3544 (60 case) trước khi sửa: 55/60 dòng (92%) cần cao hơn 150pt, dòng nặng nhất cần ~375pt ⇒
   // mất ~60% nội dung nhìn thấy được. Người đọc Excel không biết mình đang đọc thiếu — đó là kiểu hỏng
   // tệ nhất. Cột `Test Steps`/`Expected Result` vốn nhiều dòng nên chạm trần là chuyện thường, không phải
   // dấu hiệu case viết dài.
@@ -809,7 +809,7 @@ function addGuideWorksheet(workbook) {
  * hôm nay chưa file `.md` nào mang nó (`sync_canonical --results` dựng được khối đó, nhưng chưa task
  * nào chạy). Nên dựng workbook mới từ Markdown rồi ghi đè là xoá trắng mọi verdict đã merge.
  *
- * Đo 06/10/2026 trên CSDL-9001: 468 ô kết quả biến mất sau một lượt xuất lại, và chúng chỉ còn ở
+ * Đo 06/10/2026 trên TASK-9001: 468 ô kết quả biến mất sau một lượt xuất lại, và chúng chỉ còn ở
  * `test-results/*.json` — nơi không ai đọc khi duyệt. Chừng nào `.xlsx` còn là chỗ DUY NHẤT giữ
  * verdict đã merge thì lượt xuất phải GIỮ, không được dọn.
  */
@@ -954,7 +954,7 @@ async function buildXlsx(tables, contractTables, outputPath) {
    *
    * `datLaiResult` ghép theo ID, nên một case chỉ tồn tại trong .xlsx (thêm ở Phase 2, chưa về .md)
    * sẽ KHÔNG có hàng để ghép — nó biến mất cùng toàn bộ verdict của nó, và dòng log "giữ lại N ô"
-   * vẫn xanh vì N chỉ đếm những ô ghép được. Đo 10/10/2026 trên CSDL-9001: `TC_211` mất hẳn, log báo
+   * vẫn xanh vì N chỉ đếm những ô ghép được. Đo 10/10/2026 trên TASK-9001: `TC_211` mất hẳn, log báo
    * "giữ lại 524" trong khi file có 526 — chênh 2 ô, không ai thấy.
    *
    * Đây KHÔNG phải cảnh báo: mất verdict là mất bằng chứng đã chạy thật trên UAT, và Markdown không

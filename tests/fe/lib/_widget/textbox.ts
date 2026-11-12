@@ -3,7 +3,7 @@ import type { Locator, Page } from '@playwright/test';
 /*
  * L0.5 — WIDGET: ô nhập chữ (`input[type=text]` và `textarea`) của ASP.NET WebForms.
  *
- * VÌ SAO TẦNG NÀY TỒN TẠI, có số đo. Đo trên catalog thật của CSDL-9001 (12/10/2026): màn Hồ sơ trường
+ * VÌ SAO TẦNG NÀY TỒN TẠI, có số đo. Đo trên catalog thật của TASK-9001 (12/10/2026): màn Hồ sơ trường
  * có **67 input/text + 2 textarea** trên 87 neo control — tức **79% control của màn là ô nhập chữ**, và
  * KHÔNG có RadComboBox nào. Sáu bước đầu của danh mục (toàn combobox) không dùng được cho module này.
  *

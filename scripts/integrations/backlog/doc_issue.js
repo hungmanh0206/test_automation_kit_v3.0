@@ -4,7 +4,7 @@
 /*
  * doc_issue.js — ĐỌC một issue trên Backlog (chỉ GET, không sửa gì).
  *
- *   TASK_ENV=profiles/<TASK>/task.env node scripts/integrations/backlog/doc_issue.js CSDL-3884
+ *   TASK_ENV=profiles/<TASK>/task.env node scripts/integrations/backlog/doc_issue.js TASK-3884
  *
  * Vì sao cần: trước khi `--update-issue`, bộ chạy gửi LẠI `summary`, tức có thể ĐỔI TIÊU ĐỀ bug.
  * Muốn giữ nguyên tiêu đề thì phải biết tiêu đề hiện tại là gì — và đoán từ tên test là đoán, không
@@ -23,7 +23,7 @@ const KEY = process.env.BACKLOG_API_KEY || '';
 const ID = process.argv[2];
 
 if (!BASE || !KEY) { console.error('[doc-issue] ✗ thiếu BACKLOG_BASE_URL hoặc BACKLOG_API_KEY (nạp TASK_ENV)'); process.exit(2); }
-if (!ID) { console.error('[doc-issue] ✗ thiếu mã issue, vd CSDL-3884'); process.exit(2); }
+if (!ID) { console.error('[doc-issue] ✗ thiếu mã issue, vd TASK-3884'); process.exit(2); }
 
 (async () => {
   const r = await fetch(`${BASE}/api/v2/issues/${encodeURIComponent(ID)}?apiKey=${encodeURIComponent(KEY)}`);

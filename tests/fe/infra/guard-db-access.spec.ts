@@ -65,7 +65,7 @@ test.describe('@infra guard-db hook — chặn đường chạy SQL ngoài kit',
 
 test.describe('@infra guard-db hook — chặn đường lấy mật khẩu', () => {
   const CAM = [
-    'cat profiles/CSDL-9001/task.env',
+    'cat profiles/TASK-9001/task.env',
     'head -5 profiles/X/task.env',
     'type profiles\\X\\task.env',
     'echo $LIB_MASTER_DB_PASSWORD',
@@ -80,7 +80,7 @@ test.describe('@infra guard-db hook — chặn đường lấy mật khẩu', ()
   }
 
   test('CHẶN cả khi đi qua công cụ Read, không chỉ Bash', () => {
-    expect(chay({ tool_name: 'Read', tool_input: { file_path: 'profiles/CSDL-9001/task.env' } }).chan).toBe(true);
+    expect(chay({ tool_name: 'Read', tool_input: { file_path: 'profiles/TASK-9001/task.env' } }).chan).toBe(true);
   });
 
   test('bản MẪU `.example` thì KHÔNG chặn — chặn nó là báo oan mỗi ngày', () => {
@@ -91,7 +91,7 @@ test.describe('@infra guard-db hook — chặn đường lấy mật khẩu', ()
 
 test.describe('@infra guard-db hook — KHÔNG báo oan lệnh thường', () => {
   const QUA = [
-    'npm run db:query -- --task CSDL-9001 --sql-file q.sql',
+    'npm run db:query -- --task TASK-9001 --sql-file q.sql',
     'cat README.md',
     'grep -rn "foo" scripts/',
     'npx playwright test tests/fe/infra',
@@ -206,7 +206,7 @@ test.describe('@infra guard-db hook — ĐỐI SỐ của lệnh đọc, không 
    *   · `grep PASSWORD <file bí mật>` → LỌT, dù đó mới đúng là đọc bí mật.
    * Nay cắt theo `| ; && ||` rồi chỉ xét đoạn có TỪ ĐẦU là lệnh đọc, soi ĐỐI SỐ của chính đoạn đó.
    */
-  const P = 'profiles/CSDL-9001/task.env';
+  const P = 'profiles/TASK-9001/task.env';
 
   for (const [ten, cmd] of [
     ['cat thẳng', `cat ${P}`],

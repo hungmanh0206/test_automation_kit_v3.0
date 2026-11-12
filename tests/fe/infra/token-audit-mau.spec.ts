@@ -26,7 +26,7 @@ test.describe('@infra token:audit — mẫu lệnh và ngưỡng một lượt',
      * `TASK_ENV=profiles/<T>/task.env`, nên 822 lượt `playwright test` BIẾN MẤT khỏi bảng. Tệ hơn: mỗi
      * task một đường profile nên nó còn tự chia thành nhiều mẫu, và không mẫu nào đủ lớn để lọt top.
      */
-    expect(audit.mauCua('TASK_ENV=profiles/CSDL-9001/task.env npx playwright test --reporter=dot'))
+    expect(audit.mauCua('TASK_ENV=profiles/TASK-9001/task.env npx playwright test --reporter=dot'))
       .toContain('npx playwright');
     expect(audit.mauCua("$env:AUTH_TTL_MINUTES='480'; npx playwright test")).toContain('npx playwright');
     expect(audit.mauCua('export FOO=1; node scripts/qa/output_gate.js')).toContain('node');

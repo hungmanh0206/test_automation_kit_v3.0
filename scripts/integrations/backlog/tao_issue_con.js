@@ -9,7 +9,7 @@
  *
  * Dùng:
  *   node scripts/integrations/backlog/tao_issue_con.js \
- *     --parent CSDL-4008 --type Task --tieu-de "..." --mo-ta-file <đường dẫn .txt> [--dry-run]
+ *     --parent TASK-4008 --type Task --tieu-de "..." --mo-ta-file <đường dẫn .txt> [--dry-run]
  *
  * KHÔNG in apiKey. `--dry-run` in payload rồi dừng, không gọi API.
  */
@@ -145,7 +145,7 @@ async function taiAnh(duongDan) {
 
   /*
    * ĐÍNH ẢNH NGAY TRONG LƯỢT TẠO — nhánh này trước đây BỎ QUA `--anh` hoàn toàn và không báo gì.
-   * Hậu quả đo 27/10: CSDL-4089 tạo xong, log in ra "đã tạo" như bình thường, nhưng issue có 0 tệp và
+   * Hậu quả đo 27/10: TASK-4089 tạo xong, log in ra "đã tạo" như bình thường, nhưng issue có 0 tệp và
    * dòng `![image][...]` trong mô tả trỏ vào hư không — chủ dự án mở ra mới thấy bug không có evidence.
    * Nhánh `--update` vốn đã làm đúng; chỗ thiếu chỉ ở nhánh tạo.
    */

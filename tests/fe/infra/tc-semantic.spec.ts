@@ -2,7 +2,7 @@
  * tc:semantic — chấm NGỮ NGHĨA bộ testcase bằng bảng trường của đặc tả (11/11/2026).
  *
  * Người review (P1): "đo testcase AI có expected đúng nghiệp vụ, có thiếu negative/boundary và có giả định sai
- * không". Máy này đi qua BA lượt đọc tay trên dữ liệu thật (CSDL-9001..9004) trước khi ra con số đáng tin. Độ
+ * không". Máy này đi qua BA lượt đọc tay trên dữ liệu thật (TASK-9001..9004) trước khi ra con số đáng tin. Độ
  * chính xác trục ②③ ở bản đầu là 0/4 — mọi phát hiện nặng đều là lỗi của máy. Mỗi ca dưới đây giữ ĐÚNG MỘT bài
  * học đã đọc ra, để bản sau không mắc lại.
  *

@@ -60,7 +60,7 @@ test.describe('@infra tag chiều — nguồn DUY NHẤT là tc.dimensions, khô
   /*
    * TAG RA CỘT RIÊNG (21/08/2026) — lớp lỗi: gate nào TỰ regex tag từ tiêu đề sẽ IM LẶNG khi tiêu đề
    * sạch. Đã dính thật: `validate.js` đọc `tc.title.match(/\[..\]/g)` nên 45 cảnh báo tag↔loại của bộ
-   * CSDL-26878 tụt về 0 mà không có một dòng lỗi nào. Nguồn tag DUY NHẤT là `tc.dimensions` của model
+   * TASK-26878 tụt về 0 mà không có một dòng lỗi nào. Nguồn tag DUY NHẤT là `tc.dimensions` của model
    * (hợp của cột `Tag` và tiêu đề) — các test dưới khoá đúng chỗ đó.
    */
   test('model lấy tag từ CỘT `Tag` và từ tiêu đề — cả hai đời bộ TC', () => {
@@ -161,7 +161,7 @@ test.describe('@infra tag chiều — nguồn DUY NHẤT là tc.dimensions, khô
 test.describe('@infra Ưu tiên → risk band — PRIO_RANK phải phủ đủ 5 mức', () => {
   /*
    * `bandOf` lấy max(risk, priority) mà `PRIO_RANK` lại THIẾU khoá `critical` ⇒ bỏ cột Severity thì 28 case
-   * `Ưu tiên: Critical` của CSDL-26878 tụt band high → low (5 trục mở rộng còn 1) — sai đúng chiều
+   * `Ưu tiên: Critical` của TASK-26878 tụt band high → low (5 trục mở rộng còn 1) — sai đúng chiều
    * nguy hiểm nhất. Vá PRIO_RANK rồi thì bỏ cột làm đổi band 0/1977 case toàn repo.
    */
   test('PRIO_RANK phủ đủ 5 mức ưu tiên — thiếu `critical` là hạ band case quan trọng nhất', () => {
@@ -187,7 +187,7 @@ test.describe('@infra Ưu tiên → risk band — PRIO_RANK phải phủ đủ 5
 
 test.describe('@infra cleanCell — Markdown nội dòng KHÔNG được lọt vào Excel/Google Sheet', () => {
   /*
-   * VÌ SAO CÓ NHÓM NÀY (đo 30/09/2026 trên bộ CSDL-9004, 150 case, 1500 ô dữ liệu):
+   * VÌ SAO CÓ NHÓM NÀY (đo 30/09/2026 trên bộ TASK-9004, 150 case, 1500 ô dữ liệu):
    * backtick được bóc 52/52 ô, nhưng **đậm** LỌT NGUYÊN 18/18 ô vào .xlsx. Excel và Google Sheet
    * không render Markdown, nên ô testcase hiện ra đầy dấu sao — người đọc testcase phải đọc rác.
    * Lỗi này không thuộc riêng task nào: mọi bộ case dùng cú pháp đậm đều dính. Khoá lại bằng test
@@ -255,7 +255,7 @@ test.describe('@infra cleanCell — Markdown nội dòng KHÔNG được lọt v
       '- ASSUMPTION Q2: chấm theo bộ KEY 4 thành phần',
       '- OBSERVATION: đặc tả chưa nêu quy tắc này',
       '- Đo DB 28/09/2026: bảng có 4493 dòng NULL',
-      '- Cặp đôi với CSDL_HS_TC_064 (cùng luồng)',
+      '- Cặp đôi với APP_HS_TC_064 (cùng luồng)',
       '- Bất kỳ cặp nào hoán đổi cho nhau là FAIL',
     ];
     for (const s of LA_GHI_CHU) {

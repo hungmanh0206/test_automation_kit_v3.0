@@ -13,7 +13,7 @@
  *
  * Dùng:
  *   npm run bugs:checklist -- --module "Tạo Add-on Order"
- *   npm run bugs:checklist -- --task CSDL-24395     ·     --tag checkout     ·     --all
+ *   npm run bugs:checklist -- --task TASK-24395     ·     --tag checkout     ·     --all
  */
 
 const fs = require('fs');

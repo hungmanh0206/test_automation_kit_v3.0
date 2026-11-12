@@ -150,7 +150,7 @@ function main() {
   }
 
   /*
-   * `--apply` ĐÒI chọn phạm vi, có chủ đích. Đo trên CSDL-9003: 44 module ⇒ 44 khung rỗng, và một
+   * `--apply` ĐÒI chọn phạm vi, có chủ đích. Đo trên TASK-9003: 44 module ⇒ 44 khung rỗng, và một
    * `domain:index` đầy ô trắng không giúp ai. Phần giá trị của bộ này là DANH SÁCH VIỆC (bản dry-run),
    * còn file khung chỉ nên dựng cho phần sắp làm. Buộc chọn phạm vi là cách giữ đúng tỉ lệ đó.
    */

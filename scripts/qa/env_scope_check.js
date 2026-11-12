@@ -6,15 +6,15 @@
  *   exit 0 = đạt · 1 = vi phạm · 2 = KHÔNG PHÁN ĐƯỢC (thiếu thứ để đo)
  *
  * ════════════════════════════════════════════════════════════════════════════════════════════════
- * ① THIẾU `QEMIS_CAP_HOC` THÌ APP LẶNG LẼ VỀ "MẦM NON"
+ * ① THIẾU `APP_CAP_HOC` THÌ APP LẶNG LẼ VỀ "MẦM NON"
  *
  * Neo là mã, không phải suy đoán — `tests/fe/support/opsLogin.ts:419`:
  *
- *     console.warn('[qemis] QEMIS_CAP_HOC chưa khai ⇒ giữ mặc định của app ("Mầm non"). ...')
+ *     console.warn('[appmau] APP_CAP_HOC chưa khai ⇒ giữ mặc định của app ("Mầm non"). ...')
  *
  * Một `console.warn`. Lượt chạy KHÔNG gãy: nó đăng nhập được, đi hết các bước, chụp đủ ảnh, và chấm
- * PASS — trên một cấp học KHÔNG phải cấp mà case nói tới. Đo 03/11/2026: `profiles/CSDL-4039` (EMIS
- * **THCS**) và `profiles/CSDL-3544` không ghim khoá này.
+ * PASS — trên một cấp học KHÔNG phải cấp mà case nói tới. Đo 03/11/2026: `profiles/TASK-4039` (BCX
+ * **THCS**) và `profiles/TASK-3544` không ghim khoá này.
  *
  * Đây đúng lớp hỏng cả đợt v2.9.8–v2.9.10 đi chữa: một lượt không đo được thứ nó tưởng đang đo, mà vẫn
  * trả về thứ trông như một kết quả. Chỉ khác là lần này "thứ trông như kết quả" là cả một bộ verdict.
@@ -34,9 +34,9 @@
  * CLAUDE.md §5. Chạy thật thì nó tố 7 trong 8 profile — và khi một cửa mới tố gần như toàn bộ hiện
  * trạng, giả thuyết đầu tiên phải là CỬA SAI, không phải hiện trạng sai.
  *
- * Đo bằng `--soi`: cả 8 profile đều ghim `QEMIS_SO` + `QEMIS_TRUONG`. Cộng với
- * `reference_qemis_master_root_isolation` (một tài khoản đổi được Sở/cấp/trường qua
- * `/Manage/ChonTruong.aspx`), thiết kế thật là: MỘT tài khoản ở `.env` chung + mỗi profile tự ghim
+ * Đo bằng `--soi`: cả 8 profile đều ghim `APP_SO` + `APP_TRUONG`. Cộng với
+ * `reference_appmau_master_root_isolation` (một tài khoản đổi được Sở/cấp/trường qua
+ * `/Manage/ChonDonVi.aspx`), thiết kế thật là: MỘT tài khoản ở `.env` chung + mỗi profile tự ghim
  * ĐƠN VỊ. Đó là thiết kế hợp lý, và `.env` giữ tài khoản ấy KHÔNG phải lệch.
  *
  * Nên ràng buộc đúng không nằm ở chỗ ĐỂ bí mật, mà ở chỗ profile có ghim nổi CẤP HỌC nó đo hay không.
@@ -63,11 +63,11 @@ const path = require('path');
  */
 const REPO_ROOT = path.resolve(__dirname, '..', '..');
 
-/** Thiếu thì app LẶNG LẼ về "Mầm non" (opsLogin.ts:419) ⇒ CHẶN. */
-const PHAI_GHIM = ['QEMIS_CAP_HOC'];
-
-/** Thiếu thì app giữ mặc định của nó, có cảnh báo ở runtime (opsLogin.ts:412) ⇒ chỉ cảnh báo. */
-const NEN_GHIM = ['QEMIS_NAM_HOC'];
+/*
+ * Biến PHẢI ghim (thiếu ⇒ CHẶN) và NÊN ghim (thiếu ⇒ cảnh báo) là DỮ LIỆU của dự án, đọc từ
+ * `.agent/config/context_pins.json` của gốc đang đo (v3.0.0). Bản trước ghi cứng tên biến của MỘT app ở đây.
+ */
+const { docPins, apDung } = require('../utils/context_pins');
 
 /** Hậu tố hợp lệ của khuôn `<TIEN_TO>_<HAU_TO>` mà `uatDbClient.ts` đọc. */
 const HAU_TO_DB = ['HOST', 'PORT', 'NAME', 'USERNAME', 'PASSWORD', 'SSL', 'ALLOWED_HOSTS', 'DENY_HOST_PATTERNS', 'STATEMENT_TIMEOUT_MS'];
@@ -92,6 +92,10 @@ if (rootCho && !fs.existsSync(path.resolve(rootCho))) {
   process.exit(2);
 }
 const GOC = path.resolve(rootCho || REPO_ROOT);
+const PINS = docPins(GOC);
+const PHAI_GHIM = PINS.phai_ghim.map((x) => x.khoa);
+const NEN_GHIM = PINS.nen_ghim.map((x) => x.khoa);
+const hauQua = (ds, khoa) => (ds.find((x) => x.khoa === khoa) || {}).hau_qua || 'app lặng lẽ giữ mặc định';
 
 /** Trả Set TÊN khoá trong một file env. Không giữ, không trả, không in giá trị. */
 function tenKhoa(duong) {
@@ -136,7 +140,7 @@ if (!khoaEnv && profile.length === 0) {
  * chứ không dựa trên điều mình tưởng. Chính chế độ này bác bản luật đầu của cửa. Vẫn chỉ in TÊN khoá.
  */
 if (process.argv.includes('--soi')) {
-  const NEO = ['OPS_USERNAME', 'OPS_PASSWORD', 'QEMIS_SO', 'QEMIS_CAP_HOC', 'QEMIS_TRUONG', 'QEMIS_PHUONG_XA', 'QEMIS_NAM_HOC'];
+  const NEO = PINS.neo.length ? PINS.neo : ['OPS_USERNAME', 'OPS_PASSWORD'];
   console.log(`[soi] .env chung khai: ${NEO.filter((x) => khoaEnv && khoaEnv.has(x)).join(', ') || '(không có khoá neo nào)'}`);
   for (const p of profile) {
     const k = tenKhoa(p.duong) || new Set();
@@ -155,21 +159,21 @@ if (profile.length === 0) {
   for (const p of profile) {
     const k = tenKhoa(p.duong);
     if (!k) { canhBao.push(`${p.task}: không đọc được task.env`); continue; }
+    /* CHỈ ÁP cho profile của app đã khai trong context_pins (v3.0.0): profile của ứng dụng khác thì luật ghim không áp. */
+    if (!apDung(PINS, k)) continue;
 
     const thieuNang = PHAI_GHIM.filter((x) => !k.has(x));
     if (thieuNang.length) {
       loi.push(
         `profiles/${p.task}/task.env THIẾU ${thieuNang.join(', ')}`
-        + ' — app sẽ lặng lẽ giữ mặc định "Mầm non" (opsLogin.ts:419) và lượt chạy vẫn XANH trên'
-        + ' cấp học KHÔNG phải cấp mà case nói tới.',
+        + ` — ${thieuNang.map((x) => hauQua(PINS.phai_ghim, x)).join('; ')}.`,
       );
     }
 
     const thieuNhe = NEN_GHIM.filter((x) => !k.has(x));
     if (thieuNhe.length) {
       canhBao.push(
-        `profiles/${p.task}/task.env thiếu ${thieuNhe.join(', ')} ⇒ giữ mặc định của app;`
-        + ' runtime có cảnh báo (opsLogin.ts:412) nên không âm thầm, nhưng ID_TRUONG đổi theo năm học.',
+        `profiles/${p.task}/task.env thiếu ${thieuNhe.join(', ')} ⇒ ${thieuNhe.map((x) => hauQua(PINS.nen_ghim, x)).join('; ')}.`,
       );
     }
   }
@@ -192,7 +196,7 @@ if (khoaEnv) {
 for (const c of canhBao) console.log('[env-scope] ⚠ ' + c);
 
 if (loi.length === 0) {
-  console.log(`[env-scope] ✓ ĐẠT — ${profile.length} profile đều ghim ${PHAI_GHIM.join(' + ')}; không thấy bí mật chết.`);
+  console.log(`[env-scope] ✓ ĐẠT — ${profile.length} profile · ${PHAI_GHIM.length ? `profile của app đã khai đều ghim ${PHAI_GHIM.join(' + ')}` : 'chưa khai context_pins.json nên không có luật ghim ngữ cảnh nào'}; không thấy bí mật chết.`);
   process.exit(0);
 }
 

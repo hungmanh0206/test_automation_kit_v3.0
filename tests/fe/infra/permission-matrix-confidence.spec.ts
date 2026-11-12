@@ -147,7 +147,7 @@ test.describe('@infra ma trận quyền — dòng tổng ba mức bằng chứng
 
 test.describe('@infra nghĩa vụ test — ba mức ở PHẦN SINH NGHĨA VỤ, và độ phủ có mẫu số (đo 12/11/2026)', () => {
   /*
-   * Bản đồ thật đầu tiên (PM-EMISBC-001, CSDL-4008): phần nghĩa vụ in 8 dòng "‼ … = DENY — chưa có TC (guard…)"
+   * Bản đồ thật đầu tiên (PM-BCGUI-001, TASK-4008): phần nghĩa vụ in 8 dòng "‼ … = DENY — chưa có TC (guard…)"
    * cho đúng 8 ô mà phần tổng bên dưới gọi là `unknown` "đừng dựng case 403 trên ô này". Bản sửa ba mức đã vá
    * phần kiểm và phần tổng nhưng sót phần sinh nghĩa vụ — tức kit tự sinh yêu cầu bịa, xếp ưu tiên cao nhất.
    */
@@ -199,7 +199,7 @@ test.describe('@infra nghĩa vụ test — ba mức ở PHẦN SINH NGHĨA VỤ,
     expect(out).toMatch(/SM-DEMO-001: chuyển hợp pháp có case 1\/2 · cặp bất hợp pháp có case kiểm chặn 1\/4 \(có case ≠ đã chặn/);
     /*
      * Ghim 12/11/2026: bản cũ in "đã chứng minh bị chặn" chỉ vì `covered_by` có TC. Thêm 7 case CHƯA CHẠY vào
-     * CSDL-4008 là nó in "đã chứng minh bị chặn 7/7". Có case là đo HÌNH THỨC; chặn thật chỉ verdict PASS nói được.
+     * TASK-4008 là nó in "đã chứng minh bị chặn 7/7". Có case là đo HÌNH THỨC; chặn thật chỉ verdict PASS nói được.
      */
     expect(out, 'covered_by chỉ chứng tỏ có case, không chứng tỏ hệ thống chặn').not.toMatch(/đã chứng minh bị chặn/);
     expect(out).toMatch(/PM-DEMO-001: ô được phép có case 1\/5 · ô bị cấm có case chặn 1\/2 · ô chưa rõ 5/);

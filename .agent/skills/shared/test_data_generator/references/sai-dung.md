@@ -1,6 +1,6 @@
 # Cặp sai → đúng khi sinh test data
 
-> Khuôn giống `tc_design_guide/references/anti_patterns.md`. Dòng ❌ là chỗ đã gặp thật trên UAT QEMIS;
+> Khuôn giống `tc_design_guide/references/anti_patterns.md`. Dòng ❌ là chỗ đã gặp thật trên UAT app mẫu;
 > dòng ✅ là bản viết lại, và **cột ✅ không vi phạm gate nào**.
 
 ---

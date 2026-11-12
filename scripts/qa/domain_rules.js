@@ -180,7 +180,7 @@ function findConflicts(list) {
 /*
  * NHẬT KÝ ĐỔI RULE — `knowledge/domain/CHANGELOG.md`, một dòng bảng cho mỗi lần đổi:
  *
- *   | 2026-10-10 | BR-HOCSINH-002 | 1→2 | siết | FSD v3 §4.2 | CSDL_HS_TC_088, CSDL_HS_TC_092 |
+ *   | 2026-10-10 | BR-HOCSINH-002 | 1→2 | siết | FSD v3 §4.2 | APP_HS_TC_088, APP_HS_TC_092 |
  *     ngày        rule id           ver   loại   nguồn         TC cần xử lý
  *
  * Đọc MỘT LẦN rồi cache: `validate()` chạy cho từng rule trong 118 file, nên đọc file ở trong đó là 118

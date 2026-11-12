@@ -115,7 +115,7 @@ test.describe('@infra case:paths — import phải khớp tên file thật', () 
      * Cùng lớp lỗi vừa vá ở v2.9.1 cho `rule_coverage` và `full_suite_ledger`: mẫu số gộp file lớp
      * PROJECT thì con số phụ thuộc máy người chạy, và CI tính ra số khác.
      */
-    expect(M.BO_QUA.test('outputs/CSDL/tasks/X/automation/a.spec.ts')).toBe(true);
+    expect(M.BO_QUA.test('outputs/DEMO/tasks/X/automation/a.spec.ts')).toBe(true);
     expect(M.BO_QUA.test('node_modules/x/index.js')).toBe(true);
     expect(M.BO_QUA.test('scripts/qa/case_paths.js'), 'source của kit thì PHẢI quét').toBe(false);
   });

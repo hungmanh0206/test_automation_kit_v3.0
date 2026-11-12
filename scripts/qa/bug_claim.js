@@ -19,7 +19,7 @@
  *
  * LỖI NÀY CHƯA TỪNG ĐƯỢC ĐẾM. Claim bị rút trước khi log thì không lên Backlog, nên không vào
  * `knowledge/bugs`. Store đó có 62 bản ghi với 1 Rejected, trong khi memory ghi ít nhất 2 bug Rejected
- * (CSDL-28776, CSDL-28126). Thứ không đo được thì không sửa được, nên `--report` ở đây đếm cả claim
+ * (TASK-28776, TASK-28126). Thứ không đo được thì không sửa được, nên `--report` ở đây đếm cả claim
  * bị rút và phép kiểm nào đã bắt được nó.
  *
  * Dùng:
@@ -146,13 +146,13 @@ function vanBanNguon(ban) {
 /*
  * NGUỒN THỨ HAI: `requirements/*.md` CỦA CHÍNH TASK (10/11/2026).
  *
- * Đo trên CSDL-4008: 4 claim trỏ `BR-EMIS-034` / `BR-EMIS-042`, và cửa báo "không có bản ghi … trong
+ * Đo trên TASK-4008: 4 claim trỏ `BR-BCX-034` / `BR-BCX-042`, và cửa báo "không có bản ghi … trong
  * knowledge/domain". ĐÚNG THEO CHỮ, nhưng SAI VỀ NGHĨA — nó khiến người đọc tưởng oracle không truy
  * được. Thực tế cả hai rule TỒN TẠI, trạng thái `confirmed`, trong `requirements/spec_digest_TH.md`
  * của chính task, và câu trích là NGUYÊN VĂN.
  *
- * Dự án dùng HAI HỌ MÃ cho hai nguồn khác nhau: `BR-EMISDN-*` (27 bản ghi ở `knowledge/domain`) và
- * `BR-EMIS-*` (71 mã khai trong bản tóm tắt đặc tả của task). Regex của tôi khớp cả hai rồi chỉ tra
+ * Dự án dùng HAI HỌ MÃ cho hai nguồn khác nhau: `BR-BCDN-*` (27 bản ghi ở `knowledge/domain`) và
+ * `BR-BCX-*` (71 mã khai trong bản tóm tắt đặc tả của task). Regex của tôi khớp cả hai rồi chỉ tra
  * một chỗ — và tôi đã báo cáo cái lệch đó cho chủ dự án như một phát hiện về công việc của họ.
  *
  * Bài học, và nó cùng họ với mọi thứ đợt này: **một cửa chỉ biết một nguồn sẽ gọi "không tồn tại"
@@ -160,7 +160,7 @@ function vanBanNguon(ban) {
  */
 /*
  * TRÍCH GHÉP: một `quote` có thể dẫn NHIỀU nguồn trong một ô, dạng
- *     BR-EMIS-042: "…câu của rule…" — Ô kỳ vọng bước 5: "…câu của case…"
+ *     BR-BCX-042: "…câu của rule…" — Ô kỳ vọng bước 5: "…câu của case…"
  * Khi đó phép so "cả chuỗi phải nằm trong nguồn" LUÔN trượt, và cửa gọi nó là "lệch" — tức tố oan.
  * Nên: nếu `quote` có các đoạn trong ngoặc kép, chỉ cần MỘT đoạn đủ dài khớp nguồn là đạt.
  *
@@ -172,7 +172,7 @@ function docDoanTrich(quote) {
   const s = String(quote || '');
   const ra = [...s.matchAll(/[“"«]([^”"»]{8,})[”"»]/g)].map((m) => m[1].trim());
   /*
-   * CẮT THEO GẠCH NGANG nữa. Đo trên CSDL-4008/TC_183: phần trích từ rule nằm NGOÀI ngoặc kép, chỉ
+   * CẮT THEO GẠCH NGANG nữa. Đo trên TASK-4008/TC_183: phần trích từ rule nằm NGOÀI ngoặc kép, chỉ
    * phần "Ô kỳ vọng bước 5" mới trong ngoặc — nên chỉ bóc đoạn-trong-ngoặc là bỏ sót đúng cái cần so.
    */
   for (const d of s.split(/\s[—–]\s|\s\|\s/)) ra.push(d.replace(/^[^:]{0,24}:\s*/, '').trim());
@@ -198,7 +198,7 @@ function timTrongYeuCau(gocTask, ma, quote) {
     /*
      * TRA HẾT MỌI FILE rồi mới kết luận "lệch".
      *
-     * Bản đầu `return` ngay ở file ĐẦU TIÊN chứa mã. Đo trên CSDL-4008/TC_165: cả 3 đoạn trích đều
+     * Bản đầu `return` ngay ở file ĐẦU TIÊN chứa mã. Đo trên TASK-4008/TC_165: cả 3 đoạn trích đều
      * CÓ trong `spec_digest_TH.md`, nhưng một file khác cũng nhắc mã đó và được duyệt trước, nên cửa
      * tố oan. Dừng ở bằng chứng đầu tiên tìm thấy là cách chắc chắn để kết luận sai.
      */
@@ -215,7 +215,7 @@ function doiChieuNguon(o, gocTask) {
   if (!C.batBuoc) return { trangThai: 'chua-phan', viSao: 'đối chiếu nguồn chưa bật' };
   const ma = String(o.ref || '').match(new RegExp(C.mauMa));
   if (!ma) return { trangThai: 'chua-phan', viSao: `\`oracle.ref\` không chứa mã dạng ${C.mauMa} nên không tra được bản ghi nguồn` };
-  /* NGUỒN THỨ HAI trước: bản tóm tắt đặc tả của chính task. Mã họ `BR-EMIS-*` sống ở đây, không ở
+  /* NGUỒN THỨ HAI trước: bản tóm tắt đặc tả của chính task. Mã họ `BR-BCX-*` sống ở đây, không ở
    * `knowledge/domain` — tra sai chỗ rồi kết luận "không tồn tại" là lỗi tôi đã mắc 09/11. */
   const tuYeuCau = gocTask ? timTrongYeuCau(gocTask, ma[0], o.quote) : null;
   if (tuYeuCau) return tuYeuCau;
@@ -255,7 +255,7 @@ if (process.env.BUG_CLAIM_NEO === 'block' || process.env.BUG_CLAIM_NEO === 'warn
 /*
  * CHỈ NHẬN ĐUÔI CỦA ARTIFACT THẬT.
  *
- * Lượt đầu nhận mọi đuôi bắt đầu bằng chữ, và chạy trên claim THẬT của CSDL-4008 nó bắt nhầm 7 chỗ:
+ * Lượt đầu nhận mọi đuôi bắt đầu bằng chữ, và chạy trên claim THẬT của TASK-4008 nó bắt nhầm 7 chỗ:
  * `toastr.error` (tên hàm JS) · `ASP.NET` (tên nền tảng) · một HOSTNAME · `C1/…aspx` (đường URL).
  * Thông báo khi đó SAI hẳn nghĩa: "trỏ tới X nhưng không file nào" trong khi tác giả chưa bao giờ
  * định X là một file. Một cửa nói sai lý do còn tệ hơn cửa không nói.
@@ -534,7 +534,7 @@ function validate(claim, file) {
       if (!neo.dat) {
         /*
          * HAI MỨC, theo đúng tiền lệ `requireBuild` trong cùng file config: "warn" đếm và in tỉ lệ,
-         * "block" mới chặn. Đo trên CSDL-4008 (task thật, đã chạy xong): 113/… phép đo không neo
+         * "block" mới chặn. Đo trên TASK-4008 (task thật, đã chạy xong): 113/… phép đo không neo
          * được, trải đều cả ba nhóm phản chứng — mức "block" sẽ đẩy gần như mọi phép đo vào lối
          * thoát, tức biến lối thoát thành lối đi chính.
          */
@@ -591,7 +591,7 @@ function missingClaims(taskOut, claims) {
     if (!cfg.blockingLayers.includes(String(t.failureLayer || ''))) continue;
     /*
      * Hai đời khuôn `testcase-status.json` cùng tồn tại: bộ cũ dùng `id`, bộ mới dùng `tcId`. Đọc một
-     * khoá thì bộ kia ra `undefined` và thông báo vô dụng. Đã dính thật khi chạy trên CSDL-28905.
+     * khoá thì bộ kia ra `undefined` và thông báo vô dụng. Đã dính thật khi chạy trên TASK-28905.
      */
     const id = t.id || t.tcId || '(không đọc được id)';
     /*
@@ -644,7 +644,7 @@ const TEMPLATE = (tcId) => ({
 /*
  * Ba bộ đếm của cửa, gom lại để in được ở CẢ HAI nhánh.
  *
- * Lượt đầu chúng chỉ in ở nhánh ĐẠT. Chạy trên task thật CSDL-4008 thì cửa CHẶN, và con số biến
+ * Lượt đầu chúng chỉ in ở nhánh ĐẠT. Chạy trên task thật TASK-4008 thì cửa CHẶN, và con số biến
  * mất ĐÚNG LÚC CẦN NÓ NHẤT: người đọc thấy 7 vấn đề mà không biết 113 phép đo kia đang ở đâu.
  * Một số đo chỉ xuất hiện khi mọi thứ đã ổn thì nó không phải số đo, nó là lời chúc mừng.
  */
@@ -753,7 +753,7 @@ function main() {
    * IN SỐ ĐẾM Ở CẢ HAI NHÁNH, không chỉ khi ĐẠT.
    *
    * Lượt đầu tôi để ba bộ đếm (neo "warn" · lối thoát · oracle chưa đối chiếu) chỉ in ở nhánh ĐẠT.
-   * Chạy trên task thật CSDL-4008 thì cửa CHẶN, và con số biến mất ĐÚNG LÚC CẦN NÓ NHẤT — người đọc
+   * Chạy trên task thật TASK-4008 thì cửa CHẶN, và con số biến mất ĐÚNG LÚC CẦN NÓ NHẤT — người đọc
    * thấy 7 vấn đề mà không biết 113 phép đo kia đang ở đâu. Một số đo chỉ xuất hiện khi mọi thứ đã
    * ổn thì nó không phải số đo, nó là lời chúc mừng.
    */

@@ -163,8 +163,8 @@ function gateTestExecution(doc, { fix = false, chayTay = false } = {}) {
      * 2b) ẢNH CÓ MẶT nhưng RỖNG RUỘT. "Có file ảnh" và "ảnh đúng màn" là hai chuyện, và cho tới nay
      * không máy nào phân biệt — nên một case PASS kèm ảnh trắng đi qua mọi cửa.
      *
-     * Hai ca THẬT trong repo: `CSDL_HSTRUONG_TC_138/step-01-passed.png` trắng hoàn toàn (1280×720, 4 KB),
-     * và `CSDL_NHANSU_TC_121/step-01-failed.png` là trang lỗi HTTP 503. Cả hai đều được dùng làm evidence.
+     * Hai ca THẬT trong repo: `APP_HSTRUONG_TC_138/step-01-passed.png` trắng hoàn toàn (1280×720, 4 KB),
+     * và `APP_NHANSU_TC_121/step-01-failed.png` là trang lỗi HTTP 503. Cả hai đều được dùng làm evidence.
      *
      * Chỉ đo được khi file CÓ TRÊN ĐĨA. Đường dẫn tương đối tính từ gốc repo; không tìm thấy thì bỏ qua
      * im lặng — thiếu file đã có luật khác lo, và báo hai lần cho cùng một chuyện là tiếng ồn.
@@ -193,7 +193,7 @@ function gateTestExecution(doc, { fix = false, chayTay = false } = {}) {
      * ĐƯỜNG THOÁT — SIẾT 11/11/2026: phải có BẰNG CHỨNG, không chỉ có lời.
      *
      * Trước đây cửa nhận khi comment có chữ "phục hồi" hay "xác minh lại". Chữ khớp nhầm có thật:
-     * CSDL-9004 ghi *"hệ phục hồi sau khi rút tải"* — nói về HỆ THỐNG chứ không nói lượt test đã sửa
+     * TASK-9004 ghi *"hệ phục hồi sau khi rút tải"* — nói về HỆ THỐNG chứ không nói lượt test đã sửa
      * gì — vẫn khớp. Nay bằng chứng là một step XÁC MINH LẠI (`xacMinhLai()` của recorder: bắt buộc có
      * assert, tự chụp ảnh) mà:
      *   · PASSED, có ảnh hoặc video;
@@ -288,8 +288,8 @@ function gateTestExecution(doc, { fix = false, chayTay = false } = {}) {
        * TẦNG PHẢI CÓ THẬT TRONG TAXONOMY — không chỉ "có khai tầng" (v2.9.6 N2.2).
        *
        * Phép kiểm trên hỏi "có chữ nào trông như tên tầng không". Nó KHÔNG hỏi tên đó có thật. Nên một
-       * giá trị tự phát vẫn lọt — và đã lọt: đo 30/10/2026 thì CSDL_HS_TC_064 · CSDL_HS_TC_132 khai tầng
-       * `be`, CSDL_HS_TC_172 khai `fe`, hai tên KHÔNG nằm trong 8 tầng `verdict_taxonomy.failureLayers`.
+       * giá trị tự phát vẫn lọt — và đã lọt: đo 30/10/2026 thì APP_HS_TC_064 · APP_HS_TC_132 khai tầng
+       * `be`, APP_HS_TC_172 khai `fe`, hai tên KHÔNG nằm trong 8 tầng `verdict_taxonomy.failureLayers`.
        *
        * Và lọt ở đây không vô hại: `bug_claim.js` lọc theo `blockingLayers: ["product_bug","api_bug"]`,
        * nên ba ca ấy ĐI QUA cửa đòi bug claim mà không ai hỏi gì. Taxonomy nói rõ `product_bug` "PHẢI
@@ -338,7 +338,7 @@ function gateTestExecution(doc, { fix = false, chayTay = false } = {}) {
    * MỨC CẢNH BÁO, và GỘP MỘT DÒNG — hai quyết định, hai lý do khác nhau:
    *   · cảnh báo, vì mọi bản ghi có TRƯỚC hôm nay đều thiếu dấu. Làm đỏ chúng là làm đỏ việc đã xong;
    *     một cửa đỏ-sẵn thì người ta tắt, và lúc đó luật mất hẳn.
-   *   · gộp, vì CSDL-4008 có 284 case thiếu dấu. 284 dòng cảnh báo giống hệt nhau không phải thông
+   *   · gộp, vì TASK-4008 có 284 case thiếu dấu. 284 dòng cảnh báo giống hệt nhau không phải thông
    *     tin, nó là nhiễu — và nhiễu đẩy những dòng đáng đọc ra khỏi màn hình.
    */
   /*
@@ -347,7 +347,7 @@ function gateTestExecution(doc, { fix = false, chayTay = false } = {}) {
    * Chủ dự án nêu (ưu tiên #2): *"Nếu comment ghi rõ chưa đủ đặc tả để kết luận thì không được phát
    * hành PASS chính thức."*
    *
-   * ĐÃ THỬ MỘT MẪU RỘNG HƠN VÀ BỎ. Dò chữ kiểu "không có neo / chưa neo" gắn cờ 3 case của CSDL-4008,
+   * ĐÃ THỬ MỘT MẪU RỘNG HƠN VÀ BỎ. Dò chữ kiểu "không có neo / chưa neo" gắn cờ 3 case của TASK-4008,
    * đọc nguyên văn thì chỉ 1 sai — hai case kia ghi `OBSERVATION` cho một khía cạnh PHỤ trong khi
    * oracle chính vẫn có neo, tức dùng đúng doctrine. 67% dương tính giả thì không chặn được.
    *
@@ -355,7 +355,7 @@ function gateTestExecution(doc, { fix = false, chayTay = false } = {}) {
    * kiểu "mở màn, header ghi đúng cấp" — oracle của chúng nằm ở đặc tả màn, không ở một business
    * rule. Gắn cờ cả 50 là tố oan hàng loạt.
    *
-   * MẪU CÒN LẠI HẸP VÀ ĐÚNG: một CÂU HỎI CHƯA ĐƯỢC TRẢ LỜI. Đo trên CSDL-4008: 3 case, 2 trong đó
+   * MẪU CÒN LẠI HẸP VÀ ĐÚNG: một CÂU HỎI CHƯA ĐƯỢC TRẢ LỜI. Đo trên TASK-4008: 3 case, 2 trong đó
    * PASSED, và cả 2 đều sai thật (một case ghi "BR… chưa neo hành vi với số nhập tay — cần chủ dự án
    * chốt", một case mang "mã diện chưa chốt" kèm chênh UI≠SQL). Case thứ ba đã FAILED nên không sao.
    *
@@ -369,19 +369,19 @@ function gateTestExecution(doc, { fix = false, chayTay = false } = {}) {
    * ──────────────────────────────────────────────────────────────────────────────────────────────
    * MẪU THỨ HAI, thêm 11/11/2026 sau một phản biện ĐÚNG — và lỗi gốc là của tôi.
    *
-   * Người review đối chiếu 5 case CSDL-9002 (TC_028, TC_030, TC_077, TC_081, TC_112) với mẫu ở trên:
+   * Người review đối chiếu 5 case TASK-9002 (TC_028, TC_030, TC_077, TC_081, TC_112) với mẫu ở trên:
    * **0/5 được nhận diện**. Đọc lại thì cả 5 đều `PASSED` trong khi comment TỰ KHAI không kết luận
    * được: *"Ghi nhận hành vi thực tế, không chấm đạt hay không đạt vì đặc tả không quy định."*
    *
    * Đó còn là dạng RÕ HƠN cái mẫu đầu bắt: tự nhận không phán được, chứ không phải một câu hỏi treo.
    *
-   * VÌ SAO LỌT: tôi neo mẫu vào đúng MỘT task (CSDL-4008). Task đó dùng từ "cần … chốt"; CSDL-9002
+   * VÌ SAO LỌT: tôi neo mẫu vào đúng MỘT task (TASK-4008). Task đó dùng từ "cần … chốt"; TASK-9002
    * dùng "không chấm đạt hay không đạt". Con số "2/2 đúng" tôi báo là thật, nhưng nó là độ chính xác
    * TRÊN MỘT TASK — và tôi đã đọc nó thành độ chính xác của luật. Cùng họ với lỗi đã ghi ở
    * `exec_proof`: một phép đo chỉ nói về mẫu mà nó nhìn thấy.
    *
    * ĐO LẠI TRÊN TOÀN CORPUS (684 case PASS, 6 task): mẫu B+C bắt 7 case, trong đó **6 vi phạm thật**
-   * — gồm cả `TC_134` mà bản đối chiếu kia bỏ sót — và **1 dương tính giả**: `CSDL_HS_TC_006` nói
+   * — gồm cả `TC_134` mà bản đối chiếu kia bỏ sót — và **1 dương tính giả**: `APP_HS_TC_006` nói
    * "BƯỚC NÀY không kết luận được gì; ĐÃ ĐỔI SANG trường có lớp thật, đếm bằng câu lệnh chỉ-đọc",
    * tức đã phục hồi rồi mới chấm. Nên đường thoát phải nhận cả lời khai PHỤC HỒI, không chỉ lời khai
    * "không ảnh hưởng verdict".
@@ -397,7 +397,7 @@ function gateTestExecution(doc, { fix = false, chayTay = false } = {}) {
   ].join('|'), 'i');
   const KHONG_ANH_HUONG = new RegExp([
     'không ảnh hưởng (verdict|kết luận|case này)', 'ngoài phạm vi case', 'không dùng để phán',
-    /* đã PHỤC HỒI rồi mới chấm — ca `CSDL_HS_TC_006`: một bước không phán được, đổi sang nguồn đo
+    /* đã PHỤC HỒI rồi mới chấm — ca `APP_HS_TC_006`: một bước không phán được, đổi sang nguồn đo
      * khác, rồi mới kết luận. Đó là làm ĐÚNG, không phải vi phạm. */
     'đã (đổi|chuyển) sang', 'sau đó (đo|đếm|kiểm|chạy) lại', 'thay bằng', 'đo lại trên',
   ].join('|'), 'i');
@@ -423,8 +423,8 @@ function gateTestExecution(doc, { fix = false, chayTay = false } = {}) {
    * SIẾT CHO LƯỢT MỚI, KHÔNG LÀM ĐỎ VIỆC ĐÃ XONG — và dấu `run` là thứ phân biệt được.
    *
    * Ba phép kiểm dưới đây nói về những lỗ hổng CÓ THẬT và ĐANG SỐNG, đo trên toàn corpus 1161 bản ghi:
-   *   · 124 case comment đúng chữ `Executed` (106 trong đó ở CSDL-9004)
-   *   · 154 case PASS KHÔNG có bản ghi step nào (toàn bộ ở CSDL-9003)
+   *   · 124 case comment đúng chữ `Executed` (106 trong đó ở TASK-9004)
+   *   · 154 case PASS KHÔNG có bản ghi step nào (toàn bộ ở TASK-9003)
    *   ·   8 case FAIL tầng product_bug/api_bug mà KHÔNG step nào đỏ
    *
    * Chặn thẳng cả ba là làm đỏ bốn task đã xong cùng lúc, và một cửa đỏ-sẵn thì bị tắt trong một
@@ -469,7 +469,7 @@ function gateTestExecution(doc, { fix = false, chayTay = false } = {}) {
   /*
    * VERIFIED EXECUTION Ở CẤP CASE: PASS mà KHÔNG có bản ghi step nào.
    *
-   * 154 case như vậy, toàn bộ ở CSDL-9003. Một case PASS không bước nào được ghi thì artifact không
+   * 154 case như vậy, toàn bộ ở TASK-9003. Một case PASS không bước nào được ghi thì artifact không
    * chứng minh được điều gì đã xảy ra — nó chỉ còn là lời khai. `exec:proof` đo "ghi ít bước hơn
    * khai"; đây là ca cực đoan của chính nó: ghi KHÔNG bước nào.
    *
@@ -631,7 +631,7 @@ function gateTestcaseRow(row, { strictSemicolon = false } = {}) {
    * KẾT QUẢ CÓ ĐÁNH SỐ MÀ BƯỚC KHÔNG CÓ DÒNG SỐ NÀO = luôn sai, và trước đây LỌT.
    * Điều kiện cũ `sN.length >= 2` bỏ qua hẳn dòng có 0 bước đánh số, nên một dòng bảng bị LỆCH CỘT
    * (cột bước nhận nhầm nội dung khác) vẫn qua với "0 CHẶN". Đã dính thật 28/08/2026: 4 dòng của
-   * bộ CSDL-26878 bị vá lệch một ô, gate vẫn xanh, chỉ `validate` bắt được nhờ luật thang `Ưu tiên`.
+   * bộ TASK-26878 bị vá lệch một ô, gate vẫn xanh, chỉ `validate` bắt được nhờ luật thang `Ưu tiên`.
    * Giữ nguyên ngưỡng >= 2 cho phép so khớp số, chỉ thêm ca "bước rỗng số" — không đụng bộ TC cũ.
    */
   if (eN.length && !sN.length) {

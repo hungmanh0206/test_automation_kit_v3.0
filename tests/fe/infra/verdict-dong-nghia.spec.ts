@@ -127,7 +127,7 @@ test.describe('@infra verdict đồng nghĩa — tên CHUẨN không được l�
 /*
  * Chặn ở recorder KHÔNG suy ra chặn ở sổ đã ghi.
  *
- * Recorder ném lỗi lúc `finish`, nên nó chỉ gác ca MỚI. Ba ca thật trong CSDL-9003 (TC_064 · TC_132 ·
+ * Recorder ném lỗi lúc `finish`, nên nó chỉ gác ca MỚI. Ba ca thật trong TASK-9003 (TC_064 · TC_132 ·
  * TC_172) đã nằm trong sổ với tầng `be`/`fe` từ 08/10 — và vì `bug_claim` lọc theo
  * `blockingLayers: ["product_bug","api_bug"]`, chúng đi qua cửa đòi bug claim mà không ai hỏi gì.
  * Nên phép kiểm phải ở CẢ HAI chỗ: lúc ghi, và lúc đọc.

@@ -31,6 +31,9 @@ playwright.config.js · package.json · eslint/tsconfig · CI (.github/**, .gitl
 ```
 .agent/config/project_context.md      khai Sites + env key của dự án (bản generic: *.example.md)
 .agent/config/db.conventions.json      quy ước DB + bản đồ cột↔nhãn ĐO TỪ DB của dự án (bản generic: *.example.json).
+.agent/config/package_deny_terms.json  từ cấm khi đóng gói — định danh dự án/công ty (bản generic: *.example.json). v3.0.0
+.agent/config/context_pins.json        biến chọn ngữ cảnh mà app mặc định ngầm (bản generic: *.example.json). v3.0.0
+.agent/config/db-paths.allow.json      miễn trừ db:paths:check theo file task thật (bản generic: *.example.json). v3.0.0
                                       KHÔNG đóng gói: bản đồ cột của dự án A dùng cho dự án B là oracle SAI mà vẫn "có số từ DB".
 .env · .env.local · profiles/**       giá trị động/creds
 outputs/**                            artifact theo task (gitignored)

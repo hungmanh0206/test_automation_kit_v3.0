@@ -50,7 +50,7 @@ test.describe('@infra draft — miễn trường, nhưng KHÔNG được làm or
   });
 
   test('draft mà `covered_by` KHÁC rỗng ⇒ CHẶN', () => {
-    const r = chayDomain([DRAFT({ covered_by: ['CSDL_HS_TC_088'] })]);
+    const r = chayDomain([DRAFT({ covered_by: ['APP_HS_TC_088'] })]);
     expect(r.code, r.out).toBe(1);
     expect(r.out).toMatch(/CHƯA ai chốt thì KHÔNG được làm oracle/);
     fs.rmSync(r.d, { recursive: true, force: true });
@@ -117,7 +117,7 @@ test.describe('@infra knowledge:bootstrap — danh sách việc, không phải 4
     const r = spawnSync(process.execPath, [KB, ...argv], {
       cwd: REPO,
       encoding: 'utf8',
-      env: { ...gateEnv(), TASK_KEY: 'CSDL-9003', PROJECT_OUTPUT_DIR: 'outputs/CSDL' },
+      env: { ...gateEnv(), TASK_KEY: 'TASK-9003', PROJECT_OUTPUT_DIR: 'outputs/DEMO' },
     });
     return { code: r.status, out: `${r.stdout || ''}${r.stderr || ''}` };
   }
@@ -132,7 +132,7 @@ test.describe('@infra knowledge:bootstrap — danh sách việc, không phải 4
 
   test('`--apply` KHÔNG kèm phạm vi ⇒ TỪ CHỐI, và nói vì sao', () => {
     /*
-     * Đo trên CSDL-9003: 44 module chưa có rule. Dồn hết vào tầng oracle là tạo 44 file rỗng phải bảo
+     * Đo trên TASK-9003: 44 module chưa có rule. Dồn hết vào tầng oracle là tạo 44 file rỗng phải bảo
      * trì và một `domain:index` đầy ô trắng — chưa chắc tốt hơn kho rỗng.
      */
     const r = chayKb(['--apply']);

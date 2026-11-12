@@ -90,7 +90,7 @@ async function thuMoTrucTiep(page, baseUrl, route) {
  * MỘT VAI TRÒ KHAI BẰNG MỘT TRONG HAI CÁCH, và cách thứ hai là cách dùng được từ dòng lệnh:
  *   · `dangNhap(page)` — hàm đăng nhập do bên gọi truyền vào (dùng trong test);
  *   · `context`        — một `BrowserContext` đã nạp sẵn session của vai trò đó. Đây là cách `discover`
- *     dùng: mỗi vai trò một file `.auth`, vì QEMIS có captcha ở MỖI lượt đăng nhập nên không thể đăng
+ *     dùng: mỗi vai trò một file `.auth`, vì app mẫu có captcha ở MỖI lượt đăng nhập nên không thể đăng
  *     nhập tự động nhiều lần trong một lệnh.
  *
  * @param {{baseUrl:string, vaiTro:{ten:string, dangNhap?:(page:any)=>Promise<void>, context?:any}[],

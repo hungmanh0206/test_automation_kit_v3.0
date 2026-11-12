@@ -8,21 +8,21 @@
  * thức."*
  *
  * HAI MẪU ĐÃ THỬ VÀ BỎ — ghi lại vì chúng là lý do mẫu hiện tại hẹp đến vậy:
- *   · dò chữ "không có neo / chưa neo": gắn cờ 3 case của CSDL-4008, đọc nguyên văn thì chỉ **1** sai.
+ *   · dò chữ "không có neo / chưa neo": gắn cờ 3 case của TASK-4008, đọc nguyên văn thì chỉ **1** sai.
  *     Hai case kia ghi `OBSERVATION` cho một khía cạnh PHỤ trong khi oracle chính vẫn có neo — tức
  *     dùng ĐÚNG doctrine. 67% dương tính giả thì không chặn được.
  *   · đòi mã `BR-…`: **50 case PASS** không mang mã BR, nhưng mẫu toàn case cấu trúc kiểu "mở màn,
  *     header ghi đúng cấp" — oracle của chúng nằm ở đặc tả màn, không ở một business rule. Gắn cờ cả
  *     50 là tố oan hàng loạt.
  *
- * MẪU CÒN LẠI: một CÂU HỎI CHƯA ĐƯỢC TRẢ LỜI. Đo trên CSDL-4008: 3 case, 2 PASSED, và cả 2 đều sai
+ * MẪU CÒN LẠI: một CÂU HỎI CHƯA ĐƯỢC TRẢ LỜI. Đo trên TASK-4008: 3 case, 2 PASSED, và cả 2 đều sai
  * thật. Case thứ ba đã FAILED nên không sao. Chặn vì tín hiệu đủ hẹp, không chỉ cảnh báo.
  *
  * ──────────────────────────────────────────────────────────────────────────────────────────────────
  * #5 — comment RỖNG RUỘT
  *
  * `'Executed'` nói đúng một điều người đọc đã biết, và chiếm chỗ của expected/actual/nguồn đo. Đo:
- * **0/241** case của CSDL-4008 dùng nó — đây là lỗ TIỀM ẨN ở giá trị mặc định của recorder, nên việc
+ * **0/241** case của TASK-4008 dùng nó — đây là lỗ TIỀM ẨN ở giá trị mặc định của recorder, nên việc
  * đúng là BỊT DEFAULT, không phải dựng thêm một cửa ồn ào.
  */
 import { test, expect } from '@playwright/test';
@@ -44,14 +44,14 @@ const locRong = (d: unknown) => ((og.gateTestExecution(d).problems || []) as str
 
 test.describe('@infra #2 oracle confidence — PASS không đứng trên câu hỏi còn treo', () => {
   test('ĐỐI CHỨNG DƯƠNG: PASS + "cần chủ dự án chốt" ⇒ CHẶN, và chỉ đúng verdict thay thế', () => {
-    const p = locP(ban('PASSED', 'BR-EMISDN-001 v2 chưa neo hành vi với số nhập tay — cần chủ dự án chốt'));
+    const p = locP(ban('PASSED', 'BR-BCDN-001 v2 chưa neo hành vi với số nhập tay — cần chủ dự án chốt'));
     expect(p).toHaveLength(1);
     expect(p[0], 'phải chỉ ra verdict đúng là OBSERVATION, không chỉ nói sai').toMatch(/OBSERVATION/);
     expect(p[0], 'và nhắc open_question').toMatch(/open_question/);
   });
 
   test('ĐỐI CHỨNG ÂM: PASS với lời ghi có căn cứ ⇒ im lặng', () => {
-    expect(locP(ban('PASSED', 'Lưới 38 dòng khớp SQL theo DD; mã 112 đúng BR-EMISDN-017'))).toHaveLength(0);
+    expect(locP(ban('PASSED', 'Lưới 38 dòng khớp SQL theo DD; mã 112 đúng BR-BCDN-017'))).toHaveLength(0);
   });
 
   test('FAILED + câu hỏi treo ⇒ KHÔNG chặn — nó đã không phải PASS', () => {
@@ -77,27 +77,27 @@ test.describe('@infra #2 oracle confidence — PASS không đứng trên câu h�
      * Nếu một ngày ai đó nới mẫu về "chưa neo" hay "thiếu BR", ca này đỏ. Hai chuỗi dưới là đúng hai
      * kiểu câu mà mẫu cũ tố oan.
      */
-    expect(locP(ban('PASSED', 'Phím Enter ghi nhận là OBSERVATION — không có neo trong BR-EMISDN-017')),
+    expect(locP(ban('PASSED', 'Phím Enter ghi nhận là OBSERVATION — không có neo trong BR-BCDN-017')),
       '"không có neo" cho một khía cạnh phụ KHÔNG phải vi phạm').toHaveLength(0);
     expect(locP(ban('PASSED', 'Màn mở, không lỗi 500, header ghi đúng cấp Tiểu học')),
       'case cấu trúc không mang mã BR cũng KHÔNG phải vi phạm').toHaveLength(0);
   });
 
-  test('HỒI QUY — năm case CSDL-9002 mà mẫu ĐẦU bỏ lọt 0/5', () => {
+  test('HỒI QUY — năm case TASK-9002 mà mẫu ĐẦU bỏ lọt 0/5', () => {
     /*
      * PHẢN BIỆN ĐÚNG, 11/11/2026. Người review đối chiếu 5 case này với mẫu đầu và ra **0/5**. Đọc
      * lại: cả 5 đều `PASSED` trong khi comment TỰ KHAI không kết luận được —
      *   "Ghi nhận hành vi thực tế, không chấm đạt hay không đạt vì đặc tả không quy định."
      * Dạng này còn RÕ HƠN cái mẫu đầu bắt: tự nhận không phán được, chứ không phải một câu hỏi treo.
      *
-     * LỖI GỐC LÀ CỦA TÔI: tôi neo mẫu vào đúng MỘT task (CSDL-4008), task đó dùng từ "cần … chốt".
+     * LỖI GỐC LÀ CỦA TÔI: tôi neo mẫu vào đúng MỘT task (TASK-4008), task đó dùng từ "cần … chốt".
      * Con số "2/2 đúng" tôi báo là thật, nhưng nó là độ chính xác TRÊN MỘT TASK — và tôi đã đọc nó
      * thành độ chính xác của luật.
      *
      * Ca này ghim đích danh 5 mã đó. Nới hay siết mẫu về sau đều phải chạy qua đây.
      */
-    const p = path.join(REPO, 'outputs/CSDL/tasks/CSDL-9002/test-results/testcase-status.json');
-    if (!fs.existsSync(p)) { test.skip(true, 'không có dữ liệu CSDL-9002 trong checkout này'); return; }
+    const p = path.join(REPO, 'outputs/DEMO/tasks/TASK-9002/test-results/testcase-status.json');
+    if (!fs.existsSync(p)) { test.skip(true, 'không có dữ liệu TASK-9002 trong checkout này'); return; }
     const doc = JSON.parse(fs.readFileSync(p, 'utf8'));
     const bi = locP(doc).join('\n');
     for (const id of ['TC_028', 'TC_030', 'TC_077', 'TC_081', 'TC_112']) {
@@ -109,20 +109,20 @@ test.describe('@infra #2 oracle confidence — PASS không đứng trên câu h�
 
   test('ĐỐI CHỨNG ÂM trên dữ liệu THẬT: đã PHỤC HỒI rồi mới chấm ⇒ KHÔNG chặn', () => {
     /*
-     * `CSDL_HS_TC_006` nói "BƯỚC NÀY không kết luận được gì; ĐÃ ĐỔI SANG trường có lớp thật, đếm bằng
+     * `APP_HS_TC_006` nói "BƯỚC NÀY không kết luận được gì; ĐÃ ĐỔI SANG trường có lớp thật, đếm bằng
      * câu lệnh chỉ-đọc". Đó là làm ĐÚNG — một bước không phán được, đổi sang nguồn đo khác, rồi mới
      * kết luận. Mẫu rộng bắt nó; đường thoát phải loại nó ra.
      *
      * Không có ca này thì lần nới mẫu tiếp theo sẽ lặng lẽ biến một việc làm đúng thành vi phạm.
      */
-    const p = path.join(REPO, 'outputs/CSDL/tasks/CSDL-9003/test-results/testcase-status.json');
-    if (!fs.existsSync(p)) { test.skip(true, 'không có dữ liệu CSDL-9003 trong checkout này'); return; }
+    const p = path.join(REPO, 'outputs/DEMO/tasks/TASK-9003/test-results/testcase-status.json');
+    if (!fs.existsSync(p)) { test.skip(true, 'không có dữ liệu TASK-9003 trong checkout này'); return; }
     expect(locP(JSON.parse(fs.readFileSync(p, 'utf8'))).join('\n')).not.toContain('TC_006');
   });
 
   test('`OBSERVATION` KHÔNG bị chặn — đó là verdict ĐÚNG cho tình huống này', () => {
     /*
-     * Cửa chỉ soi case PASS. CSDL-9002 có 25 case dùng `OBSERVATION`, tức đội đã biết dùng đúng
+     * Cửa chỉ soi case PASS. TASK-9002 có 25 case dùng `OBSERVATION`, tức đội đã biết dùng đúng
      * doctrine; 6 case PASS kia mới là chỗ trượt. Chặn luôn cả OBSERVATION là phạt người làm đúng.
      */
     expect(locP(ban('OBSERVATION', 'Ghi nhận hành vi thực tế, không chấm đạt hay không đạt vì đặc tả không quy định')))
@@ -154,7 +154,7 @@ test.describe('@infra #5 chất lượng lời ghi — comment rỗng ruột', (
   });
 
   test('ĐỐI CHỨNG ÂM: lời ghi có nội dung ⇒ im lặng', () => {
-    const sach = ban('PASSED', 'Lưới 38 dòng khớp SQL theo DD, mã 112 đúng BR-EMISDN-017');
+    const sach = ban('PASSED', 'Lưới 38 dòng khớp SQL theo DD, mã 112 đúng BR-BCDN-017');
     expect(locW(sach)).toHaveLength(0);
     expect(locRong(sach)).toHaveLength(0);
   });
@@ -165,8 +165,8 @@ test.describe('@infra #5 chất lượng lời ghi — comment rỗng ruột', (
     expect(src, "và không được quay lại giá trị 'Executed'").not.toMatch(/: 'Executed'\)/);
   });
 
-  test('CHỐNG BÁO OAN trên dữ liệu THẬT: CSDL-4008 không sinh cảnh báo rỗng ruột', () => {
-    const p = path.join(REPO, 'outputs/CSDL/tasks/CSDL-4008/test-results/testcase-status.json');
+  test('CHỐNG BÁO OAN trên dữ liệu THẬT: TASK-4008 không sinh cảnh báo rỗng ruột', () => {
+    const p = path.join(REPO, 'outputs/DEMO/tasks/TASK-4008/test-results/testcase-status.json');
     if (!fs.existsSync(p)) { test.skip(true, 'không có dữ liệu task trong checkout này'); return; }
     expect(locW(JSON.parse(fs.readFileSync(p, 'utf8'))), 'đo trước khi sửa: 0/241 — luật mới không được làm đỏ nó')
       .toHaveLength(0);

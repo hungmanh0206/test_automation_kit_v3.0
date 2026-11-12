@@ -191,7 +191,7 @@ test.describe('@infra phase2 — ngưỡng rerun/lint/mutation có số', () => 
 /*
  * MANIFEST ↔ BỘ CASE NÓI NGƯỢC NHAU, và LÝ DO n/a ĐÃ BỊ BÁC.
  *
- * Ca thật (CSDL-9004, đo 30/09/2026): manifest khai `accessibility: "n/a"` với lý do "đặc tả không
+ * Ca thật (TASK-9004, đo 30/09/2026): manifest khai `accessibility: "n/a"` với lý do "đặc tả không
  * nêu yêu cầu a11y", trong khi bộ case ĐANG CÓ ba case bàn phím gắn tag `[A11y]`. Hai file nằm cạnh
  * nhau nói ngược nhau mà `dim:coverage` vẫn xanh — bảng chỉ in "N/A (khai)" rồi thôi, vì gate chỉ
  * hỏi "chiều required có case chưa", không hỏi "chiều n/a có case không".

@@ -71,13 +71,13 @@ const RE_DIEU_HUONG_URL = /^\s*(mở|vào|truy cập|navigate|đi đến|chuyể
  *   · 436/3814 câu bước (11%) chứa ≥2 động từ thao tác;
  *   · phần lớn tách được ở DẤU PHẨY — bộ tách đã xử lý, nên không cần luật nào;
  *   · phần CÒN LẠI là ca nối bằng "và", và `tach_menh_de` CỐ Ý không tách ở đó (`"Xoá trắng ô Họ và
- *     tên"` sẽ vỡ làm hai). Đo: 280/781 mệnh đề chưa khớp của CSDL-9001 chứa "và" — 36%.
+ *     tên"` sẽ vỡ làm hai). Đo: 280/781 mệnh đề chưa khớp của TASK-9001 chứa "và" — 36%.
  *
  * Nên chỗ này không sửa được bằng bộ tách, chỉ sửa được bằng cách VIẾT LẠI CÂU. Đó đúng là việc của
  * một luật §K, và là chỗ chênh lệch 79% (fixture viết chuẩn) với 16–36% (bộ thật) nằm.
  *
  * LUẬT HẸP CÓ CHỦ Ý: chỉ bắt khi chữ ngay SAU "và" là một ĐỘNG TỪ THAO TÁC đã khai. `"Họ và tên"`,
- * `"Stt 10 và Stt 11"`, `"DTTS và miền núi"` đều có danh từ phía sau ⇒ KHÔNG bắt. Đo trên CSDL-9001:
+ * `"Stt 10 và Stt 11"`, `"DTTS và miền núi"` đều có danh từ phía sau ⇒ KHÔNG bắt. Đo trên TASK-9001:
  * 38 ca bắt, 242 ca bỏ qua đúng.
  * ─────────────────────────────────────────────────────────────────────────────────────────────────────
  */
@@ -183,7 +183,7 @@ const DOI_CHUNG = {
     'Nhập Stt 26 Diện tích đất = 5000',
     'Mở tab mới vào https://vi-du.com/Manage/Log',
     'navigate đến <ops_base_url>/c3/lop.aspx',
-    'mở C2/HoSoTruongDetail.aspx',
+    'mở C2/HoSoDetail.aspx',
   ],
   khong_duoc_bat: [
     /* Viết đúng chuẩn. */

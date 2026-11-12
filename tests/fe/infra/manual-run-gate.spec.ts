@@ -49,7 +49,7 @@ const SESSION_OK = [
    * Trường thứ năm, thêm ở v2.9.5 §7. `Môi trường` chỉ ghi host; thứ làm hỏng một phép đo nhiều nhất
    * trên app này là chạy trên ĐƠN VỊ hoặc CẤP HỌC khác với cái case cần.
    */
-  '- Đơn vị / cấp học: TEST 1 (mã 01000754), cấp THCS',
+  '- Đơn vị / cấp học: TEST 1 (mã 00000001), cấp THCS',
   '',
   /*
    * Khối "Sổ dữ liệu đã tạo" thuộc KHUÔN session.md từ v2.5.0 G1.7. Sổ RỖNG (có header, không có dòng) là
@@ -295,7 +295,7 @@ test.describe('@infra manual-run — sổ phiên: đơn vị và "không phán �
   });
 
   test('ĐỐI CHỨNG ÂM: khai `Cấp học` thôi cũng đủ — ba cách khai đều nhận', () => {
-    for (const dong of ['- Đơn vị: TEST 1 (01000754)', '- Cấp học: THCS', '- Trường áp dụng: TEST 1']) {
+    for (const dong of ['- Đơn vị: TEST 1 (00000001)', '- Cấp học: THCS', '- Trường áp dụng: TEST 1']) {
       const s = SESSION_OK.split('\n').map((l) => (l.startsWith('- Đơn vị') ? dong : l)).join('\n');
       expect(loc(chay({ session: s }).problems, /\*\*Đơn vị \/ cấp học\*\*/).length,
         `khai bằng "${dong}" phải được nhận`).toBe(0);

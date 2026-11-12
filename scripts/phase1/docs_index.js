@@ -19,9 +19,9 @@
  * một neo khác, vì gợi ý sai ở đây dẫn thẳng tới việc đổi expected cho khớp một luật không tồn tại.
  *
  * Dùng:
- *   node scripts/phase1/docs_index.js --task CSDL-26878 --write   # ghi _anchors.json
- *   node scripts/phase1/docs_index.js --task CSDL-26878 --cite BR-07
- *   node scripts/phase1/docs_index.js --task CSDL-26878 --verify <file.md|file.xlsx.md ...>
+ *   node scripts/phase1/docs_index.js --task TASK-26878 --write   # ghi _anchors.json
+ *   node scripts/phase1/docs_index.js --task TASK-26878 --cite BR-07
+ *   node scripts/phase1/docs_index.js --task TASK-26878 --verify <file.md|file.xlsx.md ...>
  *
  * Exit (chỉ có ý nghĩa khi bật `--enforce`; mặc định luôn 0 vì đây là báo cáo):
  *   0 đạt · 1 có neo không tra được · 2 KHÔNG PHÁN ĐƯỢC hoặc dùng sai.
@@ -56,17 +56,17 @@ const rest = (n) => {
  * `domain_rules.js` gác, còn `BR-07` với `AC-2.1` là mục đánh số trong chính trang tài liệu nguồn. File
  * này chỉ lo hệ thứ hai. Phần đuôi `(?![A-Za-z])` để `BR-07` không nuốt mất `BR-SAPSYNC-003`.
  *
- * `NT-PH` và `LH` thêm 25/09/2026. Tài liệu nghiệp vụ CSDL (vault QEMIS, tab `Lớp`) đánh mã business
+ * `NT-PH` và `LH` thêm 25/09/2026. Tài liệu nghiệp vụ CSDL (vault app mẫu, tab `Lớp`) đánh mã business
  * rule là `NT-PH-01` và mã chức năng là `LH-01.1` — không tiền tố nào trong danh sách cũ khớp, và
  * `NT-PH` còn bị chính đuôi `(?![A-Za-z])` chặn vì có chữ sau dấu gạch. Hệ quả đo được trước khi sửa:
- * cả bộ spec `CSDL - Hồ sơ lớp.md` ra `0 neo`, tức mọi `oracle_ref` của task đó không tra ngược được và
+ * cả bộ spec `Đặc tả - Hồ sơ lớp.md` ra `0 neo`, tức mọi `oracle_ref` của task đó không tra ngược được và
  * theo RULE_GLOBAL §3 chỉ còn là OBSERVATION. Đây là tiền tố của TÀI LIỆU chứ không phải của kit, nên
  * thêm vào đây đúng chỗ.
  *
  * `NT-PH` phải đứng trước trong nhóm chọn: JS thử các nhánh theo thứ tự, và không nhánh nào khác bắt đầu
  * bằng `N`, nhưng để nguyên thứ tự dài-trước-ngắn cho khỏi bẫy người sửa sau.
  *
- * `NS-BR` và `NS` thêm 25/09/2026, cho note `CSDL - Hồ sơ đội ngũ.md`: mã chức năng là `NS-01.1`, mã
+ * `NS-BR` và `NS` thêm 25/09/2026, cho note `Đặc tả - Hồ sơ đội ngũ.md`: mã chức năng là `NS-01.1`, mã
  * business rule là `NS-BR-01`. Trước khi thêm, cả bộ spec đó ra `2 neo · 0 có dòng định nghĩa`, mà 2 neo
  * ấy lại là `BR-192`/`BR-217` — tham chiếu tới tài liệu khác, không định nghĩa ở đâu trong vault. Tức
  * task đó chỉ có neo GIẢ, đúng thứ file này sinh ra để chặn.
@@ -190,7 +190,7 @@ function inCite(idx, anchor, trong) {
     console.log(`    ${c.text}`);
   }
   /*
-   * Đo thật trên CSDL-26878: `BR-07` có DỊNH NGHĨA ở 5 trang US khác nhau, mỗi trang một luật khác
+   * Đo thật trên TASK-26878: `BR-07` có DỊNH NGHĨA ở 5 trang US khác nhau, mỗi trang một luật khác
    * hẳn. Tài liệu đánh số BR theo TỪNG US, nên một testcase chỉ ghi "BR-07" là chưa chỉ ra được luật
    * nào. Phải kèm trang, kiểu "US-01 BR-07".
    */

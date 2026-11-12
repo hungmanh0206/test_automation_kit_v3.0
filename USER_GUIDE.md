@@ -103,24 +103,26 @@ Rồi mở `profiles/<TASK_KEY>/task.env` điền **giá trị động**: link B
 |---|---|---|
 | **Tĩnh**: một tài khoản dùng cho mọi task | API key Figma, `BACKLOG_BASE_URL`, `BACKLOG_API_KEY` | `.env` chung |
 | **Động**: theo task | `TASK_KEY`, link story, `GOOGLE_SHEET_URL` | `profiles/<TASK_KEY>/task.env` |
-| **Đơn vị đang đo**: theo task | `QEMIS_SO`, `QEMIS_CAP_HOC`, `QEMIS_TRUONG`, `QEMIS_NAM_HOC`, `LIB_MASTER_DB_RO_*` | `profiles/<TASK_KEY>/task.env` |
+| **Đơn vị đang đo**: theo task | `APP_SO`, `APP_CAP_HOC`, `APP_TRUONG`, `APP_NAM_HOC`, `LIB_MASTER_DB_RO_*` | `profiles/<TASK_KEY>/task.env` |
 
-**Mỗi profile PHẢI ghim `QEMIS_CAP_HOC`.** Gác bằng `npm run env:scope`.
+**Mỗi profile PHẢI ghim mọi biến chọn ngữ cảnh mà app mặc định ngầm.** Biến nào là dữ liệu của dự án,
+khai ở `.agent/config/context_pins.json` (mẫu: `context_pins.example.json`), gác bằng `npm run env:scope` và
+preflight phase2. Chưa khai file đó thì luật không áp; profile không có khoá nào khớp `nhan_dien` (task của
+app khác) cũng không bị đòi.
 
-Thiếu khoá đó thì app giữ mặc định của nó là "Mầm non" (`tests/fe/support/opsLogin.ts:419`), và chỗ nguy
-là nó chỉ `console.warn`. Lượt chạy không gãy: nó đăng nhập được, đi hết các bước, chụp đủ ảnh, rồi chấm
-**PASS** trên một cấp học **không phải** cấp mà case nói tới. Không ca nào đỏ. Nên hãy ghim cả
-`QEMIS_NAM_HOC`: `ID_TRUONG` đổi theo năm học, thiếu nó là lấy trường của năm khác.
+Vì sao phải chặn: thiếu biến đó thì app lặng lẽ về ngữ cảnh mặc định, và chỗ nguy là nó chỉ `console.warn`.
+Lượt chạy không gãy: nó đăng nhập được, đi hết các bước, chụp đủ ảnh, rồi chấm **PASS** trên một ngữ cảnh
+**không phải** ngữ cảnh mà case nói tới. Không ca nào đỏ. Biến "nên ghim" (khai ở `nen_ghim`) chỉ cảnh báo.
 
 Ngược lại, `.env` chung giữ **một** tài khoản app cho mọi task là **đúng thiết kế**, không phải lệch: một
-tài khoản QEMIS đổi được Sở, cấp và trường qua `/Manage/ChonTruong.aspx`, nên thứ phân biệt các task là
-khối `QEMIS_*` trong profile, chứ không phải mỗi task một mật khẩu riêng.
+tài khoản app mẫu đổi được Sở, cấp và trường qua `/Manage/ChonDonVi.aspx`, nên thứ phân biệt các task là
+khối `APP_*` trong profile, chứ không phải mỗi task một mật khẩu riêng.
 
 > Lịch sử của chính đoạn này, để lần sau đừng sửa qua sửa lại. Bảng từng xếp `OPS_*` vào cột "Tĩnh".
 > Bản sửa đầu 03/11/2026 đổi thành *"`OPS_*` KHÔNG được để ở `.env` chung"*, và đó cũng **sai**: luật ấy
 > tố oan **7 trong 8** profile, vì `profiles/task.env.example` không hề có `OPS_*`. Ràng buộc thật nằm ở
 > chỗ profile có ghim nổi **cấp học** hay không. Nguồn chốt: [`RULE_GLOBAL.md`](RULE_GLOBAL.md) §Đường
-> dẫn chuẩn, `knowledge/setup_recipes/SR-QEMISLOGIN-001.json`, và `opsLogin.ts:419`.
+> dẫn chuẩn, `knowledge/setup_recipes/SR-APPMAULOGIN-001.json`, và `opsLogin.ts:419`.
 
 **Không sửa `.env` chung khi task khác đang chạy.**
 
@@ -488,7 +490,7 @@ gì, ra gì, gọi khi nào và dừng ở đâu. Mục này chỉ nối lệnh 
 | `/ui-debug` | Màn mới, hoặc test đỏ vì `script_error` do locator |
 
 > **Phần sau tên command phải đúng bằng `<TASK_KEY>`.** Nó đổ thẳng vào `--task`, nên
-> `/phase3 CSDL-1234 chạy local` sẽ làm preflight nhận cả câu đó làm task key rồi chặn. Cần truyền
+> `/phase3 TASK-1234 chạy local` sẽ làm preflight nhận cả câu đó làm task key rồi chặn. Cần truyền
 > thêm tham số thì dùng prompt mẫu (mục 8.3).
 
 **Quên mã task?** Lệnh tự xử lý:

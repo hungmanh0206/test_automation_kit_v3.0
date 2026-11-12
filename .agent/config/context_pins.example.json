@@ -1,0 +1,20 @@
+{
+  "_y": "Mẫu — chép thành context_pins.json rồi khai biến của app bạn đang test. Không có file thật thì không luật ghim ngữ cảnh nào áp. Đọc bởi scripts/utils/context_pins.js.",
+  "_vi_sao": "App có ngữ cảnh mặc định ngầm (đơn vị, chi nhánh, năm…) thì profile thiếu biến đó vẫn chạy XANH — nhưng trên ngữ cảnh SAI. Khai ở đây để preflight phase2 và env:scope chặn profile chưa ghim.",
+  "nhan_dien": "^APP_",
+  "phai_ghim": [
+    { "khoa": "APP_DON_VI", "hau_qua": "app lặng lẽ về đơn vị mặc định, lượt chạy vẫn XANH trên đơn vị mà case không nói tới" }
+  ],
+  "nen_ghim": [
+    { "khoa": "APP_NAM", "hau_qua": "app giữ năm mặc định; dữ liệu theo năm có thể lệch" }
+  ],
+  "neo": ["OPS_USERNAME", "OPS_PASSWORD", "APP_DON_VI", "APP_NAM"],
+  "dau_ngu_canh": {
+    "capHoc": ["APP_DON_VI_LAM_VIEC", "APP_DON_VI"],
+    "truong": [],
+    "namHoc": ["APP_NAM"]
+  },
+  "ma_ngan": {
+    "capHoc": [["chi nhánh bắc", "BAC"], ["chi nhánh nam", "NAM"]]
+  }
+}

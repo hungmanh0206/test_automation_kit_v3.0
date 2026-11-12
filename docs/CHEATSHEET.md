@@ -50,7 +50,7 @@ lượng bộ case không liên quan tới việc một bug có thật hay khôn
 
 ```
 ✗ 3 lỗi phải sửa · ⚠ 5 cảnh báo · ✓ 41 kiểm đạt · ○ 1 không phán được
-  task CSDL-9001 · Phase 2 · ngữ cảnh phase · 6.1s · 213 case, 83 đã execute
+  task TASK-9001 · Phase 2 · ngữ cảnh phase · 6.1s · 213 case, 83 đã execute
   làn: FULL — 32 module band High
 
 [T0] CHẶN

@@ -4,7 +4,7 @@
  * BỐI CẢNH. Chủ dự án nêu điều thứ hai: *"chưa chứng minh Agent thực thi đúng toàn bộ steps"*. Chữ
  * quan trọng là **CHƯA CHỨNG MINH**, không phải **SAI**.
  *
- * ĐO TRÊN TASK THẬT CSDL-4008: 282 case so được · 177 ghi đủ · **61 case PASSED ghi ít bước hơn số
+ * ĐO TRÊN TASK THẬT TASK-4008: 282 case so được · 177 ghi đủ · **61 case PASSED ghi ít bước hơn số
  * bước case khai**, có cái chỉ 2/6.
  *
  * VÀ ĐÂY LÀ PHẦN QUAN TRỌNG NHẤT CỦA CẢ FILE NÀY. Con số đó **KHÔNG** được đọc là "chạy thiếu bước".

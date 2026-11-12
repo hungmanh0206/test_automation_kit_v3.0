@@ -13,7 +13,7 @@
  * taxonomy xếp nó vào "chưa thực thi", nên nó KHÔNG phải fail. Case có step BLOCKED mà người gọi
  * không tự khai verdict rơi thẳng vào nhánh `'PASSED'`.
  *
- * ĐO TRƯỚC KHI SỬA: CSDL-4008 ra **0/284** ca dính — nhưng chỉ vì mọi spec ở đó đều khai verdict tay.
+ * ĐO TRƯỚC KHI SỬA: TASK-4008 ra **0/284** ca dính — nhưng chỉ vì mọi spec ở đó đều khai verdict tay.
  * Dữ liệu sạch KHÔNG chứng minh lỗ đã bịt; nó chỉ chứng minh chưa ai đi qua lỗ. Mấy ca dưới đây đi
  * qua lỗ đó một cách cố ý.
  *
@@ -220,7 +220,7 @@ test.describe('@infra gộp verdict — cửa ĐỌC SỔ (output_gate)', () => 
     expect(p[0], 'phải nói rõ thứ đang có chỉ là lời').toMatch(/chỉ có LỜI khai phục hồi/);
   });
 
-  test('chữ "phục hồi" nói về HỆ THỐNG không còn là đường thoát (câu thật từ CSDL-9004)', () => {
+  test('chữ "phục hồi" nói về HỆ THỐNG không còn là đường thoát (câu thật từ TASK-9004)', () => {
     /* Trước 11/11 câu này khớp regex của cửa, và sẽ cho PASS đứng trên step xấu. */
     expect(loc(moi(soTay('PASSED', XAU, 'Ý 4: hệ phục hồi sau khi rút tải — nền sau med 410ms.')))).toHaveLength(1);
   });
@@ -253,13 +253,13 @@ test.describe('@infra gộp verdict — cửa ĐỌC SỔ (output_gate)', () => 
     expect(loc(soTay('FAILED', [{ name: 'a', status: 'PASSED' }, { name: 'b', status: 'FAILED' }]))).toHaveLength(0);
   });
 
-  test('CHỐNG BÁO OAN trên dữ liệu THẬT: CSDL-4008 không sinh vi phạm mới', () => {
+  test('CHỐNG BÁO OAN trên dữ liệu THẬT: TASK-4008 không sinh vi phạm mới', () => {
     /*
      * Một luật mới làm đỏ một task đã xong là cách nhanh nhất để nó bị tắt. Đo trước khi sửa: 0/284.
      * Ca này giữ con số đó — nếu nó đỏ, hoặc luật quá rộng, hoặc dữ liệu đã đổi.
      */
-    const p = path.join(REPO, 'outputs/CSDL/tasks/CSDL-4008/test-results/testcase-status.json');
-    if (!fs.existsSync(p)) { test.skip(true, 'không có dữ liệu task CSDL-4008 trong checkout này'); return; }
+    const p = path.join(REPO, 'outputs/DEMO/tasks/TASK-4008/test-results/testcase-status.json');
+    if (!fs.existsSync(p)) { test.skip(true, 'không có dữ liệu task TASK-4008 trong checkout này'); return; }
     const doc = JSON.parse(fs.readFileSync(p, 'utf8'));
     expect(loc(doc), 'luật mới làm đỏ một task đã xong ⇒ xem lại phạm vi luật').toHaveLength(0);
   });

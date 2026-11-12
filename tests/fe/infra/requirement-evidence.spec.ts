@@ -34,7 +34,7 @@ const RULE = (over: Record<string, unknown> = {}) => ({
   confirmed_at: '2026-10-01',
   version: 1,
   status: 'active',
-  covered_by: ['CSDL_HS_TC_088'],
+  covered_by: ['APP_HS_TC_088'],
   examples: [{ input: 'abc', expected: 'CHẶN, thông báo định dạng email' }],
   ...over,
 });
@@ -89,7 +89,7 @@ test.describe('@infra G1.3 — "UI thực tế" KHÔNG được làm oracle', ()
   test('ÂM BẢN: nguồn tài liệu thật ⇒ KHÔNG chặn', () => {
     for (const s of [
       'FSD v3 §4.2',
-      'Vault QEMIS kho BR: "20 - Cấp học/02 - THCS/BR.md"',
+      'Vault app mẫu kho BR: "20 - Cấp học/02 - THCS/BR.md"',
       'TT32/2018 — BR-TT32-010',
       'BA XÁC NHẬN 08/10/2026',
       'Bộ testcase chuẩn của hệ thống Testcase_CSDL_2026-2027.xlsx',
@@ -117,7 +117,7 @@ test.describe('@infra G1.3 — "UI thực tế" KHÔNG được làm oracle', ()
 
 test.describe('@infra G1.3 — "không đề cập" KHÁC "không áp dụng"', () => {
   test('đặc tả im lặng mà KHÔNG nêu neo độc lập ⇒ CẢNH BÁO', () => {
-    const r = chayDomain([RULE({ source: 'KHÔNG có trong đặc tả CSDL - Hồ sơ lớp.md' })]);
+    const r = chayDomain([RULE({ source: 'KHÔNG có trong đặc tả Đặc tả - Hồ sơ lớp.md' })]);
     expect(r.out).toMatch(/không nêu NEO ĐỘC LẬP/);
     expect(r.out, 'phải phân biệt rõ hai câu đó').toMatch(/"Không đề cập" KHÁC "không áp dụng"/);
     expect(r.code, 'cảnh báo, không chặn — nhận neo bằng đọc chữ thì cách viết khác là báo oan').toBe(0);
@@ -130,9 +130,9 @@ test.describe('@infra G1.3 — "không đề cập" KHÁC "không áp dụng"', 
      * lặng và cả 4 đều nêu neo. Chúng là MẪU ĐÚNG của luật này, nên luật phải được dựng để chúng qua.
      */
     for (const s of [
-      'KHÔNG có trong đặc tả CSDL - Hồ sơ lớp.md. Ghi lại đây làm oracle an toàn phổ quát sau khi đối chiếu bộ testcase hệ thống',
-      'KHÔNG lấy từ đặc tả CSDL — đây là THUỘC TÍNH TOÀN VẸN DỮ LIỆU PHỔ QUÁT, độc lập với ứng dụng',
-      'BA XÁC NHẬN 08/10/2026. Đặc tả "CSDL - Hồ sơ lớp.md" KHÔNG có rule nào về lớp ghép',
+      'KHÔNG có trong đặc tả Đặc tả - Hồ sơ lớp.md. Ghi lại đây làm oracle an toàn phổ quát sau khi đối chiếu bộ testcase hệ thống',
+      'KHÔNG lấy từ đặc tả — đây là THUỘC TÍNH TOÀN VẸN DỮ LIỆU PHỔ QUÁT, độc lập với ứng dụng',
+      'BA XÁC NHẬN 08/10/2026. Đặc tả "Đặc tả - Hồ sơ lớp.md" KHÔNG có rule nào về lớp ghép',
       'KHÔNG có trong đặc tả; neo là văn bản gốc TT28/2020',
     ]) {
       const r = chayDomain([RULE({ source: s })]);
@@ -181,7 +181,7 @@ test.describe('@infra G1.3 — ba mức bằng chứng của `PM-*`', () => {
     const r = chaySystem([PM({
       allow: { Admin: ['view', 'delete'], GiaoVien: ['view'] },
       deny_verified: { Admin: [] },
-      covered_by: { 'GiaoVien:delete': ['CSDL_HS_TC_300'] },
+      covered_by: { 'GiaoVien:delete': ['APP_HS_TC_300'] },
     })]);
     expect(r.code, r.out).toBe(1);
     expect(r.out).toMatch(/oracle KHÔNG TỒN TẠI/);
@@ -191,7 +191,7 @@ test.describe('@infra G1.3 — ba mức bằng chứng của `PM-*`', () => {
   test('ÂM BẢN: `covered_by` trỏ ô đã phân loại ⇒ KHÔNG chặn', () => {
     const r = chaySystem([PM({
       deny_verified: { GiaoVien: ['delete'] },
-      covered_by: { 'GiaoVien:delete': ['CSDL_HS_TC_300'] },
+      covered_by: { 'GiaoVien:delete': ['APP_HS_TC_300'] },
     })]);
     expect(r.code, r.out).toBe(0);
     fs.rmSync(r.d, { recursive: true, force: true });

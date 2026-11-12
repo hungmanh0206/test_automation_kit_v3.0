@@ -241,7 +241,7 @@ test.describe('@infra hợp đồng env — bản mẫu là tài liệu ĐƯỢC
   });
 
   /*
-   * CSDL-29229 — tester sau bàn giao báo: "không bắt buộc phải có env token của LMS và OPS thì mới
+   * TASK-29229 — tester sau bàn giao báo: "không bắt buộc phải có env token của LMS và OPS thì mới
    * test được, check lại". Đo lại thì code ĐÃ ĐÚNG, cái sai là tài liệu không nói lane nào cần gì.
    * Ba phép kiểm dưới đây khoá câu trả lời đó, để mai kia không ai lặng lẽ thêm ràng buộc vào phase1.
    */

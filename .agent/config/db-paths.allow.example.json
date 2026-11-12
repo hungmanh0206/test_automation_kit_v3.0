@@ -1,0 +1,5 @@
+{
+  "_y": "MIỄN TRỪ CÓ HẠN cho db:paths:check. Chép thành db-paths.allow.json khi cần cho qua TẠM một file mở đường riêng tới DB, KÈM LÝ DO và HẠN RÀ SOÁT. Không có file thì danh sách rỗng: mọi đường vòng đều bị chặn.",
+  "_khong_phai_la": "Miễn trừ KHÔNG khẳng định file an toàn — chỉ nói nợ được ĐẾM và có hạn.",
+  "mien_tru": []
+}

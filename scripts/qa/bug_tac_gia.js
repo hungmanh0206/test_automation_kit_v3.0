@@ -81,7 +81,7 @@ function maTaoTrong(text) {
  * tạo, nên giờ chỉ còn 17/96 (đo 12/11/2026).
  */
 /* Ba dạng gọi đã gặp: `node …/x.js`, `npm run backlog:bug-report`, và wrapper `bash backlog.sh tao_issue_con` của task
- * (CSDL-4137 tạo bằng wrapper — bản đầu của mẫu này bỏ sót nó). */
+ * (TASK-4137 tạo bằng wrapper — bản đầu của mẫu này bỏ sót nó). */
 const LENH_TAO = /(?:node\s+\S*(?:bug_reporter|tao_issue_con)\.js|backlog\.sh\s+(?:bug_reporter|tao_issue_con)\b|npm\s+run\s+(?:-s\s+)?backlog:bug-report(?![:\w-]))/;
 const KHO = /--dry-run|:dry-run/;
 const laLenhTao = (cmd) => LENH_TAO.test(String(cmd || '')) && !KHO.test(String(cmd || ''));
@@ -92,7 +92,7 @@ function logCuaLenh(cmd) {
   const task = (cmd.match(/--task[ =]([\w-]+)/) || cmd.match(/TASK_KEY=([\w-]+)/) || [])[1];
   if (!task) return null;
   const run = (cmd.match(/--run-id[ =]([\w.-]+)/) || cmd.match(/RUN_ID=([\w.-]+)/) || [])[1];
-  const po = ((cmd.match(/PROJECT_OUTPUT_DIR=["']?([^"'\s]+)/) || [])[1] || 'outputs/CSDL').replace(/\\/g, '/').replace(/^.*?(outputs\/)/, '$1');
+  const po = ((cmd.match(/PROJECT_OUTPUT_DIR=["']?([^"'\s]+)/) || [])[1] || 'outputs/DEMO').replace(/\\/g, '/').replace(/^.*?(outputs\/)/, '$1');
   return path.join(REPO, po, 'tasks', task, 'reports', ...(run ? ['runs', run] : []), 'backlog_bug_log.md');
 }
 

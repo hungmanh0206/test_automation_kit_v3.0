@@ -87,7 +87,7 @@ Khuôn này là thứ máy đọc. Đổi tên cột hay bỏ khối nào thì g
 
 | # | ✅ | Hạng mục kiểm tra | Kết quả kỳ vọng | Priority | REQ ID | TC ID liên quan |
 |---|---|---|---|---|---|---|
-| 1 | ☐ | Đăng nhập tài khoản quản trị trường | Vào màn Danh sách, góc phải hiện tên đơn vị | P1 | BR-01 | CSDL_HS_TC_001 |
+| 1 | ☐ | Đăng nhập tài khoản quản trị trường | Vào màn Danh sách, góc phải hiện tên đơn vị | P1 | BR-01 | APP_HS_TC_001 |
 
 ## Component đã rà
 

@@ -81,7 +81,7 @@ const oCua = (f: Record<string, unknown>, route: string) => (f.doc_coverage as V
 test.describe('@infra bốn ô — và vùng mù là ô đáng sợ nhất', () => {
   test('`undocumented_present`: màn có thật mà tài liệu KHÔNG có mục ⇒ vùng mù', async () => {
     const f = await gop();
-    expect(f.vung_mu).toEqual(['/bao-cao', '/bao-cao-emis']);
+    expect(f.vung_mu).toEqual(['/bao-cao', '/bao-cao-bcx']);
     const c = oCua(f, '/bao-cao');
     expect(c.o).toBe('undocumented_present');
     expect(c.muc_phu).toBe('trang');

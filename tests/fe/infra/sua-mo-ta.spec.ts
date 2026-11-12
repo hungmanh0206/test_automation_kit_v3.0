@@ -1,7 +1,7 @@
 /*
  * `sua_mo_ta.js` — ĐƯỜNG GHI VÀO BACKLOG, VÀ NÓ TỪNG KHÔNG CÓ MÁY NÀO CANH.
  *
- * Script thay NGUYÊN phần Mô tả của một issue. Nó đã được dùng thật (CSDL-3950, 4021 → 2519 ký tự)
+ * Script thay NGUYÊN phần Mô tả của một issue. Nó đã được dùng thật (TASK-3950, 4021 → 2519 ký tự)
  * trước khi có spec nào nhắc tới nó. Đo 02/11/2026: `grep -rl sua_mo_ta tests/` ⇒ rỗng.
  *
  * Đó đúng tình huống `perf_index.js` cùng ngày: hai nhánh hiển thị không ai gác, và núp sau chúng là ba

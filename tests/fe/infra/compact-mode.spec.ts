@@ -9,7 +9,7 @@ import { gateEnv } from './_gate_env';
  * @infra — CHẾ ĐỘ `--compact` CỦA GATE (H5 của token-diet).
  *
  * Vì sao: đo bằng `npm run token:audit` trên 4 lượt chạy task thật thì `output gate` chiếm 4,3 đến 8,9%
- * khối lượng kết quả tool, khoảng 54k token mỗi lượt. Đo thật trên bộ 265 case của CSDL-9003:
+ * khối lượng kết quả tool, khoảng 54k token mỗi lượt. Đo thật trên bộ 265 case của TASK-9003:
  * 10.696 byte xuống 1.870 byte, giảm 82%.
  *
  * ĐIỀU DUY NHẤT THỰC SỰ PHẢI CHỨNG MINH: `--compact` là cách IN KHÁC, không phải cách LỌC.
@@ -154,7 +154,7 @@ test.describe('@infra --compact — in khác, KHÔNG lọc', () => {
     /*
      * Fixture ở test trên sinh vi phạm có thông điệp NGẮN ("ô … rỗng"), nên compact chỉ giảm khoảng 12%.
      * Đó không phải lỗi: compact tiết kiệm bằng cách bớt LỜI GIẢI THÍCH, nên nó chỉ đáng giá ở những họ
-     * vi phạm có lời giải thích dài. Số 82% đo trên bộ 265 case thật của CSDL-9003 đến từ đúng loại đó.
+     * vi phạm có lời giải thích dài. Số 82% đo trên bộ 265 case thật của TASK-9003 đến từ đúng loại đó.
      *
      * Ghi cả hai con số ra đây, vì một con số không kèm điều kiện sẽ bị trích dẫn sai ở lần sau.
      */

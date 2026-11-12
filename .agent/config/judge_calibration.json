@@ -36,7 +36,7 @@
     {
       "id": "CAL-04",
       "muc": "SKIP_LY_DO",
-      "dau_vao": "BLOCKED_SETUP — bảng DM_HOC_SINH ở TEST 1 rỗng nên không có học sinh để sửa; cần import 1 bản ghi qua màn Nhập Excel trước",
+      "dau_vao": "BLOCKED_SETUP — bảng danh mục học sinh ở đơn vị test rỗng nên không có học sinh để sửa; cần import 1 bản ghi qua màn Nhập Excel trước",
       "nhan": "dat",
       "vi_sao_nhan": "nêu bảng cụ thể và đường dựng state cụ thể"
     },

@@ -209,8 +209,8 @@ function lintBugHeadings(headings = []) {
 //
 // Phải neo vào đầu dòng, KHÔNG nhận `\s` bất kỳ: bản cũ nhận cả khoảng trắng giữa câu nên bắt nhầm
 // văn xuôi bình thường. Đo 30/09/2026 — sau khi cleanCell bóc `**`/backtick, câu
-// "sót khối 10 — 10.252 bản ghi" lộ ra chuỗi "10 — 10." và bị chặn oan, làm CSDL-9003 không export
-// được; "năm học 2026-2027)" ở CSDL-9004 cũng vậy. Cả hai đều không phải gộp range.
+// "sót khối 10 — 10.252 bản ghi" lộ ra chuỗi "10 — 10." và bị chặn oan, làm TASK-9003 không export
+// được; "năm học 2026-2027)" ở TASK-9004 cũng vậy. Cả hai đều không phải gộp range.
 // Ý định của rule (ghi ngay ở dòng trên) vốn là "ở đầu dòng" — sửa này làm pattern khớp đúng ý định đó.
 const RANGE_GROUP = /(?:^|<br\s*\/?>|\n)[ \t]*\d+\s*[-–—]\s*\d+\s*[.)]/;
 const hasRangeGrouping = (t) => RANGE_GROUP.test(String(t || ''));
@@ -465,7 +465,7 @@ function lintStrayAnomaly({ status = '', comment = '' } = {}) {
 // ---- BUG phải TÁI HIỆN ĐƯỢC BẰNG ĐƯỜNG THẬT, và không được chứa suy đoán ----
 // Vì sao: rà lại một dự án thật thấy nhiều bug bị bác vì bản thân TÌNH HUỐNG không có thật —
 //  · gọi thẳng API bằng Super Admin rồi kết luận "thiếu guard" (role thường thực ra bị 403) → phải retract;
-//  · replay tham số đã ký của return-URL vào endpoint nội bộ rồi coi là callback thật → premise sai từ gốc;
+//  · replay tham số đã ký của return-URL vào endpoint nội bộ rồi coi là callback thật → prbcxe sai từ gốc;
 //  · mass-assign field mà UI không bao giờ gửi;
 //  · repro ghi theo Ý ĐỊNH chứ không theo lần chạy thật (bước 1 chưa set đơn vị tiền mà đã ghi là có set).
 // Dev đọc một chi tiết sai là mất tin cả ticket, và lần sau bug thật cũng bị bác theo.
@@ -542,7 +542,7 @@ function lintBugProvenance({ steps = '', attachments = [], runRef = '' } = {}) {
  *
  * VẤN ĐỀ: tag chiều (`[Calc]`, `[Display]`…) chứng minh case CÓ MẶT ở chiều đó, KHÔNG chứng minh nó assert
  * đủ sâu. Ca đắt nhất đã xảy ra: `OPS_PAY_TC_175` liệt kê form Add Transaction CÓ field Recipient Bank Account
- * nhưng không phát biểu ràng buộc nào ⇒ case XANH, bug `CSDL-28420` (modal cho chọn pháp nhân khác order) sống.
+ * nhưng không phát biểu ràng buộc nào ⇒ case XANH, bug `TASK-28420` (modal cho chọn pháp nhân khác order) sống.
  *
  * VÌ SAO CÁCH NÀY KHÁC 3 LẦN SUY DIỄN ĐÃ THẤT BẠI: những lần đó tôi bắt máy PHÂN LOẠI ("case này thuộc chiều
  * nào?") — trên tiếng Việt thì recall/precision đánh đổi nhau (`hiển thị` là động từ của MỌI expected). Ở đây
@@ -567,7 +567,7 @@ const HAS_UNCHANGED = /không đổi|giữ nguyên|vẫn là|vẫn ở/i;
 const HAS_PROPERTY = /[A-Za-z][A-Za-z0-9]*_[A-Za-z0-9_]*[A-Za-z][A-Za-z0-9_]*/; // snake_case field/property, CẢ chữ HOA (cột DB của hệ thống này viết hoa); bắt buộc có chữ cái sau "_" để "TC_001" không lọt
 const TC_ID_LIKE = /\b[A-Za-z][A-Za-z0-9]*(?:_[A-Za-z0-9]+)*_TC_\d+\b|\bTC_\d+\b/g; // trích TC ID khác KHÔNG phải là nêu tên trường
 const HAS_NULLISH = /\bnull\b|rỗng|trống|thiếu key|\[\]|""/i;
-const HAS_REPEAT = /lần (hai|2|thứ hai)|thứ hai|hai lần|2 lần|gọi lại|lặp lại|trùng|đồng thời|song song|hai tab|2 tab|hai phiên|idempotent|retry|thử lại|nửa vời|nguyên vẹn|trọn vẹn|rollback|phiên đã chết|phiên hết hạn/i; // từ vựng của ba nhóm ca: ghi LẶP · ghi SONG SONG · ghi NỬA CHỪNG (xem TC_101/136/102/182 của CSDL-9001)
+const HAS_REPEAT = /lần (hai|2|thứ hai)|thứ hai|hai lần|2 lần|gọi lại|lặp lại|trùng|đồng thời|song song|hai tab|2 tab|hai phiên|idempotent|retry|thử lại|nửa vời|nguyên vẹn|trọn vẹn|rollback|phiên đã chết|phiên hết hạn/i; // từ vựng của ba nhóm ca: ghi LẶP · ghi SONG SONG · ghi NỬA CHỪNG (xem TC_101/136/102/182 của TASK-9001)
 const HAS_TIME_UNIT = /\b\d+(\.\d+)?\s*(ms|s|giây|phút)\b|p9[05]|\bSLA\b/i;
 
 // "Giá trị ĐỂ TRỐNG đúng nghĩa" là oracle hiển thị hợp lệ và §12 nêu thẳng ("buổi chưa diễn ra → cột công
@@ -639,7 +639,7 @@ const SQL_WRITE = new Set(['insert', 'update', 'delete', 'drop', 'truncate', 'al
 const SQL_CLAUSE = /\b(from|into|set\s|table\s|join\s)\b/i;
 /*
  * CHỈ CHẶN SQL Ở THẾ LỆNH-ĐỂ-CHẠY. Bản đầu của luật này chặn mọi từ khoá ghi, và ngay lần chạy đầu trên
- * dữ liệu thật nó BÁO OAN một case tốt: `CSDL_HS_TC_062` trích `DELETE FROM HOC_SINH` để NÓI RA rằng proc
+ * dữ liệu thật nó BÁO OAN một case tốt: `APP_HS_TC_062` trích `DELETE FROM HOC_SINH` để NÓI RA rằng proc
  * `DeleteHocSinh` là xoá cứng, 61 bảng tham chiếu `ID_HOC_SINH`, 0 trigger dọn. Đó là phát hiện có giá trị
  * nhất của case, không phải lệnh mời QA chạy.
  * Phân biệt bằng NGỮ CẢNH ĐỨNG TRƯỚC: có marker chạy (`db_readonly:`, `SQL:`, `Chạy:`…) hoặc SQL mở đầu

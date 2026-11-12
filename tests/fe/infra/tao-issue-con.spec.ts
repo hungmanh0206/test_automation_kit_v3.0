@@ -8,7 +8,7 @@
  * bình thường, còn mô tả thì nhúng `![image][buoc1.png]` trỏ vào hư không — tức một issue tầng bug ra
  * đời không mang được chứng cứ nào. Yêu cầu độ sâu evidence là của `RULE_GLOBAL.md` → *Evidence — Quy
  * chuẩn bắt buộc* → PHẠM VI; spec này KHÔNG diễn giải lại câu đó, vì `rule:consistency` chặn mọi bản
- * tóm và nó đã chặn đúng dòng này ở lượt đầu. Phiên CSDL-4008 đã cắn chuyện mất đính kèm ở CSDL-4089.
+ * tóm và nó đã chặn đúng dòng này ở lượt đầu. Phiên TASK-4008 đã cắn chuyện mất đính kèm ở TASK-4089.
  *
  * NĂM TÍNH CHẤT ĐƯỢC GÁC:
  *

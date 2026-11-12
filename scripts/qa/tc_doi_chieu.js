@@ -3,7 +3,7 @@
  * tc_doi_chieu — đối chiếu bộ testcase của kit với BỘ NGƯỜI VIẾT, ở mức FIELD.
  *
  * Dùng:
- *   node scripts/qa/tc_doi_chieu.js --sheet "Hồ sơ trường" --bo outputs/CSDL/tasks/CSDL-9001/test-cases/ho_so_truong.md
+ *   node scripts/qa/tc_doi_chieu.js --sheet "Hồ sơ trường" --bo outputs/DEMO/tasks/TASK-9001/test-cases/ho_so_truong.md
  *   … [--xlsx <đường dẫn>] [--json]
  *
  * ──────────────────────────────────────────────────────────────────────────────────────────────────

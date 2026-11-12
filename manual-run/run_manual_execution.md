@@ -62,8 +62,8 @@ Case chưa khai `[manual]` thì **dừng**. Sửa lời khai ở Phase 1 kèm l�
 
    | TC ID | Bản ghi đã tạo | Đã dọn | Lý do nếu chưa dọn |
    |---|---|---|---|
-   | CSDL_HS_TC_088 | 1 học sinh mã QA-001 | có | |
-   | CSDL_HS_TC_092 | 1 lớp QA10A1 | chưa | giữ làm tiền đề cho lượt sau, đã thống nhất với chủ dự án |
+   | APP_HS_TC_088 | 1 học sinh mã QA-001 | có | |
+   | APP_HS_TC_092 | 1 lớp QA10A1 | chưa | giữ làm tiền đề cho lượt sau, đã thống nhất với chủ dự án |
    ```
 
    Chạy tay không có `RUN_ID` để dọn tự động, nên bản ghi không ghi vào đây sẽ nằm lại UAT vĩnh viễn.
@@ -86,13 +86,13 @@ trên đơn vị nào.
 - Ngày: 09/10/2026
 - Môi trường: UAT, https://uat.example.gov.vn
 - Build / Version: 2026.10.08-rc2
-- Đơn vị / cấp học: TEST 1 (mã 01000754), cấp THCS
+- Đơn vị / cấp học: TEST 1 (mã 00000001), cấp THCS
 
 ## Case trong lượt này
 
 | TC ID | Lý do khai `[manual]` | Verdict |
 |---|---|---|
-| CSDL_HS_TC_088 | Captcha không có đường tắt trong UAT | PASS |
+| APP_HS_TC_088 | Captcha không có đường tắt trong UAT | PASS |
 
 ## Không phán được
 
@@ -100,7 +100,7 @@ Mỗi case verdict `BLOCKED`/`SKIP` một dòng, kèm LÝ DO. Mục này bắt b
 
 | TC ID | Verdict | Vì sao không phán được |
 |---|---|---|
-| CSDL_HS_TC_091 | BLOCKED_SETUP | Không có trường nào trong UAT đang ở trạng thái "đã gửi" để mở khoá |
+| APP_HS_TC_091 | BLOCKED_SETUP | Không có trường nào trong UAT đang ở trạng thái "đã gửi" để mở khoá |
 
 ## Ghi chú
 

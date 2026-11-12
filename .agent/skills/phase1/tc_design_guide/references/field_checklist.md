@@ -44,13 +44,13 @@ checklist**, và đó là một lựa chọn có căn cứ chứ không phải b
 
 | Mã | Trạng thái | Phép đo |
 |---|---|---|
-| `otp` | **chưa gặp** (đo 29/10/2026) | 0 dấu hiệu OTP/MFA trên 2.592 field mà lượt recon 14/10/2026 đọc được. QEMIS đăng nhập bằng captcha, không bằng OTP. |
+| `otp` | **chưa gặp** (đo 29/10/2026) | 0 dấu hiệu OTP/MFA trên 2.592 field mà lượt recon 14/10/2026 đọc được. app mẫu đăng nhập bằng captcha, không bằng OTP. |
 | `richtext` | **chưa gặp** (đo 29/10/2026) | `"contenteditable": true` = **0/2.592** field; không có `RadEditor`/`ckeditor`/`tinymce` nào trong artefact recon. |
 
 > Đây là khai **chưa gặp**, KHÔNG phải khai "không cần". Gặp lần đầu thì viết dòng checklist rồi xoá
 > mục khỏi bảng này — `tc-design-guide.spec.ts` đối soát hai bên nên bỏ quên sẽ bị chặn.
 >
-> Và "chưa gặp" chỉ nói về **app QEMIS/CSDL tới ngày đo**. Kit dùng cho app khác thì hai loại này phải
+> Và "chưa gặp" chỉ nói về **app mẫu tới ngày đo**. Kit dùng cho app khác thì hai loại này phải
 > được rà lại từ đầu — ngày ở trên là để biết lời khai đã cũ bao nhiêu, không phải để tin mãi.
 
 ## Ba câu hỏi áp cho MỌI loại field

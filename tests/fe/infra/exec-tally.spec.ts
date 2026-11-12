@@ -9,7 +9,7 @@
  * "khuôn chuẩn" chỉ chạy được trên một phần tư. Thiết kế đúng là khuôn `phase1:tables`: máy SINH một
  * khối có mốc rồi gác chính khối đó, còn văn xuôi để tự do.
  *
- * VÀ SỐ LỆCH THẬT: CSDL-9004 summary ghi PASS 31 · BLOCKED 27 · FAIL 3, sổ verdict có PASSED 140 ·
+ * VÀ SỐ LỆCH THẬT: TASK-9004 summary ghi PASS 31 · BLOCKED 27 · FAIL 3, sổ verdict có PASSED 140 ·
  * BLOCKED_SETUP 62 · OBSERVATION 30 · FAILED 24. Nhưng lệch KHÔNG tự nghĩa là sai — sổ có thể là của
  * một lô. Chỗ hỏng thật là không gì nói con số đến từ đâu, nên không ai phân xử được.
  */
@@ -161,7 +161,7 @@ test.describe('@infra exec:tally — đối chiếu VĂN XUÔI chỉ cảnh báo
   test('số khai XẤP XỈ `~N` được TÔN TRỌNG, không bị kêu', () => {
     /*
      * Vu oan một lời khai xấp xỉ là dạy người ta bỏ dấu `~` đi cho hết cảnh báo — tức làm lời khai KÉM
-     * trung thực hơn. `CSDL-4008` thật có đúng dạng này: "~28 FAIL product_bug".
+     * trung thực hơn. `TASK-4008` thật có đúng dạng này: "~28 FAIL product_bug".
      */
     const k = dungTask(BA, '# T-1\n\nKhoảng ~9 PASS, con số chính xác xem khối sinh.\n');
     const r = chay(k.pod);
@@ -176,7 +176,7 @@ test.describe('@infra exec:tally — đối chiếu VĂN XUÔI chỉ cảnh báo
      * `TC_184/185/206/215/217 PASS` là một DANH SÁCH mã và ký tự trước `217` là `/`.
      * Đo được: 6 → 5 → 4 cảnh báo, và 4 cái còn lại đã soi ngữ cảnh là THẬT.
      */
-    for (const van of ['TC_199 PASS thật.', 'TC_184/185/206/215/217 PASS thật.', 'CSDL_HS_TC_088 PASS.']) {
+    for (const van of ['TC_199 PASS thật.', 'TC_184/185/206/215/217 PASS thật.', 'APP_HS_TC_088 PASS.']) {
       expect(et.doiChieuVanXuoi(van, soGia), `mã TC trong "${van}" KHÔNG được tính là số đếm`).toEqual([]);
     }
     /* ĐỐI CHỨNG ÂM của chính phép kiểm này: một số ĐỨNG RIÊNG thì vẫn phải bị bắt. */
@@ -196,9 +196,9 @@ test.describe('@infra exec:tally — đối chiếu VĂN XUÔI chỉ cảnh báo
      * cảnh báo giảm, và điều kiện duy nhất là KHÔNG tăng vọt (dấu hiệu mẫu lại đọc mã TC thành số).
      */
     let tong = 0;
-    for (const t of ['CSDL-4008', 'CSDL-9002', 'CSDL-9003', 'CSDL-9004']) {
-      const so = path.join(REPO, 'outputs/CSDL/tasks', t, 'test-results/testcase-status.json');
-      const md = path.join(REPO, 'outputs/CSDL/tasks', t, 'reports/execution-summary.md');
+    for (const t of ['TASK-4008', 'TASK-9002', 'TASK-9003', 'TASK-9004']) {
+      const so = path.join(REPO, 'outputs/DEMO/tasks', t, 'test-results/testcase-status.json');
+      const md = path.join(REPO, 'outputs/DEMO/tasks', t, 'reports/execution-summary.md');
       if (!fs.existsSync(so) || !fs.existsSync(md)) continue;
       tong += et.doiChieuVanXuoi(fs.readFileSync(md, 'utf8'), et.demSo(so)).length;
     }

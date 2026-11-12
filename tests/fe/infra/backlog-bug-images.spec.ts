@@ -34,7 +34,7 @@ const PAYLOAD = {
   steps: ['Mở màn Hồ sơ học sinh', 'Bấm Ghi'],
   actualResult: 'Không hiện thông báo',
   expectedResult: 'Hiện thông báo trùng mã',
-  tcId: 'CSDL_HS_TC_117',
+  tcId: 'APP_HS_TC_117',
   layer: 'fe',
 };
 
@@ -48,7 +48,7 @@ function moTa(quyTac: string, anh: string[]) {
   const r = spawnSync(process.execPath, ['-e', js], {
     cwd: REPO,
     encoding: 'utf8',
-    env: gateEnv({ TASK_KEY: 'T-1', PROJECT_OUTPUT_DIR: 'outputs/CSDL' }),
+    env: gateEnv({ TASK_KEY: 'T-1', PROJECT_OUTPUT_DIR: 'outputs/DEMO' }),
   });
   return { out: r.stdout || '', warn: r.stderr || '', code: r.status };
 }
@@ -70,7 +70,7 @@ test.describe('@infra bug Backlog — ảnh evidence nhúng inline ở dưới c
     // Dưới cùng nghĩa là SAU marker TC. Chuyển được vì `searchExistingBug` tìm marker bằng `.includes()`
     // chứ không đòi nó đứng cuối — đã kiểm lại trước khi chuyển, không tin vào chữ "để ở CUỐI" trong
     // ghi chú cũ.
-    expect(out.indexOf('TC: [CSDL_HS_TC_117]')).toBeLessThan(out.indexOf('![image]'));
+    expect(out.indexOf('TC: [APP_HS_TC_117]')).toBeLessThan(out.indexOf('![image]'));
   });
 
   test('quy tắc `backlog`: cú pháp ĐỔI sang `#image(tên)` — không ghi cứng markdown', () => {

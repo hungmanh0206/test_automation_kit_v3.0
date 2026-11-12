@@ -9,7 +9,7 @@ import { gateEnv } from './_gate_env';
  * @infra — IMPACT CHẤM THEO TAG: nối lại một đường vốn ĐỨT HẲN.
  *
  * Chuyện đã xảy ra, và nó im lặng suốt: `risk_model.json §impact.modules` khai **20 tên module của dự án
- * TRƯỚC** (Payment · Refund · Cash Management…). Đo trên `CSDL-9003` ngày 11/10/2026: **10 module band High
+ * TRƯỚC** (Payment · Refund · Cash Management…). Đo trên `TASK-9003` ngày 11/10/2026: **10 module band High
  * và CẢ 10 đều là tên không tồn tại trong dự án này**, trong khi 18 module có dữ liệu thật ngồi ở Impact =
  * `default`. `executeOrder` vì vậy chỉ đường test tới thứ không có.
  *
@@ -125,7 +125,7 @@ test.describe('@infra buildTcMap — tag chiều lấy từ ô Tag canonical', (
 
   test('LỌC bỏ oracle ref `BR-…`, giữ tag chiều', () => {
     /*
-     * Ô `Tag` trộn ba thứ khác loại. Đo trên bộ CSDL-9003: 55 tên riêng biệt, **29 trong đó là `br-…`**.
+     * Ô `Tag` trộn ba thứ khác loại. Đo trên bộ TASK-9003: 55 tên riêng biệt, **29 trong đó là `br-…`**.
      * Nhét thô vào bản ghi bug thì vừa làm bẩn nó, vừa khiến `bugs_checklist --tag` lọc theo mã oracle —
      * một nhãn không ai khai để lọc.
      */

@@ -188,7 +188,7 @@ test.describe('@infra release:summary — vùng chưa test, mẫu số, và hai 
 
   test('HAI NGUỒN SỐ lệch nhau ⇒ phải nói ra, không chọn một cái', () => {
     /*
-     * Lệch này có thật trên repo: `CSDL-9003/reports/traceability-matrix.md` ghi "TC: 255 · execute: 0"
+     * Lệch này có thật trên repo: `TASK-9003/reports/traceability-matrix.md` ghi "TC: 255 · execute: 0"
      * trong khi `testcase-status.json` có 245 case với 151 PASS. Không có phép kiểm này thì báo cáo sẽ
      * lấy một trong hai con số rồi trình bày như sự thật duy nhất.
      */

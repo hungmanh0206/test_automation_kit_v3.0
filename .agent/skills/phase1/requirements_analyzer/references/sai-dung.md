@@ -1,7 +1,7 @@
 # Cặp sai → đúng khi phân tích requirement
 
 > Khuôn giống `tc_design_guide/references/anti_patterns.md`. Dòng ❌ là chỗ đã gặp thật khi đọc đặc tả
-> QEMIS; dòng ✅ là cách đọc đúng kèm nguồn phải tra.
+> app mẫu; dòng ✅ là cách đọc đúng kèm nguồn phải tra.
 
 ---
 

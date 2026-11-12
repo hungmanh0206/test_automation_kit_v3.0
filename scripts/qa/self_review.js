@@ -89,7 +89,7 @@ if (statusFile && fs.existsSync(statusFile)) {
  * 3a) Typecheck automation CỦA TASK.
  *
  * `tsconfig.json` khai `exclude: ["outputs"]`, nên `npm run typecheck` KHÔNG soi spec của task — mọi
- * câu "typecheck sạch" nói về chúng đều rỗng. Giá phải trả, đo 09/10/2026 ở CSDL-9001: hai thuộc tính
+ * câu "typecheck sạch" nói về chúng đều rỗng. Giá phải trả, đo 09/10/2026 ở TASK-9001: hai thuộc tính
  * không tồn tại (`ScreenField.hidden`, `ScreenField.value`) dùng ở 17 chỗ, sinh ra một PASS giả và một
  * FAIL oan; cộng một biến `MA` không khai, ném ReferenceError làm case chết không ghi verdict.
  * Chạy theo TASK chứ không bật toàn cục: task đang sửa dở không được quyền chặn task khác.
@@ -122,7 +122,7 @@ if (TASK) {
  *
  * Check #3 ở trên hỏi "kết quả đã execute có đạt chuẩn không" — nó đọc `testcase-status.json`. Nhưng thứ
  * người ta ĐỌC để kết luận độ phủ lại là bản xuất Excel, và hai nơi đó có thể phân kỳ mà không gì báo.
- * Đã xảy ra: CSDL-9001 mất 129 ô kết quả, chỉ lộ ra vì có người tình cờ hỏi "test hết case chưa".
+ * Đã xảy ra: TASK-9001 mất 129 ô kết quả, chỉ lộ ra vì có người tình cờ hỏi "test hết case chưa".
  *
  * Chạy bằng tiến trình con vì `result_ledger` là async (ExcelJS) còn file này chạy đồng bộ. Đổi cả
  * self_review sang async chỉ để gọi một gate là cái giá quá lớn so với một `spawnSync`.
@@ -232,7 +232,7 @@ if (TASK && taskDir && fs.existsSync(taskDir)) {
 //
 // `testcase-status.json` giữ đúng một entry cho mỗi tcId. Hai spec cùng khai một tcId ⇒ test nào chạy
 // SAU thắng, và ảnh `step-NN-*.png` trùng tên cũng bị đè. Suite vẫn xanh, số test còn tăng, log không
-// một chữ. Đo 16/10/2026 ở CSDL-9001: một khối stub cũ chấm BLOCKED_SETUP đã hạ BẢY ô Excel từ Pass
+// một chữ. Đo 16/10/2026 ở TASK-9001: một khối stub cũ chấm BLOCKED_SETUP đã hạ BẢY ô Excel từ Pass
 // xuống Pending, và một spec chụp-ảnh chấm PASSED cho bốn case vốn là BUG đã xác nhận.
 {
   const { spawnSync } = require('child_process');
@@ -558,7 +558,7 @@ if (TASK && taskDir && fs.existsSync(taskDir)) {
     /*
      * (a2) TASK KHÔNG CÓ UI thì check này KHÔNG áp dụng — đọc `dimension_manifest.json`.
      * Trước đây check đòi `ui_catalog.json` cho MỌI bộ, không hề đọc manifest, nên task backend thuần
-     * (vd CSDL-26878: FS ghi rõ "không có màn hình UI người dùng") bị CHẶN ở finalize dù đã khai đúng
+     * (vd TASK-26878: FS ghi rõ "không có màn hình UI người dùng") bị CHẶN ở finalize dù đã khai đúng
      * `ui_display: n/a` + `display_conformance: n/a` kèm lý do. Gate báo oan thì người ta học cách bỏ qua
      * gate — hỏng còn nặng hơn không có gate.
      *
@@ -834,7 +834,7 @@ function readAllTcFiles(taskOutputDir) {
  * không neo được, mà không làm đứng lượt chạy nào.
  *
  * SỐ ĐO 30/10/2026 (5 task): 11 ca là lỗi thật — 9 ca mở rộng mang PASS/FAIL mà KHÔNG có neo oracle
- * (7 ở CSDL-9004, 2 ở CSDL-4008; 5 trong đó FAILED) + 2 ca probe mang verdict PASSED. Và 6 ca mở rộng
+ * (7 ở TASK-9004, 2 ở TASK-4008; 5 trong đó FAILED) + 2 ca probe mang verdict PASSED. Và 6 ca mở rộng
  * CÓ neo, nên phép kiểm neo không rỗng ở cả hai chiều.
  *
  * CHỈ HAI LOẠI ĐẦU LÀ CHẶN. Ca "mạo danh mã canonical" để CẢNH BÁO: nó đo được 0 ca trên dữ liệu thật
@@ -884,7 +884,7 @@ console.log(engine.format(agg, { title: `SELF-REVIEW (G9) — lượt 2 trước
  * VÌ SAO CẦN: chữ "CHẶN" ở đây vốn chỉ là dòng đỏ trong báo cáo — script luôn exit 0, còn gate thật ở
  * push (`output_gate`) KHÔNG kiểm mở rộng một chữ nào. Nên đường lọt bug vẫn nguyên: execute bám đúng chữ
  * trong case → không mở trục nào → đẩy kết quả "toàn PASS" → không gì cản. (Đã xảy ra với chính lượt
- * execute CSDL-26523: 3 case, 0/5 trục, mọi gate xanh.)
+ * execute TASK-26523: 3 case, 0/5 trục, mọi gate xanh.)
  * Đo 19/08/2026 trên 9 task: 7/9 có khối P0, 8/9 có khối "5 trục". Đỏ nhiều — nhưng đó là ảnh chụp NỢ CŨ;
  * với task mới, khối "5 trục" xoá bằng `npm run expansion:plan` (vài giây), còn các khối P0 là phát hiện
  * thật (vd "1/11 case hiển thị chỉ dẫn chứng API, không có dấu vết đọc trên màn").

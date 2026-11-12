@@ -87,7 +87,7 @@ test.describe('@infra judge — lấy mẫu TẤT ĐỊNH, không chọn tuỳ �
 
   test('phân tầng theo PHẦN TRƯỚC dấu `/` của cột Module', () => {
     /*
-     * Đo thật trên CSDL-9001 (213 case): ô `Module` mang cả phần mô tả sau dấu gạch, nên cắt theo cả ô
+     * Đo thật trên TASK-9001 (213 case): ô `Module` mang cả phần mô tả sau dấu gạch, nên cắt theo cả ô
      * cho 196 tầng trên 213 case — gần như mỗi case một tầng, và phân tầng mất hết tác dụng. Cắt trước
      * dấu `/` cho 5 tầng thật.
      */

@@ -157,7 +157,7 @@ function loiTuResults(duong) {
  *
  * Bản đầu chỉ nhìn cạnh sổ verdict và thư mục cha — và nó nối được **0/86** ca, vì file cạnh sổ có
  * **0 dòng lỗi**. Đo 30/10/2026: lỗi thật nằm ở `test-results/runs/<id>/results.json`, mỗi lượt một
- * file; riêng CSDL-9004 có **59/126** file mang lỗi. Nhìn một chỗ là nhìn đúng chỗ KHÔNG có gì.
+ * file; riêng TASK-9004 có **59/126** file mang lỗi. Nhìn một chỗ là nhìn đúng chỗ KHÔNG có gì.
  */
 function timResults(duongStatus) {
   const goc = path.dirname(duongStatus);
@@ -186,7 +186,7 @@ function loiCuaTask(duongStatus) {
 }
 
 /*
- * Mã TC trong tiêu đề spec. PHẢI nhận hậu tố chữ: bộ case thật có `CSDL_HS_TC_078c`, `TC_084b` — và
+ * Mã TC trong tiêu đề spec. PHẢI nhận hậu tố chữ: bộ case thật có `APP_HS_TC_078c`, `TC_084b` — và
  * mẫu `TC_\d+\b` bỏ sót đúng những ca đó, làm tỉ lệ nối tụt từ thật xuống 70%.
  */
 const RE_TC_TRONG_TIEU_DE = /\b(?:[A-Z][A-Z0-9]*_)*TC_\d+[a-z]?\b/;
@@ -206,8 +206,8 @@ function boNoi(tests, loiTheoTieuDe) {
   /*
    * MÃ TRẦN TRONG TIÊU ĐỀ, MÃ ĐỦ TRONG SỔ — và bản đầu so bằng-nhau-tuyệt-đối nên trượt sạch.
    *
-   * Đo 30/10/2026: CSDL-9004 có 39 dòng lỗi, 28 mã TC trong tiêu đề, mà nối được **0/86** ca. Lý do:
-   * spec đặt tiêu đề `TC_021` còn sổ ghi `CSDL_NHANSU_TC_021`. Đó là GIỚI HẠN GIẢ, không phải thiếu dữ
+   * Đo 30/10/2026: TASK-9004 có 39 dòng lỗi, 28 mã TC trong tiêu đề, mà nối được **0/86** ca. Lý do:
+   * spec đặt tiêu đề `TC_021` còn sổ ghi `APP_NHANSU_TC_021`. Đó là GIỚI HẠN GIẢ, không phải thiếu dữ
    * liệu — nên vá: mã trần được khớp mã đủ khi và CHỈ KHI sổ có ĐÚNG MỘT ca mang hậu tố ấy. Đo trên 536
    * ca đỏ toàn repo: **0 trường hợp nhập nhằng**, nối 41 → 56 ca.
    *
@@ -301,7 +301,7 @@ function inNhom(f, tests, taskKey) {
   console.log('  ③ Vì vậy nhóm to KHÔNG tự nghĩa là một nguyên nhân. Đo 30/10/2026 trên 9 nhóm mẫu: 6 nhóm');
   console.log('     gom sai — nhóm 23 case chỉ chung câu "Lệch kỳ vọng ở N bước", và hai nhóm cùng nghĩa bị');
   console.log('     tách vì lệch một chữ ("trên phạm vi" ≠ "trong phạm vi").');
-  console.log('  ④ Và ĐỪNG đọc tỉ lệ nén như điểm chất lượng: vá bộ nối cho CSDL-9004 làm nén TỤT');
+  console.log('  ④ Và ĐỪNG đọc tỉ lệ nén như điểm chất lượng: vá bộ nối cho TASK-9004 làm nén TỤT');
   console.log('     (57 → 65 nhóm) đúng vì gom ĐÚNG HƠN — câu lỗi thật thì khác nhau, comment khuôn mẫu');
   console.log('     thì gom bừa. Nén cao có thể chỉ nghĩa là đang gom theo câu khuôn mẫu.');
   console.log('');

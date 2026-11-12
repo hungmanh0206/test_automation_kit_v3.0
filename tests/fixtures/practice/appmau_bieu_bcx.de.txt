@@ -1,8 +1,8 @@
 BÁO CÁO CA FAIL — TASK-DEMO — 09/11/2026 16:20
 
-TC_0530 — Biểu EMIS "Số học sinh theo khối" hiện sai số
+TC_0530 — Biểu BCX "Số học sinh theo khối" hiện sai số
 
-Màn     : Báo cáo EMIS › Biểu 02 — Số học sinh theo khối
+Màn     : Báo cáo BCX › Biểu 02 — Số học sinh theo khối
 Trường  : mã 02847561 · năm học 2026-2027 · cấp THCS
 Kỳ vọng : (ô Kết quả mong đợi của case) "Biểu hiện đúng số học sinh đang học của trường theo từng khối."
 
@@ -10,7 +10,7 @@ Kỳ vọng : (ô Kết quả mong đợi của case) "Biểu hiện đúng số
 
 ĐÃ ĐO ĐƯỢC
 
-1. Mở màn Báo cáo EMIS › Biểu 02. Ô "Khối 6" hiện **142**.
+1. Mở màn Báo cáo BCX › Biểu 02. Ô "Khối 6" hiện **142**.
 
 2. Truy vấn DB chỉ-đọc, đếm học sinh đang học của trường `02847561`, khối 6,
    năm học 2026: **147**.

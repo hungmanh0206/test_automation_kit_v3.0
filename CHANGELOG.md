@@ -14,6 +14,56 @@
 > `.agent/**`, `tests/support/**` đều là **shared change** (xem `RULE_GLOBAL.md` §Shared Change Gate) —
 > ảnh hưởng mọi story đang chạy. Mỗi mục ghi **vấn đề → cách chữa**, không chỉ liệt kê tính năng.
 
+## v3.0.0 — 2026-11-12 — Kit trung lập: mang sang dự án khác mà không mang theo dự án cũ
+
+Bản này để đưa kit sang một dự án, một công ty khác. Đo trước khi sửa: gói **có thể đóng** vẫn kể tên sản
+phẩm của khách ở 168 dòng, mã task ở 351 dòng, đường dẫn màn của app khách, một host DB của công ty, mã đơn vị
+thật, và tên bảng DB của khách. Tệ hơn, nó **không chạy được** ở dự án khác: preflight phase2 chặn MỌI task vì
+thiếu một biến môi trường của đúng một ứng dụng.
+
+### Vì sao là MAJOR — ba chỗ dự án đang dùng phải sửa lớp PROJECT
+
+1. **Biến ghim ngữ cảnh chuyển sang `.agent/config/context_pins.json`.** Trước đây tên biến (cấp/đơn vị/năm)
+   của một app được ghi cứng ở `env_scope_check` · `preflight_gate` · `evidence_recorder` · `ui_polish_gen`.
+   Nay cơ chế ở lớp GENERIC (`scripts/utils/context_pins.js`), dữ liệu ở lớp PROJECT. Dự án đang dùng: chép
+   `context_pins.example.json` thành `context_pins.json` và khai biến của mình. Không khai thì luật ghim không áp;
+   profile không có khoá nào khớp `nhan_dien` (task của app khác) cũng không bị đòi.
+2. **`db-paths.allow.json` ra khỏi gói.** Mỗi mục là đường dẫn file task thật. Lý do cũ để đóng gói nó ("máy mới
+   đỏ vì probe của task cũ") không còn đúng: `outputs/**` không vào gói. Gói mang `db-paths.allow.example.json`.
+3. **Lệnh đọc Backlog không còn mã project mặc định** (`bug:outcome:backlog`, `doc_trang_thai_va_nguoi`): truyền
+   `--project` hoặc khai `BACKLOG_PROJECT_KEY` (đã thêm vào `.env.example`); thiếu thì KHÔNG PHÁN ĐƯỢC. Năm script
+   có thư mục output mặc định trỏ về một dự án cụ thể nay mặc định `outputs/DEMO` khi thiếu `PROJECT_OUTPUT_DIR`.
+
+### Trung lập hoá
+
+- Gần **1.000 chỗ** trên hơn 228 file: tên sản phẩm, mã task, mã case, đường dẫn màn, tên hệ thống báo cáo,
+  tên app, mã đơn vị, host, tên bảng, logo công ty — trong comment, test, tài liệu và fixture. Bài học giữ
+  nguyên, chỉ đổi định danh. Năm fixture và một prompt pack đổi tên file theo.
+- **Cửa mới khi đóng gói: từ cấm của dự án.** `.agent/config/package_deny_terms.json` ở lớp PROJECT — chính
+  danh sách là định danh nên nó không vào gói (gói mang bản mẫu). `package:kit` quét MỌI file chữ của gói, kể
+  cả `.md` và `.example`; trúng là CHẶN và xoá gói, nêu `file:dòng`. Ba ca spec, hai phép phá đều đỏ.
+- **Lỗi tiềm ẩn của cửa quét gói:** `scanPackage` suy marker tên bảng từ cây GÓI, mà `db.conventions.json`
+  không bao giờ có trong gói — tức marker tên bảng của dự án **chưa từng được áp**. Nay đọc từ cây nguồn.
+- `CLAUDE.md` điều 5 thành luật chung: ghim mọi biến ngữ cảnh app mặc định ngầm.
+- Hai spec gắn với lớp PROJECT (đọc mã nguồn helper đăng nhập của dự án) ra khỏi gói thay vì đổi chữ.
+
+### Từ v2.11.0 tới đây (PR #38–#73), theo chủ đề
+
+- **Đo độ đúng của kết luận:** `pass:audit` (tỉ lệ PASS sai, phiếu chấm mù, Wilson 95%) · `bug:tac-gia` (bug
+  do agent hay do người) · `bug:outcome` và `bug:outcome:backlog` (DEV nhận hay bác) · `agent:scorecard` ·
+  `judge` hiệu chuẩn lại 19/20 với bộ câu tự đủ · sổ `gate:friction` sạch rác test.
+- **Phép đo phải chứng minh được:** `write:proof` · `setup:proof` · `exec:proof` · `xacMinhLai()` cho mọi lời
+  "đã phục hồi".
+- **Bug claim:** artifact phải thuộc lượt này, oracle trích nguyên văn phải đối chiếu được với nguồn, oracle
+  có hai nguồn.
+- **Testcase:** `tc:semantic` · `tc:doi-chieu` · độ phủ case trên bản đồ trạng thái và ma trận quyền
+  (`system:check`), và "có case" không còn bị in thành "đã chứng minh bị chặn".
+- **Đối chứng A/B:** quy trình `DOI_CHUNG_A_B.md` và `ab:doi-chung` (khoá đăng ký, chuyển khuôn trung lập,
+  phiếu chấm mù).
+- **UI:** `ui:polish` và `ui:polish:gen`.
+- **Khác:** `lint:env` · `gate:output` siết ba lỗ · đánh số lại workflow theo thứ tự chạy · CI đo cả hai đầu
+  `engines` · deps (`googleapis` 189, `@playwright/test` 1.65).
+
 ## v2.11.0 — 2026-11-09 — Nhập extension Kit A, và một bài học về NƠI phép đo được chạy
 
 Bản "enhanced v10" nhập về là **thuần cộng**: 74 file mới, 0 file lõi bị sửa. Thiết kế đó tránh vỡ
@@ -36,10 +86,10 @@ viện/QUICKSTART sinh lại · **7 ca spec** gác đúng những chỗ bản nh
 
 ### Độ chuyên sâu miền — và đo nó thay vì tin nó
 
-5 pack + 5 adapter của V10 nhắc QEMIS/Telerik/phân hiệu/EMIS **đúng 0 lần**, còn `knowledge/` ship đúng
+5 pack + 5 adapter của V10 nhắc app mẫu/Telerik/phân hiệu/BCX **đúng 0 lần**, còn `knowledge/` ship đúng
 `.gitkeep` + `SCHEMA.md`. Kit là **một tủ hồ sơ rỗng với những ngăn rất tốt**.
 
-Thêm `enhancements/v10/packs/qemis.md`: **10 bẫy**, mỗi bẫy neo vào một sự cố **đã trả giá**, kèm hợp
+Thêm `enhancements/v10/packs/appmau.md`: **10 bẫy**, mỗi bẫy neo vào một sự cố **đã trả giá**, kèm hợp
 đồng output ép `nguyen_nhan_doi_thu` rỗng ⇒ **cấm** kết luận `product_bug`.
 
 **Bốn lượt A/B, ba lượt đầu không dùng được** (ghi đủ ở `docs/v2.11.0/DO_LUONG_PACK.md`): nhánh **đối
@@ -48,7 +98,7 @@ chấm **đo cách diễn đạt** và chấm oan **3/4** câu trả lời **t�
 
 | Bẫy | Có pack | Không pack |
 |---|---|---|
-| `biểu EMIS là ảnh chụp` — **suy ra được** (đối chứng) | 3/3 | **3/3** |
+| `biểu BCX là ảnh chụp` — **suy ra được** (đối chứng) | 3/3 | **3/3** |
 | `lưới chỉ hiện phân hiệu chính` — **tùy tiện** | **3/3** | **1/3** |
 
 **n=3 mỗi nhánh, chưa đủ kết luận thống kê** — không có tuyên bố *"pack tốt hơn X%"*. Áp vào pack **chỉ
@@ -324,7 +374,7 @@ dòng `md.push` của `tc_review.js`, các dòng `console.log` của `release_su
 `core_rules.md §Verify mở rộng`, **không bỏ luật nào**.
 
 Mục 5 từng ghi *"Creds ở `profiles/<TASK>/task.env` (**KHÔNG** `.env` chung)"* — câu đã dẫn tới một kết
-luận sai ở phiên trước. Nay nó ghi điều đã đo được: **mỗi profile phải tự ghim `QEMIS_CAP_HOC`**, vì
+luận sai ở phiên trước. Nay nó ghi điều đã đo được: **mỗi profile phải tự ghim `APP_CAP_HOC`**, vì
 thiếu nó app lặng lẽ về *"Mầm non"* và lượt chạy vẫn **XANH trên cấp sai**.
 
 ### Mười một ca đỏ mà tôi không thấy, vì tôi dùng mẫu số nhỏ để nói về cái lớn
@@ -376,12 +426,12 @@ lớp hỏng mà trước đó không có gì bắt: **lượt execute chấm PA
 
 ### `env:scope` — profile phải ghim cấp học nó đang đo
 
-`tests/fe/support/opsLogin.ts:419`: thiếu `QEMIS_CAP_HOC` thì app giữ mặc định **"Mầm non"**, và nó
+`tests/fe/support/opsLogin.ts:419`: thiếu `APP_CAP_HOC` thì app giữ mặc định **"Mầm non"**, và nó
 chỉ `console.warn`. Lượt chạy **không gãy** — nó đăng nhập được, đi hết các bước, chụp đủ ảnh, rồi
 chấm **PASS** trên một cấp học không phải cấp mà case nói tới. Không ca nào đỏ.
 
-Đo được lúc dựng cửa: `profiles/CSDL-3544` và `profiles/CSDL-4039` không ghim khoá này, mà **4039 là
-EMIS THCS**. Cả hai có **0 ảnh evidence** nên chưa từng execute, tức cửa bắt được khe này *trước khi*
+Đo được lúc dựng cửa: `profiles/TASK-3544` và `profiles/TASK-4039` không ghim khoá này, mà **4039 là
+BCX THCS**. Cả hai có **0 ảnh evidence** nên chưa từng execute, tức cửa bắt được khe này *trước khi*
 nó kịp sinh ra một bộ verdict sai.
 
 Cửa cũng gọi tên **bí mật chết**: khoá trong `.env` mang hậu tố không khớp khuôn `<TIEN_TO>_<HAU_TO>`
@@ -401,8 +451,8 @@ Nó bắt mỗi profile tự khai `OPS_USERNAME`/`OPS_PASSWORD`, dựng từ câ
 > Khi một cửa mới tố gần hết hiện trạng, giả thuyết đầu tiên phải là **CỬA SAI**, không phải hiện
 > trạng sai.
 
-Thêm chế độ `--soi` để **đo rồi mới chốt luật**: cả 8 profile đều ghim `QEMIS_SO` + `QEMIS_TRUONG`, và
-một tài khoản QEMIS đổi được Sở/cấp/trường qua `/Manage/ChonTruong.aspx`. Nên `.env` chung giữ **một**
+Thêm chế độ `--soi` để **đo rồi mới chốt luật**: cả 8 profile đều ghim `APP_SO` + `APP_TRUONG`, và
+một tài khoản app mẫu đổi được Sở/cấp/trường qua `/Manage/ChonDonVi.aspx`. Nên `.env` chung giữ **một**
 tài khoản app là **đúng thiết kế**, không phải lệch. Một cửa tố oan gần hết hiện trạng **tệ hơn không
 có cửa**, vì người ta sẽ tắt nó.
 
@@ -410,7 +460,7 @@ Ca `P8` trong bộ đối chứng ghim lại kết luận ấy: thử bò về l
 
 ### `USER_GUIDE` từng chỉ sai chỗ nguy nhất
 
-Bảng "tĩnh ↔ động" ở §2.2 từng xếp `OPS_*` (**tài khoản đăng nhập QEMIS**) vào cột *"Tĩnh → `.env`
+Bảng "tĩnh ↔ động" ở §2.2 từng xếp `OPS_*` (**tài khoản đăng nhập app mẫu**) vào cột *"Tĩnh → `.env`
 chung"*. Bản sửa đầu lại viết *"`OPS_*` KHÔNG được để ở `.env` chung"*, **cũng sai** và chính là luật
 tố oan 7/8 ở trên. Câu đúng nằm ở chỗ profile có ghim nổi **cấp học** hay không. Cả lịch sử ấy được
 ghi ngay trong tài liệu để lần sau không sửa qua sửa lại.
@@ -431,7 +481,7 @@ trông như đang nói.
 12 phép phá, 12 lần đỏ, phá **bản chép** giữ đúng độ sâu tương đối chứ không `git stash` cây dùng chung
 (`tests/fe/infra/_may_thu.ts`). Đáng kể: `P8` bò về luật đã bị bác (**5 đỏ**) · `Q1` gỡ dòng gọi khỏi
 `runPreflight` (**1 đỏ**, nếu không có ca này thì chỗ nối là code không ai gác) · `Q3` nới regex từ
-`=\s*\S` xuống `=` (**1 đỏ**, vì `QEMIS_CAP_HOC=` để **rỗng** vẫn là chưa ghim).
+`=\s*\S` xuống `=` (**1 đỏ**, vì `APP_CAP_HOC=` để **rỗng** vẫn là chưa ghim).
 
 Cửa `env:scope` **không bao giờ in giá trị**, chỉ in tên khoá, và có một ca test khai đúng điều đó: một
 cửa gác chỗ để bí mật mà rò ra log CI thì tự phản lại mục đích. Nó cũng cố ý **không** `require`
@@ -578,7 +628,7 @@ họ với mọi thứ ở trên: một phép kiểm im lặng không khai rằn
 Cả ba mục dưới đây là cùng một lớp hỏng: một con số **đúng** được đọc thành một kết luận **rộng hơn**
 nó. Không máy nào đỏ, vì chẳng có gì sai — chỉ có mẫu số không được nói ra.
 
-- **`expected:check` in `✓ ĐẠT` trên 273/312 case mà không nói 273.** Đo 01/11/2026 ở CSDL-4008: bộ có
+- **`expected:check` in `✓ ĐẠT` trên 273/312 case mà không nói 273.** Đo 01/11/2026 ở TASK-4008: bộ có
   312 case, mốc băm chỉ chứa 273, cửa in `+ 39 case MỚI` rồi kết luận `✓ ĐẠT`. Câu đó đúng từng chữ —
   không case nào **đổi** expected — nhưng 39 case kia không có băm nào để so, nên đổi `Kết quả mong đợi`
   ở đúng 39 case đó là **vô hình**. Và mốc ấy không khai `chup_giua_task`, tức đang được đọc là *chụp ở
@@ -587,7 +637,7 @@ nó. Không máy nào đỏ, vì chẳng có gì sai — chỉ có mẫu số kh
   `ty_le_duoc_gac`, lời khai cửa-chốt tự mâu thuẫn bị tố cáo, và dạng `expected:check:enforce` **CHẶN**
   ở cửa publish — nơi bộ case đã chốt nên "case chưa có mốc" mới thật là lỗi. Cửa `done` giữ bản mặc
   định để không chặn 6 task đang chạy ở giữa đường. *(Lượt vá đầu của tôi chỉ sửa một trong hai đường
-  `✓`, mà ca CSDL-4008 nổ ở đường còn lại — tức bản vá rỗng đúng với ca sinh ra nó. Nên mỗi đường nay
+  `✓`, mà ca TASK-4008 nổ ở đường còn lại — tức bản vá rỗng đúng với ca sinh ra nó. Nên mỗi đường nay
   có một phép kiểm riêng.)*
 - **`audit:ci` in `moderate 12` rồi `✓ OK`, và con số đó không phân biệt được "đã rà" với "vừa xuất
   hiện".** Phép đo ở đây là chính tôi: tôi báo với người dùng `8 advisory moderate (uuid, exceljs)` —
@@ -625,13 +675,13 @@ nó. Không máy nào đỏ, vì chẳng có gì sai — chỉ có mẫu số kh
   junction — nghiệm thu rằng nó tái hiện thật (spec trước khi vá: `2 failed`, cùng ENOENT; sau khi vá:
   `19 passed`).
 - **Phép kiểm ngưỡng BLOCKED neo vào dữ liệu task SỐNG, và đó là lần thứ ba cùng một bài học.**
-  `run-analysis.spec.ts` khẳng định hai bộ dữ liệu **thật** (CSDL-9003, CSDL-9004) rơi vào hai dải khác
+  `run-analysis.spec.ts` khẳng định hai bộ dữ liệu **thật** (TASK-9003, TASK-9004) rơi vào hai dải khác
   nhau. Bản đầu ghim `28.9%` rồi đỏ khi dữ liệu trôi còn `28.6%`; sửa 13/10/2026 đổi sang ghim **dải** —
-  thô hơn nên lâu mục hơn; đo 01/11/2026 thì **dải cũng trôi**: CSDL-9004 về `18.5%`, rơi vào đúng dải
-  của CSDL-9003, nên tiền đề hết hiệu lực và phép kiểm đỏ trong khi `run:analysis` vẫn chạy hoàn toàn
+  thô hơn nên lâu mục hơn; đo 01/11/2026 thì **dải cũng trôi**: TASK-9004 về `18.5%`, rơi vào đúng dải
+  của TASK-9003, nên tiền đề hết hiệu lực và phép kiểm đỏ trong khi `run:analysis` vẫn chạy hoàn toàn
   đúng. Ghim thô hơn chỉ làm bài học chậm lại — dải **cũng** là tính chất của dữ liệu đổi được, mà
   `testcase-status.json` bị ghi lại mỗi lượt execute, mỗi lượt gộp, và cả khi ai đó chạy task từ IDE song
-  song (đo được đúng việc đó: tệp bị ghi lúc 19:38 kèm `qemis-captcha.png` lúc 19:39, trong lúc một lượt
+  song (đo được đúng việc đó: tệp bị ghi lúc 19:38 kèm `appmau-captcha.png` lúc 19:39, trong lúc một lượt
   đo của tôi đang chạy). Nay tính chất *"ngưỡng phân biệt được"* kiểm bằng **fixture**, cả **ba** dải
   (`<5%` · `5–20%` · `>20%`); dữ liệu thật giữ phép kiểm riêng với vai trò đúng của nó — chứng minh
   `run:analysis` **đọc nổi hình dạng thật** của tệp đó, và **không ghim** bộ đó đang ở dải nào.
@@ -710,7 +760,7 @@ nó. Không máy nào đỏ, vì chẳng có gì sai — chỉ có mẫu số kh
   mỗi lượt chạy, kèm câu *"KHÔNG cửa nào được chặn dựa trên bản gom này"*.
 - **Một "giới hạn dữ liệu" hoá ra là lỗi nối của tôi.** Tôi đã ghi *"7% ca nối được, vì dữ liệu không
   có"* vào tài liệu. Nhưng **77%** dòng lỗi *có* mã TC — hai số chênh 10 lần. Nguyên nhân: tiêu đề spec
-  dùng mã **trần** (`TC_021`), sổ dùng mã **đủ** (`CSDL_NHANSU_TC_021`). Vá bằng khớp hậu tố **khi và
+  dùng mã **trần** (`TC_021`), sổ dùng mã **đủ** (`APP_NHANSU_TC_021`). Vá bằng khớp hậu tố **khi và
   chỉ khi hậu tố duy nhất trong sổ** (0 nhập nhằng trên 536 ca).
 - **`trace:matrix` thiếu chiều ngược.** Thêm mục *test đã chạy mà không TC nào nhận*, **phân ba loại** vì
   đếm trần thì chôn ca đáng lo dưới đống đúng-thiết-kế. Bắt được **9 ca mở rộng mang PASS/FAIL mà không
@@ -806,7 +856,7 @@ thẳng. Bảng nghiệm thu ở [`docs/v2.9.5/A_PARITY.md`](docs/v2.9.5/A_PARIT
 - Hướng "spec tạo bản ghi mà thiếu dữ liệu unique" cho §6 — ra 11/66 ca, soi tay 3 ca thì **3/3 đều
   giả** (`fill('')` xoá ô · một spec DỌN dữ liệu · một fixture local).
 
-**Và hai cửa mới bắt lỗi thật ngay lượt chạy đầu:** `data:chain:check` tìm ra `CSDL_NHANSU_TC_063` khai
+**Và hai cửa mới bắt lỗi thật ngay lượt chạy đầu:** `data:chain:check` tìm ra `APP_NHANSU_TC_063` khai
 `(dựng ở TC_075)` trong khi TC_075 nằm SAU nó; `library:drift` bắt 4 máy mới chưa có mặt trên trang
 thư viện cùng 3 chỗ còn ghi số gate cũ.
 
@@ -1551,7 +1601,7 @@ vẫn không biết nó thừa cái gì.
 
 ### Trục ⑥: ba chỗ sai chỉ lộ ra khi chạy trên dữ liệu thật
 
-Một lượt `discover` **CHỈ ĐỌC** trên UAT (CSDL-9001, chủ dự án xác nhận) dựng được ma trận vai trò ×
+Một lượt `discover` **CHỈ ĐỌC** trên UAT (TASK-9001, chủ dự án xác nhận) dựng được ma trận vai trò ×
 route: **240 ô — 120 `verified`** (masteradmin) · **120 `unknown`** (vai trò `truong`) · 0 finding ẩn≠cấm.
 
 | # | Sai gì | Trước | Sau |
@@ -1581,7 +1631,7 @@ khoản — bốn bug bịa bị chặn trước khi sinh ra.**
 
 ### "Xin được" khác "không bao giờ có"
 
-Chủ dự án xác nhận QEMIS UAT **chỉ có tài khoản admin**, không có tài khoản cấp trường. Để nguyên
+Chủ dự án xác nhận app mẫu UAT **chỉ có tài khoản admin**, không có tài khoản cấp trường. Để nguyên
 `needs_account` thì mỗi lượt chạy lại sinh một câu hỏi Critical *"xin tài khoản vai trò truong"* cho thứ
 không bao giờ có — và một cửa kêu mãi về chuyện không sửa được là một cửa người ta học cách bỏ qua.
 
@@ -1598,8 +1648,8 @@ mọi tài khoản.
 
 | | |
 |---|---|
-| route | `/C2/HoSoTruongDetail.aspx`, một lượt GET ở context SẠCH |
-| app làm gì | đẩy về `Login.aspx?returnUrl=~/C2/HoSoTruongDetail.aspx` |
+| route | `/C2/HoSoDetail.aspx`, một lượt GET ở context SẠCH |
+| app làm gì | đẩy về `Login.aspx?returnUrl=~/C2/HoSoDetail.aspx` |
 | oracle | neo **cấu trúc**: 1 ô `input[type=password]` · **0** nút `Ghi` của form hồ sơ — không dò chữ |
 | verdict | **PASS** · `oracle_ref: BR-NHANSU-029` · evidence `.png` (§4) · chạy 2 lượt cùng kết quả |
 
@@ -1609,7 +1659,7 @@ Cơ chế nối: probe ghi `test-results/authz_ket_qua.json` (`oracle_ref` · `m
 
 ### ⑦ trên dữ liệu thật
 
-`oracle:calc` cho CSDL-9001: **`proven=2`**, 118 rule trong kho, 0 vi phạm. `expansion_audit` nay thấy
+`oracle:calc` cho TASK-9001: **`proven=2`**, 118 rule trong kho, 0 vi phạm. `expansion_audit` nay thấy
 task đó chạy **2/7 trục** (`persist, oracle_calc`) thay vì 1/7.
 
 ### `full:suite` giờ typecheck trước
@@ -1872,7 +1922,7 @@ Hai luật còn lại cũng phải sửa sau khi soi ví dụ thật: P1 báo oa
 `Website = http://...` (giá trị một ô, không phải màn) và `<script>alert(1)</script>` — tức **phạt đúng
 những case bảo mật**.
 
-Đo tác động trước khi gắn vào: CSDL-9001 96.2% → 95.0%, các bộ khác 88.9–93.0%, đều xa ngưỡng chặn 75%.
+Đo tác động trước khi gắn vào: TASK-9001 96.2% → 95.0%, các bộ khác 88.9–93.0%, đều xa ngưỡng chặn 75%.
 
 ### Buildout thật một module, và `stt:map`
 
@@ -2128,8 +2178,8 @@ quyền") · cấm gọi API trực tiếp (có test quét mã nguồn) · dừn
 
 ### Lượt chạy thật trên UAT, và năm lỗ chỉ nó mới phơi ra
 
-Chạy `CSDL-9003` trên UAT, vai trò masteradmin THPT, chỉ GET. **Lượt một** ra `6 màn · 292 route báo
-captcha · 0 request ghi lọt`. Con số "292 route bắt captcha" đọc như một đặc điểm của QEMIS. Nó không
+Chạy `TASK-9003` trên UAT, vai trò masteradmin THPT, chỉ GET. **Lượt một** ra `6 màn · 292 route báo
+captcha · 0 request ghi lọt`. Con số "292 route bắt captcha" đọc như một đặc điểm của app mẫu. Nó không
 phải: trong danh sách đó có `/Logout.aspx` — crawler đi theo link Đăng xuất và **tự huỷ session của chính
 nó**, nên 292 trang sau đó đều là màn đăng nhập. Không có gì đỏ, không exception, và nó sinh ra một phát
 hiện giả rất thuyết phục về sản phẩm từ một lỗi của chính kit.
@@ -2151,7 +2201,7 @@ hướng đó, đăng nhập lại, rồi lượt sau vẫn hỏng y nguyên v�
 ### Hai phép đo bác lại chính thiết kế của bản này
 
 **§B2 so sai đơn vị.** Bản đầu đòi mỗi màn quan sát được phải xuất hiện trong `scope_inventory.md`, khớp
-theo chuỗi route. Đối chiếu 40 màn với danh mục THẬT của `CSDL-9003` (55 dòng `INV-` người viết ngày
+theo chuỗi route. Đối chiếu 40 màn với danh mục THẬT của `TASK-9003` (55 dòng `INV-` người viết ngày
 30/09): **khớp 1, trượt 39**. Danh mục mô tả theo mã chức năng, và một màn chứa nhiều mục phạm vi, nên
 đòi khớp một-một là so hai thứ khác đơn vị. Thêm nữa `--mode task` không hề thu hẹp phạm vi, nên lượt bò
 đi cả app. Nay khai tường minh theo route, và chỉ hỏi về route NẰM TRONG phạm vi đã khai.
@@ -2182,7 +2232,7 @@ mà không `clearTimeout`. Huỷ timer thì 96 giây còn 5,7 giây.
 - Lượt chạy thật **chưa đo được mẫu số đổi bao nhiêu**. Cần một lượt bò có `--pham-vi` đúng module học sinh.
 - Trên app ASP.NET postback, `moCacKhoi` bấm vào nút gây postback và bị chính tường lửa chặn, nên việc mở
   khối gần như không có tác dụng. Chưa có cách chữa.
-- Mọi màn QEMIS dùng chung một `<title>` của master page, nên tên hiển thị trong bảng tóm tắt vô dụng
+- Mọi màn app mẫu dùng chung một `<title>` của master page, nên tên hiển thị trong bảng tóm tắt vô dụng
   trên app đó. Danh tính màn không bị ảnh hưởng vì nó dùng chữ ký cấu trúc.
 
 ---
@@ -2362,7 +2412,7 @@ phần lớn kế hoạch ban đầu.
 `prompt:budget` đo TĨNH: mỗi điểm vào bảo AI đọc bao nhiêu, tách bắt buộc với có điều kiện. `token:audit`
 đo ĐỘNG từ transcript phiên thật, chỉ ghi số đếm chứ không ghi nội dung.
 
-Đo trên **4 lượt chạy task thật** (CSDL-9001 đến 9004):
+Đo trên **4 lượt chạy task thật** (TASK-9001 đến 9004):
 
 - `Read` vào tài liệu của kit: **0 đến 4 lượt**, trên tổng 117 đến 405 lượt `Read`.
 - Ảnh và video: **0,0%** khối lượng kết quả tool, ở cả bốn lượt.
@@ -2380,7 +2430,7 @@ dùng hệ số 3,6 ký tự mỗi token trong khi kit dùng 3,2.
 
 ### Chỗ cắt được, và số trước sau
 
-`--compact` cho gate: mỗi vi phạm một dòng `MÃ · TC ID · ý chính`. Đo trên bộ 265 case thật của CSDL-9003:
+`--compact` cho gate: mỗi vi phạm một dòng `MÃ · TC ID · ý chính`. Đo trên bộ 265 case thật của TASK-9003:
 **10.696 byte xuống 1.811 byte, giảm 83%**. Nó là lớp TRÌNH BÀY chứ không phải lớp lọc — spec khoá rằng
 hai chế độ phải cùng exit code và cùng tập (mã, TC ID), và dòng gộp liệt kê đủ TC ID còn lại.
 
@@ -2395,15 +2445,15 @@ Bàn giao giữa phase bằng file `handoff/<phase>.md` dưới 1k token, rồi 
 Không phải lỗ hổng chi phí, và đều nghiêm trọng hơn chuyện token.
 
 **Ảnh evidence rỗng ruột.** "Có file ảnh" và "ảnh đúng màn" là hai chuyện, không máy nào phân biệt. Hai ca
-thật, đã mở mắt kiểm: `CSDL_HSTRUONG_TC_138/step-01-passed.png` **trắng hoàn toàn** (1280×720, 4 KB) của
-một step chấm `passed`; `CSDL_NHANSU_TC_121/step-01-failed.png` là **trang lỗi HTTP 503**. Nay đo bằng byte
+thật, đã mở mắt kiểm: `APP_HSTRUONG_TC_138/step-01-passed.png` **trắng hoàn toàn** (1280×720, 4 KB) của
+một step chấm `passed`; `APP_NHANSU_TC_121/step-01-failed.png` là **trang lỗi HTTP 503**. Nay đo bằng byte
 trên pixel, ngưỡng 0,02 lấy từ phân bố của 1.935 ảnh thật, nằm giữa một khoảng trống rõ (0,0095 so với
 0,0289).
 
 **`expansion:audit` đo RỖNG.** Nó đọc `t.id`, một trường không tồn tại; model phơi ra `t.tcId`. Map luôn
 rỗng nên MỌI case báo `unknown`, và mọi dòng "NẾU SIẾT TIẾP" hiện 0/6 đỏ. Một máy đo rỗng mà kết quả trông
 yên tâm, trong khi nó là máy dùng để quyết có siết gate hay không. Sau khi vá: 0 lên **288 case band high**,
-và luật ĐANG ÁP "chưa lập kế hoạch" từ 0/6 lên 1/6 đỏ, chỉ đúng CSDL-9003 với 164 case execute, 118 band
+và luật ĐANG ÁP "chưa lập kế hoạch" từ 0/6 lên 1/6 đỏ, chỉ đúng TASK-9003 với 164 case execute, 118 band
 high, 0/5 trục.
 
 **Thiếu band thì rơi xuống tầng mỏng nhất.** `depth.js` mặc định `low` khi cả hai cột rỗng. Mặc định giữ
@@ -2799,7 +2849,7 @@ giờ tới được trạng thái xanh.
 
 **Sạch nhận diện.** Gói không còn logo, không khẩu hiệu, không màu thương hiệu.
 Bản mẫu branding cũng đổi giá trị ví dụ thành chỗ trống có nhãn. Nó là thứ người nhận chép ra để
-gắn thương hiệu CỦA HỬ. Chữ "SAPP" còn lại là MÃ TASK dùng làm dẫn chứng đo, giữ có chủ ý.
+gắn thương hiệu CỦA HỬ. Chữ "ORG" còn lại là MÃ TASK dùng làm dẫn chứng đo, giữ có chủ ý.
 
 **Bảy test bỏ qua đều có lý do tự khai.**
 Ba cần dữ liệu trong `knowledge/`, mà thư mục đó gitignore nên gói không mang.
@@ -2843,7 +2893,7 @@ Chủ repo yêu cầu hai trang này trông giống ảnh User Guide.
 
 | Thứ | Trước | Sau |
 | --- | --- | --- |
-| logo | `logo-sapp.png` nhúng base64 ở cả hai trang | bỏ |
+| logo | `logo-brand.png` nhúng base64 ở cả hai trang | bỏ |
 | khẩu hiệu | "Advance your career" | bỏ |
 | tên thương hiệu | `brandName` và `eyebrow` mang tên công ty | "QA Automation Kit" |
 | màu nhấn | vàng `#FFB700` | chàm `#4F46E5` |
@@ -2858,7 +2908,7 @@ Xoá cơ chế là lấy mất lựa chọn của người dùng sau.
 **Nghiệm thu bằng MẮT, không bằng grep.** Chụp màn cả hai trang rồi mở ra xem. Grep trước đó đã bỏ
 lọt mũi tên màu vàng trong ảnh User Guide, nên lần này không tin grep một mình nữa.
 
-**Chữ "SAPP" còn lại trong hai trang là MÃ TASK**, kiểu `SAPP-26878` trong bảng dữ liệu và ví dụ.
+**Chữ "ORG" còn lại trong hai trang là MÃ TASK**, kiểu `TASK-26878` trong bảng dữ liệu và ví dụ.
 Đó không phải nhận diện, và xoá đi là mất nghĩa. Giữ.
 
 ## 2026-09-19 (tối) — Vẽ lại 10 ảnh User Guide, gỡ sạch nhận diện công ty
@@ -2870,7 +2920,7 @@ và màu thương hiệu của một công ty cụ thể không có chỗ ở đ
 
 | Thứ | Trước | Sau |
 | --- | --- | --- |
-| logo nhúng | `docs/brand/logo-sapp.png` base64 trong mọi board | chữ "QA Automation Kit" |
+| logo nhúng | `docs/brand/logo-brand.png` base64 trong mọi board | chữ "QA Automation Kit" |
 | khẩu hiệu | "Advance your career" | bỏ hẳn |
 | màu thương hiệu | vàng `#FFB700` và `#E6A300` | chàm `#4F46E5` |
 | nền ấm của DS | mực `#1A1916`, nền `#FAF8F3` | trung tính `#16161A`, `#F7F8FA` |
@@ -3027,7 +3077,7 @@ hỏi version nên bỏ qua file không có id, nhưng câu nói gọn kia đọ
 Nay nói rõ là thiếu id, kèm số tài liệu thật sự đang có.
 
 **Soát xong 16 task, con số thật khác hẳn con số tôi báo lúc chưa sửa dụng cụ.** Chỉ **2 task** cần
-fetch lại: `SAPP-3255` (21 tài liệu, 4 lành, 18 mất bảng) và `SAPP-21786` (3 tài liệu, 1 lành).
+fetch lại: `TASK-3255` (21 tài liệu, 4 lành, 18 mất bảng) và `TASK-21786` (3 tài liệu, 1 lành).
 13 task còn lại đều lành. Con số "13 task không có tài liệu lành" báo trước đó là SAI, do ngưỡng
 entity và luật đọc id của chính dụng cụ.
 
@@ -3078,7 +3128,7 @@ cửa như nhau, kể cả khi tài liệu không hề có mục đó.
 trích dẫn cần số dòng. File do bộ đổi cũ sinh ra dồn cả trang vào một dòng. Trỏ vào "dòng 1" của một
 trang 8 KB thì không phải trích dẫn. Đây là lý do bước này phải đi sau bước sửa bộ đổi.
 
-**Đối chứng âm.** Bộ testcase thật của SAPP-26878 có 76 neo. **Tất cả đều tra ngược được.**
+**Đối chứng âm.** Bộ testcase thật của TASK-26878 có 76 neo. **Tất cả đều tra ngược được.**
 Một máy chỉ biết nói "đạt" thì vô dụng. Bơm thêm ba neo bịa thì cả ba bị gọi tên, `--enforce` exit 1.
 
 **Hiệu chỉnh cảnh báo MƠ HỒ, từ 26 xuống 8.** Tài liệu đánh số BR theo từng US, nên cùng mã có thể
@@ -3104,7 +3154,7 @@ Máy không ai gọi là máy chết.
 
 **Vấn đề.** Soát lại một task thật sau khi sửa bộ đổi Confluence, và thấy bốn chuyện, cả bốn đều im lặng.
 
-| Đo được trên SAPP-26878 | Số |
+| Đo được trên TASK-26878 | Số |
 | --- | --- |
 | trang đã bị sửa sau ngày fetch | 14 / 23 |
 | file fetch về rỗng, không báo lỗi | 2 (72 và 91 byte) |
@@ -3301,7 +3351,7 @@ dạng cũ (ngày + nhóm chủ đề + "vấn đề → cách chữa"), chỉ t
 **Hai chỗ sửa so với đề bài, vì đo ra là sai:**
 
 1. **`db.conventions.json` KHÔNG được đóng gói.** Đề bài xếp nó vào GENERIC, nhưng đo: `entity =
-   ic_payment_orders`, `allowedHosts = db-uat.sapp.edu.vn`, 8 màn với nhãn tiếng Việt của OPS — **lớp PROJECT
+   <bảng của dự án>`, `allowedHosts = <host DB của dự án>`, 8 màn với nhãn tiếng Việt của OPS — **lớp PROJECT
    đặc**. Phát nó cho dự án khác là đưa họ **bản đồ cột sai** mà vẫn "có số từ DB", đúng hiểm hoạ file đó tự
    cảnh báo. Nay đóng gói `db.conventions.example.json` (giữ khung + hướng dẫn đo), và `kit-layers.md` xếp bản
    thật vào lớp PROJECT.
@@ -3451,13 +3501,13 @@ dimensions: **15 → 20**.
 
 **Vấn đề — danh sách nằm ở 5 chỗ.** `validate.js` (regex) · converter (comment + message) · prompt gen (bảng) · publisher · test. Mở rộng bằng cách sửa tay 5 chỗ là 5 cơ hội để một chỗ còn 6 — và chỗ đó sẽ **CHẶN theo bảng cũ trong khi tài liệu dạy bảng mới**. Chữa: [`.agent/config/case_types.json`](.agent/config/case_types.json) là **nguồn duy nhất**, mọi nơi đọc file đó; bảng trong prompt và mọi test đều sinh/kiểm từ nó. Đã dính ngay lần đầu: `precondition-catalog.spec.ts` là chỗ duy nhất còn chép tay 6 giá trị và nó **đỏ đúng lúc** — bằng chứng cách làm này có răng.
 
-**Vấn đề — publisher hạ ngầm về `Functional`.** Gặp tên loại không resolve được, bản cũ in một dòng `⚠` rồi **vẫn ghi lên AIO** với `Functional`. Cảnh báo trôi mất trong log của lệnh đẩy hàng trăm case, còn dữ liệu thì sai vĩnh viễn — **AIO không có API xoá**. Đúng cơ chế đã làm 14 case `Highest` tụt xuống Medium. Chữa: bỏ hằng `CASE_TYPE_FALLBACK`, gom lỗi trên **toàn bộ** danh sách rồi **DỪNG TRƯỚC vòng ghi** (dừng giữa vòng để lại nửa bộ trên AIO không dọn được), in kèm danh sách tên AIO đang có. Đã chạy thật: bộ đã khai đủ (SAPP-26878) dry-run **qua**; bộ chưa khai (SAPP-24395) **CHẶN** và **gọi tên từng TC ID**.
+**Vấn đề — publisher hạ ngầm về `Functional`.** Gặp tên loại không resolve được, bản cũ in một dòng `⚠` rồi **vẫn ghi lên AIO** với `Functional`. Cảnh báo trôi mất trong log của lệnh đẩy hàng trăm case, còn dữ liệu thì sai vĩnh viễn — **AIO không có API xoá**. Đúng cơ chế đã làm 14 case `Highest` tụt xuống Medium. Chữa: bỏ hằng `CASE_TYPE_FALLBACK`, gom lỗi trên **toàn bộ** danh sách rồi **DỪNG TRƯỚC vòng ghi** (dừng giữa vòng để lại nửa bộ trên AIO không dọn được), in kèm danh sách tên AIO đang có. Đã chạy thật: bộ đã khai đủ (TASK-26878) dry-run **qua**; bộ chưa khai (TASK-24395) **CHẶN** và **gọi tên từng TC ID**.
 
 **Mới — cảnh báo tag ↔ loại.** Case gắn `[Security]` mà khai `Functional` thì kêu, kèm trỏ tới mục "KHÔNG chọn khi" của loại được gợi ý. **Cảnh báo chứ không chặn**, có lý do: chính bảng 9 loại liệt kê các ca chồng lấn HỢP LỆ (`[Display]` nhưng lỗi do BE tính sai ⇒ `Functional` chứ không phải `UI`) — chặn ở đây là phạt đúng những case phân loại tinh nhất, và dạy người ta gán tag cho khớp gate thay vì suy nghĩ. Case mang **nhiều** tag ánh xạ được thì im lặng: bản thân tag đã không quyết được loại.
 
 Kèm: test khoá **mọi tag trong bảng phải là tag chiều CÓ THẬT** của kit (`TAG_OF`) — bảng dạy một tag mà `dim:coverage` không biết thì bảng và gate đánh nhau, người dùng lãnh đủ.
 
-**Chi phí phải nói rõ:** gate publisher chặn cả việc **publish lại** 12 bộ cũ (chưa có cột). Lối ra là kéo lại mirror (`aio:pull:write` nay mang Case Type về) hoặc điền cột. Mirror cũ **không** dùng được: bản của SAPP-13964 có **63/63 case trống loại** vì được kéo trước khi pull có cột này.
+**Chi phí phải nói rõ:** gate publisher chặn cả việc **publish lại** 12 bộ cũ (chưa có cột). Lối ra là kéo lại mirror (`aio:pull:write` nay mang Case Type về) hoặc điền cột. Mirror cũ **không** dùng được: bản của TASK-13964 có **63/63 case trống loại** vì được kéo trước khi pull có cột này.
 
 Test: `case-type-gate.spec.ts` 16 · khối `Loại case` ở `expansion-gates.spec.ts` 7 · `precondition-catalog.spec.ts` cập nhật. Toàn bộ infra **227/227**, lint 0 error, `gate:policy` 4/4.
 
@@ -3465,7 +3515,7 @@ Test: `case-type-gate.spec.ts` 16 · khối `Loại case` ở `expansion-gates.s
 
 **Vấn đề 1 — Case Type trên AIO là trường chết.** AIO có sẵn 6 Case Type (`Unit`·`Integration`·`Functional`·`API`·`Performance`·`Security`) nhưng Excel canonical không có cột nào mang nó, nên publisher **SUY** từ tên nhóm chức năng. Đo trên 1.399 case đã publish: **96% rơi về `Functional`**, `Integration` và `Performance` = **0** ⇒ mọi phép lọc/báo cáo theo Case Type là vô nghĩa. Gốc của lỗi là ép **hai trục** làm một: nhóm chức năng trả lời *"thuộc mảng nghiệp vụ nào"* (→ thư mục), Case Type trả lời *"kiểm thử kiểu gì"*.
 
-Chữa: thêm cột `Loại case` vào template (9→10 cột) + gate **CHẶN ở biên SINH case** (`md_to_xlsx.js`), KHÔNG thêm vào `REQUIRED_COLS`. Chỗ chặn là quyết định có đo: `validate()` là bộ đọc dùng chung — siết ở đó thì **cả 9 bộ TC cũ (đều 9 cột) đỏ oan** trong khi không ai làm sai; đo lại sau khi sửa: **13 bộ cũ, 0 bộ bị chặn vì cột mới** (523 vi phạm của SAPP-23439 là tag `Tiền điều kiện` có từ trước, 0 dòng liên quan). Một luật một chỗ: converter lo *cột vắng mặt*, `validate.js` lo *giá trị sai*.
+Chữa: thêm cột `Loại case` vào template (9→10 cột) + gate **CHẶN ở biên SINH case** (`md_to_xlsx.js`), KHÔNG thêm vào `REQUIRED_COLS`. Chỗ chặn là quyết định có đo: `validate()` là bộ đọc dùng chung — siết ở đó thì **cả 9 bộ TC cũ (đều 9 cột) đỏ oan** trong khi không ai làm sai; đo lại sau khi sửa: **13 bộ cũ, 0 bộ bị chặn vì cột mới** (523 vi phạm của TASK-23439 là tag `Tiền điều kiện` có từ trước, 0 dòng liên quan). Một luật một chỗ: converter lo *cột vắng mặt*, `validate.js` lo *giá trị sai*.
 
 **Vấn đề 2 — thang ưu tiên hạ cấp âm thầm.** Canonical dùng tên thang **Jira** (`Highest`) trong khi AIO đứng đầu bằng `Critical`; publisher map theo TÊN, không có khoá `highest` nên rơi fallback `|| 3` = Medium ⇒ **14 case của một bộ bị hạ ưu tiên mà không ai biết**. Chữa: canonical đổi sang `Critical|High|Medium|Low|Lowest`; `Highest` còn là alias **có cảnh báo** để không phá bộ đang chạy; đường log bug tự map ngược `Critical → Highest` cho Jira.
 
@@ -3879,7 +3929,7 @@ Bài học phương pháp: **thước đo cũng phải được kiểm bằng m�
 
 **Added — `scripts/qa/mutation_check.js`** (`npm run mutation:check`): tiêm lỗi ở tầng `page.route()` (**không chạm
 dữ liệu UAT, không ghi gì lên server**) rồi xem máy kiểm có đỏ. 5 mutant nhắm đúng các lớp bug **đã từng lọt thật**:
-`zero_out` (SAPP-28310/28376) · `drop_field` (SAPP-28404/28442) · `halve_number` · `stringify_num` (`540000` →
+`zero_out` (TASK-28310/28376) · `drop_field` (TASK-28404/28442) · `halve_number` · `stringify_num` (`540000` →
 `"540000.0"`) · `rename_label` (lớp "Phone" vs "Phone number").
 
 **Kết quả đo trên UAT — `mutation score = 0/4 = 0%`.** Bóp `convertible_amount` thành 0, **xoá hẳn**, chia nửa, đổi
@@ -3938,7 +3988,7 @@ phải được ghi lại, không im lặng. Suite hạ tầng: 105 → **110**.
 
 Phản hồi review chỉ đúng một lỗi **đang có thật** trong thứ vừa build: mở rộng quanh case mà không có nguồn thì
 kit mặc định *"app đang hiện thế là đúng"* ⇒ tautology **nhân theo số trục**, sản xuất PASS giả. Bằng chứng nằm
-trong test của chính tôi: `persistence_probe` trả `ok: true` cho ca SAPP-28403 (USD không quy đổi) — `form/payload/
+trong test của chính tôi: `persistence_probe` trả `ok: true` cho ca TASK-28403 (USD không quy đổi) — `form/payload/
 api/ui` khớp cả 4 ở giá trị `10` trong khi đúng phải `260.500`. **Tên field `ok` chính là mầm PASS giả.**
 
 **Added — `scripts/lib/expansion/finding.js`** (hạt nhân): ba loại kết luận, không có loại thứ tư —
@@ -4015,7 +4065,7 @@ execute **nhánh API** hoặc người đọc bản đồ prompt sẽ không th�
   phản ánh nội dung mới, không thì agent skim bản đồ sẽ bỏ qua).
 - **`self_review` check #10 — "5 trục mở rộng (máy nào đã chạy)"**: luật không có máy thì trôi. Check này KHÔNG
   chấm "đã mở rộng đủ chưa" (không đo được) mà chấm thứ đo được: **artefact của từng máy có tồn tại không**. Đo
-  trên SAPP-24395: **4/5 trục có artefact**, trục ③ chưa (đúng — mới backtest offline, chưa ghi chuỗi thật).
+  trên TASK-24395: **4/5 trục có artefact**, trục ③ chưa (đúng — mới backtest offline, chưa ghi chuỗi thật).
   Có `requirements/cross_surface.json`/`fixture_matrix.json` mà chưa có báo cáo ⇒ **CHẶN** (khai phạm vi rồi bỏ dở).
 - **Chốt chống "có file là xong"**: báo cáo tồn tại nhưng nội dung toàn "chưa kiểm được" thì vẫn cảnh báo. Lý do
   rất cụ thể: chính tôi vừa cân nhắc tạo một artefact khuyết để check #10 xanh, nên bịt luôn đường đó. Nghiệm thu
@@ -4032,8 +4082,8 @@ có field mọc thêm. Backtest tự nhiên: máy nêu ra `Pay-back` — field t
 FSD gốc: §4.3.1.6 thật sự chỉ khai **1 field** cho `Order Amount` trong khi build có **9** ⇒ tài liệu thiếu.
 
 **B4 `probe:persist`** — chuỗi `form→payload→API→UI` (13/69 bug). Engine sinh **giá trị mồi phân biệt**, so 4 điểm,
-chỉ ra **mắt đứt + tầng lỗi**. Backtest 4 bug thật: SAPP-28310 (`payload→api`, thành 0) · SAPP-28376
-(`form→payload`) · SAPP-28442 (mất hẳn khỏi payload) · SAPP-28403 (lệch bậc độ lớn) — đúng cả 4, và **không bịa**
+chỉ ra **mắt đứt + tầng lỗi**. Backtest 4 bug thật: TASK-28310 (`payload→api`, thành 0) · TASK-28376
+(`form→payload`) · TASK-28442 (mất hẳn khỏi payload) · TASK-28403 (lệch bậc độ lớn) — đúng cả 4, và **không bịa**
 mắt đứt trên chuỗi lành. Test bắt được bẫy trong API của tôi: chuỗi đo THIẾU điểm ban đầu trả `ok:true`.
 
 **B5 `xsurf:diff`** — cùng giá trị, khác nơi hiển thị (**21/69 bug**, trục rò nhiều nhất). Lượt chạy thật đầu tiên
@@ -4049,7 +4099,7 @@ Kết quả: 6 nhánh × 5 trạng thái = 30 ô → **21 CÓ · 9 n/a kèm lý 
 `RULE_GLOBAL.md §5 trục mở rộng` (+ TOC, digest ở `core_rules.md`). Luật cốt lõi: **bug do người ngoài tìm ra là
 LỖI CỦA MÁY** — phải trả lời "máy nào lẽ ra bắt được?"; không có máy thì đề xuất máy mới, CẤM kết thúc bằng "sẽ
 chú ý hơn". Máy đứng sau: `leak:report --require-machine`. Đo thật: **29 bug do người tìm · 26 đã quy được về máy
-· 3 chưa** — và 1 trong 3 (`SAPP-28651` thiếu section VNPay) hoá ra có máy nhưng **chưa bind màn**, đúng nhánh (a)
+· 3 chưa** — và 1 trong 3 (`TASK-28651` thiếu section VNPay) hoá ra có máy nhưng **chưa bind màn**, đúng nhánh (a)
 của luật.
 
 **Kỷ luật lặp lại 2 lần trong phiên:** thiếu `require.main === module` guard làm `require()` trong test khiến CLI
@@ -4098,7 +4148,7 @@ còn **untracked**, và check #9 "độ phủ bề mặt" chỉ tồn tại tron
 lớp tai nạn đã xảy ra một lần với `knowledge/**` (đổi nhánh là mất sạch), nên đưa vào commit ngay.
 
 - **`scripts/qa/leak_report.js`** (mới): đếm bug theo **nguồn phát hiện** (`found-by-kit` / `found-by-human`) và
-  theo **5 trục mở rộng quanh case** để biết nên xây máy nào trước. Đo SAPP-24395: 69 bug — 46 chưa phân loại
+  theo **5 trục mở rộng quanh case** để biết nên xây máy nào trước. Đo TASK-24395: 69 bug — 46 chưa phân loại
   nguồn; theo trục: field 11 · surface 21 · persist 13 · branch 20 · state 22 · không khớp 17.
 - **`scripts/qa/self_review.js` check #9**: gate cũ chỉ hỏi *"có catalog mà chưa chạy?"* ⇒ **không khai catalog
   là cách né hợp lệ**. Nay so bảng *Phân nhóm testcase* với `ui_catalog.json`. Đo thật: **28 nhóm chức năng ·
@@ -4132,7 +4182,7 @@ phải lỗi build. Ba lỗ, mỗi lỗ vá xong đều đo lại:
    ⇒ **≥3 màn = dùng chung, loại khỏi forbidden**. Ngưỡng nằm giữa hai cụm, không phải số chọn bừa.
 
 **Máy tự tìm được bug đầu tiên** (không ai chỉ trước): Order Detail đơn **Chuyển đổi** có field **"Địa chỉ"** ở
-khối Customer Info — đúng lớp bug STT 42 vốn do người báo trên đơn Chuyển nhượng (SAPP-28608, đã Done). Kèm 3
+khối Customer Info — đúng lớp bug STT 42 vốn do người báo trên đơn Chuyển nhượng (TASK-28608, đã Done). Kèm 3
 phát hiện cùng lớp: nhãn build **"Phone number"** trong khi tài liệu ghi **"Phone"** (4 màn), khối Service Info
 thừa **"Service Fee Rate"**, và khối ĐỒNG BỘ VỀ HUBSPOT **thiếu "Trạng thái đồng bộ"**.
 
@@ -4147,14 +4197,14 @@ Hubspot` ⇒ `closest()` leo quá cao và sinh extra oan) · alias cho "Thông t
 
 ## 2026-08-19 — B2 chống lọt bug: FSD tự sinh ui_catalog (888 field), backtest lộ 5 lỗ
 
-**Vấn đề (B0 đã đo):** `ui_conformance_check.js` chỉ kiểm được màn nào **người** chịu khai tay vào `ui_catalog.json`. Task SAPP-24395 có **28 nhóm chức năng** nhưng catalog chỉ **5 màn** ⇒ 23 nhóm không có gì kiểm, và bề mặt cứ rộng ra khi máy kiểm đứng yên. Khai tay 49 bảng field là việc không ai làm.
+**Vấn đề (B0 đã đo):** `ui_conformance_check.js` chỉ kiểm được màn nào **người** chịu khai tay vào `ui_catalog.json`. Task TASK-24395 có **28 nhóm chức năng** nhưng catalog chỉ **5 màn** ⇒ 23 nhóm không có gì kiểm, và bề mặt cứ rộng ra khi máy kiểm đứng yên. Khai tay 49 bảng field là việc không ai làm.
 
 **Added — `scripts/qa/spec_extract.js`** (`npm run spec:extract`): đọc chính bảng *"Mô tả chi tiết các trường"* mà FSD đã có sẵn (khuôn 8 cột) → `screens.json` → `ui_catalog.json`. Đo trên FSD thật: **42 bảng · 47 tab · 257 section · 888 field**. Từ chối sinh catalog khi thiếu `--bindings` (URL/fixture là dữ liệu TASK, script không đoán) và **luôn in số màn chưa có binding** — 54 màn đang mù, nói ra thay vì để tưởng đã phủ.
 
 **Nghiệm thu đã tự ràng từ đầu:** catalog tự sinh phải bắt lại được **STT 42/43/53/54** mà không biết trước. Tôi viết parser xong mới mở 4 mục đó ra. Chính phép nghiệm thu này lộ **5 lỗ**, cả 5 đều vô hình nếu chỉ đọc code:
 
 1. **`mode:'superset'` giết phép bắt field THỪA.** Phải bật superset để né báo-thiếu-oan cho field điều kiện — nhưng nó tắt luôn `fields.extra`, tức đúng lớp bug của STT 42 (Order Detail thừa "Địa chỉ"). Sửa: thêm **`optionalFields`** vào `ui_conformance_check.js` — miễn trừ **đích danh** từng field điều kiện, `superset` chỉ còn dùng cho nhãn lặp động không liệt kê được ("Phí dịch vụ lần 1..N").
-2. **Loại nhầm 78 field.** Bản đầu coi `dropdown/combobox/checkbox/tag` là "control không nhãn" — đó là **nơi bug hay sống** (SAPP-28311 Service Fee không phải Combobox, SAPP-28318 dropdown thiếu option). Nay chỉ loại `button/icon/link`.
+2. **Loại nhầm 78 field.** Bản đầu coi `dropdown/combobox/checkbox/tag` là "control không nhãn" — đó là **nơi bug hay sống** (TASK-28311 Service Fee không phải Combobox, TASK-28318 dropdown thiếu option). Nay chỉ loại `button/icon/link`.
 3. **Key trùng giữa các file.** FSD copy-paste nên mục "4.3.1.6" tồn tại ở **cả** file Chuyển đổi lẫn Chuyển nhượng ⇒ binding trỏ một URL nhưng lấy tập field của **loại đơn khác** (đúng lớp "26 deviation giả"). Nay key mang tiền tố file.
 4. **Section lạ không ai bắt.** STT 54 là màn mọc thêm **cả một khối** của loại đơn khác ("Thông tin Deal trừ" trên tab Hub Info của Chuyển nhượng) — kiểm-kê-field không chạm tới vì field của màn vẫn đủ. Thêm `forbiddenSections` (sinh từ spec: section cùng tab nhưng thuộc **màn khác**) + check `sections.unexpected`. Bản heuristic đầu lọc theo *file* nên vừa **bỏ sót đúng STT 54** vừa **tố oan** một section của chính màn — sửa thành lọc theo **khoá màn**.
 5. **Nhãn lặp trong tài liệu.** FSD ghi `Phone` hai lần trong một khối ⇒ so-tập vô nghĩa. Nay gộp và nêu ra để hỏi BA (`_doc_duplicates`).
@@ -4299,7 +4349,7 @@ Tách 15 chương thành file rời sinh ra một rủi ro mới: agent đọc *
 
 Chặn **độc lập** với việc thiếu case, và chạy được **cả ở chế độ GỢI Ý** — vì bằng chứng không phụ thuộc phân loại case. Artifact có mà chưa khai `required` thì cảnh báo (không chặn).
 
-**Nghiệm thu trên task thật** (SAPP-24395 có `figma/` + `ui_catalog.json` + `field_mapping*`): manifest cố ý khai `design_figma: "n/a"` và `display_conformance: "n/a"` → không `--enforce` thì báo 2 XUNG ĐỘT + exit 0; có `--enforce` thì **exit 1**. Cảnh báo "chưa khai required" cũng nổ đúng cho §10 Guard nhờ `knowledge/system/` có `state_machine`.
+**Nghiệm thu trên task thật** (TASK-24395 có `figma/` + `ui_catalog.json` + `field_mapping*`): manifest cố ý khai `design_figma: "n/a"` và `display_conformance: "n/a"` → không `--enforce` thì báo 2 XUNG ĐỘT + exit 0; có `--enforce` thì **exit 1**. Cảnh báo "chưa khai required" cũng nổ đúng cho §10 Guard nhờ `knowledge/system/` có `state_machine`.
 
 Ghi vào §0b của prompt gen thành bảng, kèm câu nói rõ chiều nào suy được / chiều nào không — để agent biết `n/a` sẽ bị đối chiếu, không phải chỉ để review đọc.
 
@@ -4396,7 +4446,7 @@ Tải sheet đang bật link chia sẻ về `.xlsx` qua `/export?format=xlsx` �
 - Renderer (`docToMarkdown`/`docToPlainText`) chạy trên **mọi** tab, mỗi tab một heading `## Tab: <tên>` theo độ sâu; tách `contentToMarkdown()` ra khỏi `docToMarkdown()` để dùng lại cho từng tab.
 - **Log số tab + tên tab** mỗi lần đọc ⇒ nhìn output là biết đã lấy đủ hay chưa, không phải tin vào im lặng.
 
-**Kết quả nghiệp vụ.** Rule `BR-ADDONBANK-001` ("tài khoản thi CBE ⇒ MB SAPP", nguồn: cột bình luận trong sheet bug) bị **bác bỏ bằng tài liệu gốc**: sheet mapping khai `Recipient Bank Account ← tai_khoan_nhan_phi_dich_vu` (trục **chương trình × mốc 01/01/2026**) còn loại tài khoản thi đi qua property KHÁC (`loai_phi_dich_vu`) và chỉ quyết định *loại đơn*. Ghi rule đúng `BR-RECIPBANK-001` với `covered_by` thật (`TC_133/134/135/136/360`) — hết `covered_by` rỗng. Không bug nào phải rút lại. **Bài học ghi vào rule:** lời văn trong cột bình luận của sheet bug **không ngang hàng** FSD/mapping sheet; để nó làm oracle thì lượt gen sau sinh case sai rồi log bug không tồn tại.
+**Kết quả nghiệp vụ.** Rule `BR-ADDONBANK-001` ("tài khoản thi CBE ⇒ MB ORG", nguồn: cột bình luận trong sheet bug) bị **bác bỏ bằng tài liệu gốc**: sheet mapping khai `Recipient Bank Account ← tai_khoan_nhan_phi_dich_vu` (trục **chương trình × mốc 01/01/2026**) còn loại tài khoản thi đi qua property KHÁC (`loai_phi_dich_vu`) và chỉ quyết định *loại đơn*. Ghi rule đúng `BR-RECIPBANK-001` với `covered_by` thật (`TC_133/134/135/136/360`) — hết `covered_by` rỗng. Không bug nào phải rút lại. **Bài học ghi vào rule:** lời văn trong cột bình luận của sheet bug **không ngang hàng** FSD/mapping sheet; để nó làm oracle thì lượt gen sau sinh case sai rồi log bug không tồn tại.
 
 ## 2026-08-14 — 42% lịch sử bug vô hình với risk, và bảng risk thì toàn dòng phantom
 
@@ -4419,7 +4469,7 @@ Hai hạng không trộn: **A** = `tc_id` khi expected của TC nói thẳng hà
 
 **Added — cảnh báo MẤT `bug_tc_map.json`.** Đây là store duy nhất trong `knowledge/` **không nạp lại được từ nguồn máy**. Mất file một mình chưa hỏng (record đã giữ `module`); hỏng khi mất file **rồi** nạp lại `bugs/` từ Jira. `learn_bugs` cảnh báo khi thiếu file mà đang có bug `(unmapped)` — đã nghiệm thu bằng cách gỡ file + set 1 record về `(unmapped)`.
 
-**Added — 1 dòng vào `§12` prompt gen: field DẪN XUẤT phải bị KHOÁ theo nguồn.** 7 hạng B chia làm 3 lớp trống (chi tiết ở `coverage-gap-tu-bug-khong-co-TC.md`), trong đó lớp "conformance liệt kê CÓ field nhưng không phát biểu ràng buộc giá trị" là lỗ hổng **quy tắc** thật: case "form hiển thị đủ field X" **PASS ngay cả khi field đó cho chọn tự do** ⇒ `SAPP-28420` (modal Add Transaction cho chọn pháp nhân khác order) không TC nào bắt. Hai lớp còn lại (định dạng, chức năng không có TC) thì `§12` **đã có** quy tắc — lỗi là bộ 530 không áp dụng, nên không thêm rule trùng.
+**Added — 1 dòng vào `§12` prompt gen: field DẪN XUẤT phải bị KHOÁ theo nguồn.** 7 hạng B chia làm 3 lớp trống (chi tiết ở `coverage-gap-tu-bug-khong-co-TC.md`), trong đó lớp "conformance liệt kê CÓ field nhưng không phát biểu ràng buộc giá trị" là lỗ hổng **quy tắc** thật: case "form hiển thị đủ field X" **PASS ngay cả khi field đó cho chọn tự do** ⇒ `TASK-28420` (modal Add Transaction cho chọn pháp nhân khác order) không TC nào bắt. Hai lớp còn lại (định dạng, chức năng không có TC) thì `§12` **đã có** quy tắc — lỗi là bộ 530 không áp dụng, nên không thêm rule trùng.
 
 ## 2026-08-13 (b) — 11 lệnh gate chưa từng được chạy, vì chỉ nằm ở tầng workflows
 
@@ -4490,8 +4540,8 @@ Bộ có case **XOÁ** mà không case nào dùng `db_readonly` → nhắc §13b
 **Bối cảnh.** Rà `LICENSE` thì phát hiện nó vào repo từ commit baseline đầu tiên (`1dbe982`) và **chưa ai sửa**, nên vẫn mang tên chủ sở hữu của template scaffold gốc. Kiểm rộng ra thì lộ việc quan trọng hơn: **mirror GitHub đang PUBLIC** (`gh repo view` → `visibility: PUBLIC`, `licenseInfo: mit`), tức mọi thứ tracked đang công khai dưới MIT.
 
 **Fixed**
-- `LICENSE`: đặt lại chủ sở hữu → `SAPP - Nguyễn Hùng Mạnh`. **Không** đổi loại giấy phép (vẫn MIT) — đó là quyết định của chủ sở hữu, không phải việc của kit.
-- **`knowledge/**` không còn được commit.** Mọi store trong đó là thông tin nội bộ của dự án đang test, không phải phần "kit": `bugs/` tiêu đề defect sản phẩm (và tên FILE sinh từ slug tiêu đề nên **chính đường dẫn đã mô tả defect**), `domain/` + `system/` business rule & bản đồ hệ thống, `locators/` selector của app, `historical_execution/` + `metrics/` lịch sử pass/fail kèm tên testcase, `examples/` là bug thật backfill từ task cũ (`SAPP-26276`) chứ không phải mẫu generic. Repo giữ lại **`SCHEMA.md`** (đã có 8 khối JSON mẫu `PROJ-123` nên hình dạng entry vẫn được tài liệu hoá) + các `.gitkeep`.
+- `LICENSE`: đặt lại chủ sở hữu → `ORG - Nguyễn Hùng Mạnh`. **Không** đổi loại giấy phép (vẫn MIT) — đó là quyết định của chủ sở hữu, không phải việc của kit.
+- **`knowledge/**` không còn được commit.** Mọi store trong đó là thông tin nội bộ của dự án đang test, không phải phần "kit": `bugs/` tiêu đề defect sản phẩm (và tên FILE sinh từ slug tiêu đề nên **chính đường dẫn đã mô tả defect**), `domain/` + `system/` business rule & bản đồ hệ thống, `locators/` selector của app, `historical_execution/` + `metrics/` lịch sử pass/fail kèm tên testcase, `examples/` là bug thật backfill từ task cũ (`TASK-26276`) chứ không phải mẫu generic. Repo giữ lại **`SCHEMA.md`** (đã có 8 khối JSON mẫu `PROJ-123` nên hình dạng entry vẫn được tài liệu hoá) + các `.gitkeep`.
 - **`index.json` cũng bị loại** — giữ nó là chỉ bịt một nửa, vì trường `file` của 44 entry `bug` chứa đúng slug tiêu đề defect. Kèm theo: `learn_bugs` **thôi ghi entry `type: 'bug'`** vào index và dọn sạch entry cũ — đã kiểm toàn bộ reader của index, **không nơi nào lọc `type === 'bug'`**, entry đó là ghi-mà-không-ai-đọc (`risk_score` và `decisions` đọc thẳng thư mục).
 - **`preflight_gate`: `knowledge/index.json` từ `require` → `recommend`.** Nó là artifact SINH RA (`domain:index`/`system:index`/`decisions --index`/`learn --scan`); gate đòi một file generated + không-commit thì clone mới và CI sẽ đỏ vì thiếu **dữ liệu**, không phải thiếu **khung** — đúng kiểu false-block mà comment ngay trên manifest đã cảnh báo.
 
@@ -4543,12 +4593,12 @@ Bộ có case **XOÁ** mà không case nào dùng `db_readonly` → nhắc §13b
 **Bối cảnh.** Định dùng `knowledge/bugs` làm danh sách bug cần re-verify thì phát hiện chính dữ liệu đó sai: hai record khác nhau cùng `id`, và một bug Jira đã `Done` mà local vẫn ghi `In Staging`.
 
 **Fixed**
-- **Danh tính bug = `slugify(summary)`.** Record được tìm bằng tên file `TASK__slug-tiêu-đề.json`, nên **sửa tiêu đề bug trên Jira là slug đổi ⇒ coi như bug mới ⇒ tạo record trùng**, còn record cũ bị bỏ rơi và **đóng băng trạng thái mãi mãi**. Hậu quả không nhìn thấy được: `risk_score` đếm 1 bug thành 2 (Likelihood phồng) và **vòng đời bug** (weight theo `jira_status` + decay) tính trên trạng thái sai — tức hai cơ chế vừa xây xong đều đang ăn dữ liệu bẩn. Giờ khớp theo **`id` = Jira key** (bất biến), quét cả thư mục để lập chỉ mục theo id; tiêu đề đổi thì **cập nhật tại chỗ** và ghi rõ dòng `✎`. Đo: `mới 3 → 2` (một cái là `SAPP-28420` đổi tiêu đề, đã có record).
-- **Cảnh báo id trùng.** Trước đây trùng id không ai biết. Giờ báo to kèm tên 2 file. Dọn thật 1 cặp: record "[FE] Combo Version History filter Product" chính là **Vấn đề 3 của cùng ticket `SAPP-28395`** bị ghi thành bug riêng.
+- **Danh tính bug = `slugify(summary)`.** Record được tìm bằng tên file `TASK__slug-tiêu-đề.json`, nên **sửa tiêu đề bug trên Jira là slug đổi ⇒ coi như bug mới ⇒ tạo record trùng**, còn record cũ bị bỏ rơi và **đóng băng trạng thái mãi mãi**. Hậu quả không nhìn thấy được: `risk_score` đếm 1 bug thành 2 (Likelihood phồng) và **vòng đời bug** (weight theo `jira_status` + decay) tính trên trạng thái sai — tức hai cơ chế vừa xây xong đều đang ăn dữ liệu bẩn. Giờ khớp theo **`id` = Jira key** (bất biến), quét cả thư mục để lập chỉ mục theo id; tiêu đề đổi thì **cập nhật tại chỗ** và ghi rõ dòng `✎`. Đo: `mới 3 → 2` (một cái là `TASK-28420` đổi tiêu đề, đã có record).
+- **Cảnh báo id trùng.** Trước đây trùng id không ai biết. Giờ báo to kèm tên 2 file. Dọn thật 1 cặp: record "[FE] Combo Version History filter Product" chính là **Vấn đề 3 của cùng ticket `TASK-28395`** bị ghi thành bug riêng.
 - **Log đồng bộ vô dụng: in `X → X`.** Gán `cur.jira_status = jiraStatus` **trước** khi dựng câu log nên old/new luôn giống nhau (`Done → Done`, `In Staging → In Staging`) — không đọc được gì đã đổi. Giờ chụp giá trị cũ trước khi gán. Lộ ngay **9 bug đã chuyển `Done`** mà local còn giữ `In Staging`.
 - **Index bug không dọn entry mồ côi + không cập nhật `status`.** Khối ghi `index.json` chạy dưới điều kiện `APPLY && created.length` nên lượt chỉ-xoá hoặc chỉ-đổi-trạng-thái không chạm index ⇒ index trỏ vào file đã xoá và giữ `status` cũ. Giờ điều kiện là `APPLY`, dọn entry `type: 'bug'` trỏ file không tồn tại (đồng nhất với indexer domain/system/decisions đã có), và cập nhật cả record vừa đổi trạng thái. Dọn thật 1 entry mồ côi → index 62 entry, 0 mồ côi.
 
-**Ý nghĩa thực tế:** danh sách "bug cần re-verify" từ 13 (dữ liệu local) về **1** (`SAPP-28411`, In Staging) — 9 cái đã `Done`, 3 cái dev chưa deploy, 1 cái Rejected đã có quyết định giải thích. Nếu tin dữ liệu cũ thì sẽ đi test lại 9 bug đã xong.
+**Ý nghĩa thực tế:** danh sách "bug cần re-verify" từ 13 (dữ liệu local) về **1** (`TASK-28411`, In Staging) — 9 cái đã `Done`, 3 cái dev chưa deploy, 1 cái Rejected đã có quyết định giải thích. Nếu tin dữ liệu cũ thì sẽ đi test lại 9 bug đã xong.
 
 ## 2026-08-11 — `ui_conformance_check` dùng được trên màn thật, và không được phép báo cáo sai
 
@@ -4569,7 +4619,7 @@ Bộ có case **XOÁ** mà không case nào dùng `db_readonly` → nhắc §13b
 **Fixed — mắt xích HỌC bị đứt bởi một file lock của Excel**
 - `learn_task` / `domain_rules` / `system_map` quét `test-cases/*.xlsx` và ăn phải **`~$tên.xlsx`** — file LOCK do Excel sinh ra khi workbook đang mở, không phải zip. ExcelJS ném lỗi **async** nên lọt khỏi `try/catch` sync và **giết cả tiến trình**: `learn:bugs:apply` chết ngay, không thu được gì. Giờ bỏ qua `~$*` / `.~*`.
 - Cùng chỗ đó lộ ra lỗi **im lặng** nặng hơn: `parseXlsx` là **async** mà cả 3 hàm gọi đều **sync, không `await`** ⇒ `doc` là Promise, `doc.tests` luôn `undefined` ⇒ **đường xlsx chưa từng đóng góp gì** cho map module / tập TC ID mà không báo một chữ. Đo blast radius: **mọi task có `.xlsx` đều có `.md` kèm** nên chưa mất dữ liệu — nhưng task nào chỉ có `.xlsx` là gate mù mà không ai biết. Giờ phát hiện thenable → **cảnh báo to** nêu rõ file bị bỏ và phải dùng bản `.md`. (Sửa tận gốc = chuyển 3 hàm + chỗ gọi top-level sang async; ghi lại trong comment để không rơi.)
-- Sau khi vá: `learn:bugs:apply` chạy được → **+11 bug record**, đồng bộ 2 trạng thái (SAPP-28365 `Rejected` → `Done`, xác nhận trực tiếp trên Jira). `decisions:check` từ "1 bug Rejected chưa có lý do" về **sạch**. `risk` chạy trên 43 bug · 100 module · 9 High, và vẫn nói thẳng 23 bug chưa map module.
+- Sau khi vá: `learn:bugs:apply` chạy được → **+11 bug record**, đồng bộ 2 trạng thái (TASK-28365 `Rejected` → `Done`, xác nhận trực tiếp trên Jira). `decisions:check` từ "1 bug Rejected chưa có lý do" về **sạch**. `risk` chạy trên 43 bug · 100 module · 9 High, và vẫn nói thẳng 23 bug chưa map module.
 
 **Kết quả trên màn thật:** 2 section khớp spec 100% (Order Amount 6/6; Add-on Product Info 4/4 — xác nhận một bug "thiếu Net Price" đã được fix), 4 phát hiện mới về lệch nhãn/điều kiện hiển thị, và **2 nghi vấn bị loại bằng dữ liệu trước khi thành bug oan** (địa chỉ nghi đọc từ property `d_o_b`: hoá ra tài liệu ghi sai tên property, app đúng).
 
@@ -4608,7 +4658,7 @@ Bộ có case **XOÁ** mà không case nào dùng `db_readonly` → nhắc §13b
   - `risk_score`: nhắc lại QA override đã lưu (`type: risk_override`) ở cuối register — **suggest-only, không tự đổi band**; trước đây override chết theo task nên mỗi lần chạy lại phải override tay.
 - `scripts/lib/testcase/validate.js` — kiểm **GIÁ TRỊ** 2 cột `Ưu tiên`/`Mức độ rủi ro` (trước đây `design_gate` chỉ kiểm **rỗng**, nên quy ước §7/§8 trong prompt không có gì ép). `Ưu tiên` ngoài 5 priority Jira = **CHẶN** — không phải hình thức: bug log lên Jira lấy `Priority` **từ chính cột này**, giá trị lạ (`Critical`, `P0`) ⇒ Jira dùng default ⇒ mất tín hiệu ưu tiên. `Mức độ rủi ro` ngoài `High|Medium|Low` = **CHẶN** (`risk:gate` ép độ sâu theo cột này, giá trị lạ bị bỏ qua âm thầm). 2 cột nói ngược nhau (`rủi ro High` + `ưu tiên Low`) = **cảnh báo**. Đo trước khi chọn mức chặn (bài học baseline của `locator_lint`): 1868 TC thật / 20 file → đúng 3 dòng bẩn ⇒ chặn được mà không làm đỏ hàng loạt; bộ 530 TC Payment `0 CHẶN`.
 
-- `self_review` check #6 **knowledge ghi tay** — 3 store mới (`domain/`, `system/`, `decisions/`) máy KHÔNG tự thu được (chỉ người/agent ghi), mà ban đầu chúng chỉ được nhắc bằng 1 dòng trong workflow ⇒ rơi đúng bẫy *"có store, có validator, nhưng không gate nào gọi"* — y hệt lý do `knowledge/` từng rỗng suốt nhiều task. Nay: record đã ghi mà sai schema/PII → **CHẶN** (store rỗng không bao giờ chặn); store rỗng chỉ nhắc **khi có tín hiệu cụ thể** — clarifications đã `RESOLVED` mà `domain/` rỗng · bộ TC có case phân quyền/trạng thái/guard mà `system/` rỗng · bug `Rejected` chưa lưu lý do · quyết định quá `expires_at`. Nghiệm thu 2 task thật: SAPP-21786 → 3 case guard, SAPP-24395 → 41 case; cắm record sai vào store → gate chuyển FAIL đúng như thiết kế.
+- `self_review` check #6 **knowledge ghi tay** — 3 store mới (`domain/`, `system/`, `decisions/`) máy KHÔNG tự thu được (chỉ người/agent ghi), mà ban đầu chúng chỉ được nhắc bằng 1 dòng trong workflow ⇒ rơi đúng bẫy *"có store, có validator, nhưng không gate nào gọi"* — y hệt lý do `knowledge/` từng rỗng suốt nhiều task. Nay: record đã ghi mà sai schema/PII → **CHẶN** (store rỗng không bao giờ chặn); store rỗng chỉ nhắc **khi có tín hiệu cụ thể** — clarifications đã `RESOLVED` mà `domain/` rỗng · bộ TC có case phân quyền/trạng thái/guard mà `system/` rỗng · bug `Rejected` chưa lưu lý do · quyết định quá `expires_at`. Nghiệm thu 2 task thật: TASK-21786 → 3 case guard, TASK-24395 → 41 case; cắm record sai vào store → gate chuyển FAIL đúng như thiết kế.
 
 **Fixed**
 - `domain_rules --index` / `system_map --index` / `decisions --index` — chỉ biết **thêm/sửa**, không bao giờ dọn: xoá 1 record thì `index.json` vẫn giữ entry trỏ vào file không còn tồn tại ⇒ tra cứu ra **kết quả ma**. Nay mỗi indexer dọn entry trỏ file đã bị xoá — nhưng **chỉ của type mình** (`business_rule` / `system_map` / `decision`), không đụng type do script khác quản.
@@ -4682,5 +4732,5 @@ Bộ có case **XOÁ** mà không case nào dùng `db_readonly` → nhắc §13b
 ## 2026-07-21 — Knowledge Base · Risk-Based Testing
 
 - `knowledge/` (schema `SCHEMA.md`) + skill `learning_recorder` + `git_impact_analyzer`.
-- `risk_score`/`risk_gate` (RBT) + `seed_knowledge_from_jira` (bootstrap từ lịch sử Jira/Xray) + tune `risk_model.json` cho SAPP.
+- `risk_score`/`risk_gate` (RBT) + `seed_knowledge_from_jira` (bootstrap từ lịch sử Jira/Xray) + tune `risk_model.json` cho ORG.
 - Rule: "Kết quả mong đợi" đánh số **khớp từng bước**, cấm gộp range.

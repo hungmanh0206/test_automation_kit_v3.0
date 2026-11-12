@@ -6,14 +6,14 @@
  * VÌ SAO KHÔNG ĐỦ VỚI `bug_outcome`
  *
  * `bug_outcome` ghi nhãn vào FILE CLAIM (`reports/bug-claims/<TC>.json`). Đo 11/11/2026 trên Backlog: tài khoản
- * QA đã tạo **96 bug** trong dự án CSDL, chỉ **17** có file claim trỏ tới. 79 bug (82%) không có claim, nên mọi
+ * QA đã tạo **96 bug** trong dự án mẫu, chỉ **17** có file claim trỏ tới. 79 bug (82%) không có claim, nên mọi
  * tỉ lệ tính từ sổ claim chỉ là một góc. Thêm nữa, sổ claim gọi "đã log 119" cho cả 90 claim mới ở trạng thái
  * `claimed` — chưa từng lên Backlog. Mẫu số đúng cho "DEV nhận hay bác" là BUG TRÊN BACKLOG.
  *
  * ──────────────────────────────────────────────────────────────────────────────────────────────────
  * GẮN NHÃN — máy chỉ tự gắn ĐÚNG MỘT trường hợp
  *
- * Quy trình của dự án (đọc lịch sử trạng thái CSDL-4087, CSDL-3801): `Open → Ready For Test` (DEV báo đã
+ * Quy trình của dự án (đọc lịch sử trạng thái TASK-4087, TASK-3801): `Open → Ready For Test` (DEV báo đã
  * sửa) `→ Ready for Product` (QA chạy lại xác nhận). Nên *Ready for Product* = DEV NHẬN và QA ĐÃ XÁC MINH sửa
  * ⇒ máy tự gắn `accepted`. MỌI trạng thái khác:
  *   · Open / Ready For Test / In Progress — CHƯA có kết cục, không gắn.
@@ -26,7 +26,7 @@
  * nhãn, lý do — không có mô tả bug, không có apiKey.
  *
  * Dùng:
- *   node scripts/qa/bug_outcome_backlog.js [--project CSDL]                       đọc Backlog, cập nhật sổ, báo cáo
+ *   node scripts/qa/bug_outcome_backlog.js [--project <MÃ_DỰ_ÁN>]                       đọc Backlog, cập nhật sổ, báo cáo
  *   node scripts/qa/bug_outcome_backlog.js --nhan <KEY> --la <nhãn> --vi-sao <...> gắn nhãn tay (không gọi mạng)
  *   node scripts/qa/bug_outcome_backlog.js --bao-cao                             chỉ đọc sổ, không gọi mạng
  */
@@ -156,7 +156,9 @@ async function main() {
     return 0;
   }
   if (a.includes('--bao-cao')) { baoCao(docSo()); return 0; }
-  const moi = await docBacklog(lay('--project') || 'CSDL');
+  const maDuAn = lay('--project') || process.env.BACKLOG_PROJECT_KEY || '';
+  if (!maDuAn) { console.log('[outcome-backlog] KHÔNG PHÁN ĐƯỢC — thiếu mã project: --project <MÃ> hoặc BACKLOG_PROJECT_KEY.'); return 2; }
+  const moi = await docBacklog(maDuAn);
   if (!moi) { console.log('[outcome-backlog] KHÔNG PHÁN ĐƯỢC — thiếu BACKLOG_BASE_URL hoặc BACKLOG_API_KEY. Đây KHÔNG đồng nghĩa với "không có bug sai".'); return 2; }
   if (moi.loi) { console.log(`[outcome-backlog] KHÔNG PHÁN ĐƯỢC — ${moi.loi}. Sổ cũ giữ nguyên, không ghi danh sách cụt.`); return 2; }
   const so = gop(docSo(), moi.ds);

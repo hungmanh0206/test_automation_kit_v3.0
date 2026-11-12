@@ -217,7 +217,7 @@ function normalizeBacklogPriority(value) {
  * Issue type có được dùng để log bug hay không.
  *
  * Bản cũ đòi TÊN type chứa "sub"/"child". Sai cơ chế: trong Backlog, con hay không là do
- * `parentIssueId` (reporter luôn set, xem createIssue), KHÔNG do tên type. Đo trên project CSDL
+ * `parentIssueId` (reporter luôn set, xem createIssue), KHÔNG do tên type. Đo trên project mẫu
  * (06/10/2026) — `GET /api/v2/projects/:k/issueTypes` trả về: Bug · Renew · Task · Request · Other.
  * Không có type nào tên "Sub-*", nên luật cũ chặn MỌI cấu hình hợp lệ của project này.
  *
@@ -1429,7 +1429,7 @@ async function main() {
      * Suy ngược chỉ đúng với layout `<task>/test-results/results.json`. Khi chạy có `--run-id` thì
      * results.json nằm ở `<task>/test-results/runs/<RUN_ID>/results.json`, cắt hai cấp ra
      * `<task>/test-results/runs` — và cửa ra báo "chưa qua cửa" trong khi dấu vết có thật ở
-     * `<task>/reports/`. Đo 12/10/2026: chặn đúng một lượt log bug hợp lệ của CSDL-9003.
+     * `<task>/reports/`. Đo 12/10/2026: chặn đúng một lượt log bug hợp lệ của TASK-9003.
      */
     const taskDir = TASK_OUTPUT_DIR;
     const kq = exitGate.kiemDauVet(taskDir, 'bug');
@@ -1471,7 +1471,7 @@ async function main() {
      * `--bug-payload` được phép khai Priority — trước đây là trường DUY NHẤT nó không khai được.
      *
      * Priority vốn chỉ lấy từ file testcase, mà `findTestCaseInfo` chỉ đọc `.md`. Task nào giữ
-     * testcase canonical ở `.xlsx` (CSDL-9004) thì không có nguồn priority nào, và Backlog từ chối
+     * testcase canonical ở `.xlsx` (TASK-9004) thì không có nguồn priority nào, và Backlog từ chối
      * tạo issue với `400 error.invalid : priorityId`. Tức: khai tay được cả title/steps/kết quả
      * nhưng vẫn không log được, mà thông báo lỗi lại không chỉ ra thiếu gì.
      */
@@ -1540,7 +1540,7 @@ async function main() {
        * `..._TC_<số>` trong tiêu đề, nó rơi xuống nhánh dự phòng "chuẩn hoá 60 ký tự đầu của tiêu đề",
        * cho ra những chuỗi như `XSS_L_U_TR_H_T_N_NH_C_KHOANH_V_NG`. Marker đó đi thẳng vào bug, và
        * nó là thứ `searchExistingBug` dùng để chống trùng, `learn_bugs` dùng để map bug về Module —
-       * nên bug không map được về case thật, dù payload đã khai đúng `CSDL_NHANSU_TC_159`.
+       * nên bug không map được về case thật, dù payload đã khai đúng `APP_NHANSU_TC_159`.
        *
        * Mọi trường khác ở đây đều ưu tiên `override.*`; riêng dòng này thì không, nên lệch im lặng.
        */

@@ -4,7 +4,7 @@
 /*
  * xoa_dinh_kem.js — xoá TỆP ĐÍNH KÈM thừa khỏi một issue Backlog.
  *
- *   node scripts/integrations/backlog/xoa_dinh_kem.js --issue CSDL-3922 --id 4907878 --id 4907879
+ *   node scripts/integrations/backlog/xoa_dinh_kem.js --issue TASK-3922 --id 4907878 --id 4907879
  *   ... thêm --that-su để xoá thật (mặc định chỉ IN RA, không đụng gì).
  *
  * ⚠️ XOÁ KHÔNG HOÀN LẠI. Vì vậy:

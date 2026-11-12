@@ -2,11 +2,11 @@
  * `write:proof` — case có hành động GHI thì có nghiệm thu bằng KÊNH ĐỘC LẬP không?
  *
  * BỐI CẢNH. Vế thứ hai của điều #2 chủ dự án nêu: *"xác nhận dữ liệu thực sự thay đổi như expected"*.
- * Kit đã có doctrine cho đúng chuyện đó — `packs/qemis.md` mục 1: **toast `thành công` KHÔNG chứng
+ * Kit đã có doctrine cho đúng chuyện đó — `packs/appmau.md` mục 1: **toast `thành công` KHÔNG chứng
  * minh đã ghi**, với NĂM cơ chế từng cho cùng triệu chứng. Nhưng doctrine nằm ở **lời dặn trong
  * skill**, không ở **máy**. File này gác cái máy đếm xem lời dặn ấy có được làm theo không.
  *
- * ĐO TRÊN CSDL-4008: 312 case · 184 có hành động ghi · **92 nằm trong spec không có đường nghiệm thu
+ * ĐO TRÊN TASK-4008: 312 case · 184 có hành động ghi · **92 nằm trong spec không có đường nghiệm thu
  * độc lập** · 68 có · 24 không tìm thấy spec.
  *
  * HAI LẦN SIẾT, cả hai do đo mà biết:

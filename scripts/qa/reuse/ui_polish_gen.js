@@ -3,7 +3,7 @@
 /*
  * ui:polish:gen — SINH SPEC THU THẬP độ chỉn chu UI cho MỘT task, từ danh sách màn của task. 0 token AI.
  *
- * Trước bản này, thu thập chỉ có ở spec riêng của CSDL-9001: task khác muốn đo phải chép spec đó, chép luôn các
+ * Trước bản này, thu thập chỉ có ở spec riêng của TASK-9001: task khác muốn đo phải chép spec đó, chép luôn các
  * chỗ đã sửa sau lượt đo 5 cấp (màn không mở được, màn 0 thành phần, tab không chuyển) — hoặc chép thiếu.
  * Giờ logic nằm ở `scripts/utils/ui/ui_polish_thu.js`, có ca kiểm thử; spec sinh ra chỉ đăng nhập rồi gọi nó.
  *
@@ -13,7 +13,7 @@
  * Spec sinh ra CHỈ ĐỌC nhưng vẫn mở màn thật sau đăng nhập ⇒ chạm UAT ⇒ cần xác nhận trước mỗi lượt (CLAUDE.md §2).
  *
  * Dùng:
- *   node scripts/qa/reuse/ui_polish_gen.js --task <KEY> [--project-output outputs/CSDL]
+ *   node scripts/qa/reuse/ui_polish_gen.js --task <KEY> [--project-output outputs/DEMO]
  *   node scripts/qa/reuse/ui_polish_gen.js --task <KEY> --init       (đặt danh sách màn MẪU nếu task chưa có)
  *   node scripts/qa/reuse/ui_polish_gen.js --man <danh-sach.json> --out <thư mục spec> [--ra <thư mục kết quả>]
  * Exit: 0 · 2 khi danh sách màn thiếu hoặc sai
@@ -36,7 +36,7 @@ const MAU = {
     'Tiểu học': { ma: 'TH', tienTo: 'C1' },
   },
   man: [
-    { ten: 'ho-so-truong', duong: '/{CAP}/HoSoTruongDetail.aspx', tab: true },
+    { ten: 'ho-so-truong', duong: '/{CAP}/HoSoDetail.aspx', tab: true },
     { ten: 'lop', duong: '/{CAP}/Lop.aspx' },
   ],
 };
@@ -89,7 +89,9 @@ function sinh({ duongDanhSach, outDir, raDir }) {
     '',
     '/* Gốc URL lấy từ môi trường, KHÔNG ghim vào file sinh ra: ghim host vào spec là ghim một môi trường vào artifact. */',
     "const GOC = (process.env.UI_POLISH_BASE_URL || process.env.OPS_BASE_URL || '').replace(/\\/+$/, '');",
-    "const TEN_CAP = process.env.QEMIS_CAP_HOC_LAM_VIEC || process.env.QEMIS_CAP_HOC || '';",
+    '/* Biến mang cấp/đơn vị đang chạy là dữ liệu của dự án (context_pins.json), không ghi cứng vào spec. */',
+    `const PINS = require(${q(tuongDoi(outDir, path.join(REPO, 'scripts', 'utils', 'context_pins.js'), true))});`,
+    "const TEN_CAP = PINS.giaTri(PINS.docPins(), 'capHoc') || '';",
     `const RA = path.resolve(__dirname, ${q(tuongDoi(outDir, raDir, false))});`,
     '',
     "test('ui:polish · thu thập theo danh sách màn — chỉ đọc', async ({ page }) => {",
@@ -120,7 +122,7 @@ function sinh({ duongDanhSach, outDir, raDir }) {
 function main() {
   const a = process.argv.slice(2);
   const val = (n) => { const i = a.indexOf(`--${n}`); return i >= 0 && a[i + 1] && !a[i + 1].startsWith('--') ? a[i + 1] : null; };
-  const po = val('project-output') || process.env.PROJECT_OUTPUT_DIR || 'outputs/CSDL';
+  const po = val('project-output') || process.env.PROJECT_OUTPUT_DIR || 'outputs/DEMO';
   const task = val('task');
   const goc = task ? path.resolve(REPO, po, 'tasks', task) : null;
   const duongDanhSach = val('man') ? path.resolve(val('man')) : (goc ? path.join(goc, 'requirements', 'ui_polish_man.json') : null);

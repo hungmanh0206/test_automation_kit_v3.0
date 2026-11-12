@@ -328,8 +328,8 @@ const BAI = [
   {
     /*
      * BÀI A/B — đo PACK, không đo skill. Chạy hai nhánh trên CÙNG đề, cùng skill, cùng bộ chấm:
-     *   node scripts/qa/skills_practice.js --bai qemis-trieu-chung --lan 3
-     *   node scripts/qa/skills_practice.js --bai qemis-trieu-chung --lan 3 --khong-pack
+     *   node scripts/qa/skills_practice.js --bai appmau-trieu-chung --lan 3
+     *   node scripts/qa/skills_practice.js --bai appmau-trieu-chung --lan 3 --khong-pack
      * Con số đáng đọc là KHOẢNG CÁCH giữa hai nhánh. Bằng 0 nghĩa là pack không thêm gì.
      *
      * Đề cố ý KHÔNG nhắc "mixed content", "http" hay "giao thức" ở phần triệu chứng, nhưng để lại đủ
@@ -339,8 +339,8 @@ const BAI = [
      */
     /*
      * BÀI A/B — đo PACK, không đo skill. Hai nhánh cùng đề, cùng skill, cùng bộ chấm:
-     *   node scripts/qa/skills_practice.js --bai qemis-bieu-emis --lan 3
-     *   node scripts/qa/skills_practice.js --bai qemis-bieu-emis --lan 3 --khong-pack
+     *   node scripts/qa/skills_practice.js --bai appmau-bieu-bcx --lan 3
+     *   node scripts/qa/skills_practice.js --bai appmau-bieu-bcx --lan 3 --khong-pack
      *
      * BẢN THỨ TƯ, sau BA lượt hỏng (docs/v2.11.0/DO_LUONG_PACK.md). Ba thứ đã sửa:
      *   · ĐỀ BÀI mang sẵn hợp đồng JSON ⇒ cả hai nhánh cùng có cấu trúc, pack chỉ thêm GIẢ THUYẾT MIỀN.
@@ -349,15 +349,15 @@ const BAI = [
      *   · Bẫy chọn theo đo: 'ảnh chụp' / 'không tính lại' / 'NGAY_SUA' đều 0 lần trong thư mục làm bài,
      *     khác hai đề trước vốn rò qua templates/ của chính skill.
      */
-    ma: 'qemis-bieu-emis',
+    ma: 'appmau-bieu-bcx',
     skill: 'run_report_reader',
-    pack: '.agent/extensions/kit-a/packs/qemis.md',
-    soDapAn: 'qemis_bieu.dapan.json',
-    tep: [{ tu: 'qemis_bieu_emis.de.txt', thanh: 'bao-cao.txt' }],
+    pack: '.agent/extensions/kit-a/packs/appmau.md',
+    soDapAn: 'appmau_bieu.dapan.json',
+    tep: [{ tu: 'appmau_bieu_bcx.de.txt', thanh: 'bao-cao.txt' }],
     de: 'Đọc `bao-cao.txt` và trả lời đúng theo hợp đồng JSON ghi trong đó. '
-      + 'Nếu có file `qemis.md` trong thư mục này thì đọc nó. ' + CHI_DAN,
+      + 'Nếu có file `appmau.md` trong thư mục này thì đọc nó. ' + CHI_DAN,
     cham(traLoi) {
-      const so = JSON.parse(fs.readFileSync(path.join(FIXTURE, 'qemis_bieu.dapan.json'), 'utf8'));
+      const so = JSON.parse(fs.readFileSync(path.join(FIXTURE, 'appmau_bieu.dapan.json'), 'utf8'));
       /* Bóc khối JSON LỚN NHẤT trong câu trả lời; không có thì mọi phép kiểm cấu trúc đều trượt. */
       let o = null;
       for (const m of String(traLoi).matchAll(/\{[\s\S]*?\n\}/g)) {
@@ -366,18 +366,18 @@ const BAI = [
       const truong = ['trieu_chung', 'nguyen_nhan_doi_thu', 'phep_phan_biet', 'tang_loi', 'oracle_ref', 'mau_so'];
       const ds = o && Array.isArray(o.nguyen_nhan_doi_thu) ? o.nguyen_nhan_doi_thu.map((x) => String(x)) : [];
       const chap = so.nguyen_nhan_that.chap_nhan;
-      return gom('qemis-bieu-emis', [
+      return gom('appmau-bieu-bcx', [
         { ma: 'E1', ok: !!o && truong.every((k) => k in o) },
         { ma: 'E2', ok: ds.length >= 2 },
         { ma: 'E3', ok: !!o && typeof o.phep_phan_biet === 'string' && o.phep_phan_biet.trim().length >= 20 },
         { ma: 'E4', ok: !!o && String(o.tang_loi || '').toLowerCase() !== 'product_bug' },
         { ma: 'E5', ok: ds.some((x) => chap.some((c) => x.toLowerCase().includes(String(c).toLowerCase()))) },
-      ], 'qemis_bieu.dapan.json');
+      ], 'appmau_bieu.dapan.json');
     },
   },
   {
     /*
-     * BÀI A/B THỨ HAI — bẫy TÙY TIỆN, đối lại bài `qemis-bieu-emis` vốn là bẫy SUY RA ĐƯỢC.
+     * BÀI A/B THỨ HAI — bẫy TÙY TIỆN, đối lại bài `appmau-bieu-bcx` vốn là bẫy SUY RA ĐƯỢC.
      *
      * Đo 09/11/2026 trên bài suy-ra-được: 15/15 so 15/15, khoảng cách ĐÚNG BẰNG 0 — model tự suy ra
      * "biểu là ảnh chụp" mà không cần pack. Nên muốn biết một pack tri thức miền có đáng tồn tại
@@ -386,15 +386,15 @@ const BAI = [
      * Dùng `ui_debug_agent` chứ không `run_report_reader`, vì template của cái sau có nhắc "phân hiệu"
      * đúng một lần — đủ để nhánh đối chứng rò. Đo trước khi chọn, không đoán.
      */
-    ma: 'qemis-luoi-lop',
+    ma: 'appmau-luoi-lop',
     skill: 'ui_debug_agent',
-    pack: '.agent/extensions/kit-a/packs/qemis.md',
-    soDapAn: 'qemis_luoi.dapan.json',
-    tep: [{ tu: 'qemis_luoi_lop.de.txt', thanh: 'bao-cao.txt' }],
+    pack: '.agent/extensions/kit-a/packs/appmau.md',
+    soDapAn: 'appmau_luoi.dapan.json',
+    tep: [{ tu: 'appmau_luoi_lop.de.txt', thanh: 'bao-cao.txt' }],
     de: 'Đọc `bao-cao.txt` và trả lời đúng theo hợp đồng JSON ghi trong đó. '
-      + 'Nếu có file `qemis.md` trong thư mục này thì đọc nó. ' + CHI_DAN,
+      + 'Nếu có file `appmau.md` trong thư mục này thì đọc nó. ' + CHI_DAN,
     cham(traLoi) {
-      const so = JSON.parse(fs.readFileSync(path.join(FIXTURE, 'qemis_luoi.dapan.json'), 'utf8'));
+      const so = JSON.parse(fs.readFileSync(path.join(FIXTURE, 'appmau_luoi.dapan.json'), 'utf8'));
       let o = null;
       for (const m of String(traLoi).matchAll(/\{[\s\S]*?\n\}/g)) {
         try { const x = JSON.parse(m[0]); if (x && typeof x === 'object' && 'nguyen_nhan_doi_thu' in x) o = x; } catch (e) { /* bỏ qua */ }
@@ -402,13 +402,13 @@ const BAI = [
       const truong = ['trieu_chung', 'nguyen_nhan_doi_thu', 'phep_phan_biet', 'tang_loi', 'oracle_ref', 'mau_so'];
       const ds = o && Array.isArray(o.nguyen_nhan_doi_thu) ? o.nguyen_nhan_doi_thu.map((x) => String(x)) : [];
       const chap = so.nguyen_nhan_that.chap_nhan;
-      return gom('qemis-luoi-lop', [
+      return gom('appmau-luoi-lop', [
         { ma: 'E1', ok: !!o && truong.every((k) => k in o) },
         { ma: 'E2', ok: ds.length >= 2 },
         { ma: 'E3', ok: !!o && typeof o.phep_phan_biet === 'string' && o.phep_phan_biet.trim().length >= 20 },
         { ma: 'E4', ok: !!o && String(o.tang_loi || '').toLowerCase() !== 'product_bug' },
         { ma: 'E5', ok: ds.some((x) => chap.some((c) => x.toLowerCase().includes(String(c).toLowerCase()))) },
-      ], 'qemis_luoi.dapan.json');
+      ], 'appmau_luoi.dapan.json');
     },
   },
 

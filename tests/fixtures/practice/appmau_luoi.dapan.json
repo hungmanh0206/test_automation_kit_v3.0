@@ -1,8 +1,8 @@
 {
-  "_de": "qemis_luoi_lop.de.txt — DB 12 lớp, lưới hiện 7, không ai đặt bộ lọc.",
+  "_de": "appmau_luoi_lop.de.txt — DB 12 lớp, lưới hiện 7, không ai đặt bộ lọc.",
   "_cau_tra_loi_dung": "Lưới lớp mặc định CHỈ HIỆN PHÂN HIỆU CHÍNH, nên 12 và 7 khác mẫu số. 5 lớp vắng thuộc phân hiệu thứ hai. Phép phân biệt: đếm 12 hàng theo phân hiệu, hoặc đổi ô chọn phân hiệu rồi đếm lại. Trường đối chứng ở mục 6 khớp vì nó chỉ có một phân hiệu — một đối chứng khớp KHÔNG chứng minh app đúng.",
-  "_vi_sao_bai_nay_DO_DUNG_THU_CAN_DO": "Đây là bẫy TÙY TIỆN: không suy ra được từ báo cáo, chỉ biết nếu được nói cho biết. Khác bài qemis-bieu-emis (biểu là ảnh chụp) vốn SUY RA ĐƯỢC — và lượt đo 09/11 cho 15/15 so 15/15, khoảng cách đúng bằng 0. Bài này mới đo được thứ một pack tri thức miền có thể cho.",
-  "_cham_the_nao": "Giống bài biểu EMIS: bốn phép kiểm chấm TRƯỜNG, đúng một phép kiểm chấm nội dung so với danh sách khai trước.",
+  "_vi_sao_bai_nay_DO_DUNG_THU_CAN_DO": "Đây là bẫy TÙY TIỆN: không suy ra được từ báo cáo, chỉ biết nếu được nói cho biết. Khác bài appmau-bieu-bcx (biểu là ảnh chụp) vốn SUY RA ĐƯỢC — và lượt đo 09/11 cho 15/15 so 15/15, khoảng cách đúng bằng 0. Bài này mới đo được thứ một pack tri thức miền có thể cho.",
+  "_cham_the_nao": "Giống bài biểu BCX: bốn phép kiểm chấm TRƯỜNG, đúng một phép kiểm chấm nội dung so với danh sách khai trước.",
   "tu_khoa_phan_biet": [
     "phân hiệu",
     "cơ sở chính",

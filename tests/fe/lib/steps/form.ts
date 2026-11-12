@@ -17,7 +17,7 @@ import * as checkbox from '../_widget/checkbox';
  * theo VIỆC NGHIỆP VỤ ("điền một ô của form hồ sơ"). Trộn hai trục thì một lần sửa cách ghi ô phải sửa
  * theo số màn — đúng tình trạng của 421 file automation cũ.
  *
- * ĐO 12/10/2026 trên 1.079 mệnh đề của CSDL-9001: ba khung câu dưới đây phủ phần lớn phần "điền form".
+ * ĐO 12/10/2026 trên 1.079 mệnh đề của TASK-9001: ba khung câu dưới đây phủ phần lớn phần "điền form".
  * Khung `nhập "<nhãn>" = "<giá trị>"` một mình đã là khung lặp nhiều nhất của cả module.
  * ─────────────────────────────────────────────────────────────────────────────────────────────────────
  *
@@ -73,7 +73,7 @@ export async function docTichO(page: Page, man: Man, nhan: string): Promise<bool
 /*
  * ── Đường thứ hai: trỏ field bằng Stt ĐẶC TẢ ──────────────────────────────────────────────────────
  *
- * Đo trên 1.079 mệnh đề của CSDL-9001: **330 mệnh đề (31%)** trỏ field bằng `Stt #` chứ không bằng nhãn.
+ * Đo trên 1.079 mệnh đề của TASK-9001: **330 mệnh đề (31%)** trỏ field bằng `Stt #` chứ không bằng nhãn.
  * Bỏ đường này là bỏ gần một phần ba câu bước của module.
  *
  * VÌ SAO LÀ HÀM RIÊNG, KHÔNG PHẢI THAM SỐ THỨ HAI CỦA `nhapO`. Danh mục bước gắn số tham số cho TỪNG

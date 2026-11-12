@@ -23,6 +23,7 @@
 const fs = require('fs');
 const { getTestcaseDirs } = require('../utils/runtime_config');
 const path = require('path');
+const { docPins, apDung } = require('../utils/context_pins');
 const rc = require(path.resolve(__dirname, '..', 'utils', 'runtime_config'));
 const dbv = require(path.resolve(__dirname, 'lib', 'db_verify_preflight'));
 
@@ -98,12 +99,16 @@ function taskDirCua(projectOutputDir, task) {
 }
 
 /**
- * PROFILE PHẢI GHIM CẤP HỌC TRƯỚC KHI EXECUTE. Hàm thuần để có test kiểm chính nó bằng fixture.
+ * PROFILE PHẢI GHIM NGỮ CẢNH TRƯỚC KHI EXECUTE. Hàm thuần để có test kiểm chính nó bằng fixture.
  *
- * Vì sao CHẶN chứ không cảnh báo (đo 03/11/2026): thiếu `QEMIS_CAP_HOC` thì `opsLogin.ts:419` chỉ
- * `console.warn` rồi để app giữ mặc định **"Mầm non"**. Lượt chạy KHÔNG gãy — nó đăng nhập được, đi hết
- * các bước, chụp đủ ảnh, và chấm PASS trên một cấp học không phải cấp mà case nói tới. Thêm một cảnh báo
- * nữa vào màn hình đã đầy cảnh báo thì không ai đọc; chỉ có CHẶN mới dừng được một lượt đo sai.
+ * Vì sao CHẶN chứ không cảnh báo (đo 03/11/2026): app có ngữ cảnh mặc định ngầm (đơn vị, cấp…) thì thiếu
+ * biến chọn nó chỉ sinh một `console.warn` rồi app giữ mặc định. Lượt chạy KHÔNG gãy — đăng nhập được, đi
+ * hết các bước, chụp đủ ảnh, và chấm PASS trên một ngữ cảnh không phải ngữ cảnh mà case nói tới. Thêm một
+ * cảnh báo nữa vào màn hình đã đầy cảnh báo thì không ai đọc; chỉ có CHẶN mới dừng được một lượt đo sai.
+ *
+ * Biến nào phải ghim là DỮ LIỆU của dự án, đọc từ `.agent/config/context_pins.json` của `repoRoot`
+ * (v3.0.0). Bản trước ghi cứng tên biến của MỘT app, nên mang kit sang dự án khác thì cửa này chặn MỌI task.
+ * Chưa khai config, hoặc profile không thuộc app đã khai (không khoá nào khớp `nhan_dien`) ⇒ cửa đứng ngoài.
  *
  * Gác ở ĐÂY vì `npm run env:scope` quét cả repo nên không vào CI được: CI không có `.env` lẫn `profiles/`
  * nên nó trả "KHÔNG PHÁN ĐƯỢC". Preflight chạy đúng lúc cần — trên máy có profile, ngay trước execute, và
@@ -114,25 +119,32 @@ function taskDirCua(projectOutputDir, task) {
 function kiemGhimCapHoc(repoRoot, task) {
   const duong = path.join(repoRoot, 'profiles', task, 'task.env');
   if (!fs.existsSync(duong)) {
-    return { problems: [], warnings: [`phase2: không thấy profiles/${task}/task.env ⇒ không kiểm được việc ghim cấp học.`] };
+    return { problems: [], warnings: [`phase2: không thấy profiles/${task}/task.env ⇒ không kiểm được việc ghim ngữ cảnh.`] };
   }
   let noiDung;
   try {
     noiDung = fs.readFileSync(duong, 'utf8');
   } catch (e) {
-    return { problems: [], warnings: [`phase2: không đọc được profiles/${task}/task.env (${e.message}) ⇒ không kiểm được việc ghim cấp học.`] };
+    return { problems: [], warnings: [`phase2: không đọc được profiles/${task}/task.env (${e.message}) ⇒ không kiểm được việc ghim ngữ cảnh.`] };
   }
-  const coKhai = noiDung.split(/\r?\n/).some((d) => /^\s*(export\s+)?QEMIS_CAP_HOC\s*=\s*\S/.test(d));
-  if (coKhai) return { problems: [], warnings: [] };
+  const pins = docPins(repoRoot);
+  const khoa = new Set();
+  const coGiaTri = new Set();
+  for (const d of noiDung.split(/\r?\n/)) {
+    const m = d.match(/^\s*(?:export\s+)?([A-Za-z_][A-Za-z0-9_]*)\s*=\s*(.*)$/);
+    if (!m) continue;
+    khoa.add(m[1]);
+    if (m[2].trim()) coGiaTri.add(m[1]);
+  }
+  if (!apDung(pins, khoa)) return { problems: [], warnings: [] };
+  const thieu = pins.phai_ghim.filter((x) => !coGiaTri.has(x.khoa));
   return {
-    problems: [
-      `phase2: profiles/${task}/task.env KHÔNG ghim QEMIS_CAP_HOC. App sẽ giữ mặc định "Mầm non" `
-      + '(opsLogin.ts:419 chỉ console.warn), nên lượt chạy vẫn XANH trên cấp học KHÔNG phải cấp mà case '
-      + 'nói tới. Khai QEMIS_CAP_HOC rồi chạy lại; soi cả bộ bằng `npm run env:scope`.',
-    ],
+    problems: thieu.map((x) => `phase2: profiles/${task}/task.env KHÔNG ghim ${x.khoa} — ${x.hau_qua || 'app lặng lẽ giữ mặc định'}. `
+      + `Khai ${x.khoa} rồi chạy lại; soi cả bộ bằng \`npm run env:scope\`.`),
     warnings: [],
   };
 }
+
 
 function checkHandoff(repoRoot, { mode, taskDir }) {
   const out = [];
@@ -354,7 +366,7 @@ async function main() {
    * `--lanes`: trả lời câu "tôi cần khai biến nào" bằng MỘT LỆNH, thay vì bắt người mới đọc 79 biến
    * trong .env.example rồi tự đoán.
    *
-   * Vì sao có (CSDL-29229, tester báo sau bàn giao): "không bắt buộc phải có env token của LMS và OPS
+   * Vì sao có (TASK-29229, tester báo sau bàn giao): "không bắt buộc phải có env token của LMS và OPS
    * thì mới test được". Đo lại thì code ĐÃ ĐÚNG — gỡ sạch biến OPS_ và LMS_ rồi chạy `--mode phase1`
    * và `--mode generic` vẫn exit 0, 0 CHẶN. Cái sai nằm ở chỗ .env.example liệt kê 15 ô trống của
    * OPS và LMS ngay khối đầu mà không nói lane nào cần, nên người mới điền hết rồi tưởng là bắt buộc.

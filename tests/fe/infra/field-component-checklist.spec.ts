@@ -29,7 +29,7 @@ const DIM_DIR = path.join(REPO, 'prompt_templates/phase2/dimensions');
 
 /* Kho bản đồ hệ thống của ca nằm ở THƯ MỤC TẠM (`DIM_KNOWLEDGE_SYSTEM_DIR`), không phải knowledge/system/ thật.
  * Bản trước ghi fixture vào kho thật rồi xoá, và mọi ca khác đọc thẳng kho thật — đo 12/11/2026: bản đồ đầu tiên
- * của dự án (SM-EMISBC-001) làm 4 ca của file này đỏ trên máy QA trong khi CI vẫn xanh. ID cố ý nhìn là biết fixture. */
+ * của dự án (SM-BCGUI-001) làm 4 ca của file này đỏ trên máy QA trong khi CI vẫn xanh. ID cố ý nhìn là biết fixture. */
 const PM_FIXTURE = (extra: Record<string, unknown> = {}) => ({
   type: 'permission_matrix', id: 'PM-TEST-999', source: 'fixture test — không phải ma trận thật', status: 'active',
   modules: ['M'], roles: ['admin'], actions: ['xem'], allow: { admin: ['xem'] }, deny_expected: '403', ...extra,
@@ -213,7 +213,7 @@ test.describe('@infra loại field + component — danh mục đọc từ config
   test('ĐỐI CHỨNG ÂM — bản đồ của MODULE KHÁC, hoặc bản NHÁP, KHÔNG chứng minh gì cho task này', () => {
     /*
      * Kho bản đồ dùng chung cho mọi task. Bản đầu của `knowSystem()` chỉ hỏi "kho có bản ghi loại này không":
-     * bản đồ luồng gửi báo cáo EMIS (CSDL-4008) làm MỌI task khai `guard: n/a` bị chặn XUNG ĐỘT.
+     * bản đồ luồng gửi báo cáo BCX (TASK-4008) làm MỌI task khai `guard: n/a` bị chặn XUNG ĐỘT.
      */
     const m = base(cpNa()) as { dimensions: Record<string, string> };
     m.dimensions.security = 'required';

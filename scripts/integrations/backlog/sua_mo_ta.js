@@ -5,7 +5,7 @@
  * sua_mo_ta.js — thay NGUYÊN phần Mô tả của một issue Backlog bằng nội dung một file.
  *
  *   TASK_ENV=profiles/<TASK>/task.env node scripts/integrations/backlog/sua_mo_ta.js \
- *     --issue CSDL-3950 --mo-ta-file <đường dẫn .md|.txt> [--dry-run]
+ *     --issue TASK-3950 --mo-ta-file <đường dẫn .md|.txt> [--dry-run]
  *
  * VÌ SAO CẦN RIÊNG MỘT SCRIPT. Ba đường ghi đang có đều không làm an toàn được việc này:
  *   · `cap_nhat_issue.js` chỉ đổi status, assignee, comment. Nó không chạm mô tả.

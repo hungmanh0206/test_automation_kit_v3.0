@@ -48,6 +48,9 @@ const LOP_PROJECT: Record<string, string> = {
   'writing-lint-baseline.json': 'mốc nợ văn phong đếm trên tài liệu hiện có',
   'na_reasons_rejected.project.json': 'dẫn chứng bác bỏ theo mã task của dự án',
   'mcp_config.md': 'khai server MCP theo máy, không phải nội dung kit',
+  'package_deny_terms.json': 'từ cấm khi đóng gói — chính nó là định danh của dự án (v3.0.0); bản generic là `package_deny_terms.example.json`',
+  'context_pins.json': 'biến chọn ngữ cảnh của app đang test (v3.0.0) — bản generic là `context_pins.example.json`',
+  'db-paths.allow.json': 'miễn trừ theo đường dẫn file task thật của dự án (v3.0.0) — bản generic là `db-paths.allow.example.json`',
 };
 
 /*

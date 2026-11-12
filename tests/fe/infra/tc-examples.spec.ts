@@ -23,7 +23,7 @@ import { gateEnv } from './_gate_env';
 
 const REPO = path.resolve(__dirname, '..', '..', '..');
 const TECH = path.join(REPO, '.agent/skills/phase1/tc_design_guide/references/techniques.md');
-const RE_VD = /^\|\s*(HSTRUONG|EMISDN|NHANSU)_TC_/;
+const RE_VD = /^\|\s*(HSTRUONG|BCDN|NHANSU)_TC_/;
 
 function bocViDu() {
   const L = fs.readFileSync(TECH, 'utf8').split(/\r?\n/);
@@ -128,7 +128,7 @@ test.describe('@infra ví dụ TC — oracle-ref phải là rule CÓ THẬT', ()
     const src = fs.readFileSync(TECH, 'utf8');
     const kho = path.join(REPO, 'knowledge/domain');
     test.skip(!fs.existsSync(kho), 'không có lớp PROJECT');
-    for (const id of ['BR-HSTRUONG-033', 'BR-EMISDN-002', 'BR-NHANSU-003']) {
+    for (const id of ['BR-HSTRUONG-033', 'BR-BCDN-002', 'BR-NHANSU-003']) {
       const f = path.join(kho, `${id.toLowerCase()}.json`);
       test.skip(!fs.existsSync(f), `thiếu ${id}`);
       const rule = String(JSON.parse(fs.readFileSync(f, 'utf8')).rule || '');

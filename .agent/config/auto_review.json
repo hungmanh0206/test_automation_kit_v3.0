@@ -5,7 +5,7 @@
     "tests/fe/support/opsLogin.ts": 6,
     "tests/fe/support/auth/tokenBroker.ts": 1
   },
-  "_hardSleepDebt_why": "7 lần ngủ cứng 1–5s trong hai helper DÙNG CHUNG, đo 10/10/2026 lúc dựng gate. Vì sao KHÔNG sửa luôn: cả hai chờ postback của Telerik và vòng captcha của QEMIS — tôi không viết chúng và KHÔNG biết lý do của từng dòng, nên thay bằng `waitForCondition` là đoán. Và vì sao không dán `// auto-review-disable-next-line <lý do>`: marker đó BẮT BUỘC có lý do, mà lý do tôi ghi sẽ là lý do BỊA. Khai thành nợ có số thì nó hiện ra trong mọi lượt chạy gate, không biến mất.",
+  "_hardSleepDebt_why": "7 lần ngủ cứng 1–5s trong hai helper DÙNG CHUNG, đo 10/10/2026 lúc dựng gate. Vì sao KHÔNG sửa luôn: cả hai chờ postback của Telerik và vòng captcha của app mẫu — tôi không viết chúng và KHÔNG biết lý do của từng dòng, nên thay bằng `waitForCondition` là đoán. Và vì sao không dán `// auto-review-disable-next-line <lý do>`: marker đó BẮT BUỘC có lý do, mà lý do tôi ghi sẽ là lý do BỊA. Khai thành nợ có số thì nó hiện ra trong mọi lượt chạy gate, không biến mất.",
   "_hardSleepDebt_cach_go": "Mỗi lần ai đó thay một dòng ngủ bằng chờ điều kiện (hoặc ghi được lý do THẬT vào marker), hạ số ở đây đi 1. Gate CẢNH BÁO khi số thực nhỏ hơn số khai, để con số không nằm lại cao hơn thực tế.",
 
   "probeMarker": "@auto-review-probe:",

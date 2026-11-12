@@ -23,7 +23,7 @@ const TECH = path.join(REPO, '.agent/skills/phase1/tc_design_guide/references/te
 function dungTask(rows?: string[]) {
   const L = fs.readFileSync(TECH, 'utf8').split(/\r?\n/);
   const head = L.find((l) => l.startsWith('| TC ID |'))!;
-  const body = rows ?? L.filter((l) => /^\|\s*(HSTRUONG|EMISDN|NHANSU)_TC_/.test(l));
+  const body = rows ?? L.filter((l) => /^\|\s*(HSTRUONG|BCDN|NHANSU)_TC_/.test(l));
   const d = fs.mkdtempSync(path.join(os.tmpdir(), 'p1t-'));
   const tc = path.join(d, 'tasks', 'VD-001', 'test-cases');
   fs.mkdirSync(tc, { recursive: true });

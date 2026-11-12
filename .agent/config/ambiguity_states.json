@@ -7,7 +7,7 @@
 
   "_bay_hinh_dang": "Dòng khoá có BỐN hình dạng trên 5 task: bold inline (`**AMBIGUITY_GATE: X**`), tiêu đề (`## AMBIGUITY_GATE: X`), ô bảng markdown (`| **AMBIGUITY_GATE** | **X** |`), và bold kèm hậu tố giải thích. Máy phải bóc `**`, `##`, `|` rồi mới so.",
 
-  "_do_ngay_16_10_2026": "CSDL-3544 PARTIALLY RESOLVED · CSDL-9001 RESOLVED · CSDL-9002 PARTIALLY RESOLVED · CSDL-9003 RESOLVED · CSDL-9004 RESOLVED-BY-DEFAULT. Cả 5 task đều đã có file testcase.",
+  "_do_ngay_16_10_2026": "TASK-3544 PARTIALLY RESOLVED · TASK-9001 RESOLVED · TASK-9002 PARTIALLY RESOLVED · TASK-9003 RESOLVED · TASK-9004 RESOLVED-BY-DEFAULT. Cả 5 task đều đã có file testcase.",
 
   "trang_thai": [
     {
@@ -29,7 +29,7 @@
       "y": "Còn câu mở, NHƯNG đã khoanh rõ câu nào mở và nó chặn gì.",
       "cho_sinh_case": true,
       "nghia_vu": ["cau_con_mo_phai_noi_chan_gi"],
-      "_vi_sao_hop_le": "Trạng thái này KHÔNG phải lách luật — nó là câu trả lời đúng cho tình huống thật: một số câu chỉ chặn Phase 2 (ví dụ chưa pin môi trường) mà không chặn việc viết case. CSDL-3544 và CSDL-9002 đang dùng đúng nghĩa đó, và cả hai đều ghi rõ 'chặn Phase 2'.",
+      "_vi_sao_hop_le": "Trạng thái này KHÔNG phải lách luật — nó là câu trả lời đúng cho tình huống thật: một số câu chỉ chặn Phase 2 (ví dụ chưa pin môi trường) mà không chặn việc viết case. TASK-3544 và TASK-9002 đang dùng đúng nghĩa đó, và cả hai đều ghi rõ 'chặn Phase 2'.",
       "_cho_de_lach": "Nếu một câu còn mở mà KHÔNG nói nó chặn gì, thì trạng thái này thành chỗ trốn của `PENDING`. Đó là lý do nghĩa vụ ở trên tồn tại."
     },
     {

@@ -48,7 +48,7 @@ test.describe('@infra ab:doi-chung — chuyển khuôn', () => {
     const b = ab.chuyen('B', path.join(d, 'b.md'));
     fs.rmSync(d, { recursive: true, force: true });
     expect(a.loi).toEqual([]);
-    expect(a.bo.ca.map((c: any) => c.id), 'đo trên CSDL-4008: dò mỗi cột "TC ID" ra 368 dòng thay vì 312').toEqual(['BC-ST-001', 'BC-ST-002']);
+    expect(a.bo.ca.map((c: any) => c.id), 'đo trên TASK-4008: dò mỗi cột "TC ID" ra 368 dòng thay vì 312').toEqual(['BC-ST-001', 'BC-ST-002']);
     expect(a.bo.ca[0].yeu_cau).toEqual(['INV-01', 'INV-02']);
     expect(a.bo.ca[0].buoc).toBe('1. Bấm Gửi\n2. Đồng ý');
     expect(a.bo.ca[0].tien_de, 'tiền đề của A gộp Pre-Condition + Context').toBe('Báo cáo Chưa gửi\nĐã đăng nhập');
@@ -119,7 +119,7 @@ test.describe('@infra ab:doi-chung — đăng ký trước', () => {
 });
 
 test.describe('@infra ab:doi-chung — phiếu chấm mù M2', () => {
-  const bugs = [{ ma: 'CSDL-1', mo_ta: 'Mở khoá báo cáo Đã gửi bằng nút Mở khoá vẫn được' }, { ma: 'CSDL-2', mo_ta: 'Gửi khi 1 biểu trống vẫn được' }];
+  const bugs = [{ ma: 'TASK-1', mo_ta: 'Mở khoá báo cáo Đã gửi bằng nút Mở khoá vẫn được' }, { ma: 'TASK-2', mo_ta: 'Gửi khi 1 biểu trống vẫn được' }];
   const hai = () => {
     const d = dung();
     const bos = { A: ab.chuyen('A', path.join(d, 'a.md')).bo, B: ab.chuyen('B', path.join(d, 'b.md')).bo };
@@ -153,15 +153,15 @@ test.describe('@infra ab:doi-chung — phiếu chấm mù M2', () => {
       .replace(/^- nguoi_cham: $/m, '- nguoi_cham: Lê Văn C')
       .replace(/^bat\[([^\]]+)\]\[([A-Z])\]: $/gm, (_: string, b: string, n: string) => `bat[${b}][${n}]: ${bat[`${b}|${n}`] ?? ''}`)
       .replace(/^vi_sao\[([^\]]+)\]\[([A-Z])\]: $/gm, (_: string, b: string, n: string) => `vi_sao[${b}][${n}]: ${viSao[`${b}|${n}`] ?? ''}`);
-    const du = { [`CSDL-1|${nhanA}`]: maA, [`CSDL-2|${nhanA}`]: 'khong_co', [`CSDL-1|${nhanB}`]: 'khong_co', [`CSDL-2|${nhanB}`]: 'khong_co' };
+    const du = { [`TASK-1|${nhanA}`]: maA, [`TASK-2|${nhanA}`]: 'khong_co', [`TASK-1|${nhanB}`]: 'khong_co', [`TASK-2|${nhanB}`]: 'khong_co' };
 
-    expect(ab.chamM2(dien({ [`CSDL-1|${nhanA}`]: maA }), niemPhong, bugs).loi.join(' ')).toMatch(/chưa chấm/);
-    expect(ab.chamM2(dien({ ...du, [`CSDL-1|${nhanA}`]: `${nhanB}-001` }), niemPhong, bugs).loi.join(' ')).toMatch(/không phải mã case của bộ/);
+    expect(ab.chamM2(dien({ [`TASK-1|${nhanA}`]: maA }), niemPhong, bugs).loi.join(' ')).toMatch(/chưa chấm/);
+    expect(ab.chamM2(dien({ ...du, [`TASK-1|${nhanA}`]: `${nhanB}-001` }), niemPhong, bugs).loi.join(' ')).toMatch(/không phải mã case của bộ/);
     expect(ab.chamM2(dien(du), niemPhong, bugs).loi.join(' '), 'ghi mã mà không nói vì sao là đoán').toMatch(/vi_sao phải nói/);
-    const k = ab.chamM2(dien(du, { [`CSDL-1|${nhanA}`]: 'bước 1 bấm Mở khoá, kỳ vọng giữ Đã gửi — đúng chỗ lỗi' }), niemPhong, bugs);
+    const k = ab.chamM2(dien(du, { [`TASK-1|${nhanA}`]: 'bước 1 bấm Mở khoá, kỳ vọng giữ Đã gửi — đúng chỗ lỗi' }), niemPhong, bugs);
     expect(k.loi).toEqual([]);
     expect([k.theoKit.A.bat, k.theoKit.A.tong, k.theoKit.B.bat]).toEqual([1, 2, 0]);
-    expect(k.theoKit.A.chi_tiet).toEqual([{ bug: 'CSDL-1', ca: 'BC-ST-002' }]);
+    expect(k.theoKit.A.chi_tiet).toEqual([{ bug: 'TASK-1', ca: 'BC-ST-002' }]);
     expect(ab.chamM2(dien(du).replace(/bam_niem_phong: [0-9a-f]+/, 'bam_niem_phong: 0000000000000000'), niemPhong, bugs).loi.join(' ')).toMatch(/không khớp niem-phong/);
   });
 });

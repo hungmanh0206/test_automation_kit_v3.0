@@ -138,7 +138,7 @@ test.describe('@infra api_card — phạm vi đã nói rõ', () => {
      * "case API phải có thẻ API" đặt ở gate đều không thực hiện được. Ngày schema đổi, test này đỏ và
      * người sửa sẽ xem lại được chỗ đặt phép gác.
      */
-    const f = path.join(REPO, 'outputs/CSDL/tasks/CSDL-9003/test-results/testcase-status.json');
+    const f = path.join(REPO, 'outputs/DEMO/tasks/TASK-9003/test-results/testcase-status.json');
     if (!fs.existsSync(f)) { test.skip(true, 'máy này không có dữ liệu task (lớp PROJECT)'); return; }
     const t = JSON.parse(fs.readFileSync(f, 'utf8')).tests[0];
     expect(Object.keys(t), 'entry status không mang Loại case ⇒ gate không biết case nào là API').not.toContain('caseType');

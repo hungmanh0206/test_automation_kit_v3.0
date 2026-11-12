@@ -1,0 +1,15 @@
+{
+  "_y": "LỚP PROJECT — TỪ CẤM khi đóng gói (v3.0.0): định danh của dự án/công ty không được vào gói phát hành. Chính danh sách này là định danh nên KHÔNG vào gói (gói mang package_deny_terms.example.json). Đọc bởi scripts/qa/lib/secret_patterns.js → package_kit.js; trúng ở bất kỳ file chữ nào ⇒ CHẶN, xoá gói.",
+  "tu_cam": [
+    { "name": "tên sản phẩm của khách", "re": "qemis", "flags": "i" },
+    { "name": "mã task/mã case của dự án", "re": "\\bCSDL[-_]\\w" },
+    { "name": "tên công ty", "re": "\\bsapp\\b|sapp\\.edu|quangich|truongdientu", "flags": "i" },
+    { "name": "host UAT/DB của dự án", "re": "\\bdev(truong|pgd|sgd|sql)\\w*\\.", "flags": "i" },
+    { "name": "schema DB của khách", "re": "\\bBO_GIAO_DUC|BC_TRUONG_TRANGTHAI|TRUONG_PHAN_HIEU" },
+    { "name": "tên hệ thống báo cáo của khách", "re": "\\bEMIS" },
+    { "name": "mã đơn vị thật", "re": "\\b(01000754|20180403|01008403|01008407|01008411|01008414|01003401|20178404|20178457)\\b" },
+    { "name": "đường dẫn màn của app khách", "re": "ChonTruong\\.aspx|HoSoTruongDetail|QuanLyHocSinh\\.aspx|QuanLyPhanHieu|BaoCaoTHBieu|BaoCaoDauNam|KhoaDuLieu" },
+    { "name": "tên app của khách", "re": "CƠ SỞ DỮ LIỆU NGÀNH|[Cc]ơ sở dữ liệu ngành" },
+    { "name": "người của dự án", "re": "Phùng Việt Dũng|it-dev@|hungmanh" }
+  ]
+}

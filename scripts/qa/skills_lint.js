@@ -139,7 +139,7 @@ function jaccard(a, b) {
  *    với `<TASK_OUTPUT_DIR>`, không tồn tại trong repo và KHÔNG nên tồn tại;
  *  · `knowledge/**` — dữ liệu lớp PROJECT, **bị gitignore**. Bản đầu có `knowledge` trong danh sách này và
  *    nó CHẶN trên worktree sạch (5 ca: `knowledge/index.json`,
- *    `knowledge/locators/qemis-login__*.json`) trong khi xanh trên cây làm việc — tức gate đúng ở một máy
+ *    `knowledge/locators/appmau-login__*.json`) trong khi xanh trên cây làm việc — tức gate đúng ở một máy
  *    và sai ở máy khác, đúng lớp lỗi mà bước "kiểm trên cây sạch" tồn tại để bắt. Skill trỏ tới
  *    `knowledge/**` là ĐÚNG; chỉ là không kiểm được sự tồn tại của nó.
  */

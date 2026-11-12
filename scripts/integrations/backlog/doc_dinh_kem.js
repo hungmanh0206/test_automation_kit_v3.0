@@ -4,7 +4,7 @@
 /*
  * doc_dinh_kem.js — liệt kê TỆP ĐÍNH KÈM của một issue (chỉ GET).
  *
- *   TASK_ENV=profiles/<TASK>/task.env node scripts/integrations/backlog/doc_dinh_kem.js CSDL-3922 ...
+ *   TASK_ENV=profiles/<TASK>/task.env node scripts/integrations/backlog/doc_dinh_kem.js TASK-3922 ...
  *
  * Vì sao cần: upload lại một ảnh TRÙNG TÊN có thể giữ bản cũ, thêm bản mới, hoặc thay thế — ba hành
  * vi khác nhau mà danh sách tên nhìn y hệt. So KÍCH THƯỚC và GIỜ TẠO mới biết bug đang mang ảnh nào.

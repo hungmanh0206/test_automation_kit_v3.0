@@ -120,7 +120,7 @@ function validate(doc) {
     /*
      * Nguồn tag phải là `tc.dimensions` của model, KHÔNG tự regex lại tiêu đề.
      * Đã dính thật 21/08/2026: chỗ này từng đọc `tc.title.match(/\[...\]/g)`, nên khi tag chuyển sang
-     * cột `Tag` và tiêu đề sạch thì kiểm tra IM LẶNG — 45 cảnh báo tag↔loại của bộ CSDL-26878 tụt về 0
+     * cột `Tag` và tiêu đề sạch thì kiểm tra IM LẶNG — 45 cảnh báo tag↔loại của bộ TASK-26878 tụt về 0
      * mà không có dòng lỗi nào. `dimensions` là HỢP của cột `Tag` và tiêu đề nên đúng cho cả hai đời bộ TC.
      */
     const mapped = [...new Set((tc.dimensions || [])
@@ -371,7 +371,7 @@ function validate(doc) {
    * 4) CHẤT LƯỢNG TIÊU ĐỀ (set-level) — cảnh báo.
    *
    * Từ 21/08/2026 tag ra cột `Tag`, nên tiêu đề phải TỰ ĐỦ NGHĨA. Hai lỗi dưới đây đo được bằng máy,
-   * và cả hai đều đã xảy ra thật ở bộ CSDL-26878:
+   * và cả hai đều đã xảy ra thật ở bộ TASK-26878:
    *
    *  (a) TIỀN TỐ HẰNG SỐ — `Cross-app - ` gắn cho 101/101 case. Một trường mà mọi dòng cùng một giá trị
    *      thì không phân biệt được gì; nó chỉ đẩy nội dung thật ra xa. Chỉ kêu khi bộ có ≥5 case và

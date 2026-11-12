@@ -9,14 +9,14 @@
  * lời kể với artifact. Đo lại 29/10/2026 thì lý lẽ đó đúng một nửa — và nửa sai mới là chỗ làm được.
  *
  * ĐO TRƯỚC KHI DỰNG. Bốn `execution-summary.md` thật ghi số theo BỐN khuôn khác nhau:
- *   · CSDL-4008: văn xuôi — "Đã chấm **146/273** case: **87 PASS · ~28 FAIL product_bug · …**"
- *   · CSDL-9002: bảng `| \`PASSED\` | 60 | …` + `| Tổng case trong canonical | **139** |`
- *   · CSDL-9003: bảng, tiêu đề khác — `| Tổng testcase canonical | **289** |`
- *   · CSDL-9004: bảng, tiêu đề khác nữa — `| **PASS** | **31** |`
+ *   · TASK-4008: văn xuôi — "Đã chấm **146/273** case: **87 PASS · ~28 FAIL product_bug · …**"
+ *   · TASK-9002: bảng `| \`PASSED\` | 60 | …` + `| Tổng case trong canonical | **139** |`
+ *   · TASK-9003: bảng, tiêu đề khác — `| Tổng testcase canonical | **289** |`
+ *   · TASK-9004: bảng, tiêu đề khác nữa — `| **PASS** | **31** |`
  * Nên một cửa dò "khuôn chuẩn" chỉ chạy được trên MỘT phần tư. Và `~28` là số cố ý XẤP XỈ: so khớp
  * nghiêm trên nó là vu oan một lời khai trung thực.
  *
- * VÀ SỐ THÌ LỆCH THẬT. CSDL-9004 summary ghi PASS 31 · BLOCKED 27 · FAIL 3, trong khi sổ verdict có
+ * VÀ SỐ THÌ LỆCH THẬT. TASK-9004 summary ghi PASS 31 · BLOCKED 27 · FAIL 3, trong khi sổ verdict có
  * PASSED 140 · BLOCKED_SETUP 62 · OBSERVATION 30 · FAILED 24. Nhưng KHÔNG kết luận "summary nói sai":
  * sổ có thể là của một lô hoặc một lượt, còn summary kể cả đợt. Chỗ hỏng thật là **không gì nói con số
  * đến từ đâu**, nên không ai phân xử được — kể cả người viết nó, ba tuần sau.

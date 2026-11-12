@@ -228,12 +228,12 @@ test.describe('@infra gate:friction — sổ chỉ nhận sự kiện của task
   test('thư mục tạm của bộ test (os.tmpdir, outputs/_scratch) ⇒ KHÔNG ghi; thư mục task thật ⇒ ghi', () => {
     expect(fric.laThuMucTam(path.join(os.tmpdir(), 'debt-abc'))).toBe(true);
     expect(fric.laThuMucTam(path.join(REPO, 'outputs', '_scratch', 'x'))).toBe(true);
-    expect(fric.laThuMucTam(path.join(REPO, 'outputs', 'CSDL', 'tasks', 'CSDL-9001'))).toBe(false);
+    expect(fric.laThuMucTam(path.join(REPO, 'outputs', 'DEMO', 'tasks', 'TASK-9001'))).toBe(false);
     expect(fric.laThuMucTam(null)).toBe(false);
     voiSoTam((f) => {
       expect(fric.ghi('chan', { gate: 'g', thuMuc: path.join(os.tmpdir(), 'debt-x') }).bo_qua).toMatch(/thư mục tạm/);
       expect(fs.existsSync(f)).toBe(false);
-      expect(fric.ghi('chan', { gate: 'g', thuMuc: path.join(REPO, 'outputs', 'CSDL', 'tasks', 'K-1') }).ok).toBe(true);
+      expect(fric.ghi('chan', { gate: 'g', thuMuc: path.join(REPO, 'outputs', 'DEMO', 'tasks', 'K-1') }).ok).toBe(true);
       expect(fs.readFileSync(f, 'utf8').trim().split('\n')).toHaveLength(1);
     });
   });
@@ -264,7 +264,7 @@ test.describe('@infra gate:friction — sổ chỉ nhận sự kiện của task
     voiSoTam((f) => {
       const d = fs.mkdtempSync(path.join(os.tmpdir(), 'ov-'));
       try {
-        const r = ov.tao({ taskKey: 'T-OV', ma: 'QUY_MO', tcIds: ['CSDL_HSTRUONG_TC_001'], lyDo: LY_DO, by: 'QA-Lead', dir: d });
+        const r = ov.tao({ taskKey: 'T-OV', ma: 'QUY_MO', tcIds: ['APP_HSTRUONG_TC_001'], lyDo: LY_DO, by: 'QA-Lead', dir: d });
         expect(r.ok).toBe(true);
       } finally { fs.rmSync(d, { recursive: true, force: true }); }
       expect(fs.existsSync(f)).toBe(false);

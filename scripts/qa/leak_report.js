@@ -25,7 +25,7 @@
  *      máy không chắc thì để "chưa rõ" cho người soi, KHÔNG đoán bừa.
  *
  * Dùng:
- *   node scripts/qa/leak_report.js --story CSDL-24395 [--out <file.md>] [--json]
+ *   node scripts/qa/leak_report.js --story TASK-24395 [--out <file.md>] [--json]
  * Env: BACKLOG_BASE_URL, BACKLOG_API_KEY, BACKLOG_PROJECT_KEY (đọc từ .env / task.env như các script Backlog khác).
  * Exit: 0 (báo cáo, không chặn).
  */

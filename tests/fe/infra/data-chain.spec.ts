@@ -5,7 +5,7 @@
  * đề của chúng là OUTPUT của case khác (`[pre_existing] … (dựng ở TC_084)`). Lúc đó bộ case không còn
  * là một tập hợp mà là một CHUỖI — và chuỗi có ba đường hỏng không máy nào trong kit nhìn thấy.
  *
- * Lượt chạy ĐẦU TIÊN trên bộ CSDL-9004 bắt được một lỗi thật: `CSDL_NHANSU_TC_063` khai
+ * Lượt chạy ĐẦU TIÊN trên bộ TASK-9004 bắt được một lỗi thật: `APP_NHANSU_TC_063` khai
  * `(dựng ở TC_075)` nhưng TC_075 nằm SAU nó trong file (dòng 80 so với dòng 92). Đã soi tay xác nhận.
  *
  * RANH GIỚI NẰM Ở ĐỘNG TỪ, không ở việc có tên TC. Bộ case thật còn 16 lượt trỏ TC khác nữa —
@@ -78,7 +78,7 @@ test.describe('@infra data:chain:check', () => {
   });
 
   test('ĐỐI CHỨNG DƯƠNG ②: case phụ thuộc đứng TRƯỚC case nguồn ⇒ CHẶN', () => {
-    /* Đây là lỗi thật đã bắt được ở bộ CSDL-9004 (TC_063 cần TC_075 nhưng TC_075 nằm sau). */
+    /* Đây là lỗi thật đã bắt được ở bộ TASK-9004 (TC_063 cần TC_075 nhưng TC_075 nằm sau). */
     const d = boCase([
       ['M_TC_002', '[pre_existing] Đã có hồ sơ "A" (dựng ở M_TC_010)'],
       ['M_TC_010', '[ui] Tạo hồ sơ "A"'],
@@ -142,14 +142,14 @@ test.describe('@infra data:chain:check', () => {
   });
 
   test('mã viết TẮT trong ô vẫn khớp được mã đầy đủ của bộ', () => {
-    /* Ô tiền điều kiện hay viết `TC_084` cho `CSDL_NHANSU_TC_084` — không khớp thì ① báo oan. */
+    /* Ô tiền điều kiện hay viết `TC_084` cho `APP_NHANSU_TC_084` — không khớp thì ① báo oan. */
     const d = boCase([
-      ['CSDL_NHANSU_TC_001', '[ui] Tạo hồ sơ'],
-      ['CSDL_NHANSU_TC_002', '[pre_existing] Đã có hồ sơ (dựng ở TC_001)'],
+      ['APP_NHANSU_TC_001', '[ui] Tạo hồ sơ'],
+      ['APP_NHANSU_TC_002', '[pre_existing] Đã có hồ sơ (dựng ở TC_001)'],
     ]);
     const r = chay(['--dir', d, '--enforce']);
     expect(r.code, r.out).toBe(0);
-    expect(r.out).toContain('CSDL_NHANSU_TC_001  →  CSDL_NHANSU_TC_002');
+    expect(r.out).toContain('APP_NHANSU_TC_001  →  APP_NHANSU_TC_002');
     fs.rmSync(d, { recursive: true, force: true });
   });
 
@@ -177,13 +177,13 @@ test.describe('@infra data:chain:check', () => {
     expect(src, 'phải trỏ chỗ chấm tay').toMatch(/automation_reviewer/);
   });
 
-  test('bộ case THẬT của CSDL-9004 vẫn còn lỗi thứ tự đã tìm ra — hoặc đã sửa', () => {
+  test('bộ case THẬT của TASK-9004 vẫn còn lỗi thứ tự đã tìm ra — hoặc đã sửa', () => {
     /*
      * Phép kiểm này neo vào MỘT phát hiện cụ thể. Nó xanh ở cả hai trạng thái, nhưng in ra cái nào
      * đang đúng — nếu bộ case bị xoá thì nó nói thẳng là không phán được, chứ không im lặng.
      */
-    const dir = path.join(REPO, 'outputs/CSDL/tasks/CSDL-9004/test-cases');
-    if (!fs.existsSync(dir)) { test.skip(true, 'bộ case CSDL-9004 không có trong cây này'); return; }
+    const dir = path.join(REPO, 'outputs/DEMO/tasks/TASK-9004/test-cases');
+    if (!fs.existsSync(dir)) { test.skip(true, 'bộ case TASK-9004 không có trong cây này'); return; }
     const r = chay(['--dir', dir]);
     expect(r.code, r.out).toBe(0);
     expect(r.out, 'phải đọc được bộ case và in số mắt chuỗi').toMatch(/mắt chuỗi đã KHAI/);

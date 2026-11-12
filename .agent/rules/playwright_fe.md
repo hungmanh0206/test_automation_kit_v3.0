@@ -32,7 +32,7 @@
 - Test data phải unique, traceable, cleanup được.
 - Không dùng UI test để mutate dữ liệu thật nếu không rollback.
 - **Mỗi test phải có khẳng định.** ⚙️ Máy: `auto:review` rule `no-assert` CHẶN. Helper `assertX`/`expectX` được tính là khẳng định. Chưa phán được thì `test.skip(true, "<lý do>")`, đừng để test rỗng xanh.
-- **Tên test là HÀNH VI, viết tiếng Việt có dấu**, không phải mã TC trần. `test('CSDL_HS_TC_004')` không nói được case đó kiểm gì; mã TC để trong tiêu đề kèm hành vi thì `rerun:failed` vẫn dựng được `--grep`.
+- **Tên test là HÀNH VI, viết tiếng Việt có dấu**, không phải mã TC trần. `test('APP_HS_TC_004')` không nói được case đó kiểm gì; mã TC để trong tiêu đề kèm hành vi thì `rerun:failed` vẫn dựng được `--grep`.
 - **Đặt tên step theo `Arrange:` / `Act:` / `Assert:`** trong `test.step`. Khi lượt chạy đỏ, report chỉ đúng bước nào vỡ thay vì một khối phẳng.
 - **Selector dễ vỡ phải ghi chú ngay trên dòng** kèm lý do, không ghi chú thì `lint:locator` tính là vi phạm.
 

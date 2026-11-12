@@ -146,7 +146,7 @@ test.describe('@infra an toàn của lệnh — từ chối trước khi mở tr
   });
 
   test('host không khớp dấu hiệu non-prod ⇒ TỪ CHỐI, không đoán', async () => {
-    const r = await chay(['--mode', 'task', '--base-url', 'https://qemis.example.vn/', '--confirm-nonprod']);
+    const r = await chay(['--mode', 'task', '--base-url', 'https://appmau.example.vn/', '--confirm-nonprod']);
     expect(r.status).toBe(1);
     expect(r.out).toMatch(/KHÔNG khớp dấu hiệu non-prod nào/);
   });
@@ -265,14 +265,14 @@ test.describe('@infra §B2 `scope_anchor` — mẫu số phủ route TRONG PHẠ
   /*
    * BẢN ĐẦU KHỚP THEO CHUỖI ROUTE TRONG DANH MỤC, VÀ PHÉP ĐO TRÊN TASK THẬT BÁC NÓ.
    *
-   * `CSDL-9003`, lượt bò UAT 11/10: 40 màn quan sát được, danh mục 55 dòng `INV-` do người viết —
+   * `TASK-9003`, lượt bò UAT 11/10: 40 màn quan sát được, danh mục 55 dòng `INV-` do người viết —
    * **khớp được 1, trượt 39**. Hai lý do, cả hai là lỗi thiết kế của tôi chứ không phải lỗi của danh mục:
    *   ① SAI ĐƠN VỊ: danh mục mô tả theo MÃ CHỨC NĂNG (`HS-01.1 Xem danh sách HS…`), và một MÀN chứa
    *      NHIỀU mục phạm vi. Đòi khớp 1-1 giữa màn và mục là so hai thứ khác đơn vị.
    *   ② KHÔNG CÓ PHẠM VI: `--mode task` không tự thu hẹp nên lượt bò đi cả app; phần lớn 39 màn kia là
    *      thời khoá biểu, phân hiệu, điểm trường — vốn NGOÀI phạm vi task "Quản lý học sinh".
    *
-   * Khớp theo tiêu đề cũng không cứu được: trên QEMIS **mọi màn có cùng một `<title>`** của master page.
+   * Khớp theo tiêu đề cũng không cứu được: trên app mẫu **mọi màn có cùng một `<title>`** của master page.
    */
   const SA = path.join(REPO, 'scripts/qa/scope_anchor.js');
 
@@ -304,9 +304,9 @@ test.describe('@infra §B2 `scope_anchor` — mẫu số phủ route TRONG PHẠ
   const SM = (phamVi: string | null) => ({
     pham_vi: phamVi,
     screens: [
-      { route: '/C3/QuanLyHocSinh.aspx', title_observed: 'CƠ SỞ DỮ LIỆU NGÀNH GIÁO DỤC' },
-      { route: '/ThoiKhoaBieu/C3/DanhMucMonHoc.aspx', title_observed: 'CƠ SỞ DỮ LIỆU NGÀNH GIÁO DỤC' },
-      { route: '/C3/QuanLyPhanHieu.aspx', title_observed: 'CƠ SỞ DỮ LIỆU NGÀNH GIÁO DỤC' },
+      { route: '/C3/QuanLyNguoiDung.aspx', title_observed: 'ỨNG DỤNG MẪU' },
+      { route: '/ThoiKhoaBieu/C3/DanhMuc.aspx', title_observed: 'ỨNG DỤNG MẪU' },
+      { route: '/C3/QuanLyChiNhanh.aspx', title_observed: 'ỨNG DỤNG MẪU' },
     ],
   });
 
@@ -333,23 +333,23 @@ test.describe('@infra §B2 `scope_anchor` — mẫu số phủ route TRONG PHẠ
   });
 
   test('CÓ phạm vi ⇒ chỉ hỏi về route TRONG phạm vi, bỏ qua route ngoài', () => {
-    const d = taskTam({ sm: SM('^/C3/QuanLyHocSinh') });
+    const d = taskTam({ sm: SM('^/C3/QuanLyNguoiDung') });
     const out = chaySA(d);
     expect(out).toMatch(/1 route TRONG PHẠM VI/);
-    expect(out, 'route ngoài phạm vi KHÔNG được nhắc như lỗi').not.toMatch(/DanhMucMonHoc/);
+    expect(out, 'route ngoài phạm vi KHÔNG được nhắc như lỗi').not.toMatch(/DanhMuc.aspx/);
     expect(out, 'và đưa khuôn để điền').toMatch(/routes_quan_sat_duoc/);
     fs.rmSync(d, { recursive: true, force: true });
   });
 
   test('khai đủ ⇒ đi qua; thiếu một route ⇒ nêu đúng route đó', () => {
-    const du = taskTam({ sm: SM('^/C3/'), khai: { '/C3/QuanLyHocSinh.aspx': 'INV-001', '/C3/QuanLyPhanHieu.aspx': 'INV-002' } });
+    const du = taskTam({ sm: SM('^/C3/'), khai: { '/C3/QuanLyNguoiDung.aspx': 'INV-001', '/C3/QuanLyChiNhanh.aspx': 'INV-002' } });
     expect(chaySA(du)).toMatch(/Mẫu số đã phủ 2\/2 route/);
     fs.rmSync(du, { recursive: true, force: true });
 
-    const thieu = taskTam({ sm: SM('^/C3/'), khai: { '/C3/QuanLyHocSinh.aspx': 'INV-001' } });
+    const thieu = taskTam({ sm: SM('^/C3/'), khai: { '/C3/QuanLyNguoiDung.aspx': 'INV-001' } });
     const out = chaySA(thieu);
     expect(out).toMatch(/1 route trong phạm vi CHƯA khai/);
-    expect(out).toMatch(/QuanLyPhanHieu/);
+    expect(out).toMatch(/QuanLyChiNhanh/);
     expect(out, 'hệ quả phải nói ra').toMatch(/màn có thật mà mẫu số không biết tới/);
     fs.rmSync(thieu, { recursive: true, force: true });
   });
@@ -357,13 +357,13 @@ test.describe('@infra §B2 `scope_anchor` — mẫu số phủ route TRONG PHẠ
   test('`n/a` CÓ lý do ⇒ đi qua; `n/a` KHÔNG lý do ⇒ nêu ra', () => {
     const co = taskTam({
       sm: SM('^/C3/'),
-      khai: { '/C3/QuanLyHocSinh.aspx': 'INV-001', '/C3/QuanLyPhanHieu.aspx': 'n/a' },
-      lyDo: { '/C3/QuanLyPhanHieu.aspx': 'phân hiệu thuộc task CSDL-9001, không phải task này' },
+      khai: { '/C3/QuanLyNguoiDung.aspx': 'INV-001', '/C3/QuanLyChiNhanh.aspx': 'n/a' },
+      lyDo: { '/C3/QuanLyChiNhanh.aspx': 'phân hiệu thuộc task TASK-9001, không phải task này' },
     });
     expect(chaySA(co)).toMatch(/đã phủ 2\/2 route/);
     fs.rmSync(co, { recursive: true, force: true });
 
-    const khong = taskTam({ sm: SM('^/C3/'), khai: { '/C3/QuanLyHocSinh.aspx': 'INV-001', '/C3/QuanLyPhanHieu.aspx': 'n/a' } });
+    const khong = taskTam({ sm: SM('^/C3/'), khai: { '/C3/QuanLyNguoiDung.aspx': 'INV-001', '/C3/QuanLyChiNhanh.aspx': 'n/a' } });
     expect(chaySA(khong)).toMatch(/khai `n\/a` mà `na_reasons` trống/);
     fs.rmSync(khong, { recursive: true, force: true });
   });
@@ -378,8 +378,8 @@ test.describe('@infra §B2 `scope_anchor` — mẫu số phủ route TRONG PHẠ
 
   test('lượt bò chưa đầy đủ ⇒ "phủ hết thứ quan sát được" KHÔNG đồng nghĩa "phủ hết hệ thống"', () => {
     const d = taskTam({
-      sm: { ...SM('^/C3/QuanLyHocSinh'), crawl_completeness: { canh_bao: 'Chỉ bò tới 3/10 route (30%)' } },
-      khai: { '/C3/QuanLyHocSinh.aspx': 'INV-001' },
+      sm: { ...SM('^/C3/QuanLyNguoiDung'), crawl_completeness: { canh_bao: 'Chỉ bò tới 3/10 route (30%)' } },
+      khai: { '/C3/QuanLyNguoiDung.aspx': 'INV-001' },
     });
     const out = chaySA(d);
     expect(out).toMatch(/KHÔNG đồng nghĩa "đã phủ hết hệ thống"/);
@@ -389,8 +389,8 @@ test.describe('@infra §B2 `scope_anchor` — mẫu số phủ route TRONG PHẠ
   test('lượt bò có dấu hiệu session chết ⇒ mẫu số mang theo cảnh báo đó', () => {
     /* Mẫu số dựng trên một lượt bò mà session chết giữa chừng là một mẫu số không dùng được. */
     const d = taskTam({
-      sm: { ...SM('^/C3/QuanLyHocSinh'), crawl_completeness: { canh_bao_session: '292 route báo captcha trong khi chỉ bò được 6 màn' } },
-      khai: { '/C3/QuanLyHocSinh.aspx': 'INV-001' },
+      sm: { ...SM('^/C3/QuanLyNguoiDung'), crawl_completeness: { canh_bao_session: '292 route báo captcha trong khi chỉ bò được 6 màn' } },
+      khai: { '/C3/QuanLyNguoiDung.aspx': 'INV-001' },
     });
     expect(chaySA(d)).toMatch(/dấu hiệu BẤT THƯỜNG/);
     fs.rmSync(d, { recursive: true, force: true });
