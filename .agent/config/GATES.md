@@ -93,7 +93,7 @@ lịch sử, còn việc CHẶN nằm ở `dim:coverage` (chiều `bug_history` 
 | T1 | CHẶN (có cờ --enforce) | `docs:index`, `docs:cite` | mỗi neo yêu cầu trong tài liệu phải TRA NGƯỢC ĐƯỢC về file và số dòng. | `scripts/phase1/docs_index.js` | USER_GUIDE.md · docs/kit-map.md · prompt_templates · tests/fe/infra |
 | T1 | CHẶN (có cờ --enforce) | `authz:expand` | TRỤC ⑥: liệt kê biến thể PHÂN QUYỀN quanh mỗi case. | `scripts/qa/authz_expand.js` | RULE_GLOBAL.md · .agent/skills |
 | T0 | CHẶN (có cờ --enforce) | `auto:review`, `auto:review:enforce` | GATE chất lượng code automation, phần `lint:locator` KHÔNG gác. | `scripts/qa/automation_review.js` | RULE_GLOBAL.md · .agent/workflows · .agent/rules · .agent/skills · prompt_templates · tests/fe/infra |
-| T1 | CHẶN (có cờ --enforce) | `bug:outcome`, `bug:outcome:ghi`, `bug:outcome:enforce` | SỔ KẾT CỤC, và lời khai thẳng về cái KHÔNG tính được. | `scripts/qa/bug_outcome.js` | tests/fe/infra |
+| T1 | CHẶN (có cờ --enforce) | `bug:outcome`, `bug:outcome:ghi`, `bug:outcome:enforce` | SỔ KẾT CỤC, và lời khai thẳng về cái KHÔNG tính được. | `scripts/qa/bug_outcome.js` | .claude/commands · tests/fe/infra |
 | T0 | CHẶN (có cờ --enforce) | `canonical:check` | GÁC MÔ HÌNH "MD CANONICAL, EXCEL/SHEET PHÁI SINH" (v2.8.0 §0c.4). | `scripts/qa/canonical_check.js` | prompt_templates · tests/fe/infra |
 | T0 | CHẶN (có cờ --enforce) | `canonical:drift`, `canonical:drift:enforce` | ĐO ĐỘ TRÔI giữa Markdown canonical và bản xuất `.xlsx`. | `scripts/qa/canonical_drift.js` | RULE_GLOBAL.md · .agent/workflows · .agent/rules · .agent/skills · prompt_templates · tests/fe/infra |
 | T1 | CHẶN (có cờ --enforce) | `concurrency:check` | HARNESS ĐỒNG THỜI/TRANH CHẤP (v2.8.4 mục A). | `scripts/qa/concurrency_check.js` | docs/kit-map.md · .agent/skills |
@@ -137,7 +137,7 @@ lịch sử, còn việc CHẶN nằm ở `dim:coverage` (chiều `bug_history` 
 | T0 | CHẶN (có cờ --enforce) | `unit:stamp`, `unit:stamp:enforce` | mọi verdict ĐÃ CHẠY phải khai ĐƠN VỊ đã đo. | `scripts/qa/unit_stamp_check.js` | .agent/workflows · prompt_templates · .claude/commands |
 | T2 | SINH | `accessibility` | tái dùng hạ tầng của ui_conformance_check.js (login/pre-steps/catalog schema | `scripts/qa/accessibility_check.js` | README.md · USER_GUIDE.md · scripts/qa/README.md · docs/kit-map.md · .agent/rules · .agent/skills · prompt_templates · tests/fe/infra |
 | T2 | SINH | `agent:scorecard` | ĐO LỢI THẾ VẬN HÀNH của agent, THEO TỪNG TASK. | `scripts/qa/agent_scorecard.js` | .claude/commands · tests/fe/infra |
-| T2 | SINH | `bug:outcome:backlog` | SỔ KẾT CỤC THEO ISSUE BACKLOG: DEV nhận hay bác từng bug QA đã log. | `scripts/qa/bug_outcome_backlog.js` | tests/fe/infra |
+| T2 | SINH | `bug:outcome:backlog` | SỔ KẾT CỤC THEO ISSUE BACKLOG: DEV nhận hay bác từng bug QA đã log. | `scripts/qa/bug_outcome_backlog.js` | .claude/commands · tests/fe/infra |
 | T2 | SINH | `dashboard` | đọc dữ liệu ĐÃ CÓ (knowledge/ + flaky-triage.md), KHÔNG thu thập lại, | `scripts/qa/dashboard_generate.js` | .gitlab-ci.yml · RULE_GLOBAL.md · README.md · USER_GUIDE.md · scripts/qa/README.md · docs/kit-map.md · .github/workflows · .agent/workflows · .agent/skills · prompt_templates · tests/fe/infra |
 | T2 | SINH | `dep:graph` | GỘP traceability + impact-map thành 1 graph query-được. | `scripts/qa/dependency_graph.js` | scripts/qa/README.md · docs/kit-map.md |
 | T2 | SINH | `exec:proof` | artifact có ĐỦ ĐỂ CHỨNG MINH một case PASSED đã chạy hết bước không? | `scripts/qa/exec_proof.js` | tests/fe/infra |
