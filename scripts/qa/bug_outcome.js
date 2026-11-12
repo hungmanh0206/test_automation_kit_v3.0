@@ -114,6 +114,10 @@ function baoCao() {
 
   console.log(`[outcome] gộp ${new Set(ds.map((c) => c.task)).size} task dưới ${path.relative(REPO, GOC) || GOC}`);
   console.log(`  claim tổng: ${ds.length}  ·  đã log: ${daLog.length}  ·  tự rút trước khi log: ${daRut}`);
+  /* "Đã log" ở đây = CHƯA RÚT, không phải "đã lên Backlog". Đo 11/11/2026: 119 "đã log" nhưng chỉ 18 có mã issue,
+   * trong khi Backlog có 96 bug QA log — 79 không có claim trỏ tới. Tỉ lệ DEV nhận/bác đo ở sổ theo issue. */
+  const coMa = daLog.filter((c) => c.claim.backlog_issue).length;
+  console.log(`  trong đó có mã issue Backlog: ${coMa}/${daLog.length} — tỉ lệ DEV nhận/bác theo TỪNG BUG trên Backlog: \`npm run bug:outcome:backlog\``);
 
   /*
    * HAI CÂU HỎI KHÁC NHAU, SỔ PHẢI TRẢ LỜI CẢ HAI.
