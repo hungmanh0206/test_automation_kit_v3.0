@@ -9,6 +9,8 @@
     "vi_sao_30_ngay": "Thang chấm và luật đều đổi được; một lần hiệu chuẩn từ ba tháng trước nói về một thang khác."
   },
   "_do_ngay": "2026-10-12",
+  "_kho_ma_gia_dinh": ["BR-HS-004"],
+  "_vi_sao_kho_gia_dinh": "Mục ORACLE_DOC_LAP chấm 'mã có thật trong knowledge store' hay 'oracle ma'. Kho thật (`knowledge/domain/`) là dữ liệu DỰ ÁN, bị gitignore, khác nhau giữa các máy — còn bộ này là của KIT. Đo 12/11/2026: BR-HS-004 không có trong kho của máy QA, nên nhãn 'dat' của CAL-13 đúng hay sai tuỳ máy. Bộ này vì thế mang kho GIẢ ĐỊNH của riêng nó, và `--calib-form` in kho đó cho người chấm: người chấm cần đúng nguồn 'nhìn vào' mà thang chỉ định, không cần ai mách.",
   "ca": [
     {
       "id": "CAL-01",

@@ -148,6 +148,25 @@ test.describe('@infra judge — hiệu chuẩn, và vì sao thiếu nó là CHƯ
     }
   });
 
+  test('bộ hiệu chuẩn TỰ ĐỦ: mã oracle trong các ca khớp kho giả định, và phiếu chấm in kho đó', () => {
+    /*
+     * Đo 12/11/2026: CAL-13 neo vào BR-HS-004 với nhãn "dat — mã có thật", nhưng mã đó không có trong
+     * `knowledge/domain/` của máy QA (kho dự án, gitignore). Nhãn đúng hay sai tuỳ máy, và người chấm mù không
+     * có cách biết. Bộ giờ mang kho giả định của riêng nó; ca nào "dat" thì mã phải ở trong kho, ca "oracle ma"
+     * thì mã phải ở ngoài.
+     */
+    const cfg = JSON.parse(fs.readFileSync(j.CALIB, 'utf8'));
+    const kho = new Set(cfg._kho_ma_gia_dinh || []);
+    for (const c of cfg.ca.filter((x: { muc: string }) => x.muc === 'ORACLE_DOC_LAP')) {
+      for (const ma of String(c.dau_vao).match(/\b(?:BR|SM|UI)-[A-Z0-9]+-\d+\b/g) || []) {
+        expect(kho.has(ma), `${c.id}: ${ma} — nhãn "${c.nhan}" phải khớp việc mã có trong kho giả định`).toBe(c.nhan === 'dat');
+      }
+    }
+    const r = chay(['--calib-form']);
+    expect(r.stdout).toMatch(/KHO TRI THỨC của bộ này chỉ có các mã: BR-HS-004/);
+    expect(r.stdout, 'phiếu chấm mù KHÔNG được lộ nhãn').not.toMatch(/vi_sao_nhan|"nhan"|nhãn vì/);
+  });
+
   test('TỰ CHẤM bị đánh dấu — người chấm trùng người viết nhãn thì tỉ lệ không đo gì', () => {
     /*
      * Chỗ này quyết định cả tầng có nghĩa hay không. Nếu cùng một thứ vừa chấm vừa tự xác nhận mình chấm
