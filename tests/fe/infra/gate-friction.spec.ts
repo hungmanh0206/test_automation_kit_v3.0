@@ -228,6 +228,9 @@ test.describe('@infra gate:friction — sổ chỉ nhận sự kiện của task
   test('thư mục tạm của bộ test (os.tmpdir, outputs/_scratch) ⇒ KHÔNG ghi; thư mục task thật ⇒ ghi', () => {
     expect(fric.laThuMucTam(path.join(os.tmpdir(), 'debt-abc'))).toBe(true);
     expect(fric.laThuMucTam(path.join(REPO, 'outputs', '_scratch', 'x'))).toBe(true);
+    /* Cây đang chạy nằm TRONG os.tmpdir() (release:verify giải nén gói vào thư mục tạm) thì mọi đường dẫn task
+     * đều là thư mục tạm — vế 'task thật ⇒ ghi' không đo được ở đó. */
+    test.skip(path.resolve(REPO).startsWith(path.resolve(os.tmpdir())), 'cây đang chạy nằm trong os.tmpdir() — không có thư mục task THẬT để đối chứng');
     expect(fric.laThuMucTam(path.join(REPO, 'outputs', 'DEMO', 'tasks', 'TASK-9001'))).toBe(false);
     expect(fric.laThuMucTam(null)).toBe(false);
     voiSoTam((f) => {

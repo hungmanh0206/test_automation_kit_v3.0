@@ -17,6 +17,7 @@ import fs from 'fs';
 import path from 'path';
 import { spawnSync } from 'child_process';
 import { gateEnv } from './_gate_env';
+import { canRepoGit } from './_trong_repo';
 
 const REPO = path.resolve(__dirname, '..', '..', '..');
 const CUA = path.join(REPO, 'scripts', 'qa', 'gate_reachable.js');
@@ -28,6 +29,10 @@ const chay = (argv: string[] = []) => {
 const doc = () => JSON.parse(chay(['--json']).out);
 
 test.describe('@infra gate:reachable — máy có nằm trên đường chạy không', () => {
+  /* Cửa đếm qua `git ls-files`: trong gói phát hành không có `.git` nên nó KHÔNG PHÁN ĐƯỢC — đúng thiết kế,
+   * nhưng không có gì để đo ở đây. (Lượt release v3.0.0 đỏ đúng chỗ này: 5 ca chưa từng chạy trong gói.) */
+  test.beforeEach(() => { canRepoGit(REPO, 'gate:reachable đếm qua git ls-files'); });
+
   test('cây hiện tại: đếm được, và con số nằm dưới mốc đã đo', () => {
     const j = doc();
     expect(j.tong_script, 'không đọc được npm script nào ⇒ ca này đo hư không').toBeGreaterThan(100);
