@@ -214,7 +214,7 @@ function ghiMaSat(suKien, gateId, tang, nguCanh, taskOutputDir) {
     /* eslint-disable-next-line global-require */
     const fric = require(path.join(__dirname, '..', 'gate_friction.js'));
     const task = taskOutputDir ? path.basename(taskOutputDir) : null;
-    fric.ghi(suKien, { gate: gateId, tang, nguCanh, task });
+    fric.ghi(suKien, { gate: gateId, tang, nguCanh, task, thuMuc: taskOutputDir });
   } catch (e) { /* sổ đo KHÔNG được làm chết lớp gác */ }
 }
 

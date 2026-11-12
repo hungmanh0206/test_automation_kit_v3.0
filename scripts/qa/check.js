@@ -529,8 +529,11 @@ function main() {
     const t = gateTier.tangCua(r.gateId);
     theoTang[t.tang].push(r);
     const qd = gateTier.quyetDinh(t.tang, NGU_CANH);
-    if (qd.chan) coChan = true;
+    /* Sổ ma sát (§A9): trước đây chỉ `apTang` ghi sự kiện, mà lượt chạy thật không đi qua `apTang` — sổ chỉ có
+     * sự kiện của bộ test (đo 12/11/2026: 2745/2745 dòng). */
+    if (qd.chan) { coChan = true; gateTier.ghiMaSat('chan', r.gateId, t.tang, NGU_CANH, taskOutputDir); }
     if (qd.ghiSoNo) {
+      gateTier.ghiMaSat('so_no', r.gateId, t.tang, NGU_CANH, taskOutputDir);
       const viPham = r.findings.filter((f) => f.level === 'FAIL').map((f) => ({
         ma: engine.maCua(f.message), tcId: engine.tcIdTrong(f.message), thong_diep: f.message,
       }));
@@ -634,6 +637,7 @@ function main() {
     const dongNext = `${rNext.stdout || ''}`.trim();
     if (dongNext) console.log(dongNext);
   } catch (e) { /* gợi ý thiếu thì KHÔNG được làm chết lượt kiểm */ }
+  if (coChan) console.log('  Gate nào chặn SAI thì khai: npm run gate:friction -- --bao-oan <gate> --ma <MÃ> --ly-do "<vì sao gate sai>"');
   if (coChan) process.exit(1);
 }
 

@@ -202,3 +202,72 @@ test.describe('@infra sổ ma sát — ghi ở chỗ sự kiện THẬT xảy ra
     expect(gi, '`knowledge/**` phải bị gitignore — đây là dữ liệu dự án').toMatch(/knowledge/);
   });
 });
+
+test.describe('@infra gate:friction — sổ chỉ nhận sự kiện của task THẬT (đo 12/11/2026)', () => {
+  /*
+   * Sổ thật có 2745 dòng và CẢ 2745 đến từ bộ test (task `debt-*`, `T-OV`, `T-KHAC`), 0 dòng của task thật:
+   * bộ test dựng task giả trong thư mục tạm rồi gọi đúng các hàm ghi sổ. Và lượt chạy thật thì không ghi gì, vì
+   * chỉ `apTang` ghi sự kiện "chặn" mà `check`/`exit:gate` không đi qua nó.
+   */
+  // eslint-disable-next-line @typescript-eslint/no-var-requires, global-require
+  const tier = require(path.join(REPO, 'scripts/qa/lib/gate_tier.js'));
+  // eslint-disable-next-line @typescript-eslint/no-var-requires, global-require
+  const os = require('os');
+
+  const voiSoTam = (fn: (f: string) => void) => {
+    const d = fs.mkdtempSync(path.join(os.tmpdir(), 'fric-so-'));
+    const f = path.join(d, 'so.jsonl');
+    const cu = process.env.GATE_FRICTION_SO;
+    process.env.GATE_FRICTION_SO = f;
+    try { fn(f); } finally {
+      if (cu === undefined) delete process.env.GATE_FRICTION_SO; else process.env.GATE_FRICTION_SO = cu;
+      fs.rmSync(d, { recursive: true, force: true });
+    }
+  };
+
+  test('thư mục tạm của bộ test (os.tmpdir, outputs/_scratch) ⇒ KHÔNG ghi; thư mục task thật ⇒ ghi', () => {
+    expect(fric.laThuMucTam(path.join(os.tmpdir(), 'debt-abc'))).toBe(true);
+    expect(fric.laThuMucTam(path.join(REPO, 'outputs', '_scratch', 'x'))).toBe(true);
+    expect(fric.laThuMucTam(path.join(REPO, 'outputs', 'CSDL', 'tasks', 'CSDL-9001'))).toBe(false);
+    expect(fric.laThuMucTam(null)).toBe(false);
+    voiSoTam((f) => {
+      expect(fric.ghi('chan', { gate: 'g', thuMuc: path.join(os.tmpdir(), 'debt-x') }).bo_qua).toMatch(/thư mục tạm/);
+      expect(fs.existsSync(f)).toBe(false);
+      expect(fric.ghi('chan', { gate: 'g', thuMuc: path.join(REPO, 'outputs', 'CSDL', 'tasks', 'K-1') }).ok).toBe(true);
+      expect(fs.readFileSync(f, 'utf8').trim().split('\n')).toHaveLength(1);
+    });
+  });
+
+  test('đường ghi của bộ test (apTang trên task tạm) KHÔNG làm sổ dài thêm', () => {
+    voiSoTam((f) => {
+      const d = fs.mkdtempSync(path.join(os.tmpdir(), 'debt-'));
+      try {
+        tier.apTang('dim:coverage', [{ ma: 'X', thong_diep: 'm' }], { nguCanh: 'exit', taskOutputDir: d, log: () => {} });
+        tier.apTang('dim:coverage', [{ ma: 'X', thong_diep: 'm' }], { nguCanh: 'phase', taskOutputDir: d, log: () => {} });
+      } finally { fs.rmSync(d, { recursive: true, force: true }); }
+      expect(fs.existsSync(f), 'sự kiện của task giả không phải sự kiện thật').toBe(false);
+    });
+  });
+
+  test('cửa THẬT ghi sổ: `check` ghi chặn + sổ nợ, `exit:gate` ghi chặn — và cả hai chỉ cách khai báo oan', () => {
+    const check = fs.readFileSync(path.join(REPO, 'scripts/qa/check.js'), 'utf8');
+    const exit = fs.readFileSync(path.join(REPO, 'scripts/qa/exit_gate.js'), 'utf8');
+    expect(check).toMatch(/if \(qd\.chan\) \{ coChan = true; gateTier\.ghiMaSat\('chan', r\.gateId/);
+    expect(check).toMatch(/gateTier\.ghiMaSat\('so_no', r\.gateId/);
+    expect(exit).toMatch(/gateTier\.ghiMaSat\('chan', m\.lenh/);
+    for (const s of [check, exit]) expect(s).toContain('npm run gate:friction -- --bao-oan <gate>');
+  });
+
+  test('miễn trừ ghi trên thư mục quyết định tạm ⇒ KHÔNG vào sổ', () => {
+    // eslint-disable-next-line @typescript-eslint/no-var-requires, global-require
+    const ov = require(path.join(REPO, 'scripts/qa/override.js'));
+    voiSoTam((f) => {
+      const d = fs.mkdtempSync(path.join(os.tmpdir(), 'ov-'));
+      try {
+        const r = ov.tao({ taskKey: 'T-OV', ma: 'QUY_MO', tcIds: ['CSDL_HSTRUONG_TC_001'], lyDo: LY_DO, by: 'QA-Lead', dir: d });
+        expect(r.ok).toBe(true);
+      } finally { fs.rmSync(d, { recursive: true, force: true }); }
+      expect(fs.existsSync(f)).toBe(false);
+    });
+  });
+});

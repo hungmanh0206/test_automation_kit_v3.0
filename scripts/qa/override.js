@@ -200,7 +200,7 @@ function tao({ taskKey, ma, tcIds, lyDo, by, evidence = '', hanNgay = HAN_MAC_DI
   try {
     /* eslint-disable-next-line global-require */
     const fric = require(path.join(__dirname, 'gate_friction.js'));
-    fric.ghi('mien_tru', { gate: ma, tang: k.tang, task: taskKey, ma, tcId: tcIds[0] || null });
+    fric.ghi('mien_tru', { gate: ma, tang: k.tang, task: taskKey, ma, tcId: tcIds[0] || null, thuMuc: d });
   } catch (e) { /* sổ đo KHÔNG được làm chết việc ghi miễn trừ */ }
   return { ok: true, duong, ban };
 }

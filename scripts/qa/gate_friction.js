@@ -31,6 +31,7 @@
  * Exit: 0 luôn (máy BÁO CÁO) · 2 khi khai thiếu
  */
 const fs = require('fs');
+const os = require('os');
 const path = require('path');
 
 const REPO = path.resolve(__dirname, '..', '..');
@@ -46,7 +47,21 @@ const NGUONG = {
 
 function duongSo() {
   /* `knowledge/**` là lớp PROJECT và bị gitignore — sổ này là dữ liệu của dự án, không phải của kit. */
-  return path.join(REPO, 'knowledge', 'metrics', 'gate-friction.jsonl');
+  return process.env.GATE_FRICTION_SO || path.join(REPO, 'knowledge', 'metrics', 'gate-friction.jsonl');
+}
+
+/*
+ * SỰ KIỆN TRÊN THƯ MỤC TẠM KHÔNG PHẢI SỰ KIỆN THẬT.
+ *
+ * Đo 12/11/2026: sổ có 2745 dòng và CẢ 2745 đến từ bộ test (task `debt-*`, `T-OV`, `T-KHAC` trên thư mục tạm) —
+ * 0 sự kiện của task thật. Mọi con số "gate X chặn N lần" đọc từ sổ đó là số lượt chạy bộ test. Bộ test dựng task
+ * giả trong `os.tmpdir()` hoặc `outputs/_scratch/`, nên thư mục là dấu hiệu phân biệt được, không cần đoán theo tên.
+ */
+function laThuMucTam(d) {
+  if (!d) return false;
+  const chuan = (x) => path.resolve(x).replace(/\\/g, '/').toLowerCase().replace(/\/+$/, '');
+  const x = chuan(d);
+  return [os.tmpdir(), path.join(REPO, 'outputs', '_scratch')].map(chuan).some((g) => x === g || x.startsWith(`${g}/`));
 }
 
 /**
@@ -59,8 +74,9 @@ function duongSo() {
  * KHÔNG NÉM khi ghi lỗi. Đây là lớp đo, không phải lớp gác: một lượt kiểm thất bại vì không ghi được
  * sổ là đổi một phép đo thành một lỗi chặn người dùng.
  */
-function ghi(suKien, { gate, tang = null, nguCanh = null, task = null, ma = null, tcId = null, lyDo = null } = {}) {
+function ghi(suKien, { gate, tang = null, nguCanh = null, task = null, ma = null, tcId = null, lyDo = null, thuMuc = null } = {}) {
   if (!SU_KIEN.includes(suKien)) return { ok: false, vi_sao: `sự kiện lạ: ${suKien}` };
+  if (laThuMucTam(thuMuc)) return { ok: true, bo_qua: 'thư mục tạm — không phải task thật' };
   const ban = {
     luc: new Date().toISOString(),
     su_kien: suKien,
@@ -238,4 +254,4 @@ function main() {
 
 if (require.main === module) main();
 
-module.exports = { ghi, doc, gopTheoGate, quyTacDon, duongSo, SU_KIEN, NGUONG, TOI_THIEU_LY_DO };
+module.exports = { ghi, doc, gopTheoGate, quyTacDon, duongSo, laThuMucTam, SU_KIEN, NGUONG, TOI_THIEU_LY_DO };
