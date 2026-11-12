@@ -138,7 +138,7 @@ async function main() {
   const a = process.argv.slice(2);
   const lay = (k) => { const i = a.indexOf(k); return i >= 0 ? a[i + 1] : ''; };
   if (a.includes('--nhan')) {
-    try { ghiSo(ganTay(docSo(), lay('--nhan'), lay('--la'), lay('--vi-sao'))); console.log(`[outcome-backlog] đã gắn ${lay('--nhan')} = ${lay('--la')}`); return 0; } catch (e) { console.error(`[outcome-backlog] ✗ ${e.message}`); return 1; }
+    try { ghiSo(ganTay(docSo(), lay('--nhan'), lay('--la'), lay('--vi-sao'))); console.log(`[outcome-backlog] đã gắn ${lay('--nhan')} = ${lay('--la')}`); return 0; } catch (e) { console.error(`[outcome-backlog] ✗ KHÔNG GHI — ${e.message}`); return 2; }
   }
   if (a.includes('--bao-cao')) { baoCao(docSo()); return 0; }
   const moi = await docBacklog(lay('--project') || 'CSDL');
