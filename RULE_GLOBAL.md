@@ -38,7 +38,7 @@
 | 3 | [Inputs](#inputs) | 90-102 | 332 | npm run rule -- 3 |
 | 4 | [Outputs](#outputs) | 103-172 | 1220 | npm run rule -- 4 |
 | 5 | &nbsp;&nbsp;[Giọng văn output](#giọng-văn-output) | 115-172 | 906 | npm run rule -- 5 |
-| 6 | [Rules](#rules) | 173-822 | 15562 | npm run rule -- 6 |
+| 6 | [Rules](#rules) | 173-822 | 15561 | npm run rule -- 6 |
 | 7 | &nbsp;&nbsp;[Language](#language) | 175-181 | 80 | npm run rule -- 7 |
 | 8 | &nbsp;&nbsp;[Security](#security) | 182-195 | 498 | npm run rule -- 8 |
 | 9 | &nbsp;&nbsp;[Project And Output](#project-and-output) | 196-207 | 284 | npm run rule -- 9 |
@@ -55,7 +55,7 @@
 | 20 | &nbsp;&nbsp;[Phân tầng lỗi FE hay BE — bắt buộc kiểm API trước khi kết luận](#phân-tầng-lỗi-fe-hay-be-bắt-buộc-kiểm-api-trước-khi-kết-luận) | 602-616 | 307 | npm run rule -- 20 |
 | 21 | &nbsp;&nbsp;[Evidence — Quy chuẩn bắt buộc](#evidence-quy-chuẩn-bắt-buộc) | 617-630 | 762 | npm run rule -- 21 |
 | 22 | &nbsp;&nbsp;[Comment kết quả (Test Execution) — Quy chuẩn trình bày](#comment-kết-quả-test-execution-quy-chuẩn-trình-bày) | 631-642 | 396 | npm run rule -- 22 |
-| 23 | &nbsp;&nbsp;[Bug Claim Gate — kiểm chứng phải đi TRƯỚC lời nói](#bug-claim-gate-kiểm-chứng-phải-đi-trước-lời-nói) | 643-723 | 1391 | npm run rule -- 23 |
+| 23 | &nbsp;&nbsp;[Bug Claim Gate — kiểm chứng phải đi TRƯỚC lời nói](#bug-claim-gate-kiểm-chứng-phải-đi-trước-lời-nói) | 643-723 | 1390 | npm run rule -- 23 |
 | 24 | &nbsp;&nbsp;[Backlog Bug Gate](#backlog-bug-gate) | 724-733 | 154 | npm run rule -- 24 |
 | 25 | &nbsp;&nbsp;[Executable QA capabilities (autonomy & safety)](#executable-qa-capabilities-autonomy-safety) | 734-746 | 418 | npm run rule -- 25 |
 | 26 | &nbsp;&nbsp;[Automation quality](#automation-quality) | 747-785 | 728 | npm run rule -- 26 |
@@ -68,7 +68,7 @@
 | 33 | [Examples](#examples) | 896-903 | 80 | npm run rule -- 33 |
 | 34 | [References](#references) | 904-912 | 83 | npm run rule -- 34 |
 
-> Cả file ~19871 token. Tra MỘT mục thay vì đọc cả file: npm run rule -- <số|từ khoá>
+> Cả file ~19870 token. Tra MỘT mục thay vì đọc cả file: npm run rule -- <số|từ khoá>
 <!-- MỤC-LỤC:KẾT-THÚC -->
 
 ## Purpose
