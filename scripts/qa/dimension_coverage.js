@@ -189,11 +189,28 @@ if (fs.existsSync(manifestPath)) {
 // ai kéo Figma/swagger về). Nên chỉ chặn khi artifact CÓ mà manifest nói n/a; artifact vắng thì im lặng.
 const exists = (p) => fs.existsSync(path.join(taskDir, p));
 const globExists = (dir, re) => { const d = path.join(taskDir, dir); if (!fs.existsSync(d)) return false; try { return fs.readdirSync(d, { recursive: true }).some((f) => re.test(String(f))); } catch (e) { return false; } };
+/*
+ * Bản đồ hệ thống chỉ chứng minh chiều ÁP DỤNG cho task khi nó nói về MODULE CỦA TASK, và đang `active`.
+ *
+ * Bản đầu hỏi "trong kho có bản ghi loại này không" — kho dùng chung cho mọi task. Đo 12/11/2026: bản đồ đầu tiên
+ * của kho (SM-EMISBC-001, module "Gửi báo cáo" của CSDL-4008) làm MỌI task khai `guard: n/a` bị chặn XUNG ĐỘT, kể
+ * cả hồ sơ trường — một bản đồ của module khác không chứng minh gì cho task này. Bản nháp (`draft`) cũng chưa ai
+ * chốt nên không chứng minh gì.
+ *
+ * Module của task lấy từ cột Module của testcase canonical (phần trước dấu `/`). Chưa có testcase thì không đối
+ * chiếu được ⇒ KHÔNG chặn (artifact vắng không chứng minh n/a; artifact không gắn được với task cũng vậy).
+ */
+const MODULE_TASK = new Set(tests.map((t) => norm(String(t.module || '').split('/')[0]).trim()).filter(Boolean));
 const knowSystem = (type) => {
-  const d = path.join(rc.REPO_ROOT, 'knowledge', 'system');
-  if (!fs.existsSync(d)) return false;
+  if (process.env.DIM_KNOWLEDGE_SYSTEM_DIR === '') return false;
+  const d = process.env.DIM_KNOWLEDGE_SYSTEM_DIR || path.join(rc.REPO_ROOT, 'knowledge', 'system');
+  if (!fs.existsSync(d) || !MODULE_TASK.size) return false;
   return fs.readdirSync(d).filter((f) => f.endsWith('.json')).some((f) => {
-    try { return JSON.parse(fs.readFileSync(path.join(d, f), 'utf8')).type === type; } catch (e) { return false; }
+    try {
+      const j = JSON.parse(fs.readFileSync(path.join(d, f), 'utf8'));
+      return j.type === type && j.status === 'active'
+        && (Array.isArray(j.modules) ? j.modules : []).some((m) => MODULE_TASK.has(norm(m).trim()));
+    } catch (e) { return false; }
   });
 };
 const SCOPE_SIGNALS = [
