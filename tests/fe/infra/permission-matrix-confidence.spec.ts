@@ -196,7 +196,12 @@ test.describe('@infra nghĩa vụ test — ba mức ở PHẦN SINH NGHĨA VỤ,
     };
     const pm = { ...PM, covered_by: { 'Admin:view': ['X_TC_001'], 'Teacher:cancel': ['X_TC_001'] } };
     const out = chayVoi([sm, pm], ['X_TC_001']);
-    expect(out).toMatch(/SM-DEMO-001: chuyển hợp pháp có case 1\/2 · cặp bất hợp pháp đã chứng minh bị chặn 1\/4/);
+    expect(out).toMatch(/SM-DEMO-001: chuyển hợp pháp có case 1\/2 · cặp bất hợp pháp có case kiểm chặn 1\/4 \(có case ≠ đã chặn/);
+    /*
+     * Ghim 12/11/2026: bản cũ in "đã chứng minh bị chặn" chỉ vì `covered_by` có TC. Thêm 7 case CHƯA CHẠY vào
+     * CSDL-4008 là nó in "đã chứng minh bị chặn 7/7". Có case là đo HÌNH THỨC; chặn thật chỉ verdict PASS nói được.
+     */
+    expect(out, 'covered_by chỉ chứng tỏ có case, không chứng tỏ hệ thống chặn').not.toMatch(/đã chứng minh bị chặn/);
     expect(out).toMatch(/PM-DEMO-001: ô được phép có case 1\/5 · ô bị cấm có case chặn 1\/2 · ô chưa rõ 5/);
   });
 
