@@ -19,6 +19,7 @@
     "dashboard": "node scripts/qa/dashboard_generate.js",
     "accessibility": "node scripts/qa/accessibility_check.js",
     "ui:conformance": "node scripts/qa/ui_conformance_check.js",
+    "ui:polish": "node scripts/qa/ui_polish.js",
     "perf": "node scripts/qa/perf_check.js",
     "security": "node scripts/qa/security_check.js",
     "load": "node scripts/qa/load_check.js",
