@@ -11,6 +11,7 @@ npm run exit:gate -- --cua done --task $ARGUMENTS
 npm run release:summary -- --task $ARGUMENTS
 npm run bug:outcome:backlog
 npm run agent:scorecard -- --task $ARGUMENTS
+npm run pass:audit -- --task $ARGUMENTS
 ```
 
 ## Hai bước, hai việc khác nhau
@@ -23,6 +24,10 @@ npm run agent:scorecard -- --task $ARGUMENTS
 claim bị bác, token trên mỗi verdict xác minh. Nó không chặn. Chỉ số nào thiếu nguồn thì ghi KHÔNG PHÁN ĐƯỢC.
 `bug:outcome:backlog` chạy trước nó: CHỈ ĐỌC Backlog, cập nhật sổ DEV nhận hay bác từng bug. Bug Resolved hay Closed
 thì máy không tự đoán, phải gắn tay bằng `--nhan`, kèm lời DEV.
+
+**`pass:audit`** đo phía còn lại: tỉ lệ PASS SAI. Sổ bug chỉ thấy FAIL, còn một PASS sai thì không sinh bug nào.
+Bốc mẫu bằng `--chon 20`, đưa phiếu cho NGƯỜI chấm, rồi `--ghi <phiếu>`. Agent không được tự chấm phiếu.
+Chưa có mẫu nào được chấm thì in KHÔNG PHÁN ĐƯỢC, không phải "PASS đều đúng".
 
 **`release:summary`** là KHUYẾN NGHỊ: nó không chặn và không tự quyết. Nó chấm tiêu chí đo được rồi nói
 go hay no-go, kèm căn cứ. Tiêu chí nào không đo được thì nó ghi "không đo được" — **không** quy về đạt.
