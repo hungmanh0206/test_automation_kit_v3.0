@@ -52,6 +52,7 @@ const readline = require('readline');
 const REPO = path.resolve(__dirname, '..', '..');
 const { thuMucTranscript } = require('./token_audit');
 const { liet: lietClaim, NHAN, SAI } = require('./bug_outcome');
+const outcomeBacklog = require('./bug_outcome_backlog');
 const og = require('./output_gate');
 const rules = require('./lib/output_rules');
 
@@ -263,6 +264,19 @@ async function main() {
       console.log('  ② ⑤           KHÔNG PHÁN ĐƯỢC — không có testcase-status.json');
     }
     console.log(`  ④ chính xác    ${kc.coNhan ? `${kc.sai}/${kc.coNhan} claim có nhãn bị bác/trùng/đúng thiết kế (${pct(kc.sai, kc.coNhan)})` : `KHÔNG PHÁN ĐƯỢC — 0/${kc.daLog} claim đã log có nhãn kết cục`} · kit tự rút ${kc.tuRut}/${kc.claim} trước khi log (${pct(kc.tuRut, kc.claim)})`);
+  }
+  /*
+   * ④ TOÀN DỰ ÁN — sổ theo issue Backlog (`bug:outcome:backlog`). Khối theo task ở trên chỉ thấy claim có mã issue
+   * (18/119); 79/96 bug QA log không có claim trỏ tới. Không gán bug vào task bằng tên issue cha: đo 11/11/2026,
+   * thư mục 9001 không nhắc issue cha "hồ sơ trường" lần nào. Nên in theo issue CHA — đúng thứ Backlog ghi.
+   */
+  const sb = outcomeBacklog.tinh(outcomeBacklog.docSo());
+  if (sb.tong) {
+    console.log(`\n── ④ toàn dự án (sổ Backlog, cập nhật bằng \`npm run bug:outcome:backlog\`)`);
+    console.log(`  ${sb.tong} bug QA log · ${sb.coNhan} có nhãn · ${sb.coNhan ? `sai ${sb.sai}/${sb.coNhan} (${pct(sb.sai, sb.coNhan)})` : 'KHÔNG PHÁN ĐƯỢC tỉ lệ'} · ${sb.chuaXong} chưa có kết cục · ${sb.canNguoi.length} cần người gắn nhãn`);
+    for (const [k, v] of Object.entries(sb.theoCha).sort((x, y) => y[1].tong - x[1].tong)) console.log(`    cha ${k.padEnd(11)} ${v.tong} bug · sai ${v.sai}/${v.coNhan} có nhãn · ${v.chuaXong} chưa xong`);
+  } else {
+    console.log('\n── ④ toàn dự án: KHÔNG PHÁN ĐƯỢC — chưa có sổ Backlog. Chạy `npm run bug:outcome:backlog`.');
   }
   console.log('\nĐỌC CHO ĐÚNG: số đo trên task CŨ thiếu vế (bản ghi trước 11/11/2026 không có `doiVerdict`, claim chưa có nhãn).');
   console.log('Lợi thế so với plugin A chỉ kết luận được khi CÙNG task được làm bằng cả hai và đo bằng CÙNG định nghĩa này.');

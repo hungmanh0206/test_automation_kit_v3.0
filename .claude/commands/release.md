@@ -9,6 +9,7 @@ Thiếu mã task → `npm run task:which -- $ARGUMENTS`; thoát 2 = KHÔNG PHÁN
 ```bash
 npm run exit:gate -- --cua done --task $ARGUMENTS
 npm run release:summary -- --task $ARGUMENTS
+npm run bug:outcome:backlog
 npm run agent:scorecard -- --task $ARGUMENTS
 ```
 
@@ -20,6 +21,8 @@ npm run agent:scorecard -- --task $ARGUMENTS
 
 **`agent:scorecard`** ghi số VẬN HÀNH của task: giờ làm việc, câu hỏi chặn QA, tỉ lệ tự khắc phục, tỉ lệ
 claim bị bác, token trên mỗi verdict xác minh. Nó không chặn. Chỉ số nào thiếu nguồn thì ghi KHÔNG PHÁN ĐƯỢC.
+`bug:outcome:backlog` chạy trước nó: CHỈ ĐỌC Backlog, cập nhật sổ DEV nhận hay bác từng bug. Bug Resolved hay Closed
+thì máy không tự đoán, phải gắn tay bằng `--nhan`, kèm lời DEV.
 
 **`release:summary`** là KHUYẾN NGHỊ: nó không chặn và không tự quyết. Nó chấm tiêu chí đo được rồi nói
 go hay no-go, kèm căn cứ. Tiêu chí nào không đo được thì nó ghi "không đo được" — **không** quy về đạt.

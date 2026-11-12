@@ -81,6 +81,7 @@
     "rerun:classify": "node scripts/qa/rerun_classify.js",
     "bug:outcome:ghi": "node scripts/qa/bug_outcome.js --ghi",
     "bug:outcome:enforce": "node scripts/qa/bug_outcome.js --enforce",
+    "bug:outcome:backlog": "node scripts/qa/bug_outcome_backlog.js",
     "agent:scorecard": "node scripts/qa/agent_scorecard.js",
     "bug:claim:chot": "node scripts/qa/bug_claim.js --chot",
     "discover": "node scripts/qa/discover.js",
