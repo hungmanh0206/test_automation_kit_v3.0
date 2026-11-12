@@ -11,10 +11,14 @@
   #luu { height: 30px; padding: 0 14px; }          /* nút lệch chiều cao + padding khác đa số  */
   .lech-kc { margin-top: 13px; }                     /* khoảng cách lẻ thang                     */
   #ghiChu { font-family: "Comic Sans MS", cursive; } /* nhãn lệch font                           */
+  .riTextBox { font-family: "Helvetica Neue", Arial; padding: 2px 5px 1px 5px; } /* ô chữ của thư viện khác trên cùng form */
+  textarea { height: 64px; box-sizing: border-box; padding: 4px 8px; font-size: 14px; font-family: Roboto, Arial, sans-serif; border-radius: 4px; border: 1px solid #ccc; }
 </style></head><body>
 <div class="khung">
   <h2>Hồ sơ lớp</h2>
   <div class="dong lech-kc"><label for="d">Tên lớp</label><input id="d" type="text" value="6A"></div>
   <div class="dong"><label id="ghiChu" for="e">Ghi chú</label><input id="e" type="text" value=""></div>
+  <div class="dong"><label for="g">Kinh tuyến</label><input id="g" class="riTextBox" type="text" value=""></div>
+  <div class="dong"><label for="h">Địa chỉ</label><textarea id="h"></textarea></div>
   <div class="dong"><button id="luu">Lưu</button><button id="dong">Đóng</button></div>
 </div></body></html>

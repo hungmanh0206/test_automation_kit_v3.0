@@ -19,9 +19,9 @@ const REPO = path.resolve(__dirname, '..', '..', '..');
 const up = require(path.join(REPO, 'scripts/utils/ui/ui_polish.js'));
 const FX = path.join(__dirname, '..', 'fixtures', 'ui-polish');
 
-async function thu(page: any, ten: string) {
+async function thu(page: any, ten: string, vung = '.khung') {
   await page.setContent(fs.readFileSync(path.join(FX, `${ten}.html`), 'utf8'));
-  return up.thuThap(page, { man: ten });
+  return up.thuThap(page, { man: ten, vung });
 }
 
 test.describe('@infra ui:polish — thu thập', () => {
@@ -37,6 +37,52 @@ test.describe('@infra ui:polish — thu thập', () => {
   });
 });
 
+test.describe('@infra ui:polish — năm bài học từ lượt đo GDTX đầu tiên (12/11/2026)', () => {
+  test('VÙNG: thanh đầu trang ngoài vùng nội dung KHÔNG được đếm — có vùng thì vắng, bỏ vùng thì có', async ({ page }) => {
+    const co = await thu(page, 'chuan');
+    expect(JSON.stringify(co)).not.toContain('nutDau');
+    expect(co.khoangCach['30'], 'padding 30px của thanh đầu trang').toBeUndefined();
+    const khong = await thu(page, 'chuan', '');
+    expect(JSON.stringify(khong), 'đối chứng: không khai vùng thì thanh đầu trang có mặt').toContain('nutDau');
+  });
+
+  test('nút KHÔNG CÓ CHỮ là loại riêng — không thành "nút lệch" giữa các nút có chữ', async ({ page }) => {
+    const m = await thu(page, 'chuan');
+    expect(m.theoLoai.nut_icon.map((x: any) => x.ten)).toEqual(['button#trangSau']);
+    expect(up.phanTich([m]).dongNhat.nut.cao.soLech).toBe(0);
+  });
+
+  test('combobox đo KHUNG NGOÀI, không đo ô ruột thấp hơn khung', async ({ page }) => {
+    const m = await thu(page, 'chuan');
+    expect(m.theoLoai.o_chon.map((x: any) => [x.ten, x.cao]), 'khung ngoài, không ô ruột').toContainEqual(['div.RadComboBox', 32]);
+    expect(JSON.stringify(m.theoLoai.o_chu), 'ô ruột combobox không được đếm là ô chữ').not.toContain('#f');
+  });
+
+  test('nhãn xuống dòng KHÔNG bị so chiều cao — đó là hệ quả của nội dung, không phải style', async ({ page }) => {
+    const k = up.phanTich([await thu(page, 'chuan')]);
+    expect(Object.keys(k.dongNhat.nhan)).toEqual(['padding', 'coChu', 'font']);
+  });
+
+  test('HAI kiểu ô chữ trên cùng form (thường vs Telerik) ⇒ lệch font và padding được nêu — ca thật ở hồ sơ trường', async ({ page }) => {
+    const k = up.phanTich([await thu(page, 'chuan'), await thu(page, 'lech')]);
+    expect(k.dongNhat.o_chu.font.lech).toEqual(['lech: input#g = helvetica neue']);
+    expect(k.dongNhat.o_chu.padding.lech).toEqual(['lech: input#g = 2 5 1 5']);
+  });
+
+  test('textarea cao hơn ô một dòng KHÔNG phải lệch — nó là loại riêng, không so chiều cao', async ({ page }) => {
+    const k = up.phanTich([await thu(page, 'chuan'), await thu(page, 'lech')]);
+    expect(JSON.stringify(k.dongNhat.o_chu || {})).not.toContain('textarea');
+    expect(k.dongNhat.o_nhieu_dong, 'một textarea: dưới 3 phần tử thì không nói đa số').toBeUndefined();
+  });
+
+  test('③ đếm font gồm cả ô nhập — ô nhập không có node chữ nhưng vẫn mang font', () => {
+    const m = { man: 'x', theoLoai: { o_chu: [{ ten: 'a', font: 'helvetica neue', coChu: 13 }] }, khoangCach: {}, viDu: {}, font: { arial: 5 }, coChu: { 14: 5 }, mau: {} };
+    const h = up.phanTich([m]).heThong;
+    expect(h.soFont).toBe(2);
+    expect(h.soCoChu).toBe(2);
+  });
+});
+
 test.describe('@infra ui:polish — phân tích', () => {
   test('ĐỐI CHỨNG ÂM: trang đồng nhất ⇒ bước 4px, 0 lẻ thang, 0 lệch, 1 font', async ({ page }) => {
     const k = up.phanTich([await thu(page, 'chuan')]);
@@ -48,12 +94,13 @@ test.describe('@infra ui:polish — phân tích', () => {
 
   test('bốn lỗi cài sẵn đều bị bắt', async ({ page }) => {
     const k = up.phanTich([await thu(page, 'chuan'), await thu(page, 'lech')]);
-    expect(k.khoangCach.leThang.map((x: any) => x.v).sort(), 'margin 13px và padding 14px lẻ bước 4px').toEqual([13, 14]);
+    expect(k.khoangCach.leThang.map((x: any) => x.v).sort((x: number, y: number) => x - y),
+      'margin 13px, padding 14px của nút, padding 2px/5px của ô chữ kiểu Telerik — đều lẻ bước 4px').toEqual([2, 5, 13, 14]);
     expect(k.dongNhat.nut.cao.lech, 'nút cao 30px giữa đa số 32px').toEqual(['lech: button#luu "Lưu" = 30']);
     expect(k.dongNhat.nut.padding.daSo).toBe('0 16 0 16');
     expect(k.dongNhat.nut.padding.soLech).toBe(1);
     expect(k.dongNhat.nhan.font.lech).toEqual(['lech: label#ghiChu = comic sans ms']);
-    expect(k.heThong.soFont).toBe(2);
+    expect(k.heThong.soFont, 'roboto · comic sans (nhãn) · helvetica neue (ô chữ kiểu Telerik)').toBe(3);
   });
 
   test('CÓ thang thiết kế ⇒ so với thang, không suy bước: 24px nằm ngoài [4, 8, 16] bị bắt', async ({ page }) => {
@@ -67,6 +114,13 @@ test.describe('@infra ui:polish — phân tích', () => {
   test('dưới 3 element cùng loại thì KHÔNG nói "đa số" — 2 phần tử không có đa số', () => {
     const m = { man: 'x', theoLoai: { nut: [{ ten: 'a', cao: 30 }, { ten: 'b', cao: 32 }] }, khoangCach: {}, viDu: {}, font: {}, coChu: {}, mau: {} };
     expect(up.phanTich([m]).dongNhat.nut).toBeUndefined();
+  });
+
+  test('loại thành phần LẠ (dữ liệu thu theo định dạng cũ) ⇒ nêu ra, không bỏ qua lặng lẽ', () => {
+    /* Lượt GDTX 12/11: JSON thu trước khi tách ô nhập mang khoá `o_nhap`; bản phân tích mới không biết khoá đó và
+     * cả nhóm ô nhập biến mất khỏi báo cáo mà không ai được báo. */
+    const m = { man: 'x', theoLoai: { o_nhap: [{ ten: 'a' }, { ten: 'b' }, { ten: 'c' }] }, khoangCach: {}, viDu: {}, font: {}, coChu: {}, mau: {} };
+    expect(up.phanTich([m]).loaiKhongXet).toEqual({ o_nhap: 3 });
   });
 
   test('không bước nào phủ ≥80% ⇒ nói thẳng "không theo một thang chung", không chọn bừa', () => {

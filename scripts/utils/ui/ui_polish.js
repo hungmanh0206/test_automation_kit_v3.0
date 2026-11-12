@@ -27,7 +27,12 @@
 function thuThapTrongTrang(opts) {
   const LOAI = {
     nut: 'button, input[type=submit], input[type=button], input[type=reset], a.btn, .btn, .RadButton, .rbButton',
-    o_nhap: 'input[type=text], input[type=number], input[type=email], input[type=tel], input[type=password], input[type=search], input[type=date], input:not([type]), textarea, select, .rcbInput, .riTextBox',
+    /* BA loại ô, không gộp (đo 12/11/2026 trên GDTX): combobox đo KHUNG NGOÀI `.RadComboBox` chứ không đo ô ruột
+     * `rcbInput`; textarea cao theo số dòng nên không so với ô một dòng; còn lại là ô chữ. Gộp chung thì padding 0
+     * của khung combobox thành "50 ô nhập lệch". */
+    o_chon: '.RadComboBox, select',
+    o_nhieu_dong: 'textarea',
+    o_chu: 'input[type=text], input[type=number], input[type=email], input[type=tel], input[type=password], input[type=search], input[type=date], input:not([type]), .riTextBox',
     nhan: 'label, .label, .control-label',
     tieu_de: 'h1, h2, h3, h4, h5, .title, .page-title',
   };
@@ -44,17 +49,24 @@ function thuThapTrongTrang(opts) {
     const cls = (e.className && typeof e.className === 'string') ? e.className.trim().split(/\s+/)[0] : '';
     return `${e.tagName.toLowerCase()}${id}${cls && !id ? `.${cls}` : ''}`;
   };
+  /* VÙNG: chỉ đo phần nội dung (vd `[id*="ContentPlaceHolder1"]`). Thanh đầu trang và menu lặp ở MỌI màn — đếm
+   * chúng 11 lần làm số lệch theo khung trang, không theo màn (đo 12/11/2026 trên GDTX: cbSoftware, qi-*). */
+  const trongVung = (e) => !opts.vung || Boolean(e.closest(opts.vung));
   const daThay = new Set();
-  const theoLoai = {};
+  const theoLoai = { nut_icon: [] };
   for (const [loai, sel] of Object.entries(LOAI)) {
-    theoLoai[loai] = [];
+    theoLoai[loai] = theoLoai[loai] || [];
     for (const e of document.querySelectorAll(sel)) {
-      if (daThay.has(e) || !hienThi(e)) continue;
+      if (daThay.has(e) || !hienThi(e) || !trongVung(e)) continue;
+      if (loai === 'o_chu' && e.closest('.RadComboBox')) continue; // ruột combobox
       daThay.add(e);
       const s = getComputedStyle(e);
       const r = e.getBoundingClientRect();
       const chu = loai === 'nut' ? String((e.value && e.tagName === 'INPUT') ? e.value : e.textContent || '').trim().replace(/\s+/g, ' ').slice(0, 20) : '';
-      theoLoai[loai].push({
+      /* Nút KHÔNG CÓ CHỮ (icon, phân trang lưới `rgPage*`) là thành phần khác loại — gộp với nút có chữ thì
+       * 20 nút phân trang thành "20 nút lệch" (đo 12/11/2026). */
+      const dich = loai === 'nut' && !chu ? 'nut_icon' : loai;
+      theoLoai[dich].push({
         ten: ten(e), chu,
         cao: px(r.height),
         padding: [s.paddingTop, s.paddingRight, s.paddingBottom, s.paddingLeft].map(px).join(' '),
@@ -67,7 +79,7 @@ function thuThapTrongTrang(opts) {
   /* Thang khoảng cách: mọi padding / margin / gap > 0 của element đang hiện. */
   const khoangCach = {};
   const viDu = {};
-  const tatCa = [...document.body.querySelectorAll('*')].slice(0, opts.toiDa || 4000);
+  const tatCa = [...document.body.querySelectorAll('*')].filter(trongVung).slice(0, opts.toiDa || 4000);
   for (const e of tatCa) {
     if (!hienThi(e)) continue;
     const s = getComputedStyle(e);
@@ -92,7 +104,7 @@ function thuThapTrongTrang(opts) {
 }
 
 async function thuThap(page, opts = {}) {
-  return page.evaluate(thuThapTrongTrang, { man: opts.man || '', toiDa: opts.toiDa || 4000 });
+  return page.evaluate(thuThapTrongTrang, { man: opts.man || '', toiDa: opts.toiDa || 4000, vung: opts.vung || '' });
 }
 
 /* ─────────────────────────────── phân tích — HÀM THUẦN ─────────────────────────────── */
@@ -100,6 +112,9 @@ async function thuThap(page, opts = {}) {
 const SAN_PHU = 0.8; // bước được coi là thang khi phủ ≥ 80% số lần dùng
 const BUOC_UNG_VIEN = [8, 6, 5, 4, 2];
 const THUOC_TINH = ['cao', 'padding', 'coChu', 'font', 'boGoc'];
+/* Chiều cao của NHÃN / TIÊU ĐỀ là hệ quả của việc xuống dòng, không phải thuộc tính style — nhãn 2 dòng cao 55px
+ * không "lệch" nhãn 1 dòng 25px (đo 12/11/2026). Chỉ so chiều cao ở thành phần điều khiển. */
+const THUOC_TINH_THEO_LOAI = { nhan: ['padding', 'coChu', 'font'], tieu_de: ['padding', 'coChu', 'font'], o_nhieu_dong: ['padding', 'coChu', 'font', 'boGoc'] };
 
 function congDon(maus, khoa) {
   const ra = {};
@@ -136,12 +151,17 @@ function phanTich(maus, opts = {}) {
   const leThang = giaTri.filter((x) => !hopLe(x.v)).sort((a, b) => b.n - a.n).map((x) => ({ ...x, viDu: viDuKc[x.v] || [] }));
 
   /* ② đồng nhất theo loại thành phần, xuyên màn */
+  const LOAI_XET = ['nut', 'nut_icon', 'o_chu', 'o_chon', 'o_nhieu_dong', 'nhan', 'tieu_de'];
+  /* Loại LẠ (dữ liệu thu theo định dạng cũ, vd `o_nhap`) phải được NÊU RA — bỏ qua lặng lẽ thì cả nhóm biến mất
+   * khỏi báo cáo (lượt GDTX 12/11/2026). */
+  const loaiKhongXet = {};
+  for (const m of maus) for (const [k, ds] of Object.entries(m.theoLoai || {})) if (!LOAI_XET.includes(k) && ds.length) loaiKhongXet[k] = (loaiKhongXet[k] || 0) + ds.length;
   const dongNhat = {};
-  for (const loai of ['nut', 'o_nhap', 'nhan', 'tieu_de']) {
+  for (const loai of LOAI_XET) {
     const els = maus.flatMap((m) => (m.theoLoai && m.theoLoai[loai] ? m.theoLoai[loai].map((e) => ({ ...e, man: m.man })) : []));
     if (els.length < 3) continue; // dưới 3 thì "đa số" không có nghĩa
     dongNhat[loai] = {};
-    for (const tt of THUOC_TINH) {
+    for (const tt of THUOC_TINH_THEO_LOAI[loai] || THUOC_TINH) {
       const dem = {};
       for (const e of els) { const k = String(e[tt]); dem[k] = (dem[k] || 0) + 1; }
       const xep = Object.entries(dem).sort((a, b) => b[1] - a[1]);
@@ -151,13 +171,23 @@ function phanTich(maus, opts = {}) {
     }
   }
 
-  /* ③ kích thước hệ thống */
+  /* ③ kích thước hệ thống — gồm cả font/cỡ chữ của Ô NHẬP và NÚT (chúng không có node chữ nên đếm theo node chữ
+   * thì bỏ sót: bản đầu nói "1 font" trong khi ô nhập dùng 2 font). */
+  const fontAll = congDon(maus, 'font'); const coChuAll = congDon(maus, 'coChu');
+  for (const m of maus) for (const ds of Object.values(m.theoLoai || {})) for (const e of ds) {
+    if (e.font) fontAll[e.font] = (fontAll[e.font] || 0) + 1;
+    if (e.coChu) coChuAll[e.coChu] = (coChuAll[e.coChu] || 0) + 1;
+  }
   const dem = (k) => Object.keys(congDon(maus, k)).filter((x) => x && x !== 'null').length;
+  const phuCua = (b) => (tongXet ? Math.round((giaTri.filter((x) => x.v % b === 0).reduce((a, x) => a + x.n, 0) / tongXet) * 100) : 0);
+  const buocTotNhat = BUOC_UNG_VIEN.map((b) => ({ b, phu: phuCua(b) })).sort((x, y) => y.phu - x.phu)[0];
+  const phoBien = [...giaTri].sort((a, b) => b.n - a.n).slice(0, 8).map((x) => ({ v: x.v, n: x.n, tiLe: tongXet ? Math.round((x.n / tongXet) * 100) : 0 }));
   return {
     soMan: maus.length,
-    khoangCach: { nguon, buoc, thang: opts.thang || null, tongLan, tinhChinh, soGiaTri: giaTri.length, leThang },
+    loaiKhongXet,
+    khoangCach: { nguon, buoc, thang: opts.thang || null, tongLan, tinhChinh, soGiaTri: giaTri.length, leThang, phoBien, buocTotNhat },
     dongNhat,
-    heThong: { soFont: dem('font'), soCoChu: dem('coChu'), soMau: dem('mau'), font: congDon(maus, 'font'), coChu: congDon(maus, 'coChu') },
+    heThong: { soFont: Object.keys(fontAll).filter(Boolean).length, soCoChu: Object.keys(coChuAll).filter((x) => x && x !== 'null').length, soMau: dem('mau'), font: fontAll, coChu: coChuAll },
   };
 }
 

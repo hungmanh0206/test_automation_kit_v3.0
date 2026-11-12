@@ -23,7 +23,7 @@ const path = require('path');
 const { phanTich } = require('../utils/ui/ui_polish');
 
 const REPO = path.resolve(__dirname, '..', '..');
-const TEN = { nut: 'nút', o_nhap: 'ô nhập', nhan: 'nhãn', tieu_de: 'tiêu đề' };
+const TEN = { nut: 'nút', nut_icon: 'nút icon', o_chu: 'ô chữ', o_chon: 'ô chọn', o_nhieu_dong: 'ô nhiều dòng', nhan: 'nhãn', tieu_de: 'tiêu đề' };
 const TT = { cao: 'chiều cao', padding: 'padding', coChu: 'cỡ chữ', font: 'font', boGoc: 'bo góc' };
 
 function main() {
@@ -46,8 +46,13 @@ function main() {
   const kc = k.khoangCach;
   console.log(`[ui-polish] ${k.soMan} màn · chuẩn: ${kc.nguon === 'thang thiết kế' ? `THANG THIẾT KẾ [${kc.thang.join(', ')}]` : `ĐA SỐ trong hệ thống (không có thang thiết kế) — mọi độ lệch dưới đây là OBSERVATION, KHÔNG phải bug`}`);
   console.log(`  ① khoảng cách: ${kc.soGiaTri} giá trị khác nhau trên ${kc.tongLan} lần dùng${kc.nguon === 'suy từ đa số' ? ` · bước phủ ≥80%: ${kc.buoc ? `${kc.buoc}px` : 'KHÔNG CÓ — hệ thống không theo một thang chung'}` : ''}`);
+  if (kc.nguon === 'suy từ đa số' && !kc.buoc) {
+    console.log(`     phổ biến nhất: ${kc.phoBien.map((x) => `${x.v}px ${x.tiLe}%`).join(' · ')}`);
+    console.log(`     bước khớp nhiều nhất: ${kc.buocTotNhat.b}px, phủ ${kc.buocTotNhat.phu}% — dưới 80% nên không coi là thang`);
+  }
   for (const x of kc.leThang.slice(0, 12)) console.log(`     lẻ thang ${String(x.v).padStart(5)}px ×${x.n} — ${x.viDu.slice(0, 2).join(' · ')}`);
   if (kc.leThang.length > 12) console.log(`     … và ${kc.leThang.length - 12} giá trị lẻ khác`);
+  if (Object.keys(k.loaiKhongXet).length) console.log(`  ⚠ dữ liệu có loại thành phần máy KHÔNG xét: ${Object.entries(k.loaiKhongXet).map(([x, n]) => `${x} (${n})`).join(', ')} — thu thập lại bằng bản ui_polish hiện tại`);
   console.log('  ② đồng nhất theo loại thành phần (xuyên màn):');
   for (const [loai, tts] of Object.entries(k.dongNhat)) {
     const bien = Object.entries(tts).filter(([, x]) => x.bienThe > 1);
@@ -56,6 +61,10 @@ function main() {
       console.log(`     ${(TEN[loai] || loai).padEnd(7)} ${(TT[tt] || tt).padEnd(10)} ${x.bienThe} biến thể · đa số ${x.daSo} (${x.tiLe}%) · ${x.soLech} lệch: ${x.lech.slice(0, 3).join(' | ')}`);
     }
   }
+  /* FONT là font KHAI BÁO đầu tiên trong `font-family`, không phải font HIỂN THỊ: máy không cài font đó thì trình duyệt
+   * thay font khác. Đo 12/11/2026 trên GDTX (Windows): ô Telerik khai "Helvetica Neue" nhưng ảnh cho thấy hiển thị như
+   * Arial — lệch khai báo, chưa chắc người dùng thấy. Padding thì thấy được trên ảnh. */
+  if (Object.values(k.dongNhat).some((tts) => tts.font && tts.font.bienThe > 1)) console.log('  ℹ font ở trên là font KHAI BÁO, không phải font hiển thị — máy thiếu font thì trình duyệt thay. Xem ảnh trước khi nói người dùng thấy khác.');
   const h = k.heThong;
   console.log(`  ③ hệ thống: ${h.soFont} font · ${h.soCoChu} cỡ chữ · ${h.soMau} màu chữ`);
   return 0;
