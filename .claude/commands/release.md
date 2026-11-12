@@ -10,7 +10,9 @@ Thiếu mã task → `npm run task:which -- $ARGUMENTS`; thoát 2 = KHÔNG PHÁN
 npm run exit:gate -- --cua done --task $ARGUMENTS
 npm run release:summary -- --task $ARGUMENTS
 npm run bug:outcome:backlog
+npm run bug:tac-gia -- --quet
 npm run agent:scorecard -- --task $ARGUMENTS
+npm run pass:audit -- --task $ARGUMENTS
 ```
 
 ## Hai bước, hai việc khác nhau
@@ -21,8 +23,11 @@ npm run agent:scorecard -- --task $ARGUMENTS
 
 **`agent:scorecard`** ghi số VẬN HÀNH của task: giờ làm việc, câu hỏi chặn QA, tỉ lệ tự khắc phục, tỉ lệ
 claim bị bác, token trên mỗi verdict xác minh. Nó không chặn. Chỉ số nào thiếu nguồn thì ghi KHÔNG PHÁN ĐƯỢC.
-`bug:outcome:backlog` chạy trước nó: CHỈ ĐỌC Backlog, cập nhật sổ DEV nhận hay bác từng bug. Bug Resolved hay Closed
-thì máy không tự đoán, phải gắn tay bằng `--nhan`, kèm lời DEV.
+`bug:outcome:backlog` CHỈ ĐỌC Backlog, cập nhật sổ DEV nhận hay bác từng bug; Resolved/Closed thì gắn tay bằng `--nhan`
+kèm lời DEV. `bug:tac-gia` tách tỉ lệ đó theo ai tạo bug: agent, người chạy script, hay KHÔNG RÕ (không phải "người").
+
+**`pass:audit`** đo tỉ lệ PASS SAI, phía sổ bug không thấy. Bốc mẫu bằng `--chon 20`, đưa phiếu cho NGƯỜI chấm
+(agent không tự chấm), rồi `--ghi <phiếu>`. Chưa chấm mẫu nào thì in KHÔNG PHÁN ĐƯỢC, không phải "PASS đều đúng".
 
 **`release:summary`** là KHUYẾN NGHỊ: nó không chặn và không tự quyết. Nó chấm tiêu chí đo được rồi nói
 go hay no-go, kèm căn cứ. Tiêu chí nào không đo được thì nó ghi "không đo được" — **không** quy về đạt.

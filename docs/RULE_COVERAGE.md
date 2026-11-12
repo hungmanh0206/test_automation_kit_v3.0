@@ -18,39 +18,39 @@ Ví dụ cụ thể: `secret:scan` chặn theo mục Security mà mục đó kh�
 không nhắc tên. Đã đo trên bản máy của `gate:policy`: đòi luật canonical nhắc TÊN mọi lệnh thì **19/24
 script báo oan**. Nên con số `chưa nối được` ở dưới là **việc cần rà**, không phải một lỗ đã chứng minh.
 
-Nguồn: `RULE_GLOBAL.md` (35 mục có nội dung) · 176 gate · 202 spec hạ tầng.
+Nguồn: `RULE_GLOBAL.md` (35 mục có nội dung) · 178 gate · 204 spec hạ tầng.
 
 ## Mục luật ĐÃ nối được gate (29)
 
 | Mục luật | Gate thi hành | Spec canh gate |
 |---|---|---|
-| Purpose | `rule` · `report` | `api-card.spec.ts` · `automation-review.spec.ts` · `backlog-bug-images.spec.ts` +84 |
-| When To Use | `report` | `agent-scorecard.spec.ts` · `ambiguity-gate.spec.ts` · `autofix.spec.ts` +54 |
+| Purpose | `rule` · `report` | `api-card.spec.ts` · `automation-review.spec.ts` · `backlog-bug-images.spec.ts` +86 |
+| When To Use | `report` | `agent-scorecard.spec.ts` · `ambiguity-gate.spec.ts` · `autofix.spec.ts` +56 |
 | Inputs | `profile:create` | `start-command.spec.ts` |
-| Outputs | `report` | `agent-scorecard.spec.ts` · `ambiguity-gate.spec.ts` · `autofix.spec.ts` +54 |
-| Giọng văn output | `report` | `agent-scorecard.spec.ts` · `ambiguity-gate.spec.ts` · `autofix.spec.ts` +54 |
-| Thân bug Backlog — viết cho DEV đọc, không phải cho máy đọc | `gate:output` · `writing:lint` · `report` | `check-command.spec.ts` · `checks-l4.spec.ts` · `dimension-threshold.spec.ts` +69 |
-| Language | `report` | `agent-scorecard.spec.ts` · `ambiguity-gate.spec.ts` · `autofix.spec.ts` +54 |
-| Security | `gate:output` · `report` | `check-command.spec.ts` · `checks-l4.spec.ts` · `dimension-threshold.spec.ts` +67 |
-| Project And Output | `report` | `agent-scorecard.spec.ts` · `ambiguity-gate.spec.ts` · `autofix.spec.ts` +54 |
-| Parallel Story Safety | `report` | `agent-scorecard.spec.ts` · `ambiguity-gate.spec.ts` · `autofix.spec.ts` +54 |
-| Phase-Separated Story Execution | `merge:execution-status` · `canonical:drift` · `check` · `expected:check` · `load` · `gate:policy` · `ledger:check` · `risk` · `sync:canonical` · `report` | `canonical-drift.spec.ts` · `expansion-gates.spec.ts` · `manual-run-gate.spec.ts` +153 |
-| Task-Scoped Automation Code | `report` | `agent-scorecard.spec.ts` · `ambiguity-gate.spec.ts` · `autofix.spec.ts` +54 |
+| Outputs | `report` | `agent-scorecard.spec.ts` · `ambiguity-gate.spec.ts` · `autofix.spec.ts` +56 |
+| Giọng văn output | `report` | `agent-scorecard.spec.ts` · `ambiguity-gate.spec.ts` · `autofix.spec.ts` +56 |
+| Thân bug Backlog — viết cho DEV đọc, không phải cho máy đọc | `gate:output` · `writing:lint` · `report` | `check-command.spec.ts` · `checks-l4.spec.ts` · `dimension-threshold.spec.ts` +71 |
+| Language | `report` | `agent-scorecard.spec.ts` · `ambiguity-gate.spec.ts` · `autofix.spec.ts` +56 |
+| Security | `gate:output` · `report` | `check-command.spec.ts` · `checks-l4.spec.ts` · `dimension-threshold.spec.ts` +69 |
+| Project And Output | `report` | `agent-scorecard.spec.ts` · `ambiguity-gate.spec.ts` · `autofix.spec.ts` +56 |
+| Parallel Story Safety | `report` | `agent-scorecard.spec.ts` · `ambiguity-gate.spec.ts` · `autofix.spec.ts` +56 |
+| Phase-Separated Story Execution | `merge:execution-status` · `canonical:drift` · `check` · `expected:check` · `load` · `gate:policy` · `ledger:check` · `risk` · `sync:canonical` · `report` | `canonical-drift.spec.ts` · `expansion-gates.spec.ts` · `manual-run-gate.spec.ts` +155 |
+| Task-Scoped Automation Code | `report` | `agent-scorecard.spec.ts` · `ambiguity-gate.spec.ts` · `autofix.spec.ts` +56 |
 | Shared Change Gate | `dim:coverage` · `domain:check` · `rule` · `secret:scan` | `config-presence.spec.ts` · `dimension-threshold.spec.ts` · `dimension-wiring.spec.ts` +57 |
-| Automation Promote Review | `report` | `agent-scorecard.spec.ts` · `ambiguity-gate.spec.ts` · `autofix.spec.ts` +54 |
-| Analysis & Ambiguity Gate (Phase 1 — đọc kỹ, hỏi trước khi gen) | `rule` · `report` | `api-card.spec.ts` · `automation-review.spec.ts` · `backlog-bug-images.spec.ts` +84 |
+| Automation Promote Review | `report` | `agent-scorecard.spec.ts` · `ambiguity-gate.spec.ts` · `autofix.spec.ts` +56 |
+| Analysis & Ambiguity Gate (Phase 1 — đọc kỹ, hỏi trước khi gen) | `rule` · `report` | `api-card.spec.ts` · `automation-review.spec.ts` · `backlog-bug-images.spec.ts` +86 |
 | Chiều coverage (Phase 1 — khai phạm vi, gắn tag, có máy đếm) | `dim:coverage` · `domain:check` · `rule` | `config-presence.spec.ts` · `dimension-threshold.spec.ts` · `dimension-wiring.spec.ts` +53 |
-| 7 trục mở rộng quanh case + luật đóng vòng (Phase 2 — có máy đứng sau) | `authz:expand` · `check` · `xsurf:diff` · `design:gate` · `discover` · `expansion:audit` · `expansion:plan` · `ui:contract` · `fixture:matrix` · `lane` · `leak:report` · `load` · `mutation:check` · `oracle:calc` · `probe:persist` · `risk` · `rule` · `self-review` · `spec:extract` · `spec:gap` · `report` | `authz-expand.spec.ts` · `autofix.spec.ts` · `bug-claim.spec.ts` +169 |
-| Execute Results | `rule` · `report` | `api-card.spec.ts` · `automation-review.spec.ts` · `backlog-bug-images.spec.ts` +84 |
+| 7 trục mở rộng quanh case + luật đóng vòng (Phase 2 — có máy đứng sau) | `authz:expand` · `check` · `xsurf:diff` · `design:gate` · `discover` · `expansion:audit` · `expansion:plan` · `ui:contract` · `fixture:matrix` · `lane` · `leak:report` · `load` · `mutation:check` · `oracle:calc` · `probe:persist` · `risk` · `rule` · `self-review` · `spec:extract` · `spec:gap` · `report` | `authz-expand.spec.ts` · `autofix.spec.ts` · `bug-claim.spec.ts` +171 |
+| Execute Results | `rule` · `report` | `api-card.spec.ts` · `automation-review.spec.ts` · `backlog-bug-images.spec.ts` +86 |
 | Phân tầng lỗi FE hay BE — bắt buộc kiểm API trước khi kết luận | `load` | `agent-routing.spec.ts` · `auth-session-lock.spec.ts` · `automation-review.spec.ts` +49 |
-| Evidence — Quy chuẩn bắt buộc | `load` · `gate:output` · `rule` · `report` | `agent-routing.spec.ts` · `auth-session-lock.spec.ts` · `automation-review.spec.ts` +123 |
-| Bug Claim Gate — kiểm chứng phải đi TRƯỚC lời nói | `bug:claim` · `check` · `spec:gap` · `report` | `bug-claim.spec.ts` · `bug-retest.spec.ts` · `trace-test-mocoi.spec.ts` +132 |
+| Evidence — Quy chuẩn bắt buộc | `load` · `gate:output` · `rule` · `report` | `agent-routing.spec.ts` · `auth-session-lock.spec.ts` · `automation-review.spec.ts` +125 |
+| Bug Claim Gate — kiểm chứng phải đi TRƯỚC lời nói | `bug:claim` · `check` · `spec:gap` · `report` | `bug-claim.spec.ts` · `bug-retest.spec.ts` · `trace-test-mocoi.spec.ts` +134 |
 | Retest một bug đã log (thêm 10/10/2026, v2.5.0 G1.8) | `bug:claim` · `check` | `bug-claim.spec.ts` · `bug-retest.spec.ts` · `trace-test-mocoi.spec.ts` +108 |
 | Backlog Bug Gate | `load` | `agent-routing.spec.ts` · `auth-session-lock.spec.ts` · `automation-review.spec.ts` +49 |
-| Executable QA capabilities (autonomy & safety) | `check` · `dashboard` · `learn` · `load` · `gate:output` · `perf` · `risk` · `rule` · `security` · `report` | `autofix.spec.ts` · `bug-claim.spec.ts` · `bug-outcome.spec.ts` +167 |
+| Executable QA capabilities (autonomy & safety) | `check` · `dashboard` · `learn` · `load` · `gate:output` · `perf` · `risk` · `rule` · `security` · `report` | `autofix.spec.ts` · `bug-claim.spec.ts` · `bug-outcome.spec.ts` +169 |
 | Automation quality | `auto:review` · `check` · `gate:friction` · `golden:check` · `judge` · `rule` | `automation-review.spec.ts` · `checks-l4.spec.ts` · `expected-ledger.spec.ts` +125 |
 | Push execution | `merge:execution-status` | `canonical-drift.spec.ts` · `expansion-gates.spec.ts` · `manual-run-gate.spec.ts` +2 |
-| Workflow | `report` | `agent-scorecard.spec.ts` · `ambiguity-gate.spec.ts` · `autofix.spec.ts` +54 |
+| Workflow | `report` | `agent-scorecard.spec.ts` · `ambiguity-gate.spec.ts` · `autofix.spec.ts` +56 |
 | Chi phí một lượt chạy — đếm SỐ LƯỢT, không đếm độ dài | `prompt:budget` · `rerun:failed` · `token:audit` | `agent-routing.spec.ts` · `discovery-cli.spec.ts` · `load-map.spec.ts` +9 |
 | References | `rule` | `api-card.spec.ts` · `automation-review.spec.ts` · `backlog-bug-images.spec.ts` +42 |
 

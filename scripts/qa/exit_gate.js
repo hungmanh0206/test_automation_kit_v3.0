@@ -169,7 +169,11 @@ function main() {
      * phía là chỗ sai nguy hiểm nhất của một cửa ra: coi là đạt thì cửa mở cho một thứ chưa ai kiểm,
      * coi là vi phạm thì cửa chặn một task chỉ vì thiếu input không liên quan.
      */
-    if (r.exit === 1) chanVi.push(`${m.lenh} CHẶN — ${m.vi_sao}`);
+    if (r.exit === 1) {
+      chanVi.push(`${m.lenh} CHẶN — ${m.vi_sao}`);
+      /* Sổ ma sát (§A9): lượt chạy thật không đi qua `apTang`, nên trước đây sổ chỉ có sự kiện của bộ test. */
+      gateTier.ghiMaSat('chan', m.lenh, gateTier.tangCua(m.lenh).tang, 'exit', taskOutputDir);
+    }
     if (r.exit === 2) console.log(`      ○ không phán được (thiếu input hoặc chưa áp dụng) — KHÔNG tính là đạt`);
     if (r.exit !== 0) {
       const dong = r.out.split('\n').filter((l) => /✗|CHẶN|THIẾU|lỗi/.test(l)).slice(0, 4);
@@ -198,6 +202,7 @@ function main() {
     console.log('  Đây là chỗ các vi phạm T1 đã hoãn từ lúc đang làm quay lại. Sửa rồi chạy lại cửa.');
     console.log('  Nợ T1 trả xong thì xoá món tương ứng trong `reports/gate-debt.json` — xoá cả sổ để qua');
     console.log('  cửa là đúng thứ sổ này gác.');
+    console.log('  Gate nào chặn SAI thì khai: npm run gate:friction -- --bao-oan <gate> --ma <MÃ> --ly-do "<vì sao gate sai>"');
     process.exit(1);
   }
 

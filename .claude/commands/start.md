@@ -4,7 +4,7 @@ description: Cửa vào cho người mới — hỏi đúng 5 điều, tạo pro
 
 Task: **$ARGUMENTS**
 
-Kit có 176 gate và 28 skill. Người mới cần **5 điều**. Hỏi đủ 5 câu dưới, **gom thành MỘT lần hỏi**, rồi
+Kit có 178 gate và 28 skill. Người mới cần **5 điều**. Hỏi đủ 5 câu dưới, **gom thành MỘT lần hỏi**, rồi
 làm ba bước. Đừng hỏi lắt nhắt.
 
 > **Phạm vi: CHỈ tạo profile và task.** Không đọc đặc tả, không neo mẫu số, không sinh case, không execute.

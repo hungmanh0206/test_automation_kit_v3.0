@@ -142,7 +142,7 @@ function baoCao(so) {
   for (const [k, v] of Object.entries(t.theoCha).sort((a, b) => b[1].tong - a[1].tong)) console.log(`    ${k.padEnd(12)} ${v.tong} bug · ${v.coNhan} có nhãn · ${v.sai} sai · ${v.chuaXong} chưa xong`);
   if (t.canNguoi.length) console.log(`  cần người gắn: ${t.canNguoi.join(' · ')}`);
   if (t.lech.length) console.log(`  ⚠ nhãn tay lệch trạng thái hiện tại: ${t.lech.join(' · ')}`);
-  console.log('  Tỉ lệ này là của BUG QA LOG (người và agent cùng một tài khoản) — chưa tách được phần do agent soạn.');
+  console.log('  Tỉ lệ này là của BUG QA LOG (người và agent cùng một tài khoản). Tách theo ai tạo bug: npm run bug:tac-gia.');
 }
 
 async function main() {

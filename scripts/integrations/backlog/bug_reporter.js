@@ -1678,6 +1678,8 @@ async function main() {
 
       if (attachmentIds.length) await attachIssueAttachments(created.id, attachmentIds);
       await canhBaoAnhThieu(created.issueKey, tenAnh);
+      /* Sổ tác giả ở máy QA (không đánh dấu trên Backlog — chủ dự án không muốn thấy dấu của kit trong mô tả bug). */
+      require(path.join(__dirname, '..', '..', 'qa', 'bug_tac_gia.js')).ghi({ issueKey: created.issueKey, qua: 'bug_reporter', tcId: testCase.tcId }, { base: BACKLOG_BASE_URL });
 
       rows.push({
         tcId: testCase.tcId,

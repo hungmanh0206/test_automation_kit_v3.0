@@ -7,7 +7,7 @@
 > **T1** chỉ chặn ở cửa ra, lúc đang làm thì cảnh báo và ghi `reports/gate-debt.json` · **T2** không
 > bao giờ chặn. T0 khai tay trong `.agent/config/gate_tiers.json`; không khai thì mặc định T1.
 
-Tổng **176** máy — **122 CHẶN** · 32 SINH (ghi artifact) · 22 BÁO CÁO (chỉ in).
+Tổng **178** máy — **122 CHẶN** · 34 SINH (ghi artifact) · 22 BÁO CÁO (chỉ in).
 
 SINH/BÁO CÁO **không phải gate bị nới** — chúng không kiểm vi phạm. Ví dụ `bugs:checklist` in brief bug
 lịch sử, còn việc CHẶN nằm ở `dim:coverage` (chiều `bug_history` §20).
@@ -139,6 +139,7 @@ lịch sử, còn việc CHẶN nằm ở `dim:coverage` (chiều `bug_history` 
 | T2 | SINH | `accessibility` | tái dùng hạ tầng của ui_conformance_check.js (login/pre-steps/catalog schema | `scripts/qa/accessibility_check.js` | README.md · USER_GUIDE.md · scripts/qa/README.md · docs/kit-map.md · .agent/rules · .agent/skills · prompt_templates · tests/fe/infra |
 | T2 | SINH | `agent:scorecard` | ĐO LỢI THẾ VẬN HÀNH của agent, THEO TỪNG TASK. | `scripts/qa/agent_scorecard.js` | .claude/commands · tests/fe/infra |
 | T2 | SINH | `bug:outcome:backlog` | SỔ KẾT CỤC THEO ISSUE BACKLOG: DEV nhận hay bác từng bug QA đã log. | `scripts/qa/bug_outcome_backlog.js` | .claude/commands · tests/fe/infra |
+| T2 | SINH | `bug:tac-gia` | TÁCH tỉ lệ bug sai theo AI TẠO bug: agent, người chạy script, hay không rõ. | `scripts/qa/bug_tac_gia.js` | .claude/commands · tests/fe/infra |
 | T2 | SINH | `dashboard` | đọc dữ liệu ĐÃ CÓ (knowledge/ + flaky-triage.md), KHÔNG thu thập lại, | `scripts/qa/dashboard_generate.js` | .gitlab-ci.yml · RULE_GLOBAL.md · README.md · USER_GUIDE.md · scripts/qa/README.md · docs/kit-map.md · .github/workflows · .agent/workflows · .agent/skills · prompt_templates · tests/fe/infra |
 | T2 | SINH | `dep:graph` | GỘP traceability + impact-map thành 1 graph query-được. | `scripts/qa/dependency_graph.js` | scripts/qa/README.md · docs/kit-map.md |
 | T2 | SINH | `exec:proof` | artifact có ĐỦ ĐỂ CHỨNG MINH một case PASSED đã chạy hết bước không? | `scripts/qa/exec_proof.js` | tests/fe/infra |
@@ -152,6 +153,7 @@ lịch sử, còn việc CHẶN nằm ở `dim:coverage` (chiều `bug_history` 
 | T2 | SINH | `learn:report` | trả lời câu "chạy task này thì đã HỌC được gì?". | `scripts/qa/learn_report.js` | docs/kit-map.md · .agent/skills · prompt_templates |
 | T2 | SINH | `learn`, `learn:backfill` | MẮT XÍCH HỌC còn thiếu: biến kết quả execute của 1 task thành learning data. | `scripts/qa/learn_task.js` | RULE_GLOBAL.md · USER_GUIDE.md · QUICKSTART.md · scripts/qa/README.md · docs/kit-map.md · .agent/workflows · .agent/skills · prompt_templates · tests/fe/infra |
 | T2 | SINH | `metrics:collect` | thu KPI mỗi lần chạy test → knowledge/metrics/ (tích luỹ theo thời gian). | `scripts/qa/metrics_collect.js` | docs/kit-map.md |
+| T2 | SINH | `pass:audit` | ĐO TỈ LỆ PASS SAI bằng cách cho NGƯỜI chấm lại một mẫu NGẪU NHIÊN các case PASS. | `scripts/qa/pass_audit.js` | .claude/commands · tests/fe/infra |
 | T2 | SINH | `perf` | biến mục 16 (Performance/SLA) thành ĐO THẬT, so ngưỡng catalog → verdict. | `scripts/qa/perf_check.js` | RULE_GLOBAL.md · README.md · USER_GUIDE.md · scripts/qa/README.md · docs/kit-map.md · .github/workflows · .agent/workflows · .agent/skills · prompt_templates · tests/fe/infra |
 | T2 | SINH | `perf:report` | dựng báo cáo HTML từ artifact k6 CỦA MỘT LƯỢT CHẠY. CHỈ ĐỌC ĐĨA: | `scripts/qa/perf_report.js` | .agent/skills |
 | T2 | SINH | `quickstart:numbers`, `quickstart:numbers:check` | SINH bảng số đo trong `QUICKSTART.md` thay vì giữ nó bằng tay. | `scripts/qa/quickstart_numbers.js` | .github/workflows · tests/fe/infra |
