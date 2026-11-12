@@ -88,7 +88,7 @@ function buildTcMap(taskDir) {
         const mod = String(t.module || '').split('/')[0].trim() || '(unmapped)';
         // LỌC theo `DIMENSION_TAGS`, không lấy thô: ô `Tag` trộn ba thứ khác loại — tag chiều
         // (`[Security][Guard]`), LOẠI case (`[Positive]`) và oracle ref (`[BR-HOCSINH-001]`). Đo trên bộ
-        // CSDL-9003: 55 tên riêng biệt, trong đó 29 là `br-…`. Nhét thô vào bản ghi bug thì vừa làm bẩn
+        // TASK-9003: 55 tên riêng biệt, trong đó 29 là `br-…`. Nhét thô vào bản ghi bug thì vừa làm bẩn
         // nó vừa khiến `bugs_checklist --tag` lọc ra theo mã oracle — một nhãn không ai khai để lọc.
         const tags = canonical.tagNamesOf(t.tags, t.title)
           .map((x) => x.toLowerCase())

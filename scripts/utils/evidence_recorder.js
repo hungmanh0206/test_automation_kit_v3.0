@@ -98,7 +98,7 @@ function writeJsonAtomic(file, obj) {
  * `capHocLamViec` ưu tiên trước `capHoc`: biến sau là cấp ở FORM ĐĂNG NHẬP, biến trước mới là cấp của
  * ĐƠN VỊ LÀM VIỆC — và chính chỗ lệch giữa hai biến này từng làm 8 spec đo nhầm màn.
  *
- * Trả `null` khi không có biến nào: task không chạy QEMIS thì không bịa ra dấu.
+ * Trả `null` khi không có biến nào: task không chạy app có ngữ cảnh ngầm thì không bịa ra dấu.
  */
 /**
  * Mã cấp học ngắn, an toàn cho tên thư mục: MN · TH · THCS · THPT · GDTX.
@@ -107,26 +107,21 @@ function writeJsonAtomic(file, obj) {
  * quy đổi, nếu không ảnh nằm ở `THCS/` mà verdict đóng dấu `THPT` và không ai đối soát được.
  * Không suy được cấp thì dùng `khong-ro-cap` chứ KHÔNG gộp vào gốc: gộp là quay lại đúng lỗi ghi đè.
  */
+/* Biến nào mang ngữ cảnh, và bảng quy đổi ra mã ngắn, là DỮ LIỆU của dự án: `.agent/config/context_pins.json`
+ * (v3.0.0). Chưa khai thì không có dấu ngữ cảnh — đúng như task không chạy app có ngữ cảnh ngầm. */
+const PINS = require('./context_pins');
 function maCapAn() {
-  const s = String(process.env.QEMIS_CAP_HOC_LAM_VIEC || process.env.QEMIS_CAP_HOC || '')
-    .normalize('NFC').toLowerCase();
-  if (s.includes('mầm non')) return 'MN';
-  if (s.includes('thường xuyên') || s.includes('gdtx')) return 'GDTX';
-  if (s.includes('trung học phổ thông') || s.includes('thpt')) return 'THPT';
-  if (s.includes('trung học cơ sở') || s.includes('thcs')) return 'THCS';
-  if (s.includes('tiểu học')) return 'TH';
-  return 'khong-ro-cap';
+  const p = PINS.docPins();
+  const v = PINS.giaTri(p, 'capHoc');
+  return (v && PINS.maNgan(p, 'capHoc', v)) || 'khong-ro-cap';
 }
 
 function scopeHienTai() {
-  const g = (k) => {
-    const v = process.env[k];
-    return v && String(v).trim() ? String(v).trim() : undefined;
-  };
+  const p = PINS.docPins();
   const s = {
-    capHoc: g('QEMIS_CAP_HOC_LAM_VIEC') || g('QEMIS_CAP_HOC'),
-    truong: g('QEMIS_TRUONG_LAM_VIEC') || g('QEMIS_TRUONG'),
-    namHoc: g('QEMIS_NAM_HOC'),
+    capHoc: PINS.giaTri(p, 'capHoc'),
+    truong: PINS.giaTri(p, 'truong'),
+    namHoc: PINS.giaTri(p, 'namHoc'),
   };
   return Object.values(s).some(Boolean)
     ? Object.fromEntries(Object.entries(s).filter(([, v]) => v !== undefined))
@@ -210,7 +205,7 @@ class Case {
      * "Áp dụng cho cấp = Tất cả" chạy ở 5 cấp thì cả 5 lượt ghi vào CÙNG tên file: thứ còn lại là
      * mảnh ghép của nhiều lượt, mỗi cặp (step, status) giữ dấu của lượt ghi sau cùng.
      *
-     * Đo CSDL-9001 ngày 15/10/2026: 41/210 thư mục chứa ảnh của ≥2 lượt, thêm 129 thư mục mà Excel
+     * Đo TASK-9001 ngày 15/10/2026: 41/210 thư mục chứa ảnh của ≥2 lượt, thêm 129 thư mục mà Excel
      * khai kết quả ở ≥2 cấp nhưng chỉ còn ảnh của một lượt ⇒ 170/210 (81%) có ảnh không khớp verdict.
      * Nhìn tận mắt `TC_059`: `step-03-passed.png` chụp ở GDTX, `step-04-failed.png` chụp ở THPT.
      *
@@ -270,7 +265,7 @@ class Case {
    *
    * Chủ dự án nêu điều #2: *"chưa chứng minh Agent … dựng đúng state"*. Tôi đã thử đo bằng cách ĐỌC
    * SPEC, hai lần, và cả hai đều sai:
-   *   · bản chặt (đòi `expect` ngay trong `beforeAll`) gắn cờ **267/303 case** của CSDL-4008 — tố oan,
+   *   · bản chặt (đòi `expect` ngay trong `beforeAll`) gắn cờ **267/303 case** của TASK-4008 — tố oan,
    *     vì khối dựng gọi helper trong `lib/` và CHÍNH helper mới là chỗ ném lỗi;
    *   · bản nới (đi theo đường nhập, chấp nhận `throw` ở bất kỳ lib nào) gắn cờ **0** — vô nghĩa, vì
    *     gần như lib nào cũng có một `throw` ở đâu đó.
@@ -299,7 +294,7 @@ class Case {
    * `finish()` cho PASS đứng trên step xấu khi có `phucHoi` ≥ 25 ký tự; cửa đọc thì nhận khi comment có
    * chữ "phục hồi". Cả hai chỉ đếm chữ. Đo trên corpus 1161 bản ghi: **0** case đi qua đường đó — nên
    * siết bây giờ không làm đỏ việc nào, còn đợi tới khi có người dùng mới siết là làm đỏ việc của họ.
-   * Và chữ khớp nhầm có thật: CSDL-9004 ghi *"hệ phục hồi sau khi rút tải"* — nói về HỆ THỐNG, không
+   * Và chữ khớp nhầm có thật: TASK-9004 ghi *"hệ phục hồi sau khi rút tải"* — nói về HỆ THỐNG, không
    * nói về lượt test — vẫn khớp regex của cửa đọc.
    *
    * BẮT BUỘC có `assert`, và `status` tự khai bị BỎ QUA. Không có assert thì `step()` mặc định
@@ -350,7 +345,7 @@ class Case {
    * lượt đó khi người ta archive (`archive-cap-THCS/`) hoặc dọn thư mục. Bản gộp `testcase-status.json`
    * sống lâu hơn.
    *
-   * Đo trên CSDL-9001: bản archive 02/10 ghi `CSDL_HSTRUONG_TC_123` có `reruns: 2`; mọi bản từ 06/10
+   * Đo trên TASK-9001: bản archive 02/10 ghi `APP_HSTRUONG_TC_123` có `reruns: 2`; mọi bản từ 06/10
    * ghi 0, vì shard theo TC đã biến mất cùng lượt được archive. Verdict sống sót qua carry-over nhưng
    * BẰNG CHỨNG đã rerun thì reset — 7 verdict vốn đúng luật bị `output_gate` chặn vì "chỉ rerun 0 lần",
    * và người gặp sẽ hoặc chạy lại vô ích, hoặc sửa tay `reruns`, tức bịa đúng con số gate sinh ra để chặn.
@@ -444,7 +439,7 @@ class Case {
      * LỖ HỔNG ĐÃ MỞ TỚI 11/11/2026, ở ngay dòng trên. `laFail()` chỉ nhận `FAIL`, mà `BLOCKED` chuẩn
      * hoá thành `BLOCKED_SETUP` — "chưa thực thi", không phải fail. Nên case có step BLOCKED mà người
      * gọi không tự khai verdict rơi vào nhánh `steps.length ? 'PASSED'` và vào sổ là **PASSED**.
-     * CSDL-4008 ra 0/284 ca dính, nhưng chỉ vì spec ở đó luôn khai verdict tay — dữ liệu sạch KHÔNG
+     * TASK-4008 ra 0/284 ca dính, nhưng chỉ vì spec ở đó luôn khai verdict tay — dữ liệu sạch KHÔNG
      * chứng minh lỗ đã bịt.
      *
      * HAI ĐƯỜNG ĐỀU BỊT, vì chúng hỏng khác nhau:
@@ -578,7 +573,7 @@ class Case {
        * lượt đó khi người ta archive (`archive-cap-THCS/`) hoặc dọn thư mục. Bản gộp `testcase-status.json`
        * thì sống lâu hơn.
        *
-       * Đo trên CSDL-9001: bản archive ngày 02/10 ghi `CSDL_HSTRUONG_TC_123` có `reruns: 2`; mọi bản từ
+       * Đo trên TASK-9001: bản archive ngày 02/10 ghi `APP_HSTRUONG_TC_123` có `reruns: 2`; mọi bản từ
        * 06/10 ghi 0, vì shard theo TC đã biến mất cùng lượt chạy được archive. Verdict sống sót qua
        * carry-over nhưng BẰNG CHỨNG đã rerun thì reset. Hệ quả: 7 verdict vốn đúng luật bị `output_gate`
        * chặn với lý do "chỉ rerun 0 lần", và người gặp sẽ hoặc chạy lại một cách vô ích, hoặc sửa tay
@@ -600,7 +595,7 @@ class Case {
        * Chủ dự án nêu (ưu tiên #5): thay `Executed` bằng tóm tắt expected, actual và nguồn đo.
        *
        * `'Executed'` nói đúng một điều người đọc đã biết — case này đã chạy — và chiếm đúng chỗ của
-       * thứ đáng đọc. Đo trên CSDL-4008: 0/241 case dùng giá trị này, nên đây là lỗ TIỀM ẨN ở default
+       * thứ đáng đọc. Đo trên TASK-4008: 0/241 case dùng giá trị này, nên đây là lỗ TIỀM ẨN ở default
        * chứ chưa phải lỗi đang sống. Vì thế việc đúng là BỊT DEFAULT, không phải thêm một cửa ồn ào.
        *
        * Không ném: thiếu comment là chuyện biên tập, không phải mâu thuẫn trong spec. Nhưng chữ ghi ra
@@ -660,7 +655,7 @@ class EvidenceRecorder {
      * Vì sao từng case: `testcase-status.json` gộp cả shard của lượt trước, nên một file có thể chứa
      * kết quả của NHIỀU lượt — dấu ở mức file thì không nói được case nào thuộc lượt nào.
      *
-     * Vì sao cần: 08/10/2026 phát hiện cột `Result THCS` của CSDL-9001 bị ghi đè bằng 45 verdict của
+     * Vì sao cần: 08/10/2026 phát hiện cột `Result THCS` của TASK-9001 bị ghi đè bằng 45 verdict của
      * lượt chạy GDTX. Đường đi: `merge-theo-cap.js --cap THCS` chạy trong lúc `testcase-status.json`
      * đang chứa kết quả lượt GDTX. Không ai sai một cách cố ý, và KHÔNG MÁY NÀO BÁO — vì file kết quả
      * không ghi nó thuộc cấp nào, nên bên merge không có gì để đối chiếu. Dấu này là thứ để đối chiếu.
@@ -721,7 +716,7 @@ class EvidenceRecorder {
      * Gộp mọi shard là CỐ Ý (nhiều worker, và giữ được case đã xong khi process chết). Nhưng nó cũng
      * kéo theo kết quả của những LƯỢT CHẠY TRƯỚC: chạy lại 3 case mà status ra 51 case PASSED, đóng
      * dấu `generatedAt` hôm nay — đẩy lên TCM là báo PASS cho 48 case lượt này chưa hề chạy.
-     * (Đã xảy ra thật: CSDL-26523 chạy 3 case, status gộp thành 51, 48 case từ 13/07.)
+     * (Đã xảy ra thật: TASK-26523 chạy 3 case, status gộp thành 51, 48 case từ 13/07.)
      * Nên: entry cũ hơn lượt này được gắn `carriedOver` + `carriedFrom`, và cảnh báo ra stdout.
      * Ngưỡng GRACE 6h chứ không so đúng mốc start: Playwright khởi động các worker LỆCH NHAU vài giây,
      * so chính xác sẽ gắn nhầm cờ cho case của worker chạy trước.

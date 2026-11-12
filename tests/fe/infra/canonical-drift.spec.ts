@@ -116,7 +116,7 @@ test.describe('@infra canonical:drift — cờ `--task` phải THẮNG env', () 
    * mới bị bỏ qua, và gate đi gác task SAI mà không ai báo.
    */
   test('env trỏ task KHÔNG tồn tại, cờ trỏ task thật ⇒ gate gác theo CỜ', () => {
-    const t = dungTask(boMd([dongMd('CSDL_HSTRUONG_TC_001')]), null);
+    const t = dungTask(boMd([dongMd('APP_HSTRUONG_TC_001')]), null);
     const r = spawnSync(process.execPath, [MAY, '--task', 'T-DRIFT', '--json'], {
       cwd: REPO, encoding: 'utf8',
       env: { ...gateEnv(), PROJECT_OUTPUT_DIR: t.goc, TASK_KEY: 'T-KHONG-CO-THAT' },
@@ -124,7 +124,7 @@ test.describe('@infra canonical:drift — cờ `--task` phải THẮNG env', () 
     const ra = `${r.stdout}${r.stderr}`;
     expect(ra, 'cờ `--task` bị bỏ qua thì gate rơi về env và đi gác task không tồn tại')
       .not.toContain('T-KHONG-CO-THAT');
-    expect(ra, 'đọc được task từ cờ thì gate phải nói về task đó').toMatch(/T-DRIFT|CSDL_HSTRUONG_TC_001|CHUA_CO/);
+    expect(ra, 'đọc được task từ cờ thì gate phải nói về task đó').toMatch(/T-DRIFT|APP_HSTRUONG_TC_001|CHUA_CO/);
   });
 });
 
@@ -146,7 +146,7 @@ test.describe('@infra canonical:drift — chuẩn hoá trước khi so, không s
 
 test.describe('@infra canonical:drift — chỉ so trường có ở CẢ HAI phía', () => {
   /*
-   * ĐO ĐƯỢC NGÀY 11/10/2026 trên bộ thật CSDL-9001 (213 case): bản đầu so cả 10 trường và báo
+   * ĐO ĐƯỢC NGÀY 11/10/2026 trên bộ thật TASK-9001 (213 case): bản đầu so cả 10 trường và báo
    * **428 ô khác**, nghe như bộ đã trôi hoàn toàn. Gần hết là trường không tồn tại ở một phía.
    */
   test('trường bản xuất KHÔNG có cột ⇒ không so, và phải khai lý do', () => {
@@ -224,7 +224,7 @@ test.describe('@infra canonical:drift — bắt được trôi thật, và chỉ
      * và bản in 70 ký tự đầu cho ra HAI DÒNG GIỐNG NHAU từng chữ. Báo cáo nói "có khác biệt" rồi đưa
      * bằng chứng y hệt nhau thì người đọc sẽ nghi máy báo oan, trong khi máy đúng.
      */
-    const dai = 'Tài khoản QEMIS cấp trường có quyền quản trị hồ sơ trường, đơn vị là trường cấp ';
+    const dai = 'Tài khoản app mẫu cấp trường có quyền quản trị hồ sơ trường, đơn vị là trường cấp ';
     const t = dungTask(boMd([dongMd('TC_149', { pre: `[pre_existing] ${dai}Mầm non, năm học 2026-2027` })]), []);
     await ghiXlsx(path.join(t.tcDir, 'bo.xlsx'),
       ['ID_TC', 'Module', 'Test Case Name', 'Preconditions', 'Test Data', 'Test Steps', 'Expected Result', 'Priority'],

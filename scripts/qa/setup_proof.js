@@ -3,7 +3,7 @@
  * setup_proof — case GIẢ ĐỊNH một trạng thái thì lượt chạy có GHI LẠI việc kiểm trạng thái đó không?
  *
  * Dùng:
- *   node scripts/qa/setup_proof.js --task CSDL-4008 [--goc outputs/CSDL] [--json]
+ *   node scripts/qa/setup_proof.js --task TASK-4008 [--goc outputs/DEMO] [--json]
  *
  * ──────────────────────────────────────────────────────────────────────────────────────────────────
  * VÌ SAO CÓ MÁY NÀY
@@ -15,7 +15,7 @@
  * HAI LẦN ĐO SAI TRƯỚC KHI RA ĐƯỢC PHÉP ĐO NÀY — ghi lại vì nó là lý do tồn tại của cách làm hiện tại
  *
  * Lượt đầu tôi định ĐỌC SPEC: khối `beforeAll` có dựng tiền đề không, có nghiệm thu không.
- *   · Bản chặt (đòi `expect` ngay trong thân `beforeAll`): gắn cờ **267/303 case** của CSDL-4008.
+ *   · Bản chặt (đòi `expect` ngay trong thân `beforeAll`): gắn cờ **267/303 case** của TASK-4008.
  *     Tố oan — khối dựng gọi `damBaoDonVi()`, `bamLayDuLieu()` trong `lib/`, và CHÍNH helper đó mới
  *     là chỗ ném lỗi. Vế ÂM không đáng tin thì cả phép đo không dùng được.
  *   · Bản nới (đi theo đường nhập, chấp nhận `throw` ở bất kỳ lib nào spec nhập): gắn cờ **0**.
@@ -53,7 +53,7 @@ const arg = (t) => {
 const JSONRA = process.argv.includes('--json');
 const TASK = arg('task');
 if (!TASK) { console.error('[setup-proof] cần `--task <TASK_KEY>`'); process.exit(2); }
-const T = path.join(path.resolve(arg('goc') || process.env.PROJECT_OUTPUT_DIR || path.join(REPO, 'outputs', 'CSDL')), 'tasks', TASK);
+const T = path.join(path.resolve(arg('goc') || process.env.PROJECT_OUTPUT_DIR || path.join(REPO, 'outputs', 'DEMO')), 'tasks', TASK);
 
 /* Tiền điều kiện phải DỰNG. `pre_existing` và `manual` cố ý không tính: cái đầu không dựng gì, cái
  * sau never-auto nên không có lượt chạy để ghi. */

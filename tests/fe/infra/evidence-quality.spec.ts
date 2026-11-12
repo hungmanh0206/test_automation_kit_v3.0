@@ -10,8 +10,8 @@ import zlib from 'zlib';
  * "Có file ảnh" và "ảnh đúng màn" là hai chuyện, và cho tới nay không máy nào phân biệt — nên một case
  * PASS kèm ảnh trắng đi qua mọi cửa. Hai ca THẬT trong repo này, cả hai đã mở mắt kiểm:
  *
- *   · `CSDL_HSTRUONG_TC_138/step-01-passed.png` — 1280×720, 4 KB, TRẮNG HOÀN TOÀN, của step `passed`.
- *   · `CSDL_NHANSU_TC_121/step-01-failed.png` — 1280×720, 9 KB, nội dung là trang lỗi HTTP 503.
+ *   · `APP_HSTRUONG_TC_138/step-01-passed.png` — 1280×720, 4 KB, TRẮNG HOÀN TOÀN, của step `passed`.
+ *   · `APP_NHANSU_TC_121/step-01-failed.png` — 1280×720, 9 KB, nội dung là trang lỗi HTTP 503.
  *
  * NGƯỠNG KHÔNG ĐƯỢC ĐỔI BẰNG CẢM TÍNH. Nó đến từ 1.935 ảnh evidence thật, và có một khoảng trống rõ
  * trong phân bố: nhóm nghi ngờ cao nhất 0,0095, nhóm còn lại thấp nhất 0,0289. Test dưới khoá cả hai

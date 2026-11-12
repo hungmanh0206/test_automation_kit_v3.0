@@ -38,13 +38,13 @@ vi_sao: "`release:summary` đọc sổ kết quả + sổ miễn trừ của m�
   Một tiêu chí "đạt" nhờ miễn trừ KHÁC một tiêu chí đạt thật. Hết hạn thì gate đỏ lại.
 
 — ĐỀ XUẤT —
-  ĐỀ XUẤT: NO-GO — còn 1 bug High mở (CSDL-4188) · 1 module chưa có case nào (Điểm trường).
+  ĐỀ XUẤT: NO-GO — còn 1 bug High mở (TASK-4188) · 1 module chưa có case nào (Điểm trường).
   Đây là KHUYẾN NGHỊ. Quyết định release là của PM/PO: họ cân thêm áp lực thị trường và chi phí hoãn.
 ```
 
 ## Phần người viết, máy không viết hộ
 
-**Bug High còn mở là bug nào, và nó chặn ai.** `CSDL-4188`: lưu lớp mới ở phân hiệu thứ hai không ghi
+**Bug High còn mở là bug nào, và nó chặn ai.** `TASK-4188`: lưu lớp mới ở phân hiệu thứ hai không ghi
 được bản ghi, triệu chứng giống "app chặn trùng mã". Chặn luồng tạo lớp ở 3/10 trường liên cấp.
 
 **Module chưa có case nào là module nào, và vì sao.** Điểm trường — phạm vi mở thêm ngày 04/11, chưa

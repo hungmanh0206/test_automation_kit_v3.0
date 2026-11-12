@@ -6,7 +6,7 @@
  * ─────────────────────────────────────────────────────────────────────────────────────────────────────
  * VÌ SAO MỤC NÀY LÀ NÚT THẮT, có số đo.
  *
- * Đo trên 1.079 mệnh đề của CSDL-9001: **330 mệnh đề (31%)** trỏ field bằng `Stt #` chứ không bằng nhãn
+ * Đo trên 1.079 mệnh đề của TASK-9001: **330 mệnh đề (31%)** trỏ field bằng `Stt #` chứ không bằng nhãn
  * — `tải lại màn và đọc lại Stt #` 56 lượt, `Stt # = #` 19 lượt. Không có bản đồ này thì L1 không tra
  * được, và 31% câu bước của module rơi vào `none` bất kể danh mục có bao nhiêu bước.
  *

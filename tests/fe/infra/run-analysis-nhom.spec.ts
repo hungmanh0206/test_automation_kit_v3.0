@@ -10,7 +10,7 @@
  *     chỗ đó phải sửa ở lượt chạy, không sửa được ở bộ gom;
  *   · soi tay 9 nhóm: **6 nhóm gom sai**, vì `comment` phần lớn là câu KHUÔN MẪU chứ không phải
  *     nguyên nhân (một nhóm 23 case chỉ chung câu "Lệch kỳ vọng ở N bước");
- *   · và tỉ lệ nén KHÔNG phải điểm chất lượng: vá bộ nối làm CSDL-9004 từ 57 lên **65 nhóm** — nén tụt
+ *   · và tỉ lệ nén KHÔNG phải điểm chất lượng: vá bộ nối làm TASK-9004 từ 57 lên **65 nhóm** — nén tụt
  *     đúng vì gom ĐÚNG HƠN.
  *
  * Nên nó là BẢN NHÌN ĐẦU, và spec bên dưới có một phép kiểm riêng bắt buộc bản in phải TỰ NÓI điều đó.
@@ -89,7 +89,7 @@ test.describe('@infra run:analysis --nhom — gom đúng, tách đúng', () => {
     const n = ra.chuanHoaLoi;
     expect(n('Error: chờ 15000 ms ở D:/tmp/x/a.png lúc 2026-10-30 09:12'))
       .toBe('chờ <ms> ở <đường-dẫn> lúc <lúc>');
-    expect(n('AssertionError: CSDL_HS_TC_048 lệch 3 dòng')).toBe('<TC> lệch <số> dòng');
+    expect(n('AssertionError: APP_HS_TC_048 lệch 3 dòng')).toBe('<TC> lệch <số> dòng');
     /* Hai câu CÙNG nguyên nhân, khác số ⇒ cùng chữ ký. */
     expect(n('Error: lệch 3 dòng')).toBe(n('Error: lệch 97 dòng'));
     /* Mã HTTP giữ nguyên ⇒ hai mã khác nhau vẫn là hai chữ ký. */
@@ -137,22 +137,22 @@ test.describe('@infra run:analysis --nhom — gom đúng, tách đúng', () => {
 
   test('mã TC có HẬU TỐ CHỮ vẫn nối được (`TC_078c`)', () => {
     /*
-     * Mẫu đầu dùng `TC_\d+\b` nên bỏ sót đúng những mã kiểu `CSDL_HS_TC_078c` — bộ case thật có chúng.
+     * Mẫu đầu dùng `TC_\d+\b` nên bỏ sót đúng những mã kiểu `APP_HS_TC_078c` — bộ case thật có chúng.
      */
-    expect('CSDL_HS_TC_078c — thôi học'.match(ra.RE_TC_TRONG_TIEU_DE)?.[0]).toBe('CSDL_HS_TC_078c');
+    expect('APP_HS_TC_078c — thôi học'.match(ra.RE_TC_TRONG_TIEU_DE)?.[0]).toBe('APP_HS_TC_078c');
     expect('M_TC_010 — x'.match(ra.RE_TC_TRONG_TIEU_DE)?.[0]).toBe('M_TC_010');
   });
 
-  test('MÃ TRẦN trong tiêu đề nối được MÃ ĐỦ trong sổ (`TC_021` ⇄ `CSDL_NHANSU_TC_021`)', () => {
+  test('MÃ TRẦN trong tiêu đề nối được MÃ ĐỦ trong sổ (`TC_021` ⇄ `APP_NHANSU_TC_021`)', () => {
     /*
-     * Lỗi thật: CSDL-9004 có 39 dòng lỗi, 28 mã TC trong tiêu đề, mà nối được 0/86 ca — chỉ vì spec đặt
+     * Lỗi thật: TASK-9004 có 39 dòng lỗi, 28 mã TC trong tiêu đề, mà nối được 0/86 ca — chỉ vì spec đặt
      * tiêu đề bằng mã trần còn sổ ghi mã đủ. Một giới hạn GIẢ bị tôi ghi vào tài liệu như giới hạn thật.
      */
     const noi = ra.boNoi(
-      [{ tcId: 'CSDL_NHANSU_TC_021', status: 'FAILED' }],
+      [{ tcId: 'APP_NHANSU_TC_021', status: 'FAILED' }],
       new Map([['TC_021 — lưu hồ sơ đội ngũ', 'Error: ô bắt buộc không được bỏ trống']]),
     );
-    expect(noi('CSDL_NHANSU_TC_021')).toMatch(/ô bắt buộc/);
+    expect(noi('APP_NHANSU_TC_021')).toMatch(/ô bắt buộc/);
   });
 
   test('ĐỐI CHỨNG ÂM: hậu tố NHẬP NHẰNG (2 ca cùng `TC_021`) ⇒ TỪ CHỐI nối', () => {
@@ -162,13 +162,13 @@ test.describe('@infra run:analysis --nhom — gom đúng, tách đúng', () => {
      */
     const noi = ra.boNoi(
       [
-        { tcId: 'CSDL_NHANSU_TC_021', status: 'FAILED' },
-        { tcId: 'CSDL_LOP_TC_021', status: 'FAILED' },
+        { tcId: 'APP_NHANSU_TC_021', status: 'FAILED' },
+        { tcId: 'APP_LOP_TC_021', status: 'FAILED' },
       ],
       new Map([['TC_021 — một màn nào đó', 'Error: câu lỗi không rõ của ai']]),
     );
-    expect(noi('CSDL_NHANSU_TC_021'), 'nhập nhằng thì thà KHÔNG nối').toBeUndefined();
-    expect(noi('CSDL_LOP_TC_021')).toBeUndefined();
+    expect(noi('APP_NHANSU_TC_021'), 'nhập nhằng thì thà KHÔNG nối').toBeUndefined();
+    expect(noi('APP_LOP_TC_021')).toBeUndefined();
   });
 
   test('mã ĐỦ khớp chính xác vẫn thắng, và KHÔNG khớp nhầm mã dài hơn', () => {
@@ -185,7 +185,7 @@ test.describe('@infra run:analysis --nhom — gom đúng, tách đúng', () => {
      * Bản đầu có HAI bản sao logic nối, nên bản in khai "0 ca nối được" trong khi phép gom đã nối 15 ca.
      * Một con số tự nói sai về chính mình thì tệ hơn là không in.
      */
-    const tests: Tc[] = [{ tcId: 'CSDL_NHANSU_TC_021', status: 'FAILED', failureLayer: 'fe' }];
+    const tests: Tc[] = [{ tcId: 'APP_NHANSU_TC_021', status: 'FAILED', failureLayer: 'fe' }];
     const k = dungLuot(tests, [['TC_021 — lưu hồ sơ', 'Error: ô bắt buộc không được bỏ trống']]);
     const out = chay(k.f).out;
     expect(out, 'nối bằng mã trần thì số in ra phải là 1/1, không phải 0/1').toMatch(/1\/1 ca nối được/);

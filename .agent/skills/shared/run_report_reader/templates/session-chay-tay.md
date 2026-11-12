@@ -11,12 +11,12 @@ vi_sao: "`manual:check:enforce` đọc `manual-run/session.md` BÊN TRONG thư m
 > là placeholder**. Điền `[tên]` hay `TBD` không qua được — placeholder là chỗ trống có mặc áo.
 >
 > **Trường thứ năm, "Đơn vị / cấp học", là trường hay bị bỏ nhất và tốn nhất khi bỏ.** Một tài khoản
-> QEMIS chỉ thuộc một cấp; không ghi đơn vị thì sáu tháng sau không ai biết lượt này chạy ở cấp nào, và
+> app mẫu chỉ thuộc một cấp; không ghi đơn vị thì sáu tháng sau không ai biết lượt này chạy ở cấp nào, và
 > hai lượt khác cấp trông giống nhau hoàn toàn.
 
 ---
 
-## Phiên chạy tay — CSDL-9002 · Hồ sơ lớp học
+## Phiên chạy tay — TASK-9002 · Hồ sơ lớp học
 
 - Người chạy: Nguyễn Văn A (QA)
 - Ngày: 06/11/2026
@@ -30,7 +30,7 @@ vi_sao: "`manual:check:enforce` đọc `manual-run/session.md` BÊN TRONG thư m
 |---|---|---|
 | `NT-LOP-040` | PASSED | Tài khoản chỉ-xem: nút Thêm mới và Xóa không hiện trên thanh công cụ. Ảnh ở `artifacts/NT-LOP-040-toolbar.png`. |
 | `NT-LOP-041` | PASSED | Gõ thẳng URL màn Thêm khi đang ở tài khoản chỉ-xem: app trả về màn danh sách, không mở form. |
-| `NT-LOP-042` | FAILED | Màn Sửa **không** chặn mã lớp trùng, trong khi màn Thêm chặn. Tầng `product_bug` nên có ảnh mỗi step ở `artifacts/NT-LOP-042-*`. Đã log `CSDL-4193`. |
+| `NT-LOP-042` | FAILED | Màn Sửa **không** chặn mã lớp trùng, trong khi màn Thêm chặn. Tầng `product_bug` nên có ảnh mỗi step ở `artifacts/NT-LOP-042-*`. Đã log `TASK-4193`. |
 | `NT-LOP-043` | BLOCKED | Cần lớp đã có học sinh ở hai khối; tìm toàn UAT không có. Hẹn DBA nạp. |
 
 ## Điều máy không đối chiếu được, nên phải kể

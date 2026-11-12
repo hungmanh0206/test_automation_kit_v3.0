@@ -64,7 +64,7 @@
     "apply",
     "update"
   ],
-  "_vi_sao_co_ngoai_le": "\"ghi\" phai nam trong danh sach: QEMIS co nut \"Ghi\" o CA 5 cap hoc, do la nut luu that. Nhung \"ghi\" cung dung thanh tu rieng trong nhung nhan CHI-DOC (\"Ghi chu\", \"Ghi nhan\"), nen khop theo ranh gioi tu se chan oan va lam luot bo MAT MAN. Do duoc khi viet ham: 1/8 nhan chi-doc bi chan oan. Neu bo \"ghi\" thi mat nut luu that o 5 cap — nen giu, va khai ngoai le tuong minh o day.",
+  "_vi_sao_co_ngoai_le": "\"ghi\" phai nam trong danh sach: app mẫu co nut \"Ghi\" o CA 5 cap hoc, do la nut luu that. Nhung \"ghi\" cung dung thanh tu rieng trong nhung nhan CHI-DOC (\"Ghi chu\", \"Ghi nhan\"), nen khop theo ranh gioi tu se chan oan va lam luot bo MAT MAN. Do duoc khi viet ham: 1/8 nhan chi-doc bi chan oan. Neu bo \"ghi\" thi mat nut luu that o 5 cap — nen giu, va khai ngoai le tuong minh o day.",
   "_ngoai_le_co_an_toan_khong": "Co, vi day la LOP THU HAI. Mot nhan trong danh sach ngoai le ma hoa ra co ghi du lieu thi request ghi cua no VAN bi lop thu nhat (abort theo method) chan. Gia cua ngoai le la mat do phu luot bo, khong phai mat an toan.",
   "nhan_chi_doc_khong_chan": [
     "ghi chú",
@@ -104,7 +104,7 @@
     "do_tre_giua_thao_tac_ms": 250,
     "thoi_gian_toi_da_phut": 20,
     "thoi_gian_moi_trang_giay": 90,
-    "_vi_sao_co_tran_moi_trang": "Trần TỔNG (`thoi_gian_toi_da_phut`) chỉ được kiểm ở ĐẦU mỗi vòng lặp, nên một trang treo thì nó KHÔNG BAO GIỜ bắn — lượt bò chạy vô hạn mà vẫn \"trong ngân sách\". Phát hiện khi chuẩn bị lượt §E trên QEMIS: app Telerik postback khiến mỗi trang tốn hàng chục giây, và lúc đó mới thấy trần tổng không đủ. Trần MỖI TRANG bọc toàn bộ phần xử lý một trang (mở khối, đọc dấu vân tay, gom link); hết giờ thì ghi trang đó vào `khong_toi_duoc.error` rồi đi tiếp, KHÔNG làm chết cả lượt.",
+    "_vi_sao_co_tran_moi_trang": "Trần TỔNG (`thoi_gian_toi_da_phut`) chỉ được kiểm ở ĐẦU mỗi vòng lặp, nên một trang treo thì nó KHÔNG BAO GIỜ bắn — lượt bò chạy vô hạn mà vẫn \"trong ngân sách\". Phát hiện khi chuẩn bị lượt §E trên app mẫu: app Telerik postback khiến mỗi trang tốn hàng chục giây, và lúc đó mới thấy trần tổng không đủ. Trần MỖI TRANG bọc toàn bộ phần xử lý một trang (mở khối, đọc dấu vân tay, gom link); hết giờ thì ghi trang đó vào `khong_toi_duoc.error` rồi đi tiếp, KHÔNG làm chết cả lượt.",
     "_het_gioi_han_thi_sao": "DỪNG và ghi phần chưa tới vào `crawl_completeness.khong_toi_duoc.budget`. KHÔNG báo 100%."
   },
   "_tu_dien_loi_sql_la_gi": "Dấu hiệu MÁY ĐỌC ĐƯỢC của việc back-end để lọt lỗi cơ sở dữ liệu ra ngoài. Dùng ở oracle case injection (A9.3) và ở `dim:coverage`. Một dòng khớp = FAIL, không cần suy luận thêm: thông báo lỗi SQL lọt ra UI/response đã là lỗ thông tin, bất kể có inject được hay không.",

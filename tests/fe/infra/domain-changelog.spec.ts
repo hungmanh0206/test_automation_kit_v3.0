@@ -35,7 +35,7 @@ const RULE = (over: Record<string, unknown> = {}) => ({
   confirmed_at: '2026-10-01',
   version: 2,
   status: 'active',
-  covered_by: ['CSDL_HS_TC_088'],
+  covered_by: ['APP_HS_TC_088'],
   examples: [{ input: 'abc', expected: 'CHẶN, thông báo định dạng email' }],
   ...over,
 });
@@ -57,7 +57,7 @@ const DONG = (id = 'BR-HOCSINH-002', ver = '1→2') => `# Nhật ký đổi rule
 
 | Ngày | Rule | Version | Loại đổi | Nguồn | TC cần xử lý |
 |---|---|---|---|---|---|
-| 2026-10-10 | ${id} | ${ver} | siết điều kiện | FSD v3 §4.2 | CSDL_HS_TC_088 |
+| 2026-10-10 | ${id} | ${ver} | siết điều kiện | FSD v3 §4.2 | APP_HS_TC_088 |
 `;
 
 test.describe('@infra domain:check — nhật ký đổi rule', () => {

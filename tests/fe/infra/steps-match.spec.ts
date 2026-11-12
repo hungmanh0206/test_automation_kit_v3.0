@@ -155,7 +155,7 @@ test.describe('§C2 — tách giá trị thành tham số', () => {
      * lưới, không phải giá trị người dùng nhập". Lý lẽ đó sai ở đúng chỗ quan trọng nhất: `Stt 87` là
      * thứ XÁC ĐỊNH FIELD NÀO, tức tham số đầu tiên của bước.
      *
-     * Đo trên 1.079 mệnh đề của CSDL-9001: 330 mệnh đề (31%) trỏ field bằng `Stt #`, và với `#` không
+     * Đo trên 1.079 mệnh đề của TASK-9001: 330 mệnh đề (31%) trỏ field bằng `Stt #`, và với `#` không
      * phải tham số thì KHÔNG bước nào khớp được chúng — bất kể danh mục có bao nhiêu mục. Sau khi sửa,
      * tỉ lệ dùng lại của 9001 đi từ 13% lên 19%.
      */

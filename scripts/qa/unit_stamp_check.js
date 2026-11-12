@@ -6,12 +6,12 @@
  * VÌ SAO
  * ===================================================================================================
  *
- * Đo trên CSDL-9003 ngày 09/10/2026: artifact của MỘT task trải trên ÍT NHẤT BỐN đơn vị khác nhau, và
+ * Đo trên TASK-9003 ngày 09/10/2026: artifact của MỘT task trải trên ÍT NHẤT BỐN đơn vị khác nhau, và
  * không chỗ nào trong verdict ghi lại —
  *
  *   · TEST 1 (1700001001) · Phú Thọ        → bản đồ field + `docs/form-that-vs-dac-ta.md`
- *   · Đức Trí - Minh Khai (74000831) · HCM → `profiles/<TASK>/task.env`, CSDL_HS_TC_011, TC_004
- *   · TH Võ Thị Sáu (79764417)             → CSDL_HS_TC_009 (chỉ biết nhờ người viết tay vào comment)
+ *   · Đức Trí - Minh Khai (74000831) · HCM → `profiles/<TASK>/task.env`, APP_HS_TC_011, TC_004
+ *   · TH Võ Thị Sáu (79764417)             → APP_HS_TC_009 (chỉ biết nhờ người viết tay vào comment)
  *   · Elite (0100000001) · Hà Nội          → `_hs_form_reader.js` tự đăng nhập vào
  *
  * Hậu quả đo được: kỳ vọng "đúng 10 trường bắt buộc" rút ra ở TEST 1, trong khi case chạy ở Đức Trí —
@@ -52,7 +52,7 @@ function tham(ten, macDinh = null) {
 }
 
 const TASK = tham('--task', process.env.TASK_KEY);
-const OUT = tham('--project-output', process.env.PROJECT_OUTPUT_DIR || 'outputs/CSDL');
+const OUT = tham('--project-output', process.env.PROJECT_OUTPUT_DIR || 'outputs/DEMO');
 const ENFORCE = process.argv.includes('--enforce');
 
 if (!TASK) {
@@ -108,7 +108,7 @@ if (co.length) {
     console.log('');
     console.log(`[unit-stamp] ⚠ Task này có verdict từ ${nhom.size} đơn vị khác nhau. Không tự nó là lỗi,`);
     console.log('             nhưng kỳ vọng rút ra ở đơn vị này mà áp cho đơn vị kia thì sai mẫu số —');
-    console.log('             đã xảy ra ở CSDL-9003 ("đúng 10 trường bắt buộc" đo ở TEST 1, case chạy ở Đức Trí).');
+    console.log('             đã xảy ra ở TASK-9003 ("đúng 10 trường bắt buộc" đo ở TEST 1, case chạy ở Đức Trí).');
   }
 }
 

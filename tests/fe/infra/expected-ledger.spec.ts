@@ -113,7 +113,7 @@ test.describe('@infra expected:check — bắt được thay đổi expected', (
 /*
  * MẪU SỐ CỦA CHÍNH CÂU `✓ ĐẠT` (v2.9.7).
  *
- * Đo 01/11/2026 trên CSDL-4008: bộ có 312 case, mốc chứa 273, cửa in `+ 39 case MỚI` rồi kết luận
+ * Đo 01/11/2026 trên TASK-4008: bộ có 312 case, mốc chứa 273, cửa in `+ 39 case MỚI` rồi kết luận
  * `✓ ĐẠT`. Câu đó đúng từng chữ — không case nào ĐỔI expected — nhưng nó không nói nó phán trên bao
  * nhiêu, nên người đọc nhận được "cả bộ đã gác". Đổi expected ở đúng 39 case đó là vô hình.
  *
@@ -121,7 +121,7 @@ test.describe('@infra expected:check — bắt được thay đổi expected', (
  * "chụp ở cửa chốt" phải bị tố cáo khi bộ case lớn thêm sau mốc.
  *
  * Cửa có HAI đường in `✓ ĐẠT` (0 case đổi · có đổi nhưng đã khai đủ). Lượt vá đầu của tôi chỉ sửa
- * đường thứ hai, mà ca CSDL-4008 nổ ở đường THỨ NHẤT — tức bản vá rỗng đúng với ca sinh ra nó. Nên
+ * đường thứ hai, mà ca TASK-4008 nổ ở đường THỨ NHẤT — tức bản vá rỗng đúng với ca sinh ra nó. Nên
  * mỗi đường có một phép kiểm RIÊNG ở đây.
  */
 test.describe('@infra expected:check — câu ĐẠT phải mang mẫu số', () => {
@@ -221,7 +221,7 @@ test.describe('@infra expected:check — cờ `--task` phải THẮNG env', () =
    * mới bị bỏ qua, và gate đi gác task SAI mà không ai báo.
    */
   test('env trỏ task KHÔNG tồn tại, cờ trỏ task thật ⇒ gate gác theo CỜ', () => {
-    const t = dungTask(bo([{ id: 'CSDL_HSTRUONG_TC_001', expected: '1. Màn mở được' }]));
+    const t = dungTask(bo([{ id: 'APP_HSTRUONG_TC_001', expected: '1. Màn mở được' }]));
     const r = spawnSync(process.execPath, [MAY, '--task', 'T-EXP', '--snapshot'], {
       cwd: REPO, encoding: 'utf8',
       env: { ...gateEnv(), PROJECT_OUTPUT_DIR: t.goc, TASK_KEY: 'T-KHONG-CO-THAT' },
@@ -277,7 +277,7 @@ test.describe('@infra expected:check — "chưa gác được" KHÔNG thành "đ
 test.describe('@infra expected:check — không tạo thêm bản sao PII', () => {
   test('file mốc chỉ lưu BĂM, không lưu nguyên văn expected', () => {
     /*
-     * Expected của case QEMIS mang tên đơn vị, tên trường, có lúc cả tên người. CLAUDE.md §1 cấm tạo
+     * Expected của case app mẫu mang tên đơn vị, tên trường, có lúc cả tên người. CLAUDE.md §1 cấm tạo
      * file chứa dữ liệu cá nhân, và "file mốc nội bộ" không phải ngoại lệ.
      */
     const noiDung = 'Hiện thông báo cho Nguyễn Văn A tại trường THCS Đức Trí';

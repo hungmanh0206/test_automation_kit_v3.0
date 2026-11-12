@@ -117,7 +117,7 @@ test.describe('@infra select_tests — register phantom thì nói ra', () => {
 
   test('High band mà 0 bug · 0 failRate · Impact từ config ⇒ CẢNH BÁO', () => {
     /*
-     * Đo 11/10/2026 trên `CSDL-9003`: 10 module band High và CẢ 10 đều phantom (`Payment`,
+     * Đo 11/10/2026 trên `TASK-9003`: 10 module band High và CẢ 10 đều phantom (`Payment`,
      * `Transaction Management`, `Cash Management`… — module của dự án TRƯỚC còn trong `risk_model.json`),
      * trong khi 18 module CÓ dữ liệu thật bị chặn trần Medium.
      *

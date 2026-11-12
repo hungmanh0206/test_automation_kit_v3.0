@@ -87,7 +87,7 @@ test.describe('@infra ambiguity:gate — đọc trạng thái, bốn hình dạn
   test('BẪY CRLF: file xuống dòng kiểu Windows vẫn đọc được câu hỏi', () => {
     /*
      * Trong JS, `.` không khớp `\r` và `$` không khớp trước `\r`. Bản đầu tách dòng bằng `\n` nên mọi
-     * tiêu đề của file CRLF trượt hết — `CSDL-9004` có 21 câu mà máy đọc ra 0. Trong chế độ CHẶT, task
+     * tiêu đề của file CRLF trượt hết — `TASK-9004` có 21 câu mà máy đọc ra 0. Trong chế độ CHẶT, task
      * đó bị chặn vì BỘ ĐỌC thiếu: một hạn chế của máy hoá thành cáo buộc về công việc của người.
      */
     const lf = '### Q1 — hỏi gì đó · Critical\ntrả lời có\n';
@@ -103,8 +103,8 @@ test.describe('@infra ambiguity:gate — đọc trạng thái, bốn hình dạn
      * mức nào máy đọc được, nên chúng KHÔNG chạm nghĩa vụ nào — gate gác im lặng nửa số câu, và phần
      * "đã gác" của nó là lời khai chứ không phải phép đo.
      *
-     * Nguyên nhân không phải tài liệu thiếu nhãn: `CSDL-9004` đặt mức ở `## CRITICAL` / `## HIGH`,
-     * `CSDL-9003` nhóm theo `## Blocking` / `## Non-blocking`. Nhãn có đủ, MÁY ĐỌC THIẾU.
+     * Nguyên nhân không phải tài liệu thiếu nhãn: `TASK-9004` đặt mức ở `## CRITICAL` / `## HIGH`,
+     * `TASK-9003` nhóm theo `## Blocking` / `## Non-blocking`. Nhãn có đủ, MÁY ĐỌC THIẾU.
      */
     const duoi = (md: string) => A.docCauHoi(md)[0];
 
@@ -258,19 +258,19 @@ test.describe('@infra ambiguity:gate — đo trên 5 task THẬT trước khi b�
      * Điều kiện của chế độ di trú: bật gate mà không làm đỏ việc đang chạy. Đo trên dữ liệu thật chứ
      * không trên fixture — fixture do tôi viết nên nó chỉ chứng minh máy khớp với giả định của tôi.
      */
-    const pod = path.join(REPO, 'outputs', 'CSDL');
+    const pod = path.join(REPO, 'outputs', 'DEMO');
     test.skip(!fs.existsSync(pod), 'không có task thật trong cây này (lớp PROJECT, gitignore)');
 
     const mong: Record<string, string> = {
-      'CSDL-3544': 'PARTIALLY RESOLVED',
-      'CSDL-9001': 'RESOLVED',
-      'CSDL-9002': 'PARTIALLY RESOLVED',
-      'CSDL-9003': 'RESOLVED',
-      'CSDL-9004': 'RESOLVED-BY-DEFAULT',
+      'TASK-3544': 'PARTIALLY RESOLVED',
+      'TASK-9001': 'RESOLVED',
+      'TASK-9002': 'PARTIALLY RESOLVED',
+      'TASK-9003': 'RESOLVED',
+      'TASK-9004': 'RESOLVED-BY-DEFAULT',
     };
     for (const [t, tt] of Object.entries(mong)) {
       if (!fs.existsSync(path.join(pod, 'tasks', t, 'task.md'))) continue;
-      const r = spawnSync(process.execPath, [AG, '--task', t, '--pod', 'outputs/CSDL'], {
+      const r = spawnSync(process.execPath, [AG, '--task', t, '--pod', 'outputs/DEMO'], {
         cwd: REPO, encoding: 'utf8', env: gateEnv(),
       });
       const out = `${r.stdout || ''}${r.stderr || ''}`;

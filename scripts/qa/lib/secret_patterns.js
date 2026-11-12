@@ -64,6 +64,20 @@ const PROJECT_MARKERS = [
  *
  * Chưa khai bảng nào ⇒ trả rỗng. Đó là trạng thái đúng: không có gì để rò thì không chặn oan.
  */
+/**
+ * TỪ CẤM của dự án (v3.0.0) — tên sản phẩm, mã task, host, mã đơn vị thật… Chính danh sách này cũng là
+ * định danh của dự án, nên nó nằm ở lớp PROJECT (`.agent/config/package_deny_terms.json`, KHÔNG vào gói) và
+ * được đọc từ gốc NGUỒN, không từ cây gói. Không có file ⇒ rỗng.
+ * Khuôn: `{ "tu_cam": [{ "name": "…", "re": "…", "flags": "i" }] }`.
+ */
+function markersFromDenyTerms(root) {
+  let j;
+  try {
+    j = JSON.parse(require('fs').readFileSync(require('path').join(root, '.agent', 'config', 'package_deny_terms.json'), 'utf8'));
+  } catch (e) { return []; }
+  return (j.tu_cam || []).map((t) => ({ name: t.name, re: new RegExp(t.re, (t.flags || '').replace(/g/g, '')) }));
+}
+
 function markersFromConventions(root) {
   let conv;
   try {
@@ -85,4 +99,4 @@ function markersFromConventions(root) {
     .map((n) => ({ name: `bảng DB của dự án (${n})`, re: new RegExp(`\\b${n}\\b`) }));
 }
 
-module.exports = { PATTERNS, CRED_FILE, CRED_CONTENT, PROJECT_MARKERS, markersFromConventions };
+module.exports = { PATTERNS, CRED_FILE, CRED_CONTENT, PROJECT_MARKERS, markersFromConventions, markersFromDenyTerms };

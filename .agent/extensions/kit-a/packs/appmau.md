@@ -1,4 +1,4 @@
-# QEMIS / CSDL giáo dục — Advanced Prompt Pack V10
+# app mẫu (giáo dục) — Advanced Prompt Pack V10
 
 **Status:** optional reference only. Authority remains `RULE_GLOBAL.md` and Kit B canonical gates. Not a substitute for actual execution or human-approved oracle.
 **Owner:** `qa_automation_engineer` · `ui_debug_agent` · **Origin:** sự cố ĐÃ XẢY RA trên chính dự án này, không phải lý thuyết QA tổng quát.
@@ -15,7 +15,7 @@ và người đo vớ lấy nguyên nhân đầu tiên nghĩ ra.**
 > *"app phải thế này"*. Kỳ vọng vẫn chỉ đến từ đặc tả hoặc ô `Kết quả mong đợi` của case.
 
 ## Activation
-Dùng khi execute hoặc debug trên QEMIS/CSDL. Không dùng cho hệ thống khác — các bẫy dưới đây gắn với
+Dùng khi execute hoặc debug trên app mẫu. Không dùng cho hệ thống khác — các bẫy dưới đây gắn với
 Telerik WebForms, mô hình đơn vị–cấp học–năm học, và máy chủ UAT cụ thể của dự án.
 
 ---
@@ -61,7 +61,7 @@ chọn thì `get_value()` luôn rỗng — đọc danh sách ô tích, đừng �
 
 **Triệu chứng.** Mọi case PASS, ảnh đẹp, số liệu hợp lý — nhưng là của cấp học khác.
 
-**Đừng kết luận.** Rằng lượt chạy đó có giá trị. Một tài khoản QEMIS chỉ thuộc **một cấp**; thiếu ghim
+**Đừng kết luận.** Rằng lượt chạy đó có giá trị. Một tài khoản app mẫu chỉ thuộc **một cấp**; thiếu ghim
 cấp trong `profiles/<TASK>/task.env` thì app **lặng lẽ** về *Mầm non* và không báo gì.
 
 **Phân biệt bằng.** Ghim cấp trong profile và **nghiệm thu bằng một neo trên màn** (tên đơn vị, mã
@@ -101,9 +101,9 @@ không bắt buộc, còn ô bắt buộc thật thì đang bỏ trống.
 
 ---
 
-## 8. Biểu EMIS là **ảnh chụp**, không phải truy vấn sống  ⟨ĐÃ ĐO: model tự suy được⟩
+## 8. Biểu BCX là **ảnh chụp**, không phải truy vấn sống  ⟨ĐÃ ĐO: model tự suy được⟩
 
-> **Mục này KHÔNG cần nạp cho model.** Đo 09/11/2026 bằng A/B (`skills:practice --bai qemis-bieu-emis`):
+> **Mục này KHÔNG cần nạp cho model.** Đo 09/11/2026 bằng A/B (`skills:practice --bai appmau-bieu-bcx`):
 > phép kiểm nội dung đạt **3/3 ở CẢ hai nhánh**, có pack và không pack — tức model tự suy ra. Giữ lại
 > cho **người** đọc; với model thì nó chỉ tốn token. Các mục khác **chưa đo**, đừng suy rộng ra.
 
@@ -169,5 +169,5 @@ model tự làm — nạp vào chỉ tốn token mà không đổi đầu ra. B�
 phẩm, không đoán nổi) mới là thứ pack này đáng tồn tại. Đo được tới nay: mục 8 thuộc nhóm đầu (3/3 ở
 cả hai nhánh); mục 6 thuộc nhóm sau (**3/3 có pack · 1/3 không pack**). Chín mục còn lại **chưa đo**.
 
-Load pack này **chỉ khi** đang làm việc trên QEMIS/CSDL và đã có triệu chứng cụ thể. Với lượt chạy
+Load pack này **chỉ khi** đang làm việc trên app mẫu và đã có triệu chứng cụ thể. Với lượt chạy
 trơn tru thì không cần. Không auto-load cùng năm pack kia.

@@ -142,7 +142,7 @@ if (RISK_FIRST) selected = selected.sort((a, b) => ((risk.get(b) || {}).score ||
 /*
  * RISK REGISTER PHANTOM (v2.5.0 G3.4) — xếp thứ tự test theo một register phantom TỆ HƠN không xếp.
  *
- * Đo 11/10/2026 trên `CSDL-9003/reports/risk-register.json`: **10 module band High, và cả 10 đều là tên
+ * Đo 11/10/2026 trên `TASK-9003/reports/risk-register.json`: **10 module band High, và cả 10 đều là tên
  * KHÔNG tồn tại trong dự án này** (`Payment`, `Transaction Management`, `Cash Management`, `Order`,
  * `Product & Order` — module của dự án TRƯỚC, còn trong `impact.modules` của `risk_model.json`). Trong
  * khi đó 18 module CÓ dữ liệu thật bị chặn trần Medium vì không khai Impact.

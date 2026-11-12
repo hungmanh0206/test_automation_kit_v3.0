@@ -67,7 +67,7 @@ test.describe('@infra Lớp 1 — bằng chứng tối thiểu theo tag chiều'
   /*
    * TÊN CỘT VIẾT HOA cũng là tên field. Luật cũ dò `/[a-z][a-z0-9]*_[a-z0-9_]{2,}/` — chỉ chữ thường,
    * mà CẢ schema của hệ thống này viết HOA (`MA_NAM_HOC`, `API_MA_BO`, `NHAN_SU`). Đo 30/09/2026:
-   * `CSDL_NHANSU_TC_259` nêu đích danh cột `API_MA_BO` ngay trong Kết quả mong đợi mà vẫn bị báo
+   * `APP_NHANSU_TC_259` nêu đích danh cột `API_MA_BO` ngay trong Kết quả mong đợi mà vẫn bị báo
    * "thiếu tên field" — gate đòi thứ case đã có, chỉ vì không đọc được chữ hoa.
    */
   test('[bedata] — tên cột viết HOA cũng tính là tên field', () => {
@@ -78,9 +78,9 @@ test.describe('@infra Lớp 1 — bằng chứng tối thiểu theo tag chiều'
   });
 
   test('[bedata] — trích MỘT TC ID khác KHÔNG phải là nêu tên field', () => {
-    // Nới sang chữ hoa kéo theo dương tính giả: "CSDL_HS_TC_062" cũng có dạng snake_case.
+    // Nới sang chữ hoa kéo theo dương tính giả: "APP_HS_TC_062" cũng có dạng snake_case.
     expect(
-      rules.lintTagDepth({ dimensions: ['bedata'], expected: '1. Kết quả giống CSDL_HS_TC_062 đã ghi nhận' }),
+      rules.lintTagDepth({ dimensions: ['bedata'], expected: '1. Kết quả giống APP_HS_TC_062 đã ghi nhận' }),
       'nhắc TC khác không cho biết trường nào đang được kiểm',
     ).toHaveLength(1);
   });

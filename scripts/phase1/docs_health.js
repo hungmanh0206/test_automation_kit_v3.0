@@ -4,7 +4,7 @@
 /*
  * docs_health.js — trả lời "tài liệu tôi đang đọc có còn đúng không" bằng MỘT LỆNH.
  *
- * VÌ SAO CÓ FILE NÀY. Ngày 18/09/2026 soát lại CSDL-26878 bằng tay và thấy ba chuyện, cả ba đều im lặng:
+ * VÌ SAO CÓ FILE NÀY. Ngày 18/09/2026 soát lại TASK-26878 bằng tay và thấy ba chuyện, cả ba đều im lặng:
  *
  *   1. 14 trên 23 trang tài liệu nguồn đã bị SỬA sau ngày fetch. Trang mới nhất sửa 16/09, bản trong task
  *      fetch từ 20/08. Một CR đã bị RÚT trong khoảng đó, gỡ theo 4 neo yêu cầu.
@@ -30,9 +30,9 @@
  * muốn chặn có chủ đích.
  *
  * Dùng:
- *   node scripts/phase1/docs_health.js --task CSDL-26878
- *   node scripts/phase1/docs_health.js --task CSDL-26878 --json
- *   node scripts/phase1/docs_health.js --task CSDL-26878 --strict     # lệch bản thì exit 1
+ *   node scripts/phase1/docs_health.js --task TASK-26878
+ *   node scripts/phase1/docs_health.js --task TASK-26878 --json
+ *   node scripts/phase1/docs_health.js --task TASK-26878 --strict     # lệch bản thì exit 1
  *   node scripts/phase1/docs_health.js --dir <đường-dẫn>              # soát một thư mục bất kỳ
  *
  * Exit: 0 đạt (hoặc chỉ báo cáo) · 1 có vấn đề và đang bật --strict · 2 dùng sai hoặc thiếu env.
@@ -82,7 +82,7 @@ function docMeta(text, fileName) {
  * `requireId: false` lấy CẢ tài liệu không mang page id.
  *
  * `docs_health` cần id vì việc của nó là đối chiếu version, không có id thì không hỏi tài liệu nguồn được.
- * Nhưng `docs_index` chỉ cần trích dẫn, mà trích dẫn chỉ cần file với số dòng. Đo thật trên CSDL-28515:
+ * Nhưng `docs_index` chỉ cần trích dẫn, mà trích dẫn chỉ cần file với số dòng. Đo thật trên TASK-28515:
  * 108 KB spec lành, có bảng đầy đủ, nhưng tên file là `spec_bao-luu-...md` nên không có id, và cả hai
  * máy coi như task đó KHÔNG CÓ tài liệu nào. Vứt tài liệu tốt vì thiếu một con số là sai.
  */

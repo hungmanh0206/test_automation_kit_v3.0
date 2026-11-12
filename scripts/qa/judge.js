@@ -99,7 +99,7 @@ function layMau(cases, n, taskKey) {
   /*
    * TẦNG LÀ PHẦN TRƯỚC DẤU `/` CỦA CỘT MODULE, không phải cả ô.
    *
-   * Đo trên CSDL-9001 (213 case): ô `Module` mang cả phần mô tả sau dấu gạch
+   * Đo trên TASK-9001 (213 case): ô `Module` mang cả phần mô tả sau dấu gạch
    * ("Cập nhật hồ sơ trường / Ba ô chỉ đọc ở cấp trường"), nên cắt theo cả ô cho 196 tầng trên 213 case
    * — gần như mỗi case một tầng, và phân tầng mất hết tác dụng. Cắt trước dấu `/` cho 5 tầng thật:
    * Xem hồ sơ trường (47) · Cập nhật (123) · Kết nối Internet (10) · Hạ tầng CNTT (20) · Điểm trường phụ (13).

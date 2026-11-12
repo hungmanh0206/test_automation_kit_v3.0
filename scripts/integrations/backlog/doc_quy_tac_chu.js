@@ -4,7 +4,7 @@
 /*
  * doc_quy_tac_chu.js — đọc `textFormattingRule` của project trên Backlog (chỉ GET).
  *
- *   TASK_ENV=profiles/<TASK>/task.env node scripts/integrations/backlog/doc_quy_tac_chu.js CSDL
+ *   TASK_ENV=profiles/<TASK>/task.env node scripts/integrations/backlog/doc_quy_tac_chu.js <MÃ_DỰ_ÁN>
  *
  * Vì sao cần: `bug_reporter` nhúng ảnh theo hai cú pháp khác nhau — `![image][tên]` cho project đặt
  * chế độ markdown, `#image(tên)` cho chế độ backlog. Sai cờ thì description hiện ra MÃ THÔ chứ không
@@ -21,7 +21,7 @@ const KEY = process.env.BACKLOG_API_KEY || '';
 const DU_AN = process.argv[2] || process.env.BACKLOG_PROJECT_KEY || '';
 
 if (!BASE || !KEY) { console.error('[quy-tắc] ✗ thiếu BACKLOG_BASE_URL hoặc BACKLOG_API_KEY'); process.exit(2); }
-if (!DU_AN) { console.error('[quy-tắc] ✗ thiếu mã project, vd CSDL'); process.exit(2); }
+if (!DU_AN) { console.error('[quy-tắc] ✗ thiếu mã project, vd DEMO'); process.exit(2); }
 
 (async () => {
   const r = await fetch(`${BASE}/api/v2/projects/${encodeURIComponent(DU_AN)}?apiKey=${encodeURIComponent(KEY)}`);

@@ -3,18 +3,18 @@
  * write_proof — case có hành động GHI thì lượt chạy có nghiệm thu bằng KÊNH ĐỘC LẬP không?
  *
  * Dùng:
- *   node scripts/qa/write_proof.js --task CSDL-4008 [--goc outputs/CSDL] [--json]
+ *   node scripts/qa/write_proof.js --task TASK-4008 [--goc outputs/DEMO] [--json]
  *
  * ──────────────────────────────────────────────────────────────────────────────────────────────────
  * VÌ SAO CÓ MÁY NÀY
  *
  * Vế thứ hai của điều #2 chủ dự án nêu: *"xác nhận dữ liệu thực sự thay đổi như expected"*.
  *
- * Kit đã có doctrine cho đúng chuyện này — `packs/qemis.md` mục 1: *toast `thành công` KHÔNG chứng
+ * Kit đã có doctrine cho đúng chuyện này — `packs/appmau.md` mục 1: *toast `thành công` KHÔNG chứng
  * minh đã ghi*, với NĂM cơ chế từng cho cùng triệu chứng đó. Nhưng doctrine nằm ở **lời dặn trong
  * skill**, không ở **máy**. Máy này đếm xem lời dặn ấy có được làm theo không.
  *
- * ĐO TRÊN CSDL-4008: 184 case có hành động ghi · 120 nằm trong spec CÓ cơ chế nghiệm thu độc lập ·
+ * ĐO TRÊN TASK-4008: 184 case có hành động ghi · 120 nằm trong spec CÓ cơ chế nghiệm thu độc lập ·
  * **40 nằm trong spec KHÔNG có cơ chế nào** · 24 không tìm thấy spec.
  *
  * ──────────────────────────────────────────────────────────────────────────────────────────────────
@@ -42,7 +42,7 @@ const arg = (t) => {
 const JSONRA = process.argv.includes('--json');
 const TASK = arg('task');
 if (!TASK) { console.error('[write-proof] cần `--task <TASK_KEY>`'); process.exit(2); }
-const T = path.join(path.resolve(arg('goc') || process.env.PROJECT_OUTPUT_DIR || path.join(REPO, 'outputs', 'CSDL')), 'tasks', TASK);
+const T = path.join(path.resolve(arg('goc') || process.env.PROJECT_OUTPUT_DIR || path.join(REPO, 'outputs', 'DEMO')), 'tasks', TASK);
 
 /* Hành động làm ĐỔI DỮ LIỆU — bấm một nút ghi, không phải chữ "lưu" trong câu kỳ vọng.
  * Lượt đầu dò theo chữ trong cột Kết quả mong đợi và bắt 248/312 case, kể cả case chỉ MỞ MÀN. Một
@@ -116,7 +116,7 @@ function docSpec(dsId) {
      * TÌM THEO DANH SÁCH ID ĐÃ ĐỌC ĐƯỢC, không dò bằng mẫu đoán.
      *
      * Lượt đầu dò `tcId` trong spec bằng regex tự nghĩ, và nó đòi tiền tố dài kiểu
-     * `CSDL_EMISTH_TC_001` nên trượt mọi mã ngắn hơn — cửa khi đó báo "không đọc được spec nào", tức
+     * `APP_BCTH_TC_001` nên trượt mọi mã ngắn hơn — cửa khi đó báo "không đọc được spec nào", tức
      * nó biến một lỗi NHẬN DẠNG thành một kết luận về CÂY. Bộ case đã cho sẵn danh sách id; đoán lại
      * một lần nữa là tự tạo chỗ để sai.
      */
@@ -177,7 +177,7 @@ console.log('    · "KHÔNG có cơ chế" thì CHẮC CHẮN: file đó không 
 console.log('      tải trang, nên mọi case ghi trong đó chỉ dựa vào màn hình NGAY SAU thao tác.');
 console.log('    · Vế ÂM đáng tin, vế DƯƠNG chỉ là chặn trên. Gộp hai vế thành một tỉ lệ "đã nghiệm thu');
 console.log('      X%" là NÓI QUÁ — đó đúng là cách một con số thật trở thành một câu sai.');
-console.log('    · Vì sao luật này tồn tại: `packs/qemis.md` mục 1 — toast "thành công" KHÔNG chứng minh');
+console.log('    · Vì sao luật này tồn tại: `packs/appmau.md` mục 1 — toast "thành công" KHÔNG chứng minh');
 console.log('      đã ghi; đã gặp NĂM cơ chế khác nhau cùng cho đúng triệu chứng đó.');
 
 /* Dòng cho BÓ GATE đọc — xem chú thích cùng loại ở `exec_proof.js`. */

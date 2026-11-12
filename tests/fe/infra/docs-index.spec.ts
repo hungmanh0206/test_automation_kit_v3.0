@@ -33,7 +33,7 @@ function run(dir: string, extra: string[]) {
   }
 }
 
-/** Hai trang US, CÙNG mã `BR-07` nhưng luật khác hẳn — đúng hình dạng gặp thật trên CSDL-26878. */
+/** Hai trang US, CÙNG mã `BR-07` nhưng luật khác hẳn — đúng hình dạng gặp thật trên TASK-26878. */
 function docsFixture(): string {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'docs-index-'));
   const pad = 'Nội dung đủ dài để không bị coi là rỗng. '.repeat(12);
@@ -215,9 +215,9 @@ test('mỗi trang chỉ lấy MỘT bản, và là bản giữ được bảng',
 });
 
 /*
- * Tiền tố `NT-PH` và `LH` của tài liệu nghiệp vụ CSDL (vault QEMIS, tab `Lớp`): business rule đánh
+ * Tiền tố `NT-PH` và `LH` của tài liệu nghiệp vụ mẫu (vault app mẫu, tab `Lớp`): business rule đánh
  * `NT-PH-01`, mã chức năng đánh `LH-01.1`. Trước 25/09/2026 `ANCHOR_RE` không nhận hai tiền tố này —
- * đo thật trên CSDL-9002: cả bộ spec ra `0 neo`, nghĩa là mọi `oracle_ref` của task đó không tra ngược
+ * đo thật trên TASK-9002: cả bộ spec ra `0 neo`, nghĩa là mọi `oracle_ref` của task đó không tra ngược
  * được, và theo RULE_GLOBAL §3 thì không chấm PASS/FAIL được, chỉ còn OBSERVATION. Hai test dưới giữ
  * chỗ đó khỏi bị thu lại lặng lẽ khi có người dọn regex.
  */
@@ -240,7 +240,7 @@ ${'Chữ nghiệp vụ dài dòng để file đủ lớn. '.repeat(60)}
   return dir;
 }
 
-test('nhận tiền tố NT-PH và LH của tài liệu CSDL, ra đúng file kèm số dòng', () => {
+test('nhận tiền tố NT-PH và LH của tài liệu mẫu, ra đúng file kèm số dòng', () => {
   const dir = docsCsdlFixture();
 
   const rule = run(dir, ['--cite', 'NT-PH-06']);
@@ -280,9 +280,9 @@ ${'Chữ nghiệp vụ. '.repeat(80)}
 });
 
 /*
- * Tiền tố `NS-BR` và `NS` của note `CSDL - Hồ sơ đội ngũ.md` (vault QEMIS, tab `Đội ngũ`): mã chức năng
+ * Tiền tố `NS-BR` và `NS` của note `Đặc tả - Hồ sơ đội ngũ.md` (vault app mẫu, tab `Đội ngũ`): mã chức năng
  * đánh `NS-01.1`, business rule đánh `NS-BR-01`. Trước 25/09/2026 `ANCHOR_RE` không nhận hai tiền tố này
- * — đo thật trên CSDL-9004: `2 neo · 0 có dòng định nghĩa`, và 2 neo ấy là `BR-192`/`BR-217`, tham chiếu
+ * — đo thật trên TASK-9004: `2 neo · 0 có dòng định nghĩa`, và 2 neo ấy là `BR-192`/`BR-217`, tham chiếu
  * tới một tài liệu BR khác chưa import, không định nghĩa ở đâu trong vault. Tức task chỉ có neo GIẢ.
  *
  * Note đó cố ý KHÔNG dùng `BR-` trần như hai note Hồ sơ trường / Hồ sơ học sinh, vì chính nó đã mang sẵn

@@ -15,7 +15,7 @@ import { gateEnv } from './_gate_env';
  * NGƯỠNG ĐƯỢC ĐO LẠI, KHÔNG CHÉP SUÔNG. Hai mức 5% và 20% lấy từ A, rồi đối chiếu 78 file
  * `testcase-status.json` của repo: trong 11 lượt có từ 20 case trở lên, 3 lượt dưới 5%, 4 lượt trong dải
  * 5–20%, và **4 lượt vượt 20%** (20.5 · 21.7 · 22.2 · 28.9%). Một ngưỡng mà mọi lượt đều nằm cùng một bên
- * thì không phân biệt được gì; ở đây nó chia tập làm ba phần thật, và `CSDL-9004` ở 28.9% bị CHẶN.
+ * thì không phân biệt được gì; ở đây nó chia tập làm ba phần thật, và `TASK-9004` ở 28.9% bị CHẶN.
  *
  * HAI PHÉP KIỂM HIỆN CHƯA CÓ DỮ LIỆU THẬT, và script phải nói ra chứ không báo xanh:
  *  · nợ kiểm thử — 0 case SKIP trong toàn bộ 78 file status;
@@ -178,9 +178,9 @@ test.describe('@infra run:analysis — repo thật, và cấu hình thiếu', ()
     /*
      * TÍNH CHẤT NÀY KHÔNG ĐƯỢC NEO VÀO DỮ LIỆU PROJECT, và đây là lần thứ BA cùng một bài học:
      *
-     *   · bản đầu ghim `28.9%` cho CSDL-9004 ⇒ đỏ khi dữ liệu trôi còn `28.6%`;
+     *   · bản đầu ghim `28.9%` cho TASK-9004 ⇒ đỏ khi dữ liệu trôi còn `28.6%`;
      *   · sửa 13/10/2026 đổi sang ghim DẢI, và đòi hai bộ thật rơi vào hai dải khác nhau;
-     *   · đo 01/11/2026: CSDL-9004 trôi tiếp về **18.5%**, tức rơi vào ĐÚNG dải của CSDL-9003. Tiền đề
+     *   · đo 01/11/2026: TASK-9004 trôi tiếp về **18.5%**, tức rơi vào ĐÚNG dải của TASK-9003. Tiền đề
      *     "hai bộ thật ở hai dải khác nhau" hết hiệu lực, và phép kiểm đỏ trong khi `run:analysis` vẫn
      *     đang chạy hoàn toàn đúng.
      *
@@ -216,8 +216,8 @@ test.describe('@infra run:analysis — repo thật, và cấu hình thiếu', ()
      * 01/11/2026. Dữ liệu sống thì chỉ dùng được cho câu hỏi "đọc nổi không", không dùng cho câu hỏi
      * "con số bằng bao nhiêu".
      */
-    const ds = ['CSDL-9003', 'CSDL-9004']
-      .map((t) => path.join(REPO, `outputs/CSDL/tasks/${t}/test-results/testcase-status.json`))
+    const ds = ['TASK-9003', 'TASK-9004']
+      .map((t) => path.join(REPO, `outputs/DEMO/tasks/${t}/test-results/testcase-status.json`))
       .filter((p) => fs.existsSync(p));
     if (!ds.length) { test.skip(true, 'không có bộ dữ liệu PROJECT nào trên máy này'); return; }
     for (const p of ds) {

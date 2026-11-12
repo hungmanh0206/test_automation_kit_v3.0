@@ -28,9 +28,9 @@ const INFRA_VERIFY = process.env.INFRA_VERIFY === '1';
  * nên để lẫn vào lane suite là tự bơm số lượt chạy, và tệ hơn: bắn thao tác khám phá vào UAT trong lượt
  * regression.
  *
- * Đo 09/10/2026: CSDL-9003 có 33 file `*.probe.spec.ts` nằm trong `tests/fe/` (task đó là task duy nhất
+ * Đo 09/10/2026: TASK-9003 có 33 file `*.probe.spec.ts` nằm trong `tests/fe/` (task đó là task duy nhất
  * thiếu `playwright.task.config.js` nên spec không có chỗ đứng khác). `testDir: './tests'` gom hết, tức
- * `npm run test:fe` kéo cả 33 cái vào. Đống đó đã chuyển về `outputs/CSDL/tasks/CSDL-9003/automation/`,
+ * `npm run test:fe` kéo cả 33 cái vào. Đống đó đã chuyển về `outputs/DEMO/tasks/TASK-9003/automation/`,
  * nên hiện KHÔNG còn probe nào dưới `tests/` — dòng ignore này là LƯỚI CHẮN cho lần sau, không phải
  * bản vá cho một đống đang tồn tại.
  *

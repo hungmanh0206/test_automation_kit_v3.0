@@ -1,6 +1,6 @@
 {
-  "_de": "qemis_bieu_emis.de.txt — biểu EMIS hiện 142, SQL đếm 147, lệch 5.",
-  "_cau_tra_loi_dung": "Biểu EMIS là ẢNH CHỤP: nó hiện giá trị ĐÃ LƯU, không tính lại khi mở màn. Năm hồ sơ chênh lệch đều tạo SAU lần chốt biểu gần nhất. Phép phân biệt: đọc `NGAY_SUA` của bản ghi biểu rồi so với `NGAY_TAO` của 5 hồ sơ kia — đề cố ý nói rõ lượt chạy KHÔNG đọc hai cột đó. `NGAY_SUA` trước 03/11 ⇒ KHÔNG phải lỗi sản phẩm, phải chốt lại biểu rồi đo lại.",
+  "_de": "appmau_bieu_bcx.de.txt — biểu BCX hiện 142, SQL đếm 147, lệch 5.",
+  "_cau_tra_loi_dung": "Biểu BCX là ẢNH CHỤP: nó hiện giá trị ĐÃ LƯU, không tính lại khi mở màn. Năm hồ sơ chênh lệch đều tạo SAU lần chốt biểu gần nhất. Phép phân biệt: đọc `NGAY_SUA` của bản ghi biểu rồi so với `NGAY_TAO` của 5 hồ sơ kia — đề cố ý nói rõ lượt chạy KHÔNG đọc hai cột đó. `NGAY_SUA` trước 03/11 ⇒ KHÔNG phải lỗi sản phẩm, phải chốt lại biểu rồi đo lại.",
   "_vi_sao_bai_nay_PHAN_BIET_DUOC": "Bẫy này không xuất hiện ở đâu trong thư mục làm bài: quét `run_report_reader` cho 'ảnh chụp', 'không tính lại', 'NGAY_SUA' đều ra 0. Khác hai đề trước, vốn rò qua `templates/bang-phan-loai-loi.md`.",
   "_cham_the_nao": "Bốn phép kiểm đầu chấm TRƯỜNG của khối JSON — tất định, không phụ thuộc cách diễn đạt. Đúng MỘT phép kiểm (E5) chấm nội dung, và nó so với danh sách cách-viết-chấp-nhận-được khai sẵn ở đây, không so bằng regex tôi nghĩ ra lúc chấm. Đây là bản sửa sau ba lượt A/B hỏng vì bộ chấm đo chính tả (xem docs/v2.11.0/DO_LUONG_PACK.md).",
   "tu_khoa_phan_biet": [

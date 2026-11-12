@@ -6,7 +6,7 @@ import { spawnSync } from 'child_process';
 import { gateEnv } from './_gate_env';
 
 /*
- * Cột SCRIPT trong bản xuất Excel — bố cục của bộ testcase EMIS mà QA dùng ("Testcase EMIS 2025.xlsx"):
+ * Cột SCRIPT trong bản xuất Excel — bố cục của bộ testcase BCX mà QA dùng ("Testcase BCX 2025.xlsx"):
  * case cần truy vấn SQL mang câu SQL ở cột SCRIPT, đứng ngay sau Expected Result.
  *
  * Chèn một cột vào giữa là đúng kiểu thay đổi làm lệch dropdown và công thức đếm nếu chúng đóng cứng chữ cái
@@ -62,7 +62,7 @@ test.describe('@infra cột SCRIPT trong bản xuất Excel', () => {
     expect(ws.getCell('D4').value.formula).toContain('$L$7:$L$500');
   });
 
-  test('khai SCRIPT thì header khớp thứ tự file mẫu EMIS, SCRIPT ngay sau Expected Result', async () => {
+  test('khai SCRIPT thì header khớp thứ tự file mẫu BCX, SCRIPT ngay sau Expected Result', async () => {
     const { header } = await xuat(bang(true));
     expect(header.slice(0, 17)).toEqual(['ID_TC', 'Module', 'Test Case Name', 'Preconditions', 'Test Data', 'Test Steps',
       'Expected Result', 'SCRIPT', 'Test Type', 'Priority', 'Test Level', 'Actor / Role', 'Result', 'Note',

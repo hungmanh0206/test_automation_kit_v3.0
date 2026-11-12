@@ -41,7 +41,7 @@
  * KHÔNG GHI NỘI DUNG TRANSCRIPT. Cache (`knowledge/metrics/agent-scorecard.cache.json`, gitignore) chỉ có SỐ.
  *
  * Dùng:
- *   node scripts/qa/agent_scorecard.js [--project-output outputs/CSDL] [--task <KEY>] [--json] [--khong-cache]
+ *   node scripts/qa/agent_scorecard.js [--project-output outputs/DEMO] [--task <KEY>] [--json] [--khong-cache]
  */
 'use strict';
 
@@ -90,8 +90,8 @@ async function doPhien(file, re) {
       if (b.name === 'AskUserQuestion') hoiLuotNay += 1;
       /*
        * MỐC = VIỆC CHO TASK, không phải mọi lần nhắc tên task. Đo 11/11/2026 trên chính phiên dựng máy này:
-       * chạy `node scripts/qa/tc_semantic.js --task CSDL-9001` để PHÁT TRIỂN KIT mà cũng thành mốc, nên 30 phút
-       * sửa kit sau đó bị tính vào chi phí của CSDL-9001. Mốc chỉ đến từ: GHI vào thư mục task · chạy
+       * chạy `node scripts/qa/tc_semantic.js --task TASK-9001` để PHÁT TRIỂN KIT mà cũng thành mốc, nên 30 phút
+       * sửa kit sau đó bị tính vào chi phí của TASK-9001. Mốc chỉ đến từ: GHI vào thư mục task · chạy
        * automation CỦA task (chay.sh/db.sh, playwright.task.config, test:task) · lệnh mang `TASK_KEY=`.
        */
       const inp = b.input || {};
@@ -235,7 +235,7 @@ const kTok = (n) => (n >= 1e6 ? `${(n / 1e6).toFixed(1)}M` : `${Math.round(n / 1
 async function main() {
   const a = process.argv.slice(2);
   const lay = (k) => { const i = a.indexOf(k); return i >= 0 ? a[i + 1] : ''; };
-  const po = lay('--project-output') || process.env.PROJECT_OUTPUT_DIR || 'outputs/CSDL';
+  const po = lay('--project-output') || process.env.PROJECT_OUTPUT_DIR || 'outputs/DEMO';
   const goc = path.resolve(REPO, po, 'tasks');
   if (!fs.existsSync(goc)) { console.log(`[scorecard] KHÔNG PHÁN ĐƯỢC — không có ${po}/tasks.`); process.exit(2); }
   const keys = fs.readdirSync(goc, { withFileTypes: true }).filter((d) => d.isDirectory() && !d.name.startsWith('_')).map((d) => d.name);

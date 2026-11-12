@@ -12,7 +12,7 @@ Thiếu mã task → `npm run task:which -- $ARGUMENTS`; thoát 2 = KHÔNG PHÁN
 
 > Chỉ truyền đúng `<TASK_KEY>`, **không kèm bug key** — `$ARGUMENTS` đi thẳng vào
 > `preflight_gate.js --task`, thêm chữ là gate nhận sai task rồi chặn. Bug/case cần rerun thì nói ở
-> câu tiếp theo ("rerun bug CSDL-1234"), hoặc dùng prompt mẫu ở USER_GUIDE Mục 9.2.
+> câu tiếp theo ("rerun bug TASK-1234"), hoặc dùng prompt mẫu ở USER_GUIDE Mục 9.2.
 
 > **Đầu lượt chỉ đọc hai thứ: `handoff/phase2.md` của task, và artifact canonical.** Hội thoại của
 > lượt trước KHÔNG phải nguồn — nó không qua gate nào, và sau một lần nén thì chính nó cũng mất chi

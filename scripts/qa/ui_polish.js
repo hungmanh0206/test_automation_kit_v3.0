@@ -15,7 +15,7 @@
  * KHÔNG phải bug. Đa số có thể chính là cái sai.
  *
  * Dùng:
- *   node scripts/qa/ui_polish.js --task <KEY> [--project-output outputs/CSDL] [--thang 4,8,12,16,24,32] [--json]
+ *   node scripts/qa/ui_polish.js --task <KEY> [--project-output outputs/DEMO] [--thang 4,8,12,16,24,32] [--json]
  *   node scripts/qa/ui_polish.js --thu-muc <thư mục *.json> [...]
  */
 'use strict';
@@ -31,7 +31,7 @@ const TT = { cao: 'chiều cao', padding: 'padding', coChu: 'cỡ chữ', font: 
 function main() {
   const a = process.argv.slice(2);
   const lay = (k) => { const i = a.indexOf(k); return i >= 0 ? a[i + 1] : ''; };
-  const po = lay('--project-output') || process.env.PROJECT_OUTPUT_DIR || 'outputs/CSDL';
+  const po = lay('--project-output') || process.env.PROJECT_OUTPUT_DIR || 'outputs/DEMO';
   const dir = lay('--thu-muc') ? path.resolve(lay('--thu-muc'))
     : (lay('--task') ? path.resolve(REPO, po, 'tasks', lay('--task'), 'test-results', 'ui-polish') : '');
   /* ĐỆ QUY: mỗi cấp một thư mục con (`ui-polish/MN/`, `ui-polish/THCS/`…) để một lượt so được GIỮA các cấp. */

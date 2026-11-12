@@ -164,7 +164,7 @@ function main() {
   if (fs.existsSync(d.trace)) {
     const raw = fs.readFileSync(d.trace, 'utf8');
     /*
-     * Tiền tố là TUỲ CHỌN: bản đầu đòi `PREFIX_TC_123` (khuôn của dự án này, `CSDL_HS_TC_001`) nên nó bỏ
+     * Tiền tố là TUỲ CHỌN: bản đầu đòi `PREFIX_TC_123` (khuôn của dự án này, `APP_HS_TC_001`) nên nó bỏ
      * sót mọi bộ dùng `TC_123` trần — và lớp GENERIC thì không được khoá vào khuôn tên của một dự án.
      */
     idTrace = new Set([...raw.matchAll(/\b(?:[A-Z][A-Z0-9_]*_)?TC_\d+\b/g)].map((m) => m[0]));

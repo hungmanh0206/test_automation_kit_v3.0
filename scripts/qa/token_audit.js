@@ -6,7 +6,7 @@
  *
  * VÌ SAO CẦN RIÊNG MÁY NÀY, trong khi đã có `prompt_budget.js`. Đo tĩnh trả lời "hướng dẫn dài bao nhiêu".
  * Nó KHÔNG trả lời "token thật đã đi đâu", và hai câu đó có thể lệch nhau rất xa: đo trên 4 lượt chạy thật
- * của kit (CSDL-9001 đến 9004), `Read` vào tài liệu của kit chỉ có 6 lượt trong tổng 1.140 lượt `Read`.
+ * của kit (TASK-9001 đến 9004), `Read` vào tài liệu của kit chỉ có 6 lượt trong tổng 1.140 lượt `Read`.
  * Cắt tài liệu mà không đo động thì rất dễ tối ưu đúng chỗ không tốn.
  *
  * BA LỖI ĐÃ MẮC KHI DỰNG PHÉP ĐO NÀY, cài sẵn cách tránh vào code:

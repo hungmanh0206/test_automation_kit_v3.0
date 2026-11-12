@@ -8,7 +8,7 @@
  *      ky_vong }. Chỉ đổi KHUÔN, không đổi NỘI DUNG: mỗi case mang băm của các ô nguồn, và `--kiem-khuon` dựng lại từ
  *      nguồn để so. M1 (phủ yêu cầu) chỉ đếm mã có trong DANH MỤC đã đăng ký — mã A tự gán (`REQ-<MODULE>-NN`) và mã
  *      B dùng (`BR-*`) không so được với nhau, nên mẫu số phải là một danh mục chung đưa vào gói đầu vào.
- *   ③ PHIẾU CHẤM MÙ M2 (bắt bug đã biết): gỡ tên kit, ĐÁNH LẠI MÃ case (mã gốc tự lộ kit: `CSDL_EMISTH_TC_…` so với
+ *   ③ PHIẾU CHẤM MÙ M2 (bắt bug đã biết): gỡ tên kit, ĐÁNH LẠI MÃ case (mã gốc tự lộ kit: `APP_BCTH_TC_…` so với
  *      `CUST-EP-001`), niêm phong bảng đối chiếu, nhận câu trả lời có cấu trúc rồi chấm recall theo từng kit.
  *
  * Mô tả bug do người tổ chức soạn từ Backlog. Máy TỪ CHỐI mô tả có email hoặc số điện thoại (CLAUDE.md §1).
@@ -112,7 +112,7 @@ function docBang(md, khuon, tenTep = '') {
     const o = tachO(d);
     const thuong = o.map((x) => x.toLowerCase().trim());
     /* Bảng testcase = tiêu đề có ĐỦ cột của bản đồ. Chỉ dò cột "TC ID" thì vơ cả bảng truy vết, bảng tổng hợp có
-     * cột đó — đo trên CSDL-4008: 368 dòng thay vì 312 case, 56 dòng "thiếu cột". */
+     * cột đó — đo trên TASK-4008: 368 dòng thay vì 312 case, 56 dòng "thiếu cột". */
     if (thuong.includes(khuon.id)) { cot = TRUONG.every((tr) => khuon[tr].some((c) => thuong.includes(c))) ? thuong : null; continue; }
     if (!cot || /^[-:\s]+$/.test(o.join(''))) continue;
     const lay = (ten) => { const k = cot.indexOf(ten); return k >= 0 ? (o[k] || '') : null; };

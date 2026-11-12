@@ -1,0 +1,8 @@
+{
+  "_y": "Mẫu — chép thành package_deny_terms.json rồi khai định danh của dự án/công ty bạn (tên sản phẩm, mã task, host, mã đơn vị thật, tên người). package:kit CHẶN và xoá gói nếu bất kỳ file chữ nào trong gói trúng một mục. File thật nằm ở lớp PROJECT và không vào gói — vì chính danh sách là định danh.",
+  "tu_cam": [
+    { "name": "tên sản phẩm", "re": "\\bten-san-pham\\b", "flags": "i" },
+    { "name": "mã task của dự án", "re": "\\bABC-\\d{3,}" },
+    { "name": "host nội bộ", "re": "\\b[a-z0-9-]+\\.noi-bo\\.example\\b", "flags": "i" }
+  ]
+}

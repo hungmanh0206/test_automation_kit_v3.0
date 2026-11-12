@@ -121,7 +121,7 @@ test.describe('@infra matrix:coverage — "không có gì để gác" KHÔNG th�
      *
      * PHẠM VI QUÉT PHẢI TRÙNG VỚI GATE, sửa 26/10/2026. Bản trước quét TOÀN BỘ `outputs/`, rộng hơn hẳn
      * `matrix_coverage.js` — máy đó chỉ đọc `*_matrix.md` trong `test-cases/` của task. Hậu quả đo được:
-     * nó bắt `outputs/CSDL/tasks/CSDL-4008/reports/_precondition_matrix.md`, một ma trận TIỀN ĐIỀU KIỆN
+     * nó bắt `outputs/DEMO/tasks/TASK-4008/reports/_precondition_matrix.md`, một ma trận TIỀN ĐIỀU KIỆN
      * nằm ở `reports/` — việc khác hẳn, gate không hề đọc tới. Báo động đó rỗng, và chính chú thích của
      * `matrix_coverage.js` đã phân biệt sẵn ("11 file tên matrix đều là traceability/fixture, việc khác").
      *

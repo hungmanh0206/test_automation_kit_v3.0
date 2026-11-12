@@ -10,7 +10,7 @@
  *
  *   1. Màn còn mở được (URL còn sống).
  *   2. Mọi neo control của L1 còn TÌM THẤY trên màn — neo trôi là nguyên nhân của một lớp đỏ trông
- *      giống lỗi sản phẩm. Catalog của CSDL-9001 có neo đo ngày 30/09; mỗi ngày trôi qua là thêm một
+ *      giống lỗi sản phẩm. Catalog của TASK-9001 có neo đo ngày 30/09; mỗi ngày trôi qua là thêm một
  *      ngày nó có thể đã lệch.
  *   3. Nhãn đặc tả còn ĐỌC ĐƯỢC trên màn (đối chiếu `expectedFields`).
  *

@@ -30,7 +30,7 @@ const { DRIVER, CHUOI_KET_NOI, DUOC_PHEP_DRIVER } = require(path.join(__dirname,
 const JSON_OUT = process.argv.includes('--json');
 
 /*
- * MIỄN TRỪ CÓ HẠN. Gate này đỏ ngay ngày đầu với 10 file probe có sẵn của CSDL-9003, và một gate
+ * MIỄN TRỪ CÓ HẠN. Gate này đỏ ngay ngày đầu với 10 file probe có sẵn của TASK-9003, và một gate
  * đỏ-khi-vừa-ra-đời thì bị bỏ qua chứ không được sửa.
  *
  * Nên nợ cũ được KHAI và ĐẾM, còn file MỚI vẫn bị chặn ngay — đó là phần có giá trị nhất của gate này.

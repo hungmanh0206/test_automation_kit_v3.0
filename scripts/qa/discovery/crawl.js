@@ -293,7 +293,7 @@ async function oCanChe(page) {
  *
  * LỖ HỔNG ĐO ĐƯỢC TRÊN UAT THẬT (11/10, lượt §E đầu tiên): crawler ĐI THEO LINK ĐĂNG XUẤT và tự huỷ
  * session của chính nó. `nut_cam_bam` chỉ gác lượt BẤM NÚT; `gomLink` thì gom mọi `a[href]` mà không
- * kiểm nhãn. Trên QEMIS, Đăng xuất là một thẻ `<a>` trong menu người dùng, nằm ngay đầu thứ tự DOM.
+ * kiểm nhãn. Trên app mẫu, Đăng xuất là một thẻ `<a>` trong menu người dùng, nằm ngay đầu thứ tự DOM.
  *
  * Hậu quả đo được, và nó ngụy trang rất khéo: bò được 6 màn rồi chạm `/Logout.aspx`, sau đó **292/321
  * route** bị đẩy về màn đăng nhập và bộ dò captcha gắn nhãn `captcha` cho tất cả. Báo cáo đọc ra như
@@ -368,7 +368,7 @@ async function boApp(browser, o) {
   /*
    * `o.context` cho phép bò bằng một SESSION ĐÃ ĐĂNG NHẬP (`browser.newContext({ storageState })`).
    * Không có nó thì mọi app có login đều ra "0 màn": crawler đứng ở màn đăng nhập và không có đường nào
-   * đi tiếp. Và kit KHÔNG tự đăng nhập ở đây — QEMIS có captcha mỗi lượt, nên session phải được nạp sẵn
+   * đi tiếp. Và kit KHÔNG tự đăng nhập ở đây — app mẫu có captcha mỗi lượt, nên session phải được nạp sẵn
    * từ ngoài. `context.newPage()` và `browser.newPage()` cùng chữ ký nên chỗ gọi không đổi gì khác.
    */
   /* `let` chứ không `const`: trang ĐẦU có thể phải dựng lại page — xem `diToi` bên dưới. */
@@ -482,7 +482,7 @@ async function boApp(browser, o) {
     if (code >= 400) { khongToiDuoc.error.push({ url, status: code }); continue; }
 
     /*
-     * CAPTCHA: nhận theo dấu hiệu DOM, rồi DỪNG NHÁNH — không thử vượt. Kit đã biết captcha QEMIS hiện ở
+     * CAPTCHA: nhận theo dấu hiệu DOM, rồi DỪNG NHÁNH — không thử vượt. Kit đã biết captcha app mẫu hiện ở
      * mỗi lượt đăng nhập, và một crawler cố vượt captcha là một crawler bị khoá tài khoản.
      */
     const coCaptcha = await page.locator('[class*="captcha" i], [id*="captcha" i], iframe[src*="recaptcha"], img[alt*="captcha" i]').count();

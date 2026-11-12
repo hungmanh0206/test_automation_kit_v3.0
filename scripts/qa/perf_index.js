@@ -15,7 +15,7 @@
  *   · `<reports>/performance/<run>/performance-report.json` + `run-meta.json` → lượt đã chạy
  *   · `<reports>/performance/so-case.json` (tuỳ chọn) → trạng thái/lý do cho case chưa chạy
  *
- * Ghép lượt chạy ↔ case bằng mã `CSDL_..._TC_###` tìm trong `tenBaiTest` của `run-meta.json`.
+ * Ghép lượt chạy ↔ case bằng mã `APP_..._TC_###` tìm trong `tenBaiTest` của `run-meta.json`.
  * Một case chạy nhiều lượt thì lấy lượt MỚI NHẤT làm liên kết chính, các lượt cũ liệt kê bên dưới —
  * không xoá lượt cũ, vì so theo thời gian mới là chỗ số hiệu năng có nghĩa.
  *

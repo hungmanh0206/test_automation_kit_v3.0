@@ -433,7 +433,7 @@ if (flag('gaps') || wantReport) {
       /*
        * BA MỨC, ở ĐÂY nữa — không chỉ ở phần kiểm và phần tổng.
        *
-       * Đo 12/11/2026 trên bản đồ thật đầu tiên (PM-EMISBC-001): phần nghĩa vụ in 8 dòng "‼ Truong × duyet = DENY —
+       * Đo 12/11/2026 trên bản đồ thật đầu tiên (PM-BCGUI-001): phần nghĩa vụ in 8 dòng "‼ Truong × duyet = DENY —
        * chưa có TC (guard…)" cho đúng 8 ô mà phần tổng ngay bên dưới nói là `unknown` "đừng dựng case 403 trên ô
        * này". Bản sửa 10/10 vá phần kiểm và phần tổng, còn phần sinh nghĩa vụ vẫn coi ô không khai là cấm — tức sinh
        * ra yêu cầu tự bịa, xếp ưu tiên cao nhất. Bản ghi CŨ (không khai `deny_*` nào) vẫn theo luật whitelist cũ, có

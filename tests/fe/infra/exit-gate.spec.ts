@@ -192,7 +192,7 @@ test.describe('@infra exit:gate — ĐƯỜNG CHẶN chạy end-to-end', () => {
     const t = taskTam();
     // eslint-disable-next-line @typescript-eslint/no-var-requires, global-require
     const gt = require(path.join(REPO, 'scripts/qa/lib/gate_tier.js'));
-    gt.ghiSoNo(t.taskDir, 'dim:coverage', [{ ma: 'DIM_15', tcId: 'CSDL_HSTRUONG_TC_007', thong_diep: 'thiếu chiều Security' }], { nguCanh: 'phase' });
+    gt.ghiSoNo(t.taskDir, 'dim:coverage', [{ ma: 'DIM_15', tcId: 'APP_HSTRUONG_TC_007', thong_diep: 'thiếu chiều Security' }], { nguCanh: 'phase' });
 
     const r = chay(['--cua', 'publish', '--task', 'T-EXIT'], t.goc);
     expect(r.status, 'sổ nợ còn món thì cửa PHẢI chặn').toBe(1);
@@ -209,9 +209,9 @@ test.describe('@infra exit:gate — ĐƯỜNG CHẶN chạy end-to-end', () => {
     const t = taskTam();
     // eslint-disable-next-line @typescript-eslint/no-var-requires, global-require
     const gt = require(path.join(REPO, 'scripts/qa/lib/gate_tier.js'));
-    gt.ghiSoNo(t.taskDir, 'dim:coverage', [{ ma: 'DIM_15', tcId: 'CSDL_HSTRUONG_TC_042', thong_diep: 'thiếu chiều' }], { nguCanh: 'phase' });
+    gt.ghiSoNo(t.taskDir, 'dim:coverage', [{ ma: 'DIM_15', tcId: 'APP_HSTRUONG_TC_042', thong_diep: 'thiếu chiều' }], { nguCanh: 'phase' });
     const r = chay(['--cua', 'publish', '--task', 'T-EXIT'], t.goc);
-    expect(`${r.stdout}`, 'dòng sổ nợ phải nêu TC ID').toContain('CSDL_HSTRUONG_TC_042');
+    expect(`${r.stdout}`, 'dòng sổ nợ phải nêu TC ID').toContain('APP_HSTRUONG_TC_042');
   });
 
   test('`--task` dạng CỜ hoạt động một mình, không cần env', () => {

@@ -6,7 +6,7 @@
  *
  * Phép kiểm then chốt ở file này KHÔNG phải "có đếm được không" mà là **"có phân loại đúng không"**.
  * Phần lớn ca mồ côi là mở rộng §7, vốn đúng thiết kế là không có dòng canonical — nên một con số trần
- * sẽ chôn ca đáng lo dưới đống đúng-thiết-kế. Số đo 30/10/2026 trên CSDL-9004: 8/256, gồm 7 ca mở rộng
+ * sẽ chôn ca đáng lo dưới đống đúng-thiết-kế. Số đo 30/10/2026 trên TASK-9004: 8/256, gồm 7 ca mở rộng
  * KHÔNG neo (5 FAILED) + 1 recon mang verdict, trong khi 6 ca mở rộng khác CÓ neo.
  */
 import { test, expect } from '@playwright/test';
@@ -142,7 +142,7 @@ test.describe('@infra trace:matrix — test mồ côi phải được PHÂN LO�
   test('ĐỐI CHỨNG DƯƠNG TỔNG HỢP: mã MẠO DANH khuôn canonical ⇒ nêu', () => {
     /*
      * Loại này đo được 0 ca trên dữ liệu thật, nên nó CHỈ có đối chứng tổng hợp — và phải nói ra thế.
-     * Phép đo nháp của tôi từng báo 2 ca (`CSDL_HSTRUONG_TC_127B`, `TC_161B`) vì regex nháp đòi hậu tố
+     * Phép đo nháp của tôi từng báo 2 ca (`APP_HSTRUONG_TC_127B`, `TC_161B`) vì regex nháp đòi hậu tố
      * chữ THƯỜNG nên trượt chữ `B` hoa; hai mã đó CÓ trong canonical. Bộ phân tích thật đọc đúng.
      */
     const k = dungTask(['A_TC_001'], [
@@ -172,8 +172,8 @@ test.describe('@infra trace:matrix — test mồ côi phải được PHÂN LO�
  * NEO NẰM TRONG BUG CLAIM — và bỏ sót chỗ này làm cửa báo oan 5/9 ca.
  *
  * Bản đầu chỉ soi sổ verdict. Nhưng kit có cơ chế riêng cho đúng việc neo một phát hiện: bug claim ở
- * `reports/bug-claims/<tcId>.json`, mang `oracle: { type, ref, quote }`. Đo 30/10/2026: CSDL-9004 có
- * 22/22 claim CÓ `oracle.ref`, CSDL-9001 41/41, CSDL-4008 34/43 — và **5 trong 9** ca mà cửa báo "mở
+ * `reports/bug-claims/<tcId>.json`, mang `oracle: { type, ref, quote }`. Đo 30/10/2026: TASK-9004 có
+ * 22/22 claim CÓ `oracle.ref`, TASK-9001 41/41, TASK-4008 34/43 — và **5 trong 9** ca mà cửa báo "mở
  * rộng không có neo" ĐÃ CÓ claim kèm neo. Cửa đang đòi một thứ đã có, chỉ nằm chỗ khác.
  *
  * Sau khi tra claim: 11 ca bị chặn còn 6 — và cả 6 đều là `PASSED` không neo, tức hạ về `OBSERVATION`
@@ -182,7 +182,7 @@ test.describe('@infra trace:matrix — test mồ côi phải được PHÂN LO�
 test.describe('@infra trace:matrix — bug claim cũng là NEO', () => {
   const NEO = {
     tc_id: 'EXPANSION_O_KHOA', status: 'claimed',
-    oracle: { type: 'UI', ref: 'CSDL-3760 (ô khoá form Sửa)', quote: 'Ô khoá thì server phải từ chối ghi.' },
+    oracle: { type: 'UI', ref: 'TASK-3760 (ô khoá form Sửa)', quote: 'Ô khoá thì server phải từ chối ghi.' },
   };
 
   test('ĐỐI CHỨNG ÂM: không neo trong sổ nhưng CÓ claim mang `oracle.ref` ⇒ KHÔNG bị nêu', () => {

@@ -83,7 +83,7 @@ if (ds.length === 1) {
  * kết quả vào nhầm task.
  */
 console.error(`[task] ✗ KHÔNG PHÁN ĐƯỢC: có ${ds.length} profile, lệnh không kèm mã task.`);
-console.error('      Chạy lại kèm mã, ví dụ `/phase3 CSDL-9001`. Danh sách (mới sửa xếp trước):');
+console.error('      Chạy lại kèm mã, ví dụ `/phase3 TASK-9001`. Danh sách (mới sửa xếp trước):');
 for (const x of ds) console.error(`        - ${x.ten}  (task.env sửa ${ngay(x.m)})`);
 console.error('      KHÔNG lấy mã của lượt trước trong cùng cuộc hội thoại — CLAUDE.md §5.');
 process.exit(2);

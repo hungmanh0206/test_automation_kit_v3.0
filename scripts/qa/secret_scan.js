@@ -124,6 +124,6 @@ for (const f of findings) console.error('  - ' + f.file + ':' + f.line + ' [' + 
  * cua nhau, va CA HAI cung do nham truong. Phan lap task la ly do profile ton tai.
  */
 console.error('  -> Go secret khoi file + rotate key. KHONG commit secret. Noi de tuy loai:');
-console.error('     - Tai khoan app/DB THEO TASK (OPS_*, LIB_MASTER_DB_RO_*, QEMIS_*) -> profiles/<TASK_KEY>/task.env');
+console.error('     - Tai khoan app/DB THEO TASK (OPS_*, LIB_MASTER_DB_RO_*, APP_*) -> profiles/<TASK_KEY>/task.env');
 console.error('     - Key cua MOT tai khoan dung chung moi task (BACKLOG_API_KEY, Figma) -> .env o goc (da gitignore)');
 process.exit(1);

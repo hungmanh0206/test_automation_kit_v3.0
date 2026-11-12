@@ -9,12 +9,12 @@
  *
  * BA HÌNH DẠNG HỢP LỆ, rút từ chính 4 file đó:
  *   ① trích từ đặc tả  ⇒ phải nêu nguồn + banner CẤM lấy nhãn từ build;
- *   ② nguồn là ảnh chụp build (task không có FS/Figma — ca thật của CSDL-3544) ⇒ hợp lệ, NHƯNG phải khai
+ *   ② nguồn là ảnh chụp build (task không có FS/Figma — ca thật của TASK-3544) ⇒ hợp lệ, NHƯNG phải khai
  *      giới hạn: case dựa trên nó KHÔNG chứng minh build đúng đặc tả;
  *   ③ không khai nguồn gì ⇒ CHẶN.
  *
  * Hình dạng ② là chỗ dễ làm sai nhất khi dựng gate: một luật đòi "phải có nguồn đặc tả" sẽ PHẠT đúng sự
- * trung thực của CSDL-3544, và đẩy người ta đi bịa một nguồn đặc tả không tồn tại.
+ * trung thực của TASK-3544, và đẩy người ta đi bịa một nguồn đặc tả không tồn tại.
  */
 import { test, expect } from '@playwright/test';
 import fs from 'fs';
@@ -50,7 +50,7 @@ test.describe('@infra recon:check — ba hình dạng hợp lệ', () => {
 
   test('nguồn là ẢNH CHỤP BUILD mà khai rõ giới hạn ⇒ ĐẠT, không bị phạt vì trung thực', () => {
     /*
-     * Ca thật: CSDL-3544. Task không có FS lẫn Figma, nên nguồn duy nhất là ảnh QA gửi. Catalog đó khai
+     * Ca thật: TASK-3544. Task không có FS lẫn Figma, nên nguồn duy nhất là ảnh QA gửi. Catalog đó khai
      * thẳng rằng case Display dựng trên nó chỉ chứng minh build không trôi khỏi ảnh đã duyệt. Gate phải
      * cho qua — nếu không, nó dạy người ta bịa một nguồn đặc tả.
      */
@@ -90,7 +90,7 @@ test.describe('@infra recon:check — ba hình dạng hợp lệ', () => {
   test('ĐỐI CHỨNG ÂM: dòng quan sát CÓ khai chưa đo ⇒ THA', () => {
     /*
      * Không có vế này thì gate chỉ cần cấm sạch chữ "quan sát" là "đạt" — và nó sẽ đẩy người ta xoá chữ
-     * đó đi thay vì khai đúng trạng thái. Mẫu đúng lấy từ CSDL-9001: nó có một dòng quan sát, và ngay
+     * đó đi thay vì khai đúng trạng thái. Mẫu đúng lấy từ TASK-9001: nó có một dòng quan sát, và ngay
      * cạnh là "⚠️ `url` và `headingText` … chưa đo trên UAT".
      */
     const r = chay({ T: `${TU_DAC_TA}\nNhãn này lấy từ quan sát thực tế trên app.\n⚠️ Phần này chưa đo trên UAT.\n` });

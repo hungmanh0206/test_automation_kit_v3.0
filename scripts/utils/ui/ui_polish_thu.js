@@ -8,7 +8,7 @@
  * CHỈ ĐỌC: mở màn, bấm NHÃN TAB (postback hiển thị, không lưu), đọc style tính được. Không bấm Ghi, không nhập gì,
  * không đọc giá trị ô nhập. Dù vậy, mở màn thật cần đăng nhập ⇒ chạm UAT ⇒ cần xác nhận trước (CLAUDE.md §2).
  *
- * BỐN BÀI HỌC TỪ LƯỢT ĐO 5 CẤP QEMIS (12/11/2026) — mỗi cái từng làm số liệu sai mà lượt chạy vẫn xanh:
+ * BỐN BÀI HỌC TỪ LƯỢT ĐO 5 CẤP app mẫu (12/11/2026) — mỗi cái từng làm số liệu sai mà lượt chạy vẫn xanh:
  *   1. Màn không mở được (404, 500, bị đẩy về trang đăng nhập) phải được GHI RA kèm lý do, không lấp chỗ trống.
  *      Không đo được ≠ đạt. Danh sách đó nằm ở `_bo-qua.json` để CLI in ra cùng kết quả.
  *   2. Màn đọc ra 0 thành phần trong vùng (form nằm trong iframe, hoặc khai sai vùng) KHÔNG được tính là "đã đo":
@@ -91,7 +91,7 @@ function kiemDanhSach(ds) {
 function giaiCap(ds, tenCap) {
   if (ds.cap) {
     const v = ds.cap[tenCap];
-    if (!v) return { loi: `cấp "${tenCap || '(chưa khai)'}" không có trong bảng \`cap\` (có: ${Object.keys(ds.cap).join(', ')}) — profile của task phải ghim QEMIS_CAP_HOC` };
+    if (!v) return { loi: `cấp "${tenCap || '(chưa khai)'}" không có trong bảng \`cap\` (có: ${Object.keys(ds.cap).join(', ')}) — profile của task phải ghim biến cấp/đơn vị khai trong context_pins.json` };
     return { ma: v.ma, tienTo: v.tienTo || '' };
   }
   const ma = boDau(tenCap).toUpperCase().replace(/[^A-Z0-9]+/g, '-').replace(/^-|-$/g, '');

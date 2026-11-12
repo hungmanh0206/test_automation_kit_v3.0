@@ -38,7 +38,7 @@
 | 3 | [Inputs](#inputs) | 90-102 | 332 | npm run rule -- 3 |
 | 4 | [Outputs](#outputs) | 103-172 | 1220 | npm run rule -- 4 |
 | 5 | &nbsp;&nbsp;[Giọng văn output](#giọng-văn-output) | 115-172 | 906 | npm run rule -- 5 |
-| 6 | [Rules](#rules) | 173-822 | 15562 | npm run rule -- 6 |
+| 6 | [Rules](#rules) | 173-822 | 15561 | npm run rule -- 6 |
 | 7 | &nbsp;&nbsp;[Language](#language) | 175-181 | 80 | npm run rule -- 7 |
 | 8 | &nbsp;&nbsp;[Security](#security) | 182-195 | 498 | npm run rule -- 8 |
 | 9 | &nbsp;&nbsp;[Project And Output](#project-and-output) | 196-207 | 284 | npm run rule -- 9 |
@@ -55,7 +55,7 @@
 | 20 | &nbsp;&nbsp;[Phân tầng lỗi FE hay BE — bắt buộc kiểm API trước khi kết luận](#phân-tầng-lỗi-fe-hay-be-bắt-buộc-kiểm-api-trước-khi-kết-luận) | 602-616 | 307 | npm run rule -- 20 |
 | 21 | &nbsp;&nbsp;[Evidence — Quy chuẩn bắt buộc](#evidence-quy-chuẩn-bắt-buộc) | 617-630 | 762 | npm run rule -- 21 |
 | 22 | &nbsp;&nbsp;[Comment kết quả (Test Execution) — Quy chuẩn trình bày](#comment-kết-quả-test-execution-quy-chuẩn-trình-bày) | 631-642 | 396 | npm run rule -- 22 |
-| 23 | &nbsp;&nbsp;[Bug Claim Gate — kiểm chứng phải đi TRƯỚC lời nói](#bug-claim-gate-kiểm-chứng-phải-đi-trước-lời-nói) | 643-723 | 1391 | npm run rule -- 23 |
+| 23 | &nbsp;&nbsp;[Bug Claim Gate — kiểm chứng phải đi TRƯỚC lời nói](#bug-claim-gate-kiểm-chứng-phải-đi-trước-lời-nói) | 643-723 | 1390 | npm run rule -- 23 |
 | 24 | &nbsp;&nbsp;[Backlog Bug Gate](#backlog-bug-gate) | 724-733 | 154 | npm run rule -- 24 |
 | 25 | &nbsp;&nbsp;[Executable QA capabilities (autonomy & safety)](#executable-qa-capabilities-autonomy-safety) | 734-746 | 418 | npm run rule -- 25 |
 | 26 | &nbsp;&nbsp;[Automation quality](#automation-quality) | 747-785 | 728 | npm run rule -- 26 |
@@ -68,7 +68,7 @@
 | 33 | [Examples](#examples) | 896-903 | 80 | npm run rule -- 33 |
 | 34 | [References](#references) | 904-912 | 83 | npm run rule -- 34 |
 
-> Cả file ~19871 token. Tra MỘT mục thay vì đọc cả file: npm run rule -- <số|từ khoá>
+> Cả file ~19870 token. Tra MỘT mục thay vì đọc cả file: npm run rule -- <số|từ khoá>
 <!-- MỤC-LỤC:KẾT-THÚC -->
 
 ## Purpose
@@ -244,7 +244,7 @@ việc khác, và không làm.
 
   **Bản xuất KHÔNG phải thứ tuỳ chọn.** Phase 1 gen xong **vẫn phải xuất `.xlsx`** — đó là output bắt buộc của bước gen, vì người đọc và chạy case làm việc trên Excel hoặc Sheet, không đọc Markdown. "Markdown canonical" nói về nguồn sự thật khi hai bên lệch nhau, KHÔNG phải lý do bỏ bước xuất.
 
-  Chiều ghi của verdict chỉ có MỘT: `testcase-status.json` → cột `Result`, bằng `npm run merge:execution-status`. **Không có đường ngược.** Đọc verdict từ `.xlsx` để kết luận là đọc bản xuất, và bản xuất có thể đã bị sinh lại đè mất — đúng chuyện ngày 08/10/2026 ở CSDL-9001, **mất 129 ô kết quả**. `npm run ledger:check` tồn tại để đối soát đúng chỗ đó.
+  Chiều ghi của verdict chỉ có MỘT: `testcase-status.json` → cột `Result`, bằng `npm run merge:execution-status`. **Không có đường ngược.** Đọc verdict từ `.xlsx` để kết luận là đọc bản xuất, và bản xuất có thể đã bị sinh lại đè mất — đúng chuyện ngày 08/10/2026 ở TASK-9001, **mất 129 ô kết quả**. `npm run ledger:check` tồn tại để đối soát đúng chỗ đó.
 - **Đổi `Kết quả mong đợi` phải KHAI LÝ DO.** Mốc chụp ở cửa publish (`npm run expected:snapshot`); từ
   đó `npm run expected:check` CHẶN mọi case đổi expected mà không có một dòng lý do trong
   `reports/expected-changes.md`. Luật KHÔNG cấm đổi — expected đổi vì spec đổi là chuyện bình thường.
@@ -255,7 +255,7 @@ việc khác, và không làm.
 - **Test management tool là Google Sheet** — công cụ DUY NHẤT của kit. Không có tầng script tích hợp riêng: bản xuất `.xlsx` dựng từ Markdown canonical bằng `scripts/convert_excel/md_to_xlsx.js`, đưa lên và tải về đều qua Drive MCP, kết quả execution ghép lại bằng `npm run merge:execution-status`. Tức publish là thao tác NGƯỜI bấm, không có lệnh tự ghi. Gate `gate:policy` CHẶN mọi tài liệu nhắc lại công cụ cũ, kể cả dạng lệnh viết thường.
 - Publish testcase lên **Google Sheet** phải đi từ **Markdown canonical**, qua bản xuất `.xlsx` do `md_to_xlsx.js` sinh — không gõ case trực tiếp lên Sheet. (Sửa 10/10/2026: câu này ghi "lên Backlog" và **mâu thuẫn với chính gạch đầu dòng ngay trên** — "Test management tool là Google Sheet, công cụ DUY NHẤT". Ranh giới thật: **testcase đi Google Sheet, bug đi Backlog**. Backlog vẫn là công cụ sống của kit, nên nó KHÔNG thuộc `NO-LEGACY-TOOLS` và `gate:policy` không bắt được chỗ này.) Chạy dry-run trước nếu cần preview; publish thật chỉ khi QA/user approve. Ghi kết quả vào `<TASK_OUTPUT_DIR>/reports/backlog-testcase-publish-summary.md`.
 - **KHÔNG có cột `Severity`/`Mức độ rủi ro` trong bộ testcase** (bỏ 21/08/2026). Severity là thuộc tính của **BUG**, không phải của testcase. Chấm nó lúc viết case là đoán trước hậu quả của một lỗi chưa xảy ra, nên nó luôn được chấm bằng cảm tính. Bug thật vẫn có Severity, lấy lúc log bug chứ không lấy từ testcase. Việc duy nhất cột này còn gánh trong kit là **risk band**, thứ quyết định độ sâu mở rộng 7 trục. Mà `bandOf()` lấy `max(risk, priority)`. Sau khi vá `PRIO_RANK` thiếu khoá `critical`, đo trên **1977 case toàn repo: bỏ cột này làm đổi band 0 case**. `Ưu tiên` (`Critical|High|Medium|Low|Lowest`) một mình đủ quyết band. `COL.risk` vẫn giữ trong `model.js` để 17 bộ TC cũ còn cột đó parse không lỗi, và các cross-check ma trận §7b tự bỏ qua khi cột vắng.
-- **Tiêu đề case = NỘI DUNG, tag ở cột `Tag`** — template testcase là **10 cột**: `TC ID | Loại case | Tag | Module | Trường hợp kiểm thử | Tiền điều kiện | Dữ liệu Test | Các bước thực hiện | Kết quả mong đợi | Ưu tiên`. Khối `[<Loại>][<Chiều>][<Oracle-ref>]` (vd `[Positive][Calc][BR-SAPSYNC-004]`) ghi ở cột `Tag`, **KHÔNG** ghi vào `Trường hợp kiểm thử`. Tiêu đề phải **tự đủ nghĩa** khi không có tag, tức chở đủ **ba thông tin**: *đối tượng hoặc màn*, *hành động hoặc điều kiện*, *kết quả cụ thể đo được*. Thường gói trong **2 đoạn** nối ` - `, vì đối tượng và hành động hay dính liền. Ví dụ: `Tạo Business Partner - Sinh mã KH đúng cú pháp C + CCCD khi khách Cá nhân chưa có BP`. **KHÔNG** đòi đúng 3 đoạn: bản đầu của luật này viết "3 đoạn" trong khi đoạn thứ nhất của ví dụ chính là `Cross-app` — tức cái tiền tố hằng số mà cùng luật đó CẤM. Hai câu tự đá nhau; đếm đoạn không phải thước đo, **đủ ba thông tin** mới là. CẤM **tiền tố hằng số**. Đo thật: `Cross-app - ` gắn cho 101/101 case của CSDL-26878 nên không phân biệt được gì, mà thông tin đó đã nằm ở `Loại case` và tên folder. Cũng cấm đoạn kết quả chung chung kiểu "hoạt động đúng", và cấm để nghĩa của case phụ thuộc vào tag. Giữ được `[...]` GIỮA câu khi đó là tên trường thật (`Kiểm [FBP] Ngày ghi nhận…`) — chỉ khối ngoặc **liền nhau ở đầu** mới bị coi là tag. Bộ TC cũ **không phải sửa**: `scripts/lib/testcase/model.js` lấy HỢP của cột `Tag` và tiêu đề nên cả hai đời đều đo được, còn `displayTitle()` ở `publish qua Drive MCP.js` cắt khối tag đầu chuỗi trước khi đẩy Google Sheet. Máy kiểm: `tests/fe/infra/publish-field-mapping.spec.ts`.
+- **Tiêu đề case = NỘI DUNG, tag ở cột `Tag`** — template testcase là **10 cột**: `TC ID | Loại case | Tag | Module | Trường hợp kiểm thử | Tiền điều kiện | Dữ liệu Test | Các bước thực hiện | Kết quả mong đợi | Ưu tiên`. Khối `[<Loại>][<Chiều>][<Oracle-ref>]` (vd `[Positive][Calc][BR-SAPSYNC-004]`) ghi ở cột `Tag`, **KHÔNG** ghi vào `Trường hợp kiểm thử`. Tiêu đề phải **tự đủ nghĩa** khi không có tag, tức chở đủ **ba thông tin**: *đối tượng hoặc màn*, *hành động hoặc điều kiện*, *kết quả cụ thể đo được*. Thường gói trong **2 đoạn** nối ` - `, vì đối tượng và hành động hay dính liền. Ví dụ: `Tạo Business Partner - Sinh mã KH đúng cú pháp C + CCCD khi khách Cá nhân chưa có BP`. **KHÔNG** đòi đúng 3 đoạn: bản đầu của luật này viết "3 đoạn" trong khi đoạn thứ nhất của ví dụ chính là `Cross-app` — tức cái tiền tố hằng số mà cùng luật đó CẤM. Hai câu tự đá nhau; đếm đoạn không phải thước đo, **đủ ba thông tin** mới là. CẤM **tiền tố hằng số**. Đo thật: `Cross-app - ` gắn cho 101/101 case của TASK-26878 nên không phân biệt được gì, mà thông tin đó đã nằm ở `Loại case` và tên folder. Cũng cấm đoạn kết quả chung chung kiểu "hoạt động đúng", và cấm để nghĩa của case phụ thuộc vào tag. Giữ được `[...]` GIỮA câu khi đó là tên trường thật (`Kiểm [FBP] Ngày ghi nhận…`) — chỉ khối ngoặc **liền nhau ở đầu** mới bị coi là tag. Bộ TC cũ **không phải sửa**: `scripts/lib/testcase/model.js` lấy HỢP của cột `Tag` và tiêu đề nên cả hai đời đều đo được, còn `displayTitle()` ở `publish qua Drive MCP.js` cắt khối tag đầu chuỗi trước khi đẩy Google Sheet. Máy kiểm: `tests/fe/infra/publish-field-mapping.spec.ts`.
 - **Case sinh mới phải TỰ KHAI `Loại case`** — đúng một trong **9 loại** đã chốt: `Security` · `Accessibility` · `Performance` · `Database` · `API` · `UI` · `E2E` · `Integration` · `Functional`. Định nghĩa, tag đi kèm và bảng **"chọn khi / KHÔNG chọn khi"** của từng loại nằm ở [`.agent/config/case_types.json`](.agent/config/case_types.json) — **nguồn duy nhất**, mọi nơi khác đọc file đó. Xét CHUYÊN BIỆT trước, `Functional` là mặc định cuối; một case mang ĐÚNG MỘT loại, hợp 2 loại nghĩa là case đang gộp 2 mục đích ⇒ tách case. Đây là trục KHÁC `Nhóm chức năng` (nhóm = *"thuộc mảng nghiệp vụ nào"* → thư mục; loại = *"kiểm thử kiểu gì"* → Case Type, dùng để lọc và báo cáo). Bỏ trống thì máy phải ĐOÁN: đo trên 1.399 case đã publish, cách suy từ tên nhóm đẩy **96% về `Functional`**, `Integration` và `Performance` = **0** — lọc theo Case Type trên Google Sheet thành vô dụng.
   - Chặn ở **biên sinh case** (`md_to_xlsx.js`), KHÔNG ở `REQUIRED_COLS`: bộ TC cũ đều 9 cột, siết ở bộ đọc dùng chung thì cả 9 bộ đỏ oan mà không ai sai. Bộ cũ giữ nguyên, chỉ khai khi có dịp sinh lại.
   - Giá trị ngoài 6 loại do `validate.js` chặn ở design gate. Lối thoát `--lenient` vẫn convert được nhưng **phải in cảnh báo** — bỏ qua trong im lặng thì lối thoát thành lối mòn.
@@ -676,10 +676,10 @@ Ba luật:
 
    **Neo của kỳ vọng gồm cả ô `Kết quả mong đợi` của chính case** trong bộ canonical (§6 — Markdown
    canonical), không riêng `BR-`/`SM-`/`UI-`. Phải đọc TRỌN ô đó trước khi kết luận: câu quyết
-   định hay nằm ở gạch đầu dòng CUỐI. Đã trả giá hai lần — `CSDL_HS_TC_257` bị hạ nhầm xuống
+   định hay nằm ở gạch đầu dòng CUỐI. Đã trả giá hai lần — `APP_HS_TC_257` bị hạ nhầm xuống
    `OBSERVATION` vì "kỳ vọng do QA đặt, không neo BR", trong khi ô Expected Result của chính nó ghi
    nguyên văn *"...ghi đè mất số điện thoại của tab B mà không cảnh báo gì là FAIL"*. Phép thử ngược
-   ở cùng lượt: đọc trọn ô của `CSDL_HS_TC_124` thì nó KHÔNG nêu điều kiện FAIL nào cho nhánh đo
+   ở cùng lượt: đọc trọn ô của `APP_HS_TC_124` thì nó KHÔNG nêu điều kiện FAIL nào cho nhánh đo
    được, nên case đó giữ `OBSERVATION` thật. Cùng một thao tác, hai kết quả khác nhau — đây không
    phải quy tắc "cứ nâng lên".
 

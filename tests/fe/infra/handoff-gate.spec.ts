@@ -8,7 +8,7 @@ import { gateEnv } from './_gate_env';
 /*
  * @infra — BÀN GIAO GIỮA PHASE (H1 của token-diet).
  *
- * VÌ SAO H1 ĐỨNG ĐẦU DANH SÁCH, và con số là lý do duy nhất: đo trên 4 lượt chạy task thật (CSDL-9001 đến
+ * VÌ SAO H1 ĐỨNG ĐẦU DANH SÁCH, và con số là lý do duy nhất: đo trên 4 lượt chạy task thật (TASK-9001 đến
  * 9004) bằng `npm run token:audit` thì cache-hit là 98,5 đến 99,0%, context trung bình 494 đến 515k token
  * MỖI message, và một lượt có 6.121 đến 7.682 message. Chi phí tỉ lệ với context nhân số message. Chạy cả
  * Phase 1 và Phase 2 trong một phiên nghĩa là Phase 2 trả tiền cho hội thoại của Phase 1 ở mọi message còn

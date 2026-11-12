@@ -2,7 +2,7 @@
 /**
  * doc_trang_thai_va_nguoi.js — đọc danh sách TRẠNG THÁI và NGƯỜI DÙNG của một project Backlog.
  *
- *   TASK_ENV=profiles/<TASK>/task.env node scripts/integrations/backlog/doc_trang_thai_va_nguoi.js CSDL [chuỗi lọc người]
+ *   TASK_ENV=profiles/<TASK>/task.env node scripts/integrations/backlog/doc_trang_thai_va_nguoi.js <MÃ_DỰ_ÁN> [chuỗi lọc người]
  *
  * Vì sao cần: đổi status hay assignee đều phải gửi ID SỐ, không gửi tên. Đoán ID là cách nhanh nhất
  * để đẩy một issue sang trạng thái sai mà không ai biết. Script này CHỈ GET, in ra để đối chiếu tên
@@ -18,7 +18,8 @@ require(path.resolve(REPO, 'scripts', 'utils', 'runtime_config'));
 
 const BASE = String(process.env.BACKLOG_BASE_URL || process.env.BACKLOG_URL || '').replace(/\/+$/, '');
 const KEY = String(process.env.BACKLOG_API_KEY || '');
-const DUAN = process.argv[2] || 'CSDL';
+const DUAN = process.argv[2] || process.env.BACKLOG_PROJECT_KEY || '';
+if (!DUAN) { console.error('[người] ✗ thiếu mã project: truyền làm tham số đầu hoặc đặt BACKLOG_PROJECT_KEY'); process.exit(2); }
 const LOC = String(process.argv[3] || '').toLowerCase();
 
 if (!BASE || !KEY) {

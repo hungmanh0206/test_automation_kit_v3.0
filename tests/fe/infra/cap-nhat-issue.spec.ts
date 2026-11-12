@@ -1,13 +1,13 @@
 /*
  * `cap_nhat_issue.js` — MỘT DÒNG LOG KHAI ĐIỀU NÓ CHƯA ĐO, VÀ MỘT CỜ GỠ NGƯỜI NHẬN.
  *
- * Bản vá 02/11/2026 là của phiên CSDL-4008. Tôi commit mã của họ Y NGUYÊN, không sửa một dòng; spec này
+ * Bản vá 02/11/2026 là của phiên TASK-4008. Tôi commit mã của họ Y NGUYÊN, không sửa một dòng; spec này
  * chỉ gác ba tính chất để chúng không trôi. Phiên ấy từ chối tự commit và từ chối giao tôi commit hộ,
  * vì người dùng của họ chưa bảo commit — nên quyết định này là của người dùng, không phải của hai phiên.
  *
  * ① DÒNG LOG CŨ NÓI SAI SỰ THẬT. Response của `POST issues/<key>/comments` KHÔNG trả mảng `attachments`.
  *    Bản trước đọc `cmt.attachments` rồi in `đính kèm trong comment: (không có)` KỂ CẢ khi ảnh đã đính
- *    THÀNH CÔNG. Đã cắn 02/11 ở CSDL-4043: người đọc tưởng upload hỏng, kiểm lại bằng `doc_comment.js`
+ *    THÀNH CÔNG. Đã cắn 02/11 ở TASK-4043: người đọc tưởng upload hỏng, kiểm lại bằng `doc_comment.js`
  *    thì ảnh nằm đúng chỗ.
  *
  *    Đây đúng lớp hỏng mà cả đợt v2.9.7–v2.9.9 đi chữa, chỉ là ở quy mô một dòng: báo cáo khai một điều
@@ -19,7 +19,7 @@
  *
  * ③ HAI CỜ CÙNG LÚC PHẢI TẤT ĐỊNH. `--go-assignee` và `--assignee-id` cùng truyền thì hiện `--go-assignee`
  *    thắng. Đó là chủ ý, nhưng trước spec này KHÔNG có gì gác — một ưu tiên ngầm giữa hai cờ, không ai
- *    viết ra, và lần sau ai đổi thứ tự `if/else` thì nó im lặng đổi nghĩa. Phiên CSDL-4008 tự nêu ca này.
+ *    viết ra, và lần sau ai đổi thứ tự `if/else` thì nó im lặng đổi nghĩa. Phiên TASK-4008 tự nêu ca này.
  *
  * ĐỐI CHỨNG HÀNH VI: dựng HTTP server cục bộ bắt đúng request, rồi khám thân nó. Không chạm Backlog thật.
  *
@@ -179,7 +179,7 @@ test.describe('@infra cap_nhat_issue — `--go-assignee` gỡ người nhận', 
   });
 
   /*
-   * CA PHIÊN CSDL-4008 TỰ NÊU, và nó là loại dễ trôi nhất: một ưu tiên NGẦM giữa hai cờ. Hiện
+   * CA PHIÊN TASK-4008 TỰ NÊU, và nó là loại dễ trôi nhất: một ưu tiên NGẦM giữa hai cờ. Hiện
    * `--go-assignee` thắng — chủ ý, nhưng không ai viết ra. Lần sau ai đổi thứ tự `if/else` thì nghĩa đổi
    * mà không ca nào đỏ. Spec này ghim lựa chọn ấy lại.
    */

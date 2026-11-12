@@ -209,7 +209,7 @@ async function main() {
   if (mode === 'task' && !phamVi) {
     console.warn('[discover] ⚠ `--mode task` mà KHÔNG có `--pham-vi` ⇒ lệnh sẽ bò CẢ APP, không chỉ module của task.');
     console.warn('      Hệ quả: `scope_anchor` không biết route nào thuộc phạm vi task, nên nó KHÔNG gác được mẫu số.');
-    console.warn('      Ví dụ: --pham-vi "^/(C3/)?(HocSinh|QuanLyHocSinh)" — khuôn regex trên đường dẫn.');
+    console.warn('      Ví dụ: --pham-vi "^/(C3/)?(HocSinh|QuanLyNguoiDung)" — khuôn regex trên đường dẫn.');
   }
   const bid = buildId(kt.host, mode, phamViRaw);
   const OUT = path.resolve(arg('out', path.join(rc.REPO_ROOT, 'knowledge', 'system', 'discovery', bid)));
@@ -244,7 +244,7 @@ async function main() {
   const browser = await chromium.launch();
   /*
    * SESSION ĐÃ ĐĂNG NHẬP nạp từ ngoài bằng `--storage-state`. Kit KHÔNG tự đăng nhập trong lệnh này:
-   * QEMIS có captcha ở MỖI lượt đăng nhập, nên một bước login tự động sẽ hoặc hỏng, hoặc phải đọc
+   * app mẫu có captcha ở MỖI lượt đăng nhập, nên một bước login tự động sẽ hoặc hỏng, hoặc phải đọc
    * captcha — cả hai đều không thuộc việc của một lệnh khám phá. Không có session thì app nào có login
    * cũng ra "0 màn", và lệnh exit 1 kèm lý do.
    */
@@ -313,7 +313,7 @@ async function main() {
   /*
    * MA TRẬN VAI TRÒ (§A4), chạy khi có `--storage-state-roles "ten=file,ten2=file2"`.
    *
-   * Vì sao nhận SESSION chứ không nhận credential: QEMIS có captcha ở MỖI lượt đăng nhập, nên một lệnh
+   * Vì sao nhận SESSION chứ không nhận credential: app mẫu có captcha ở MỖI lượt đăng nhập, nên một lệnh
    * không thể tự đăng nhập hai lần. Mỗi vai trò nạp sẵn một file `.auth` từ ngoài — và kit không bao giờ
    * đọc mật khẩu trong lệnh này.
    *

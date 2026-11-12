@@ -3,7 +3,7 @@
  * cap_nhat_issue.js — đổi TRẠNG THÁI / NGƯỜI NHẬN của một issue và đăng COMMENT kèm ảnh.
  *
  *   TASK_ENV=profiles/<TASK>/task.env node scripts/integrations/backlog/cap_nhat_issue.js \
- *     --issue CSDL-3884 --status-id 24137 --assignee-id 813044 \
+ *     --issue TASK-3884 --status-id 24137 --assignee-id 813044 \
  *     --comment-file <đường dẫn .md> --anh <đường dẫn ảnh> [--dry-run]
  *
  * VÌ SAO ẢNH ĐI THEO COMMENT, KHÔNG ĐI THEO PATCH ISSUE.
@@ -99,7 +99,7 @@ async function goi(method, duong, body) {
   /*
    * Response của POST comment KHÔNG trả mảng `attachments`, nên đừng in nó ra như thể đó là sự thật:
    * bản trước in "đính kèm trong comment: (không có)" kể cả khi ảnh đã đính THÀNH CÔNG, và dòng đó
-   * làm người đọc tưởng upload hỏng (đã cắn 02/11 ở CSDL-4043 — kiểm lại bằng `doc_comment.js` thì
+   * làm người đọc tưởng upload hỏng (đã cắn 02/11 ở TASK-4043 — kiểm lại bằng `doc_comment.js` thì
    * ảnh nằm đúng chỗ). Chỉ khai những gì gửi đi; muốn biết thật thì đọc lại bằng `doc_comment.js`.
    */
   console.log(`[cap-nhat] đã đăng comment id=${cmt.id}`

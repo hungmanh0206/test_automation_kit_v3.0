@@ -3,7 +3,7 @@
  * rerun:classify — verdict ĐỔI giữa hai lượt: bằng chứng nói được gì, và KHÔNG nói được gì.
  *
  * Dùng:
- *   node scripts/qa/rerun_classify.js --task CSDL-4008 [--goc outputs/CSDL] [--json]
+ *   node scripts/qa/rerun_classify.js --task TASK-4008 [--goc outputs/DEMO] [--json]
  *
  * ──────────────────────────────────────────────────────────────────────────────────────────────────
  * VÌ SAO CÓ MÁY NÀY
@@ -43,7 +43,7 @@ const arg = (t) => {
 const JSONRA = process.argv.includes('--json');
 const TASK = arg('task');
 if (!TASK) { console.error('[rerun-classify] cần `--task <TASK_KEY>`'); process.exit(2); }
-const T = path.join(path.resolve(arg('goc') || process.env.PROJECT_OUTPUT_DIR || path.join(REPO, 'outputs', 'CSDL')), 'tasks', TASK);
+const T = path.join(path.resolve(arg('goc') || process.env.PROJECT_OUTPUT_DIR || path.join(REPO, 'outputs', 'DEMO')), 'tasks', TASK);
 
 const sf = path.join(T, 'test-results', 'testcase-status.json');
 let ds;

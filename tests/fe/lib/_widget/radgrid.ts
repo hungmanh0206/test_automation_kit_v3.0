@@ -4,7 +4,7 @@ import type { Page } from '@playwright/test';
  * L0.5 — RadGrid của Telerik: ĐỌC lưới, và đọc theo TIÊU ĐỀ chứ không theo chỉ số cột.
  *
  * ─────────────────────────────────────────────────────────────────────────────────────────────────────
- * BÀI HỌC ĐẮT NHẤT CỦA TẦNG NÀY, chép nguyên từ automation của CSDL-9002 (02/10/2026):
+ * BÀI HỌC ĐẮT NHẤT CỦA TẦNG NÀY, chép nguyên từ automation của TASK-9002 (02/10/2026):
  *
  *   "Chỉ số cột KHÔNG giống nhau giữa các cấp: 'Tên lớp' là cột 6 ở THCS/THPT nhưng là cột 5 ở Tiểu
  *    học, và lưới Mầm non lại khác nữa. Neo cứng số 6 khiến mọi phép tra ở Tiểu học đọc ra mã khối

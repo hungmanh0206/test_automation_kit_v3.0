@@ -3,7 +3,7 @@
  * exec_proof — artifact có ĐỦ ĐỂ CHỨNG MINH một case PASSED đã chạy hết bước không?
  *
  * Dùng:
- *   node scripts/qa/exec_proof.js --task CSDL-4008 [--goc outputs/CSDL] [--json]
+ *   node scripts/qa/exec_proof.js --task TASK-4008 [--goc outputs/DEMO] [--json]
  *
  * ──────────────────────────────────────────────────────────────────────────────────────────────────
  * VÌ SAO CÓ MÁY NÀY — và vì sao nó KHÔNG nói "đã chạy thiếu bước"
@@ -11,7 +11,7 @@
  * Chủ dự án nêu điều thứ hai: *"chưa chứng minh Agent thực thi đúng toàn bộ steps"*. Chữ quan trọng
  * là **CHƯA CHỨNG MINH**, không phải **SAI**. Máy này đo đúng chữ đó.
  *
- * Đo trên CSDL-4008: 282 case so được, **105 case ghi ít bước hơn số bước case khai**, trong đó
+ * Đo trên TASK-4008: 282 case so được, **105 case ghi ít bước hơn số bước case khai**, trong đó
  * **61 case mang verdict PASSED** — có cái chỉ ghi 2/6 bước.
  *
  * NHƯNG KHÔNG ĐƯỢC GỌI ĐÓ LÀ "CHẠY THIẾU BƯỚC". Đọc `evidence_recorder.step()`: nó LUÔN chụp ảnh và
@@ -39,7 +39,7 @@ const arg = (t) => {
 const JSONRA = process.argv.includes('--json');
 
 const TASK = arg('task');
-const GOC = arg('goc') || process.env.PROJECT_OUTPUT_DIR || path.join(REPO, 'outputs', 'CSDL');
+const GOC = arg('goc') || process.env.PROJECT_OUTPUT_DIR || path.join(REPO, 'outputs', 'DEMO');
 if (!TASK) { console.error('[exec-proof] cần `--task <TASK_KEY>`'); process.exit(2); }
 
 const T = path.join(path.resolve(GOC), 'tasks', TASK);

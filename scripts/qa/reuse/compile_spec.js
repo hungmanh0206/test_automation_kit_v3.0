@@ -374,7 +374,7 @@ function bienDich({ taskKey, taskOutputDir, duongMd, outDir }) {
   /*
    * Gom theo ĐOẠN ĐẦU của `Module` (phần trước dấu `/`), không theo module đầy đủ.
    *
-   * Đo trên CSDL-9001: 213 case có **196** module đầy đủ khác nhau nhưng chỉ **5** đoạn đầu. Gom theo
+   * Đo trên TASK-9001: 213 case có **196** module đầy đủ khác nhau nhưng chỉ **5** đoạn đầu. Gom theo
    * module đầy đủ sinh ra 196 file cho 213 case — đúng kỹ thuật, và vô dụng. Đoạn đầu là MÀN/CHỨC NĂNG
    * (`Cập nhật hồ sơ trường`), đoạn sau là tình huống cụ thể; gom theo màn mới là đơn vị mà
    * `steps:impact` khoanh được vùng ảnh hưởng.
@@ -392,7 +392,7 @@ function bienDich({ taskKey, taskOutputDir, duongMd, outDir }) {
    *
    * Không có nó thì spec sinh ra KHÔNG CHẠY ĐƯỢC: config gốc khai `testDir` là `./tests` và không
    * project nào trỏ tới `outputs/**`, nên gọi thẳng file spec ở đây trả "No tests found" — đo được ở
-   * CSDL-9001 ngày 30/09/2026, và đo lại ngày 12/10 khi `smoke:gen` sinh spec đầu tiên của nó.
+   * TASK-9001 ngày 30/09/2026, và đo lại ngày 12/10 khi `smoke:gen` sinh spec đầu tiên của nó.
    *
    * Bản đầu CHÉP cả khối sinh config vào đây. `smoke:gen` cần đúng thứ đó, và lúc đó thành hai bản sao —
    * đợt này đã trả giá bốn lần cho chuyện hai bản sao trôi khỏi nhau. Lý lẽ của từng cái bẫy trong file
@@ -403,7 +403,7 @@ function bienDich({ taskKey, taskOutputDir, duongMd, outDir }) {
   const raFile = [];
   /*
    * CHỐNG TRÙNG TÊN FILE. Cắt 60 ký tự làm hai module khác nhau ra cùng một slug, và `writeFileSync` thứ
-   * hai GHI ĐÈ file thứ nhất — im lặng, mất trọn case của module trước. Đo được ở CSDL-9001: `compile:
+   * hai GHI ĐÈ file thứ nhất — im lặng, mất trọn case của module trước. Đo được ở TASK-9001: `compile:
    * spec` báo 196 file, trên đĩa chỉ có 195, và không gì nói ra. Cùng một lớp lỗi với chuyện Excel mất
    * 129 ô: con số báo ra và hiện thực lệch nhau mà không ai thấy.
    */

@@ -239,7 +239,7 @@ async function main() {
       if (!sheetVal) return; // '' (TODO) hoặc status lạ (undefined) → không đổi ô
       /*
        * Verdict của shard cấp này KHÔNG được ghi vào case không áp dụng cho cấp đó. Lỗi thật đang
-       * có: bản ghi của CSDL_HSTRUONG_TC_143 (case chỉ THCS) nằm trong shard-TH — ghi mù thì cột
+       * có: bản ghi của APP_HSTRUONG_TC_143 (case chỉ THCS) nằm trong shard-TH — ghi mù thì cột
        * `Result TH` mang verdict của một case vốn không chạy ở Tiểu học.
        */
       if (CAP && capCol >= 0) {

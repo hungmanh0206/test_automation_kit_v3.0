@@ -19,7 +19,7 @@ import { chromium, Browser, Page } from '@playwright/test';
  *
  * HAI ĐƯỜNG DẪN TỚI CÙNG MỘT LỖ, và fixture dựng cả hai:
  *   · `/admin`        — ẩn khỏi menu của `nhanvien`, hiện với `admin`, server trả 200;
- *   · `/bao-cao-emis` — hiện với cả hai vai trò nhưng KHOÁ nút (aria-disabled), server vẫn trả 200.
+ *   · `/bao-cao-bcx` — hiện với cả hai vai trò nhưng KHOÁ nút (aria-disabled), server vẫn trả 200.
  * Đường thứ hai là chỗ tôi bỏ sót ở bản đầu: ô `hien_disabled` không thử URL thì nó đọc như "đã bị
  * chặn", trong khi ta chỉ biết client đang khoá nút.
  */
@@ -147,11 +147,11 @@ test.describe('@infra ba mức bằng chứng — và `unknown` KHÔNG thành "k
 });
 
 test.describe('@infra ẩn so với hiện-nhưng-disabled — hai lời khai khác nhau', () => {
-  test('`/bao-cao-emis` hiện nhưng KHOÁ ⇒ `hien_disabled`, không phải `vao_duoc`', async () => {
+  test('`/bao-cao-bcx` hiện nhưng KHOÁ ⇒ `hien_disabled`, không phải `vao_duoc`', async () => {
     const r = await maTran();
-    const c = o(r, 'nhanvien', '/bao-cao-emis');
+    const c = o(r, 'nhanvien', '/bao-cao-bcx');
     expect(c.quan_sat).toBe('hien_disabled');
-    expect(c.nhan_menu).toMatch(/Báo cáo EMIS/);
+    expect(c.nhan_menu).toMatch(/Báo cáo BCX/);
   });
 
   test('đọc được `disabled` khai bằng CẢ BA cách mà app thật dùng', async () => {
@@ -183,7 +183,7 @@ test.describe('@infra ẩn so với hiện-nhưng-disabled — hai lời khai kh
 
   test('ô disabled VẪN thử URL — client khoá nút không chứng minh server có chặn', async () => {
     const r = await maTran();
-    const c = o(r, 'nhanvien', '/bao-cao-emis');
+    const c = o(r, 'nhanvien', '/bao-cao-bcx');
     expect(c.server_co_chan, 'server trả 200 ⇒ việc chặn chỉ ở client').toBe(false);
   });
 });
@@ -202,7 +202,7 @@ test.describe('@infra EXPANSION_FINDING — đủ HAI VẾ mới ghi', () => {
     /* Chỗ tôi bỏ sót ở bản đầu: `hien_disabled` không thử URL thì lỗ này không bao giờ lộ ra. */
     const r = await maTran();
     const f = (r.expansion_findings as { vi_sao: string; evidence: { route: string } }[])
-      .filter((x) => x.evidence.route === '/bao-cao-emis');
+      .filter((x) => x.evidence.route === '/bao-cao-bcx');
     expect(f.length, 'cả hai vai trò đều gặp ⇒ 2 finding').toBe(2);
     expect(f[0].vi_sao).toMatch(/việc chặn chỉ nằm ở client/);
   });
@@ -287,7 +287,7 @@ test.describe('@infra an toàn — chỉ GET, không ghi, không đọc credenti
 
   test('host không rõ ⇒ TỪ CHỐI trước khi mở trang nào', async () => {
     await expect(rl.lapMaTran(br, {
-      baseUrl: 'https://qemis.example.vn/', coCo: true,
+      baseUrl: 'https://appmau.example.vn/', coCo: true,
       vaiTro: [{ ten: 'x', dangNhap: async () => {} }],
     })).rejects.toThrow(/TỪ CHỐI/);
   });
@@ -298,7 +298,7 @@ test.describe('@infra §A4 nối vào lệnh `discover` — thôi là code chế
    * `roles.js` viết xong từ hạng mục ④ nhưng KHÔNG được lệnh nào gọi, nên nó là code chết: 17 test xanh
    * mà không lượt chạy thật nào đi qua nó. Nay `discover` nhận `--storage-state-roles "ten=file,…"`.
    *
-   * Vì sao nhận SESSION chứ không nhận credential: QEMIS có captcha ở MỖI lượt đăng nhập, nên một lệnh
+   * Vì sao nhận SESSION chứ không nhận credential: app mẫu có captcha ở MỖI lượt đăng nhập, nên một lệnh
    * không thể tự đăng nhập hai lần. Và kit không bao giờ đọc mật khẩu trong lệnh khám phá.
    */
   const CLI = path.resolve(__dirname, '..', '..', '..', 'scripts/qa/discover.js');

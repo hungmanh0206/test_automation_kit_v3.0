@@ -1,7 +1,7 @@
 /**
  * ui:polish — THU THẬP dùng chung (`scripts/utils/ui/ui_polish_thu.js`) và bộ sinh spec `ui:polish:gen`.
  *
- * Mỗi ca giữ một bài học của lượt đo 5 cấp QEMIS (12/11/2026), cái nào cũng từng làm số liệu sai mà lượt chạy vẫn
+ * Mỗi ca giữ một bài học của lượt đo 5 cấp app mẫu (12/11/2026), cái nào cũng từng làm số liệu sai mà lượt chạy vẫn
  * xanh: màn không mở được bị lấp chỗ trống, màn 0 thành phần đếm là đã đo, bị đẩy về trang đăng nhập mà vẫn đọc,
  * tab không chuyển mà vẫn ghi dữ liệu tab cũ dưới tên tab mới.
  *
@@ -126,7 +126,7 @@ test.describe('@infra ui:polish — kiểm danh sách màn', () => {
 
   test('cấp không có trong bảng ⇒ lỗi nêu tên cấp và các cấp có; không bảng ⇒ mã là tên cấp bỏ dấu', () => {
     expect(thu.giaiCap(DS, 'Mầm non').loi).toMatch(/"Mầm non" không có .*Tiểu học/);
-    expect(thu.giaiCap(DS, '').loi, 'profile thiếu QEMIS_CAP_HOC thì nói thẳng, không về cấp mặc định').toMatch(/chưa khai/);
+    expect(thu.giaiCap(DS, '').loi, 'profile thiếu APP_CAP_HOC thì nói thẳng, không về cấp mặc định').toMatch(/chưa khai/);
     expect(thu.giaiCap({ man: [] }, 'Trung học cơ sở')).toEqual({ ma: 'TRUNG-HOC-CO-SO', tienTo: '' });
   });
 });

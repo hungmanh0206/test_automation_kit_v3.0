@@ -201,7 +201,7 @@
         "last_verified_build": null,
         "screen_fingerprint": null
       },
-      "ghi_chu": "Khung câu lặp nhiều nhất của phần điền form, đo trên 1.079 mệnh đề của CSDL-9001. Ghi rồi ĐỌC LẠI nên ô bị maxlength cắt âm thầm sẽ ném WidgetError thay vì để case quy cho sản phẩm."
+      "ghi_chu": "Khung câu lặp nhiều nhất của phần điền form, đo trên 1.079 mệnh đề của TASK-9001. Ghi rồi ĐỌC LẠI nên ô bị maxlength cắt âm thầm sẽ ném WidgetError thay vì để case quy cho sản phẩm."
     },
     {
       "id": "form.o.doc",
@@ -230,7 +230,7 @@
         "last_verified_build": null,
         "screen_fingerprint": null
       },
-      "ghi_chu": "Khai cả `đọc` và `ghi lại` làm hai phrases của CÙNG bước thay vì gộp hai từ đó thành đồng nghĩa — `step_phrasing.json` giải thích vì sao gộp là sai (đọc là quan sát, ghi lại là lưu evidence). Khung `ghi lại giá trị hiện tại của Stt #` lặp 30 lượt ở CSDL-9001."
+      "ghi_chu": "Khai cả `đọc` và `ghi lại` làm hai phrases của CÙNG bước thay vì gộp hai từ đó thành đồng nghĩa — `step_phrasing.json` giải thích vì sao gộp là sai (đọc là quan sát, ghi lại là lưu evidence). Khung `ghi lại giá trị hiện tại của Stt #` lặp 30 lượt ở TASK-9001."
     },
     {
       "id": "form.o.xoa-trang",
@@ -372,7 +372,7 @@
         "last_verified_build": null,
         "screen_fingerprint": null
       },
-      "ghi_chu": "Đường trỏ field bằng Stt ĐẶC TẢ. Đo trên 1.079 mệnh đề của CSDL-9001: 330 mệnh đề (31%) trỏ field bằng `Stt #` chứ không bằng nhãn. L1 tra qua bản đồ `stt_nhan` do `stt:map` sinh — KHÔNG suy theo thứ tự, vì đặc tả có 120 dòng Stt cho cả 5 cấp còn mỗi màn ít nhãn hơn, và catalog đã đo `screenIdx` chỉ khớp Stt 10/89. Khung `Stt # = #` lặp 19 lượt, `nhập Stt # = #` 6 lượt."
+      "ghi_chu": "Đường trỏ field bằng Stt ĐẶC TẢ. Đo trên 1.079 mệnh đề của TASK-9001: 330 mệnh đề (31%) trỏ field bằng `Stt #` chứ không bằng nhãn. L1 tra qua bản đồ `stt_nhan` do `stt:map` sinh — KHÔNG suy theo thứ tự, vì đặc tả có 120 dòng Stt cho cả 5 cấp còn mỗi màn ít nhãn hơn, và catalog đã đo `screenIdx` chỉ khớp Stt 10/89. Khung `Stt # = #` lặp 19 lượt, `nhập Stt # = #` 6 lượt."
     },
     {
       "id": "form.o.doc-theo-stt",
@@ -401,7 +401,7 @@
         "last_verified_build": null,
         "screen_fingerprint": null
       },
-      "ghi_chu": "Đường trỏ field bằng Stt ĐẶC TẢ. Đo trên 1.079 mệnh đề của CSDL-9001: 330 mệnh đề (31%) trỏ field bằng `Stt #` chứ không bằng nhãn. L1 tra qua bản đồ `stt_nhan` do `stt:map` sinh — KHÔNG suy theo thứ tự, vì đặc tả có 120 dòng Stt cho cả 5 cấp còn mỗi màn ít nhãn hơn, và catalog đã đo `screenIdx` chỉ khớp Stt 10/89. Khung `tải lại màn và đọc lại Stt #` là khung lặp nhiều thứ hai của cả module (56 lượt) — phần `đọc lại Stt #` của nó khớp vào đây sau khi tách mệnh đề."
+      "ghi_chu": "Đường trỏ field bằng Stt ĐẶC TẢ. Đo trên 1.079 mệnh đề của TASK-9001: 330 mệnh đề (31%) trỏ field bằng `Stt #` chứ không bằng nhãn. L1 tra qua bản đồ `stt_nhan` do `stt:map` sinh — KHÔNG suy theo thứ tự, vì đặc tả có 120 dòng Stt cho cả 5 cấp còn mỗi màn ít nhãn hơn, và catalog đã đo `screenIdx` chỉ khớp Stt 10/89. Khung `tải lại màn và đọc lại Stt #` là khung lặp nhiều thứ hai của cả module (56 lượt) — phần `đọc lại Stt #` của nó khớp vào đây sau khi tách mệnh đề."
     },
     {
       "id": "form.o.xoa-trang-theo-stt",
@@ -429,7 +429,7 @@
         "last_verified_build": null,
         "screen_fingerprint": null
       },
-      "ghi_chu": "Đường trỏ field bằng Stt ĐẶC TẢ. Đo trên 1.079 mệnh đề của CSDL-9001: 330 mệnh đề (31%) trỏ field bằng `Stt #` chứ không bằng nhãn. L1 tra qua bản đồ `stt_nhan` do `stt:map` sinh — KHÔNG suy theo thứ tự, vì đặc tả có 120 dòng Stt cho cả 5 cấp còn mỗi màn ít nhãn hơn, và catalog đã đo `screenIdx` chỉ khớp Stt 10/89. Khung `xoá trắng ô Stt #` lặp 6 lượt."
+      "ghi_chu": "Đường trỏ field bằng Stt ĐẶC TẢ. Đo trên 1.079 mệnh đề của TASK-9001: 330 mệnh đề (31%) trỏ field bằng `Stt #` chứ không bằng nhãn. L1 tra qua bản đồ `stt_nhan` do `stt:map` sinh — KHÔNG suy theo thứ tự, vì đặc tả có 120 dòng Stt cho cả 5 cấp còn mỗi màn ít nhãn hơn, và catalog đã đo `screenIdx` chỉ khớp Stt 10/89. Khung `xoá trắng ô Stt #` lặp 6 lượt."
     },
     {
       "id": "form.o.do-sua-duoc-theo-stt",
@@ -456,7 +456,7 @@
         "last_verified_build": null,
         "screen_fingerprint": null
       },
-      "ghi_chu": "Đường trỏ field bằng Stt ĐẶC TẢ. Đo trên 1.079 mệnh đề của CSDL-9001: 330 mệnh đề (31%) trỏ field bằng `Stt #` chứ không bằng nhãn. L1 tra qua bản đồ `stt_nhan` do `stt:map` sinh — KHÔNG suy theo thứ tự, vì đặc tả có 120 dòng Stt cho cả 5 cấp còn mỗi màn ít nhãn hơn, và catalog đã đo `screenIdx` chỉ khớp Stt 10/89."
+      "ghi_chu": "Đường trỏ field bằng Stt ĐẶC TẢ. Đo trên 1.079 mệnh đề của TASK-9001: 330 mệnh đề (31%) trỏ field bằng `Stt #` chứ không bằng nhãn. L1 tra qua bản đồ `stt_nhan` do `stt:map` sinh — KHÔNG suy theo thứ tự, vì đặc tả có 120 dòng Stt cho cả 5 cấp còn mỗi màn ít nhãn hơn, và catalog đã đo `screenIdx` chỉ khớp Stt 10/89."
     },
     {
       "id": "form.checkbox.tich-theo-stt",
@@ -484,7 +484,7 @@
         "last_verified_build": null,
         "screen_fingerprint": null
       },
-      "ghi_chu": "Đường trỏ field bằng Stt ĐẶC TẢ. Đo trên 1.079 mệnh đề của CSDL-9001: 330 mệnh đề (31%) trỏ field bằng `Stt #` chứ không bằng nhãn. L1 tra qua bản đồ `stt_nhan` do `stt:map` sinh — KHÔNG suy theo thứ tự, vì đặc tả có 120 dòng Stt cho cả 5 cấp còn mỗi màn ít nhãn hơn, và catalog đã đo `screenIdx` chỉ khớp Stt 10/89. Trả `da-dung` khi ô vốn đã đúng — xem ghi chú của `form.checkbox.tich`."
+      "ghi_chu": "Đường trỏ field bằng Stt ĐẶC TẢ. Đo trên 1.079 mệnh đề của TASK-9001: 330 mệnh đề (31%) trỏ field bằng `Stt #` chứ không bằng nhãn. L1 tra qua bản đồ `stt_nhan` do `stt:map` sinh — KHÔNG suy theo thứ tự, vì đặc tả có 120 dòng Stt cho cả 5 cấp còn mỗi màn ít nhãn hơn, và catalog đã đo `screenIdx` chỉ khớp Stt 10/89. Trả `da-dung` khi ô vốn đã đúng — xem ghi chú của `form.checkbox.tich`."
     },
     {
       "id": "widget.luoi.doc-luoi",
@@ -552,7 +552,7 @@
       "impl": "tests/fe/lib/_widget/radgrid.ts#docCot",
       "pre": "Đang ở màn có RadGrid và lưới đã nạp xong.",
       "post": "Không đổi trạng thái màn.",
-      "ghi_chu": "KHÔNG nhận chỉ số cột. Đo 02/10/2026 ở CSDL-9002: \"Tên lớp\" là cột 6 ở THCS/THPT nhưng cột 5 ở Tiểu học, nên chỉ số cứng làm mọi phép tra ở Tiểu học đọc ra mã khối, và lượt đó kết luận \"không tạo được lớp\" cho lớp đã tạo xong. Đọc nhầm cột KHÔNG làm gì đỏ — đó là lý do phải trả `null`.",
+      "ghi_chu": "KHÔNG nhận chỉ số cột. Đo 02/10/2026 ở TASK-9002: \"Tên lớp\" là cột 6 ở THCS/THPT nhưng cột 5 ở Tiểu học, nên chỉ số cứng làm mọi phép tra ở Tiểu học đọc ra mã khối, và lượt đó kết luận \"không tạo được lớp\" cho lớp đã tạo xong. Đọc nhầm cột KHÔNG làm gì đỏ — đó là lý do phải trả `null`.",
       "screen": "*",
       "widget": [
         "radgrid"

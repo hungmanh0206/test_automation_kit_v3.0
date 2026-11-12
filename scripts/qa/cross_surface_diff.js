@@ -2,11 +2,11 @@
 /**
  * cross_surface_diff.js — TRỤC 2: **cùng một giá trị, khác nơi hiển thị**.
  *
- * VÌ SAO CÓ FILE NÀY: đây là trục RÒ NHIỀU NHẤT — đo trên CSDL-24395 có **21/69 bug** thuộc lớp này, và không
+ * VÌ SAO CÓ FILE NÀY: đây là trục RÒ NHIỀU NHẤT — đo trên TASK-24395 có **21/69 bug** thuộc lớp này, và không
  * phép kiểm nào của kit chạm tới, vì mỗi màn xét riêng đều "đúng":
- *   - CSDL-28521: tab đồng bộ ngoài hiện D.O.B thô `2001-05-20`, tab Overview hiện `20/05/2001`.
- *   - CSDL-28405: Extension Course Package khác nhau giữa màn Create/Edit và màn Order Detail.
- *   - CSDL-28446: màn Checkout rút gọn + sai chính tả tên khoá học so với Ops.
+ *   - TASK-28521: tab đồng bộ ngoài hiện D.O.B thô `2001-05-20`, tab Overview hiện `20/05/2001`.
+ *   - TASK-28405: Extension Course Package khác nhau giữa màn Create/Edit và màn Order Detail.
+ *   - TASK-28446: màn Checkout rút gọn + sai chính tả tên khoá học so với Ops.
  * Chỉ khi ĐẶT CẠNH NHAU thì lệch mới hiện ra. Và phải tách hai lớp: **khác GIÁ TRỊ** (nghiêm trọng: lấy sai
  * nguồn/sai field) vs **khác ĐỊNH DẠNG** (cùng giá trị, format khác — vẫn là bug hiển thị, nhưng khác nguyên nhân).
  *
@@ -177,7 +177,7 @@ async function main() {
         unreadable,
         // Dưới 2 bề mặt đọc được thì KHÔNG kết luận gì — không ✓, không ✗.
         inconclusive: vals.length < 2,
-        valueMismatch: vals.length >= 2 && cores.length > 1,
+        valubcxmatch: vals.length >= 2 && cores.length > 1,
         formatMismatch: vals.length >= 2 && cores.length === 1 && uiRaws.length > 1,
       });
     }
@@ -190,14 +190,14 @@ async function main() {
   } catch (e) { console.error('[xsurf] FATAL', e.message.slice(0, 200)); process.exitCode = 2; }
   await ctx.close();
 
-  const bad = results.filter((r) => r.valueMismatch);
+  const bad = results.filter((r) => r.valubcxmatch);
   const fmt = results.filter((r) => r.formatMismatch);
   const inc = results.filter((r) => r.inconclusive);
   const unread = results.filter((r) => r.unreadable.length);
   console.log(`[xsurf] ${results.length} giá trị × nhiều bề mặt · ${bad.length} khác GIÁ TRỊ · ${fmt.length} khác ĐỊNH DẠNG · ${inc.length} CHƯA KIỂM ĐƯỢC · ${unread.length} có bề mặt đọc không ra`);
   for (const r of results) {
     const tag = r.inconclusive ? '◻ CHƯA KIỂM ĐƯỢC (dưới 2 bề mặt đọc được)'
-      : r.valueMismatch ? '✗ KHÁC GIÁ TRỊ' : r.formatMismatch ? '⚠ KHÁC ĐỊNH DẠNG' : '✓ khớp';
+      : r.valubcxmatch ? '✗ KHÁC GIÁ TRỊ' : r.formatMismatch ? '⚠ KHÁC ĐỊNH DẠNG' : '✓ khớp';
     console.log(`[xsurf] ${tag} · ${r.name}`);
     for (const o of r.obs) console.log(`[xsurf]     ${o.screen}: "${o.value}"   (${o.how})`);
   }
@@ -211,7 +211,7 @@ async function main() {
     for (const r of results) {
       const src = (cfg.checks || []).find((c) => c.name === r.name) || {};
       const readable = r.obs.filter((o) => o.readable);
-      if (r.valueMismatch || r.formatMismatch) {
+      if (r.valubcxmatch || r.formatMismatch) {
         items.push(fnd.makeFinding({
           axis: 'surface', base_tc: src.base_tc, self_inconsistent: true,
           surface: readable.map((o) => o.screen).join(' vs '),
@@ -244,7 +244,7 @@ async function main() {
       `- Giá trị đối chiếu: **${results.length}** · khác giá trị: **${bad.length}** · khác định dạng: **${fmt.length}** · chưa đọc được: **${unread.length}**`, '',
       '| Giá trị | Kết luận | Bề mặt | Đọc được | Cách đọc |', '|---|---|---|---|---|'];
     for (const r of results) {
-      const tag = r.inconclusive ? '◻ chưa kiểm được' : r.valueMismatch ? '✗ khác GIÁ TRỊ' : r.formatMismatch ? '⚠ khác ĐỊNH DẠNG' : '✓ khớp';
+      const tag = r.inconclusive ? '◻ chưa kiểm được' : r.valubcxmatch ? '✗ khác GIÁ TRỊ' : r.formatMismatch ? '⚠ khác ĐỊNH DẠNG' : '✓ khớp';
       for (const o of r.obs) L.push(`| ${r.name} | ${tag} | ${o.screen} | \`${o.value}\` | ${o.how} |`);
     }
     fs.mkdirSync(path.dirname(path.resolve(out)), { recursive: true });

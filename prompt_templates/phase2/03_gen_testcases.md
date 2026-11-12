@@ -162,7 +162,7 @@ Tag chứng minh case **có mặt** ở chiều đó; nó **không** chứng min
 
 Chiều khác (`[UI]` `[API]` `[E2E]` `[Export]` `[SideEffect]` `[Design]` `[Impact]`) **cố ý không khai luật**. Chưa phát biểu được "bằng chứng tối thiểu" một cách chính xác thì thà không gác. Gác bằng luật mơ hồ rồi báo oan còn tệ hơn.
 
-**Vì sao có mục này:** `OPS_PAY_TC_175` liệt kê form Add Transaction **có** field Recipient Bank Account nhưng không phát biểu ràng buộc nào, nên case **XANH** trong khi bug `CSDL-28420` vẫn sống. Bug đó là modal cho chọn pháp nhân khác order, làm CRM ghi sai pháp nhân. Tag `[Display]` một mình không cứu được ca đó; **bằng chứng tối thiểu** thì cứu được.
+**Vì sao có mục này:** `OPS_PAY_TC_175` liệt kê form Add Transaction **có** field Recipient Bank Account nhưng không phát biểu ràng buộc nào, nên case **XANH** trong khi bug `TASK-28420` vẫn sống. Bug đó là modal cho chọn pháp nhân khác order, làm CRM ghi sai pháp nhân. Tag `[Display]` một mình không cứu được ca đó; **bằng chứng tối thiểu** thì cứu được.
 
 > Hiện là **CẢNH BÁO**, chưa chặn. Sẽ bật `--strict` sau khi đo trên bộ gen mới đầu tiên (<10% case thiếu). Đo trên bộ 530 hiện tại: **0 cảnh báo** — vì bộ đó chưa có tag chiều nào, nên luật này không báo oan lấy một ca.
 
@@ -309,7 +309,7 @@ Quy tắc cho từng loại dữ liệu:
 - **HỢP ĐỒNG bước ↔ kết quả.** Đây là chỗ từng làm mất 44% nội dung khi publish. Khối kết quả của bước N gồm **dòng đánh số N + MỌI dòng con `- …` đứng sau nó**, cho tới dòng đánh số kế tiếp. Khối đó là **một đơn vị**: khi publish lên TMS nó đi trọn vào `expectedResult` của đúng bước N.
   - Vì thế ràng buộc đúng là **số dòng ĐÁNH SỐ của cột kết quả = số bước**; số dòng con thì tuỳ ý. KHÔNG phải "số dòng bằng số bước".
   - Consumer **KHÔNG được** ghép `steps[i] ↔ expected[i]` theo chỉ số phẳng: mảng sau `splitNumbered` có dòng con mang `n = null`, ghép kiểu đó vừa lệch bước vừa cắt mất phần dôi. Dùng `groupNumbered()` của `scripts/lib/testcase`.
-  - Đo thật trên bộ CSDL-26878 (101 case) trước khi vá: **300/682 dòng kết quả (44,0%) bị vứt ở 83/101 case**. Bước sau còn nhận nhầm kết quả của bước trước: bước "mở hóa đơn bộ B" lại mang con số của bộ A.
+  - Đo thật trên bộ TASK-26878 (101 case) trước khi vá: **300/682 dòng kết quả (44,0%) bị vứt ở 83/101 case**. Bước sau còn nhận nhầm kết quả của bước trước: bước "mở hóa đơn bộ B" lại mang con số của bộ A.
 - Mô tả CHÍNH XÁC: text nào hiển thị, URL chuyển đến đâu, element nào thay đổi
 - Bao gồm cả response HTTP nếu là API test
 - Với UI, nêu rõ field state: enabled/disabled/readonly/visible/hidden, selected value, validation message, toast, row count, pagination, modal state.

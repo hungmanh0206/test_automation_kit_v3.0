@@ -1,10 +1,10 @@
 /*
  * @infra `trace:matrix --pm` — bản GỘP theo module (v2.9.5 §7).
  *
- * Vì sao cần một view riêng: ma trận per-TC của một task thật dài 275 dòng (đo trên CSDL-9004). Không ai
+ * Vì sao cần một view riêng: ma trận per-TC của một task thật dài 275 dòng (đo trên TASK-9004). Không ai
  * ở vai quản lý đọc 275 dòng, nên trong thực tế người ta đọc dòng `>` tóm tắt — mà dòng đó chỉ có TỔNG,
  * không nói module nào đang hổng. "80% đã execute" nghe như đều, trong khi 20% còn lại có thể dồn hết
- * vào một module. Bản gộp thật trên CSDL-9004 cho thấy đúng chuyện đó: hai module ở **0%**.
+ * vào một module. Bản gộp thật trên TASK-9004 cho thấy đúng chuyện đó: hai module ở **0%**.
  *
  * PHÉP KIỂM QUAN TRỌNG NHẤT ở đây là `publish ?`. Cột publish có BA trạng thái, và `?` nghĩa là chưa
  * tải mirror Sheet về — tức CHƯA ĐO ĐƯỢC. Gộp `?` vào 0 làm bảng đọc như "chưa publish gì cả", một kết

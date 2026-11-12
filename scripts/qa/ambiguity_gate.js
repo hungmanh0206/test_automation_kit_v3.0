@@ -17,8 +17,8 @@
  *
  * **① `RESOLVED` không phải một trạng thái — có BA, và hai cái CHỨA chuỗi `RESOLVED`.**
  *
- *   CSDL-3544 `PARTIALLY RESOLVED` · CSDL-9001 `RESOLVED` · CSDL-9002 `PARTIALLY RESOLVED` ·
- *   CSDL-9003 `RESOLVED` · CSDL-9004 `RESOLVED-BY-DEFAULT`.
+ *   TASK-3544 `PARTIALLY RESOLVED` · TASK-9001 `RESOLVED` · TASK-9002 `PARTIALLY RESOLVED` ·
+ *   TASK-9003 `RESOLVED` · TASK-9004 `RESOLVED-BY-DEFAULT`.
  *
  *   Kiểm bằng `includes('RESOLVED')` ⇒ hai cái kia lọt qua IM LẶNG: gate xanh mà không gác gì, đúng lớp
  *   lỗi "không chạy mà báo đạt". Kiểm bằng `=== 'RESOLVED'` ⇒ chặn 3/5 task ĐANG CHẠY, trong đó 9004 đã
@@ -104,8 +104,8 @@ function chuanMuc(tho) {
 /**
  * Câu hỏi trong `phase1-clarifications.md`. HAI KHUÔN, vì task thật dùng cả hai:
  *
- *   · HÀNG BẢNG   — `| Q7 | Medium | nội dung | trả lời |`            (CSDL-9002)
- *   · TIÊU ĐỀ     — `### Q1 — nội dung · Critical` rồi thân ở dưới     (CSDL-9003, 9004, 3544)
+ *   · HÀNG BẢNG   — `| Q7 | Medium | nội dung | trả lời |`            (TASK-9002)
+ *   · TIÊU ĐỀ     — `### Q1 — nội dung · Critical` rồi thân ở dưới     (TASK-9003, 9004, 3544)
  *
  * Bản đầu chỉ đọc khuôn bảng, và hệ quả đo được: 3/5 task ra "không đọc được câu hỏi nào". Trong chế độ
  * CHẶT, ba task đó sẽ bị chặn vì BỘ ĐỌC của tôi thiếu khuôn — tức một hạn chế của máy hoá thành một
@@ -120,7 +120,7 @@ function docCauHoi(noiDung) {
    * khớp `\r` (nó là ký tự kết thúc dòng), và `$` không khớp trước `\r`. Nên một regex kết thúc bằng
    * `(.*)$` trượt TOÀN BỘ dòng của file CRLF — im lặng, không lỗi.
    *
-   * Hệ quả đo được 16/10/2026: `CSDL-9004` có 21 tiêu đề câu hỏi mà máy đọc ra **0**. Trong chế độ
+   * Hệ quả đo được 16/10/2026: `TASK-9004` có 21 tiêu đề câu hỏi mà máy đọc ra **0**. Trong chế độ
    * CHẶT, task đó sẽ bị chặn vì BỘ ĐỌC thiếu, tức một hạn chế của máy hoá thành cáo buộc về công việc
    * của người — dương tính giả tệ nhất, vì nó đổ lỗi sai chỗ.
    */
@@ -159,8 +159,8 @@ function docCauHoi(noiDung) {
    * task thật không có mức nào máy đọc được** — nên chúng KHÔNG được áp nghĩa vụ nào. Một gate gác
    * im lặng nửa số câu thì phần "đã gác" của nó là lời khai, không phải phép đo.
    *
-   * Nguyên nhân không phải tài liệu thiếu nhãn: `CSDL-9004` đặt mức ở TIÊU ĐỀ MỤC (`## CRITICAL`,
-   * `## HIGH — …`), `CSDL-9003` nhóm theo `## Blocking` / `## Non-blocking`. Nhãn có đủ, máy đọc thiếu.
+   * Nguyên nhân không phải tài liệu thiếu nhãn: `TASK-9004` đặt mức ở TIÊU ĐỀ MỤC (`## CRITICAL`,
+   * `## HIGH — …`), `TASK-9003` nhóm theo `## Blocking` / `## Non-blocking`. Nhãn có đủ, máy đọc thiếu.
    *
    * Thừa kế CÓ ĐIỀU KIỆN, cố ý hẹp: chỉ khi tiêu đề mục nói rõ một mức, hoặc nói rõ "non-blocking".
    * Tiêu đề kiểu `## Blocking — đã trả lời` KHÔNG suy ra Critical: "chặn" và "mức" là hai chuyện, và

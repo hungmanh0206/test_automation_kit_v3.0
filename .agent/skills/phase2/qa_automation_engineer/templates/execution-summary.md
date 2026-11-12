@@ -14,16 +14,16 @@ vi_sao: "`exec:tally:check` đọc SỔ VERDICT trong thư mục task (suy từ 
 
 ## Lượt chạy
 
-- Task: `CSDL-9002` · Hồ sơ lớp học
+- Task: `TASK-9002` · Hồ sơ lớp học
 - Môi trường: UAT · năm học 2026-2027 · cấp Tiểu học · trường `TEST 1`
 - `RUN_ID`: `2026-11-06-01`
-- Lệnh: `npm run test:task -- --task CSDL-9002`
+- Lệnh: `npm run test:task -- --task TASK-9002`
 
 <!-- exec-tally:bat-dau -->
 
 ### Số đã chấm — MÁY SINH, đừng sửa tay
 
-> Nguồn: `outputs/CSDL/tasks/CSDL-9002/test-results/runs/2026-11-06-01/status.json`
+> Nguồn: `outputs/DEMO/tasks/TASK-9002/test-results/runs/2026-11-06-01/status.json`
 > · sửa lần cuối 2026-11-06 09:14 · runId `2026-11-06-01`
 >
 > Đây là số của **sổ verdict đó**, không phải mẫu số của cả bộ case. Mẫu số neo ở
@@ -50,10 +50,10 @@ thích, không phải được làm cho khớp.**
 
 | TC | Tầng lỗi | Đã rerun | Kết luận |
 |---|---|---|---|
-| `NT-LOP-012` | `product_bug` | 3/3 lần đỏ | Lưu lớp ở phân hiệu thứ hai không ghi được bản ghi. Đã log `CSDL-4188`, ảnh mỗi step. |
+| `NT-LOP-012` | `product_bug` | 3/3 lần đỏ | Lưu lớp ở phân hiệu thứ hai không ghi được bản ghi. Đã log `TASK-4188`, ảnh mỗi step. |
 | `NT-LOP-013` | `testcase_error` | 2/3 đỏ, 1 xanh | Ô `Kết quả mong đợi` ghi "lưu thành công" nên hai lượt phán khác nhau. Sửa case, **không** log bug. |
 | `NT-LOP-020` | `setup_failure` | 3/3 đỏ | Bộ lọc Khối cần dữ liệu hai khối; UAT chỉ có một. **Không** log Backlog cho `setup_failure`. |
-| `NT-PC-011` | `product_bug` | 3/3 đỏ | Gán trùng GVCN hai lớp không bị chặn. Đã log `CSDL-4191`. |
+| `NT-PC-011` | `product_bug` | 3/3 đỏ | Gán trùng GVCN hai lớp không bị chặn. Đã log `TASK-4191`. |
 
 ### Hai case BLOCKED, và vì sao chúng không thành FAIL
 

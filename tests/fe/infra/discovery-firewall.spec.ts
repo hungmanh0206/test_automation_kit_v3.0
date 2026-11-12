@@ -36,7 +36,7 @@ test.describe('@infra tường lửa — 0 request ghi lọt, và FIXTURE KHÔNG
     const truocSo = srv.store.truong.length;
 
     await page.goto(`${srv.url}/truong`);
-    // locator-lint-disable-next-line fixture CỤC BỘ của chính bài tự kiểm này (fixtures/discovery-app), không phải QEMIS: mục đích là BẤM nhầm nút nguy hiểm để chứng minh tường lửa ghi chặn được; lưới fixture có nhiều dòng và bấm dòng nào cũng được
+    // locator-lint-disable-next-line fixture CỤC BỘ của chính bài tự kiểm này (fixtures/discovery-app), không phải app mẫu: mục đích là BẤM nhầm nút nguy hiểm để chứng minh tường lửa ghi chặn được; lưới fixture có nhiều dòng và bấm dòng nào cũng được
     await page.locator('button.nguyhiem', { hasText: 'Xoá' }).first().click();
     await page.waitForTimeout(300);
 
@@ -79,7 +79,7 @@ test.describe('@infra tường lửa — 0 request ghi lọt, và FIXTURE KHÔNG
     const truoc = JSON.stringify(srv.store.truong);
 
     await page.goto(`${srv.url}/truong`);
-    // locator-lint-disable-next-line fixture CỤC BỘ của chính bài tự kiểm này (fixtures/discovery-app), không phải QEMIS: mục đích là BẤM nhầm nút nguy hiểm để chứng minh tường lửa ghi chặn được; lưới fixture có nhiều dòng và bấm dòng nào cũng được
+    // locator-lint-disable-next-line fixture CỤC BỘ của chính bài tự kiểm này (fixtures/discovery-app), không phải app mẫu: mục đích là BẤM nhầm nút nguy hiểm để chứng minh tường lửa ghi chặn được; lưới fixture có nhiều dòng và bấm dòng nào cũng được
     await page.locator('button.nguyhiem', { hasText: 'Xoá' }).first().click();
     await page.goto(`${srv.url}/them-truong`);
     await page.getByRole('button', { name: 'Ghi lại qua API' }).click();
@@ -153,7 +153,7 @@ test.describe('@infra tường lửa — 0 request ghi lọt, và FIXTURE KHÔNG
     const bb = await fw.install(page);
     await page.goto(`${srv.url}/truong`);
     bb.datNutDangBam('Xoá');
-    // locator-lint-disable-next-line fixture CỤC BỘ của chính bài tự kiểm này (fixtures/discovery-app), không phải QEMIS: mục đích là BẤM nhầm nút nguy hiểm để chứng minh tường lửa ghi chặn được; lưới fixture có nhiều dòng và bấm dòng nào cũng được
+    // locator-lint-disable-next-line fixture CỤC BỘ của chính bài tự kiểm này (fixtures/discovery-app), không phải app mẫu: mục đích là BẤM nhầm nút nguy hiểm để chứng minh tường lửa ghi chặn được; lưới fixture có nhiều dòng và bấm dòng nào cũng được
     await page.locator('button.nguyhiem', { hasText: 'Xoá' }).first().click();
     await page.waitForTimeout(300);
 
@@ -178,14 +178,14 @@ test.describe('@infra nút cấm bấm — lớp phòng vệ thứ hai', () => {
      *   `=== `             → bỏ sót "Lưu và đóng";
      *   ranh giới từ       → sửa được hai cái trên, nhưng VẪN chặn oan "Ghi chú" (ở đó "ghi" đứng thành
      *                        từ riêng thật). Đây là ca đỏ thật khi chạy spec lần đầu, 1/8 nhãn.
-     * Chỗ này KHÔNG giải được bằng regex khéo hơn: "Ghi" là nút lưu thật của QEMIS ở cả 5 cấp, mà
+     * Chỗ này KHÔNG giải được bằng regex khéo hơn: "Ghi" là nút lưu thật của app mẫu ở cả 5 cấp, mà
      * "Ghi chú" là nhãn chỉ-đọc — cùng một từ, hai nghĩa. Nên phải khai NGOẠI LỆ tường minh.
      */
     for (const n of ['Ghi chú', 'Ghi nhận', 'Lưu ý', 'Đăng ký', 'Nghi vấn', 'Xem chi tiết', 'Tải lại trang', 'Lọc', 'Tìm kiếm', 'Quay lại']) {
       expect(fw.laNutCamBam(n, cfg), `"${n}" KHÔNG được bị chặn`).toBeNull();
     }
     expect(fw.laNutCamBam('Lưu và đóng', cfg), '"Lưu và đóng" vẫn phải bị chặn').toBeTruthy();
-    expect(fw.laNutCamBam('Ghi', cfg), '"Ghi" trần vẫn phải bị chặn — QEMIS có nút này ở cả 5 cấp').toBeTruthy();
+    expect(fw.laNutCamBam('Ghi', cfg), '"Ghi" trần vẫn phải bị chặn — app mẫu có nút này ở cả 5 cấp').toBeTruthy();
   });
 
   test('ngoại lệ chỉ-đọc phải KHAI TƯỜNG MINH trong config, không ẩn trong regex', () => {
@@ -219,20 +219,20 @@ test.describe('@infra chặn prod — hai chiều, và "không rõ" KHÔNG thàn
   const cfg = fw.napCfg();
 
   test('host non-prod + có cờ ⇒ cho phép', () => {
-    for (const u of ['https://qemis-uat.example.vn/', 'http://localhost:3000/', 'https://app-staging.example.vn/']) {
+    for (const u of ['https://appmau-uat.example.vn/', 'http://localhost:3000/', 'https://app-staging.example.vn/']) {
       expect(fw.kiemTarget(u, cfg, true).duoc, `${u} phải được phép`).toBe(true);
     }
   });
 
   test('host non-prod mà THIẾU cờ ⇒ từ chối', () => {
-    const r = fw.kiemTarget('https://qemis-uat.example.vn/', cfg, false);
+    const r = fw.kiemTarget('https://appmau-uat.example.vn/', cfg, false);
     expect(r.duoc).toBe(false);
     expect(r.vi_sao).toMatch(/THIẾU cờ --confirm-nonprod/);
     expect(r.vi_sao, 'và nói rõ dấu hiệu tên host không thay được xác nhận của người').toMatch(/không thay được một lượt xác nhận/);
   });
 
   test('host có dấu hiệu PROD ⇒ từ chối, kể cả khi có cờ', () => {
-    for (const u of ['https://qemis.prod.example.vn/', 'https://www.example.vn/', 'https://production.example.vn/']) {
+    for (const u of ['https://appmau.prod.example.vn/', 'https://www.example.vn/', 'https://production.example.vn/']) {
       const r = fw.kiemTarget(u, cfg, true);
       expect(r.duoc, `${u} phải bị từ chối`).toBe(false);
       expect(r.vi_sao).toMatch(/khớp dấu hiệu PROD/);
@@ -245,7 +245,7 @@ test.describe('@infra chặn prod — hai chiều, và "không rõ" KHÔNG thàn
      * app, nên gõ sai host một lần là duyệt hàng trăm trang trên hệ thống thật. "Không phán được" không
      * thành "được phép" — cùng luật với verdict (CLAUDE.md §3).
      */
-    const r = fw.kiemTarget('https://qemis.example.vn/', cfg, true);
+    const r = fw.kiemTarget('https://appmau.example.vn/', cfg, true);
     expect(r.duoc).toBe(false);
     expect(r.vi_sao).toMatch(/KHÔNG khớp dấu hiệu non-prod nào/);
     expect(r.vi_sao, 'và chỉ đúng chỗ sửa').toMatch(/discovery\.json/);

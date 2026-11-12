@@ -4,7 +4,7 @@
 /*
  * tcid_duplicate_check.js — MỘT case chỉ được ĐĂNG KÝ VỚI RECORDER ở MỘT file spec.
  *
- * VÌ SAO CÓ GÁC NÀY — sự cố 16/10/2026, CSDL-9001:
+ * VÌ SAO CÓ GÁC NÀY — sự cố 16/10/2026, TASK-9001:
  *   `diem-truong-phu.spec.ts` đăng ký tám case kèm `tc.finish('BLOCKED_SETUP')` với lý do "case chưa
  *   được hiện thực". Lời đó ĐÚNG vào lúc viết. Rồi thân thật của cả tám được viết ở ba file khác —
  *   nhưng không ai gỡ khối cũ. Từ đó mỗi lượt chạy có HAI test cùng khai một `tcId`.
@@ -25,15 +25,15 @@
  * ĐO CHO ĐÚNG, ba cái bẫy đã gặp khi viết chính gác này:
  *   1. Chú thích cũng chứa `tcId` ("xem TC_073"). Phải gỡ chú thích TRƯỚC khi tìm, nếu không ghi chú
  *      chỉ đường — thứ thay cho khối stub đã gỡ — lại làm gác báo động nhầm.
- *   2. `path.join(ART, 'CSDL_HS_TC_193.png')` KHÔNG phải lượt đăng ký. Bỏ chuỗi có đuôi tệp.
+ *   2. `path.join(ART, 'APP_HS_TC_193.png')` KHÔNG phải lượt đăng ký. Bỏ chuỗi có đuôi tệp.
  *   3. Khối stub gọi `rec.case(tcId)` qua biến vòng lặp, nên tìm `rec.case('ID')` theo chữ sẽ BỎ LỌT
  *      đúng ca sinh ra gác này. Vì vậy: file có gọi `rec.case(` với biến thì mọi `tcId` dạng chuỗi
  *      đứng riêng trong file đó đều tính là đăng ký.
  *
  * Dùng:
  *   node scripts/qa/tcid_duplicate_check.js                      # quét mọi task
- *   node scripts/qa/tcid_duplicate_check.js --task CSDL-9001
- *   node scripts/qa/tcid_duplicate_check.js --cho-phep CSDL_HS_TC_193
+ *   node scripts/qa/tcid_duplicate_check.js --task TASK-9001
+ *   node scripts/qa/tcid_duplicate_check.js --cho-phep APP_HS_TC_193
  *
  * Exit: 0 = không trùng ở mức chặn · 1 = có · 2 = không tìm thấy thư mục nào để quét.
  */
@@ -58,7 +58,7 @@ const KHAI_CHU = /\.case\(\s*['"`]([A-Z][A-Z0-9_]*_TC_\d+[A-Z]?)['"`]/g;
 /* `rec.case(<không phải chuỗi>)` — đăng ký qua biến; chính dạng của khối stub đã gây sự cố.
  *
  * Bản đầu viết `[A-Za-z_$][\w$.]*` nên khớp `rec.case(tcId)` và `rec.case(a.b)` nhưng BỎ LỌT
- * `rec.case(TC_CUA_CAP[cap])` — dạng tra bảng theo cấp, đúng dạng hai bộ đo nhãn field của CSDL-9001
+ * `rec.case(TC_CUA_CAP[cap])` — dạng tra bảng theo cấp, đúng dạng hai bộ đo nhãn field của TASK-9001
  * đang dùng. Gác bỏ lọt đúng ca phổ biến nhất thì vô dụng. Nay: bất kỳ tham số KHÔNG mở đầu bằng dấu
  * nháy đều tính là đăng ký qua biến. */
 const KHAI_BIEN = /\.case\(\s*[^'"`\s)][^)]*\)/;

@@ -36,7 +36,7 @@ test.describe('§L — chọn màn nào để smoke', () => {
   test('chỉ sinh cho màn CÓ NEO; màn chưa có neo bị bỏ qua và ĐƯỢC NÊU RA', () => {
     /*
      * Màn chưa có neo thì smoke không nói được gì: nó `goto` rồi kết luận "ổn" trong khi chưa kiểm một
-     * control nào. Catalog thật của CSDL-9001 có 4/5 màn ở trạng thái đó, nên đây là ca thường gặp.
+     * control nào. Catalog thật của TASK-9001 có 4/5 màn ở trạng thái đó, nên đây là ca thường gặp.
      */
     const { r, don } = sinhVao();
     expect(r.so_man_sinh).toBe(1);

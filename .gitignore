@@ -245,7 +245,7 @@ dist/
 *_KeHoach_va_HuongDan*.docx
 *_KeHoach*.docx
 
-# Tài liệu hướng dẫn sử dụng QEMIS của nhà cung cấp — KHÔNG commit.
+# Tài liệu hướng dẫn sử dụng app mẫu của nhà cung cấp — KHÔNG commit.
 # Ảnh chụp màn hình BÊN TRONG các file .docx này chứa dữ liệu cá nhân THẬT chưa che: hồ sơ nhân sự đầy đủ
 # (họ tên, ngày sinh, CCCD, điện thoại, hộ khẩu) và số định danh cá nhân của học sinh. Nhà cung cấp che
 # không nhất quán. Không có cách che ảnh nhúng trong .docx mà không sửa tài liệu gốc, nên chặn ở Git.
@@ -278,7 +278,7 @@ tests/fe/visual/**-snapshots/
 #  `.gitignore` KHÔNG hỗ trợ comment cuối dòng — để chung dòng thì cả chuỗi comment thành phần của
 #  pattern và luật mất tác dụng IM LẶNG (đã dính 24/08/2026, phát hiện bằng `git check-ignore`).
 #  Tổng quát cho MỌI thư mục test theo task (fe/api/mobile-web/...), không chỉ mobile-web:
-# Mẫu TỔNG QUÁT theo định dạng khoá task `<TIỀN TỐ>-<số>` (vd `CSDL-1234`), không khoá cứng
+# Mẫu TỔNG QUÁT theo định dạng khoá task `<TIỀN TỐ>-<số>` (vd `TASK-1234`), không khoá cứng
 # một tiền tố: đổi tiền tố là luật câm, spec của task lại lọt vào repo.
 tests/**/[A-Z]*-[0-9]*/
 tests/support/setup/db/connection.check.spec.ts

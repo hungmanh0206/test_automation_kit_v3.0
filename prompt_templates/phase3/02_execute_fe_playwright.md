@@ -93,7 +93,7 @@ Nếu precondition chỉ có thể DỰNG bằng DB hoặc backend internal stat
    `tsconfig.json` của kit khai `exclude: ["outputs"]`, nên `npm run typecheck` KHÔNG soi
    `outputs/**/<TASK_KEY>/automation/**`. Không chạy lệnh này thì spec của task **chưa từng được
    typecheck**, dù `npm run typecheck` báo xanh.
-   *Vì sao bắt buộc:* đo 09/10/2026 ở CSDL-9001 — hai thuộc tính KHÔNG TỒN TẠI (`ScreenField.hidden`,
+   *Vì sao bắt buộc:* đo 09/10/2026 ở TASK-9001 — hai thuộc tính KHÔNG TỒN TẠI (`ScreenField.hidden`,
    `ScreenField.value`) được dùng ở 17 chỗ. `undefined !== true` luôn đúng nên phép kiểm "ô có hiện
    không" thành "ô có trong DOM không" ⇒ một case báo PASS giả; `f.value` luôn `undefined` ⇒ một case
    khác chấm FAIL oan. Thêm một biến không khai (`MA`) ném ReferenceError làm case chết không ghi
@@ -107,7 +107,7 @@ Nếu precondition chỉ có thể DỰNG bằng DB hoặc backend internal stat
    Ô trống ĐÚNG mà vẫn bị báo (vd verdict đến từ lượt chạy SAI CẤP) thì khai ở
    `<TASK_OUTPUT_DIR>/test-results/result-ledger-mien.json`, mỗi mục bắt buộc có `lyDo` + `ngay`.
    *Vì sao bắt buộc:* Excel là nơi người ta ĐỌC để kết luận độ phủ, còn sự thật nằm ở file status —
-   hai nơi phân kỳ mà không gì báo. CSDL-9001 mất 129 ô kết quả theo đúng đường đó, và chỉ lộ ra vì
+   hai nơi phân kỳ mà không gì báo. TASK-9001 mất 129 ô kết quả theo đúng đường đó, và chỉ lộ ra vì
    chủ dự án tình cờ hỏi "test hết case chưa".
 13. Chỉ log Backlog sau khi report PASS/FAIL/SKIP hoàn tất, fail đã được rerun/xác nhận và user/prompt cho phép.
 

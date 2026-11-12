@@ -19,12 +19,12 @@ Vì sao buộc phải inspect DOM thật: **đo trên repo, `getByTestId` xuất
 > Sửa 10/10/2026. Câu này trước đó ghi "ant-design + Metronic" — stack của **dự án trước**. Kết luận (tầng 5
 > là tầng chết) vẫn đúng, nhưng LÝ DO thì sai, và agent suy tiếp từ lý do sai sẽ đi tìm `.ant-select-*` trên
 > một app không có nó. Stack hiện tại đo được ở `tests/fe/support/opsLogin.ts` (control tên
-> `ctl00$ContentPlaceHolder1$ctl00$tbU`) và `knowledge/locators/qemis-login__radcombobox-5-o-va-cap-hoc.json`.
+> `ctl00$ContentPlaceHolder1$ctl00$tbU`) và `knowledge/locators/appmau-login__radcombobox-5-o-va-cap-hoc.json`.
 >
 > ⚠️ **File locator đó là lớp PROJECT — KHÔNG đi theo gói phát hành.** `knowledge/**` chỉ commit `.gitkeep`
 > (xem `.gitignore`), nên ở máy người nhận kho này RỖNG và con trỏ trên trỏ vào hư không. Nêu nó ra ở đây
 > để bạn biết bằng chứng nằm ở đâu NẾU bạn đang ở máy có kho đó, chứ không phải để đi tìm trong gói. Ví dụ
-> QEMIS cũng cố ý không được đưa vào `knowledge/examples/`: `kit-layers.md` tách lớp PROJECT khỏi kit
+> app mẫu cũng cố ý không được đưa vào `knowledge/examples/`: `kit-layers.md` tách lớp PROJECT khỏi kit
 > generic, và một ví dụ của app cụ thể trong gói dùng chung sẽ dạy sai cho dự án khác.
 
 ## Mức tự chủ: **Never-auto**

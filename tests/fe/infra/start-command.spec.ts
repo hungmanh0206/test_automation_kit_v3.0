@@ -92,7 +92,7 @@ test.describe('@infra /start — KHÔNG được bỏ preflight', () => {
 
 test.describe('@infra /start — CHỈ tạo profile + task, không tự sang phase', () => {
   /*
-   * Đã trả giá thật (CSDL-4172, 05/11/2026): command ghi "rồi làm tiếp" và bảng "→ /phase2", load_map ghi
+   * Đã trả giá thật (TASK-4172, 05/11/2026): command ghi "rồi làm tiếp" và bảng "→ /phase2", load_map ghi
    * "chuyển hẳn sang luồng phase1". Người dùng nhắn "tiếp", agent đọc hai câu đó thành lệnh, tự gọi /phase2 và
    * sinh ~90 case trong khi người dùng chỉ định tạo profile.
    */

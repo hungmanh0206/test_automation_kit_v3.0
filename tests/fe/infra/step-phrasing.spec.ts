@@ -50,7 +50,7 @@ test.describe('§K — hai luật đang chấm', () => {
      * `Website = "http://..."` là GIÁ TRỊ một ô, không phải một màn. Bản đầu bắt cả nó — 2 trong 4 ví
      * dụ đầu tiên trên bộ thật là loại này, tức một nửa số lần nó kêu là kêu oan.
      */
-    expect(pc.viPhamCuaMenhDe('mở C2/HoSoTruongDetail.aspx').map((v: { ma: string }) => v.ma)).toContain('P4');
+    expect(pc.viPhamCuaMenhDe('mở C2/HoSoDetail.aspx').map((v: { ma: string }) => v.ma)).toContain('P4');
     expect(pc.viPhamCuaMenhDe('Mở tab mới vào https://vi-du.com/Manage/Log').map((v: { ma: string }) => v.ma)).toContain('P4');
     expect(pc.viPhamCuaMenhDe('Nhập Stt 15 Website = "http://truong-test.edu.vn"')).toHaveLength(0);
   });
@@ -100,7 +100,7 @@ test.describe('§K — luật bị LOẠI, và con số khiến chúng bị lo�
     for (const s of ['Xoá trắng ô "Stt 17" và dán chuỗi "251 ký tự"', 'Mở form Sửa và chọn "Khối 6"']) {
       expect(pc.viPhamCuaMenhDe(s).map((v: { ma: string }) => v.ma), `phải bắt: ${s}`).toContain('P2');
     }
-    /* KHÔNG ĐƯỢC BẮT: sau "và" là danh từ — đây là 242/280 ca trên bộ thật CSDL-9001. */
+    /* KHÔNG ĐƯỢC BẮT: sau "và" là danh từ — đây là 242/280 ca trên bộ thật TASK-9001. */
     for (const s of ['Xoá trắng ô "Họ và tên"', 'Kiểm "Stt 10" và "Stt 11"', 'Đọc nhãn "DTTS và miền núi"']) {
       expect(pc.viPhamCuaMenhDe(s).map((v: { ma: string }) => v.ma), `báo oan: ${s}`).not.toContain('P2');
     }

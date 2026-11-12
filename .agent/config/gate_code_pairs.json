@@ -7,37 +7,37 @@
     {
       "code": "EVID_THIEU",
       "gate": "scripts/qa/lib/output_rules.js",
-      "mau_ban": "CSDL_HSTRUONG_TC_001: PASS nhưng thiếu evidence cho case đã execute"
+      "mau_ban": "APP_HSTRUONG_TC_001: PASS nhưng thiếu evidence cho case đã execute"
     },
     {
       "code": "EVID_SAI_LOAI",
       "gate": "scripts/qa/output_gate.js",
-      "mau_ban": "CSDL_HSTRUONG_TC_001: evidence KHÔNG phải ảnh/video: trace.zip (chỉ nhận .png/.jpg/.jpeg/.webp/.mp4/.webm)"
+      "mau_ban": "APP_HSTRUONG_TC_001: evidence KHÔNG phải ảnh/video: trace.zip (chỉ nhận .png/.jpg/.jpeg/.webp/.mp4/.webm)"
     },
     {
       "code": "EVID_VIDEO",
       "gate": "scripts/qa/lib/output_rules.js",
-      "mau_ban": "CSDL_HSTRUONG_TC_001: case phức tạp nhưng THIẾU video (ảnh không mô tả đủ chuỗi thao tác) → rerun quay video"
+      "mau_ban": "APP_HSTRUONG_TC_001: case phức tạp nhưng THIẾU video (ảnh không mô tả đủ chuỗi thao tác) → rerun quay video"
     },
     {
       "code": "STEP_THIEU",
       "gate": "scripts/qa/output_gate.js",
-      "mau_ban": "CSDL_HSTRUONG_TC_001: 3/7 step THIẾU status (mỗi step phải PASS/FAIL)"
+      "mau_ban": "APP_HSTRUONG_TC_001: 3/7 step THIẾU status (mỗi step phải PASS/FAIL)"
     },
     {
       "code": "VERDICT_LA",
       "gate": "scripts/qa/output_gate.js",
-      "mau_ban": "CSDL_HSTRUONG_TC_001: status \"DONE\" không thuộc verdict taxonomy — dùng PASS/FAIL/SKIP/BLOCKED_SETUP/SKIP_SETUP/TODO"
+      "mau_ban": "APP_HSTRUONG_TC_001: status \"DONE\" không thuộc verdict taxonomy — dùng PASS/FAIL/SKIP/BLOCKED_SETUP/SKIP_SETUP/TODO"
     },
     {
       "code": "FAIL_CHUA_PHAN_TANG",
       "gate": ".agent/config/verdict_taxonomy.json",
-      "mau_ban": "CSDL_HSTRUONG_TC_001: FAIL mà thiếu failureLayer — không route được owner"
+      "mau_ban": "APP_HSTRUONG_TC_001: FAIL mà thiếu failureLayer — không route được owner"
     },
     {
       "code": "RERUN_THIEU",
       "gate": "scripts/qa/bug_claim.js",
-      "mau_ban": "CSDL_HSTRUONG_TC_001: có 2 lượt, cần ít nhất 3 để loại flaky và setup"
+      "mau_ban": "APP_HSTRUONG_TC_001: có 2 lượt, cần ít nhất 3 để loại flaky và setup"
     },
     {
       "code": "PII",
@@ -47,12 +47,12 @@
     {
       "code": "SQL_CAM",
       "gate": "scripts/qa/howto_store.js",
-      "mau_ban": "CSDL_HSTRUONG_TC_001: steps có câu lệnh GHI vào DB (INSERT/UPDATE/DELETE/psql…) — cấm dựng state bằng DB; chỉ SELECT read-only để verify"
+      "mau_ban": "APP_HSTRUONG_TC_001: steps có câu lệnh GHI vào DB (INSERT/UPDATE/DELETE/psql…) — cấm dựng state bằng DB; chỉ SELECT read-only để verify"
     },
     {
       "code": "ORACLE_TAUTOLOGY",
       "gate": "scripts/qa/domain_rules.js",
-      "mau_ban": "CSDL_HSTRUONG_TC_001: expected lấy từ chính app đang kiểm — tautology, không phải oracle"
+      "mau_ban": "APP_HSTRUONG_TC_001: expected lấy từ chính app đang kiểm — tautology, không phải oracle"
     },
     {
       "code": "ORACLE_THIEU_NEO",
@@ -67,12 +67,12 @@
     {
       "code": "O_LOI_RONG",
       "gate": "scripts/qa/design_gate.js",
-      "mau_ban": "CSDL_HSTRUONG_TC_001: ô lõi `Kết quả mong đợi` rỗng"
+      "mau_ban": "APP_HSTRUONG_TC_001: ô lõi `Kết quả mong đợi` rỗng"
     },
     {
       "code": "TAG_THIEU",
       "gate": "scripts/convert_excel/md_to_xlsx.js",
-      "mau_ban": "4/210 case KHÔNG có tag chiều: CSDL_HSTRUONG_TC_007, CSDL_HSTRUONG_TC_011"
+      "mau_ban": "4/210 case KHÔNG có tag chiều: APP_HSTRUONG_TC_007, APP_HSTRUONG_TC_011"
     },
     {
       "code": "TAG_LA",
@@ -102,12 +102,12 @@
     {
       "code": "NEEDS_VERIFY",
       "gate": "scripts/lib/testcase/validate.js",
-      "mau_ban": "CSDL_HSTRUONG_TC_001 còn [NeedsVerify] — chưa có nguồn chống lưng, không được publish"
+      "mau_ban": "APP_HSTRUONG_TC_001 còn [NeedsVerify] — chưa có nguồn chống lưng, không được publish"
     },
     {
       "code": "COMMENT_RAC",
       "gate": "scripts/qa/lib/output_rules.js",
-      "mau_ban": "CSDL_HSTRUONG_TC_001: comment lẫn chuỗi debug key=value (editable=false, disabled=true)"
+      "mau_ban": "APP_HSTRUONG_TC_001: comment lẫn chuỗi debug key=value (editable=false, disabled=true)"
     },
     {
       "code": "AMBIGUITY_CHUA_MO",

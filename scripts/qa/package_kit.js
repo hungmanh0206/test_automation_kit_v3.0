@@ -156,7 +156,7 @@ const KEEP_FILES = [
    * Người nhận gõ `npm test` lần đầu thấy 25 đỏ mà không hiểu vì sao.
    *
    * Cả 5 file đã soi: không chứa host, bảng DB, credential hay PII. Chỗ nhắc mã task chỉ là TIỀN LỆ
-   * cho luật (kiểu "bug CSDL-28776 bị Rejected vì đọc thiếu chữ"), giữ lại thì luật mới có căn cứ.
+   * cho luật (kiểu "bug TASK-28776 bị Rejected vì đọc thiếu chữ"), giữ lại thì luật mới có căn cứ.
    */
   '.agent/config/writing_style.json',
   '.agent/config/env_lanes.json',
@@ -233,11 +233,11 @@ const KEEP_FILES = [
    */
   '.agent/config/gate_code_pairs.json',
   /*
-   * `db-paths.allow.json` (v2.8.0 §0b.5): danh sách miễn trừ CÓ HẠN của `db:paths:check`. Thiếu nó trong
-   * gói thì máy mới đỏ ngay lượt đầu vì 9 file probe có sẵn của một task cũ — đỏ vì thiếu config, không
-   * vì có lỗi. Mà một gate đỏ-khi-vừa-cài thì bị bỏ qua chứ không được sửa.
+   * `db-paths.allow.json` RA KHỎI GÓI (v3.0.0): mỗi mục là ĐƯỜNG DẪN FILE TASK THẬT của dự án (`outputs/…`), tức
+   * dữ liệu lớp PROJECT. Lý do cũ ("máy mới đỏ vì 9 file probe của task cũ") không còn đúng: `outputs/**` không
+   * vào gói nên máy mới không có file nào để vi phạm, và thiếu file thì `db_paths_check` coi danh sách rỗng.
+   * Gói mang `db-paths.allow.example.json`.
    */
-  '.agent/config/db-paths.allow.json',
   /*
    * `judge_rubric.json` + `judge_calibration.json` (v2.7.0 §A11): thang chấm cho phần máy không đo được,
    * và bộ hiệu chuẩn. Thiếu thang thì `judge --check` không biết chấm những mục nào; thiếu bộ hiệu chuẩn
@@ -296,6 +296,12 @@ const DENY = [
   /^knowledge\/(?!SCHEMA\.md$)(?!.*\.gitkeep$)/,
   /^tests\/api\//, /^tests\/mobile-web\//,
   /^tests\/fe\/(auth|support|order|transaction)\//,
+  /*
+   * Spec đọc MÃ NGUỒN helper đăng nhập của dự án (`tests/fe/support/opsLogin.ts`, lớp PROJECT, đã bị loại ở
+   * dòng trên) — trong gói nó chỉ tự bỏ qua, mà chữ trong nó lại kể tên biến của ứng dụng. v3.0.0.
+   */
+  /^tests\/fe\/infra\/ops-login-combobox\.spec\.ts$/,
+  /^\.agent\/config\/context_pins\.json$/,
   /\.spec\.ts-snapshots\//,           // ảnh baseline visual là của dự án, không phải của kit
   /*
    * Spec CHẠY THẬT trên DB/màn của dự án này ⇒ lớp PROJECT, dù nằm trong thư mục GENERIC.
@@ -374,11 +380,16 @@ function collect() {
  * trong package-lock, placeholder trong .env.example, chuỗi mẫu trong sanitize.js, URL SSH git@host). PII
  * của khách nằm ở outputs/knowledge/profiles — đã loại theo CẤU TRÚC.
  */
-function scanPackage(root, files) {
+/**
+ * `root` = cây GÓI (đã dàn trang); `goc` = cây NGUỒN — nơi có config lớp PROJECT. Bản trước suy marker từ
+ * `root`, mà `db.conventions.json` KHÔNG BAO GIỜ có trong gói, nên marker tên bảng chưa từng được áp (v3.0.0).
+ */
+function scanPackage(root, files, goc = REPO) {
   const sp = require(path.resolve(__dirname, 'lib', 'secret_patterns'));
   const { PATTERNS, CRED_FILE, CRED_CONTENT } = sp;
   // Marker tên bảng suy từ quy ước DB của CHÍNH `root` — xem `markersFromConventions` để biết vì sao.
-  const PROJECT_MARKERS = [...sp.PROJECT_MARKERS, ...sp.markersFromConventions(root)];
+  const PROJECT_MARKERS = [...sp.PROJECT_MARKERS, ...sp.markersFromConventions(goc)];
+  const TU_CAM = sp.markersFromDenyTerms(goc);
   const hits = [];
   const warns = [];
   for (const f of files) {
@@ -397,6 +408,11 @@ function scanPackage(root, files) {
     let body;
     try { body = fs.readFileSync(path.join(root, f), 'utf8'); } catch (e) { continue; }
     for (const p of PATTERNS) if (p.re.test(body)) hits.push(`${f} — secret: ${p.name}`);
+    /* TỪ CẤM của dự án: CHẶN ở MỌI loại file chữ, kể cả .md và .example — gói không được kể chuyện dự án nào. */
+    for (const t of TU_CAM) {
+      const i = body.split(/\r?\n/).findIndex((d) => t.re.test(d));
+      if (i >= 0) hits.push(`${f}:${i + 1} — từ cấm của dự án: ${t.name}`);
+    }
 
     /*
      * Marker lớp PROJECT — CHẶN hay CẢNH BÁO tuỳ LOẠI FILE, vì hại của hai loại khác nhau hẳn:

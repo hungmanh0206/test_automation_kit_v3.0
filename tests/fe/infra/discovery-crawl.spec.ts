@@ -541,7 +541,7 @@ test.describe('@infra bò TẤT ĐỊNH, và không chạm dữ liệu', () => {
   });
 
   test('host không rõ ⇒ TỪ CHỐI BÒ, không mở trang nào', async () => {
-    await expect(cr.boApp(br, { baseUrl: 'https://qemis.example.vn/', coCo: true }))
+    await expect(cr.boApp(br, { baseUrl: 'https://appmau.example.vn/', coCo: true }))
       .rejects.toThrow(/TỪ CHỐI BÒ/);
   });
 
@@ -680,7 +680,7 @@ test.describe('@infra KHÔNG đi theo link Đăng xuất — lỗ đo được t
   /*
    * LƯỢT §E ĐẦU TIÊN TRÊN UAT (11/10) phơi ra lỗ này, và nó ngụy trang rất khéo.
    *
-   * `nut_cam_bam` chỉ gác lượt BẤM NÚT; `gomLink` gom mọi `a[href]` mà không kiểm nhãn. Trên QEMIS,
+   * `nut_cam_bam` chỉ gác lượt BẤM NÚT; `gomLink` gom mọi `a[href]` mà không kiểm nhãn. Trên app mẫu,
    * Đăng xuất là một thẻ `<a>` trong menu người dùng, nằm ngay đầu thứ tự DOM. Crawler đi theo nó và TỰ
    * HUỶ SESSION của chính mình.
    *

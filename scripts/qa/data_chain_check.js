@@ -49,7 +49,7 @@ const doiSo = (n) => {
  * ĐỘNG TỪ DỰNG là ranh giới giữa "phụ thuộc dữ liệu" và "trích dẫn để đọc".
  * Giữ `đã chạy xong` vì nó khai một phụ thuộc THỨ TỰ, dù không nói rõ dựng gì.
  */
-const RE_PHU_THUOC = /(?:dựng|tạo|khai|đã\s+chạy\s+xong|chạy\s+trước|có\s+số\s+đo\s+mốc\s+của|dùng\s+lại\s+đúng\s+file\s+của)[^|]{0,80}?((?:[A-Z][A-Z0-9_]*_)?TC_\d+|CSDL_[A-Z]+_TC_\d+)/giu;
+const RE_PHU_THUOC = /(?:dựng|tạo|khai|đã\s+chạy\s+xong|chạy\s+trước|có\s+số\s+đo\s+mốc\s+của|dùng\s+lại\s+đúng\s+file\s+của)[^|]{0,80}?((?:[A-Z][A-Z0-9_]*_)?TC_\d+|APP_[A-Z]+_TC_\d+)/giu;
 /* Trích dẫn để ĐỌC — không phải phụ thuộc. Giữ danh sách để còn giải thích được vì sao bỏ qua. */
 const RE_CHI_DOC = /(?:đã\s+kiểm|đã\s+đo|đo\s+riêng|SQL\s+ở|xem\s+ở|so\s+với|khác\s+với)[^|]{0,40}TC_\d+/giu;
 
@@ -108,7 +108,7 @@ function nguonCuaCase(td) {
   return [...ra];
 }
 
-/** Khớp mã rút được với mã thật trong bộ: ô hay viết tắt `TC_084` cho `CSDL_NHANSU_TC_084`. */
+/** Khớp mã rút được với mã thật trong bộ: ô hay viết tắt `TC_084` cho `APP_NHANSU_TC_084`. */
 function giaiMa(ma, tatCa) {
   if (tatCa.has(ma)) return ma;
   const duoi = [...tatCa].filter((x) => x.endsWith(`_${ma}`) || x === ma);

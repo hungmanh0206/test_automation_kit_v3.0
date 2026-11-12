@@ -1,0 +1,15 @@
+{
+  "_y": "FIXTURE cho tests/fe/infra/tc-examples.spec.ts — rule mà ví dụ trong techniques.md trích nguyên văn. Đã trung lập hoá (v3.0.0).",
+  "id": "BR-NHANSU-003",
+  "rule": "Ma dia phuong co ngay khi luu ho so. Ma dinh danh Bo GD&DT CHI nhan duoc sau khi dong bo ho so len CSDL Bo, khong sinh tai cho o phien ban truong. Nhan su chua co ma Bo, hoac da co ma nhung mot thanh phan bo KEY bi sua, duoc hien thi boi do tren luoi.",
+  "examples": [
+    {
+      "input": "Luu ho so moi thanh cong",
+      "expected": "O Ma dinh danh Bo GD&DT van rong"
+    },
+    {
+      "input": "Sua Ho ten cua nhan su da co ma Bo",
+      "expected": "Ho so quay ve trang thai can dong bo lai"
+    }
+  ]
+}

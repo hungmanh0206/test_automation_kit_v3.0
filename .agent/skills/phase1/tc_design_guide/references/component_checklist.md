@@ -75,7 +75,7 @@
 - **Tạo** rồi tìm lại bản ghi đó **trong lưới** — tạo xong mà lưới không đổi là đã hỏng.
 - **Xem chi tiết** khớp đúng dữ liệu vừa tạo, từng ô một, không chỉ ô tiêu đề.
 - **Sửa** rồi lưu, rồi đọc lại ở **cả lưới lẫn màn chi tiết** — hai nơi lệch nhau là một bug riêng.
-- **Xoá**: hộp xác nhận phải có thật; bấm Huỷ giữ nguyên, bấm OK mới xoá. Nhiều màn QEMIS cần **nhiều
+- **Xoá**: hộp xác nhận phải có thật; bấm Huỷ giữ nguyên, bấm OK mới xoá. Nhiều màn app mẫu cần **nhiều
   hơn một bước** để xoá thật, nên dừng ở bước giữa trông y hệt "app không cho xoá".
 - Xoá bản ghi **đang được tham chiếu** (khoá ngoại) — chặn, hay xoá luôn làm hỏng chỗ khác?
 - Tạo **trùng** giá trị unique.

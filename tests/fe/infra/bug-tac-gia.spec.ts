@@ -33,11 +33,11 @@ test.describe('@infra bug:tac-gia — lệnh nào là lệnh TẠO', () => {
       'node scripts/integrations/backlog/bug_reporter.js --task T --run-id R',
       'TASK_KEY=T node scripts/integrations/backlog/tao_issue_con.js --parent P',
       'npm run backlog:bug-report -- --task T',
-      'bash backlog.sh tao_issue_con --parent CSDL-4008 --type Bug',
+      'bash backlog.sh tao_issue_con --parent TASK-4008 --type Bug',
     ]) expect(tg.laLenhTao(c), c).toBe(true);
     for (const c of [
       'grep -n "argString" scripts/integrations/backlog/bug_reporter.js',
-      'cat outputs/CSDL/tasks/T/reports/runs/R/backlog_bug_log.md',
+      'cat outputs/DEMO/tasks/T/reports/runs/R/backlog_bug_log.md',
       'node scripts/integrations/backlog/bug_reporter.js --dry-run',
       'npm run backlog:bug-report:dry-run -- --task T',
     ]) expect(tg.laLenhTao(c), c).toBe(false);
@@ -48,28 +48,28 @@ test.describe('@infra bug:tac-gia — quét transcript', () => {
   test('ĐỐI CHỨNG ÂM: agent cat file báo cáo có dòng Created ⇒ KHÔNG phải agent tạo', async () => {
     const d = thuMucTam('tg-tr');
     fs.writeFileSync(path.join(d, 'a.jsonl'), [
-      ...cap('t1', 'cat outputs/CSDL/tasks/T/reports/runs/R/backlog_bug_log.md', BANG('CSDL-1')),
-      ...cap('t2', 'node scripts/integrations/backlog/bug_reporter.js --task T', BANG('CSDL-2')),
-      ...cap('t3', 'node scripts/integrations/backlog/tao_issue_con.js --parent P', '[OK] đã tạo CSDL-3 — u'),
-      ...cap('t4', 'node scripts/integrations/backlog/bug_reporter.js --dry-run', BANG('CSDL-4')),
+      ...cap('t1', 'cat outputs/DEMO/tasks/T/reports/runs/R/backlog_bug_log.md', BANG('TASK-1')),
+      ...cap('t2', 'node scripts/integrations/backlog/bug_reporter.js --task T', BANG('TASK-2')),
+      ...cap('t3', 'node scripts/integrations/backlog/tao_issue_con.js --parent P', '[OK] đã tạo TASK-3 — u'),
+      ...cap('t4', 'node scripts/integrations/backlog/bug_reporter.js --dry-run', BANG('TASK-4')),
     ].join('\n'));
     const r = await tg.quetTranscript(d);
     fs.rmSync(d, { recursive: true, force: true });
-    expect(Object.keys(r).sort()).toEqual(['CSDL-2', 'CSDL-3']);
-    expect(r['CSDL-2'].qua).toBe('kết quả lệnh tạo');
+    expect(Object.keys(r).sort()).toEqual(['TASK-2', 'TASK-3']);
+    expect(r['TASK-2'].qua).toBe('kết quả lệnh tạo');
   });
 
   test('kết quả chuyển vào file ⇒ đọc log của ĐÚNG lượt chạy lệnh tạo (RUN_ID trong lệnh)', async () => {
     const d = thuMucTam('tg-log');
     const log = path.join(d, 'tasks', 'T-9', 'reports', 'runs', 'R7', 'backlog_bug_log.md');
     fs.mkdirSync(path.dirname(log), { recursive: true });
-    fs.writeFileSync(log, BANG('CSDL-77'));
+    fs.writeFileSync(log, BANG('TASK-77'));
     /* Đường Windows có `\` — `PROJECT_OUTPUT_DIR=` của lệnh thật mang dạng đó. */
     const po = d.replace(/\//g, '\\');
     fs.writeFileSync(path.join(d, 'b.jsonl'), cap('u1', `PROJECT_OUTPUT_DIR=${po} RUN_ID=R7 node scripts/integrations/backlog/bug_reporter.js --task T-9 > log.txt`, 'xong').join('\n'));
     const r = await tg.quetTranscript(d);
     fs.rmSync(d, { recursive: true, force: true });
-    expect(r['CSDL-77'] && r['CSDL-77'].qua).toBe('log của lượt chạy');
+    expect(r['TASK-77'] && r['TASK-77'].qua).toBe('log của lượt chạy');
   });
 });
 
@@ -80,13 +80,13 @@ test.describe('@infra bug:tac-gia — sổ lúc tạo', () => {
     const cu = process.env.BUG_TAC_GIA_SO;
     process.env.BUG_TAC_GIA_SO = f;
     try {
-      expect(tg.ghi({ issueKey: 'CSDL-5', qua: 'x' }, { base: 'http://127.0.0.1:4321', env: { CLAUDECODE: '1' } })).toBe('bo-qua');
+      expect(tg.ghi({ issueKey: 'TASK-5', qua: 'x' }, { base: 'http://127.0.0.1:4321', env: { CLAUDECODE: '1' } })).toBe('bo-qua');
       expect(fs.existsSync(f), 'bug tạo trên server giả không phải bug thật').toBe(false);
-      expect(tg.ghi({ issueKey: 'CSDL-5', qua: 'x' }, { base: 'https://vd.backlog.com', env: { CLAUDECODE: '1' } })).toBe('da-ghi');
-      expect(tg.ghi({ issueKey: 'CSDL-6', qua: 'x' }, { base: 'https://vd.backlog.com', env: {} })).toBe('da-ghi');
+      expect(tg.ghi({ issueKey: 'TASK-5', qua: 'x' }, { base: 'https://vd.backlog.com', env: { CLAUDECODE: '1' } })).toBe('da-ghi');
+      expect(tg.ghi({ issueKey: 'TASK-6', qua: 'x' }, { base: 'https://vd.backlog.com', env: {} })).toBe('da-ghi');
       const so = tg.docSoTacGia(f);
-      expect(so.get('CSDL-5').phienAgent).toBe(true);
-      expect(so.get('CSDL-6').phienAgent).toBe(false);
+      expect(so.get('TASK-5').phienAgent).toBe(true);
+      expect(so.get('TASK-6').phienAgent).toBe(false);
     } finally {
       if (cu === undefined) delete process.env.BUG_TAC_GIA_SO; else process.env.BUG_TAC_GIA_SO = cu;
       fs.rmSync(d, { recursive: true, force: true });
@@ -98,7 +98,7 @@ test.describe('@infra bug:tac-gia — sổ lúc tạo', () => {
     const cu = process.env.BUG_TAC_GIA_SO;
     process.env.BUG_TAC_GIA_SO = d; // là THƯ MỤC ⇒ appendFileSync ném
     try {
-      expect(tg.ghi({ issueKey: 'CSDL-5', qua: 'x' }, { base: 'https://vd.backlog.com' })).toBe('loi');
+      expect(tg.ghi({ issueKey: 'TASK-5', qua: 'x' }, { base: 'https://vd.backlog.com' })).toBe('loi');
     } finally {
       if (cu === undefined) delete process.env.BUG_TAC_GIA_SO; else process.env.BUG_TAC_GIA_SO = cu;
       fs.rmSync(d, { recursive: true, force: true });

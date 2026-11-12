@@ -148,7 +148,7 @@ const RE_SO = /(?<![\w.])\d{1,8}(?:[.-]\d{1,8})*(?![\w.])/g;
  *
  * Bản đầu đổi số trần thành `#` và KHÔNG tính là tham số, với lý lẽ "`Stt 87` chỉ vị trí dòng trên lưới,
  * không phải giá trị người dùng nhập". Lý lẽ đó sai ở đúng chỗ quan trọng nhất: `Stt 87` là thứ XÁC ĐỊNH
- * FIELD NÀO, tức nó là tham số đầu tiên của bước. Đo trên 1.079 mệnh đề của CSDL-9001: **330 mệnh đề
+ * FIELD NÀO, tức nó là tham số đầu tiên của bước. Đo trên 1.079 mệnh đề của TASK-9001: **330 mệnh đề
  * (31%)** trỏ field bằng `Stt #`, và với `#` không phải tham số thì không bước nào khớp được chúng — bất
  * kể danh mục có bao nhiêu mục.
  *

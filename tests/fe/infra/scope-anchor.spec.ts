@@ -6,7 +6,7 @@ import path from 'path';
 /*
  * @infra — MẪU SỐ COVERAGE PHẢI CÓ XUẤT XỨ.
  *
- * Ca thật đã xảy ra (CSDL-3544): Phase 1 sinh 60 case, `dim:coverage --enforce` báo "10/10 chiều đạt",
+ * Ca thật đã xảy ra (TASK-3544): Phase 1 sinh 60 case, `dim:coverage --enforce` báo "10/10 chiều đạt",
  * summary ghi coverage 83,3% và `Final Decision: CONDITIONAL PASS`. Cả ba con số đứng trên mẫu số do
  * CHÍNH AGENT khai: manifest tự đánh 10 chiều `n/a`, "Tổng requirement in-scope = 12" tự đếm, `ui_catalog`
  * dựng từ ảnh chụp build. Không máy nào trong kit hỏi được "12 ở đâu ra?".
@@ -150,7 +150,7 @@ test('@infra neo đủ thì KHÔNG báo oan', () => {
 /*
  * Hồi quy: danh mục THẬT chia nhiều bảng theo loại mục (mã chức năng · business rule · khối field ·
  * chuỗi phụ thuộc · mục chờ BA), cộng một bảng "đã cân nhắc và loại" KHÔNG có cột Nguồn.
- * Bản đầu của parser dừng ở bảng đầu tiên ⇒ đếm 12/49 trên CSDL-9004 và sẽ báo "lệch mẫu số" OAN.
+ * Bản đầu của parser dừng ở bảng đầu tiên ⇒ đếm 12/49 trên TASK-9004 và sẽ báo "lệch mẫu số" OAN.
  * Gate đếm thiếu còn tệ hơn không có gate: sai một lần là không ai tin nữa.
  */
 const multiTable = `# Danh mục phạm vi
@@ -195,7 +195,7 @@ test('@infra bảng "đã loại" (không có cột Nguồn) KHÔNG bị tính v
 /*
  * ATTESTATION CŨ — bảng gate là ẢNH CHỤP một lượt chạy, không phải thứ tự cập nhật.
  *
- * Ca thật, lặp ở cả bốn bộ CSDL (đo 30/09/2026): bộ case đi 100 → 148 → 202 → 271, nhưng bảng
+ * Ca thật, lặp ở cả bốn bộ testcase mẫu (đo 30/09/2026): bộ case đi 100 → 148 → 202 → 271, nhưng bảng
  * "Kết quả các gate đã chạy" ở cuối `phase1-summary.md` vẫn là số của lượt cũ. Thêm case thì người
  * ta chỉ sửa con số tổng ở đầu file; bảng ở cuối không ai chạm, nên artifact đi duyệt chứng thực
  * một trạng thái không còn tồn tại. 13 dòng như vậy trên 4 task, không gate nào bắt.

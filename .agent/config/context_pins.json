@@ -1,0 +1,19 @@
+{
+  "_y": "LỚP PROJECT — biến chọn ngữ cảnh mà app đang test mặc định NGẦM. Đọc bởi scripts/utils/context_pins.js. KHÔNG vào gói phát hành (gói mang context_pins.example.json).",
+  "nhan_dien": "^QEMIS_",
+  "phai_ghim": [
+    { "khoa": "QEMIS_CAP_HOC", "hau_qua": "app sẽ lặng lẽ giữ mặc định \"Mầm non\" (opsLogin.ts:419 chỉ console.warn), nên lượt chạy vẫn XANH trên cấp học KHÔNG phải cấp mà case nói tới" }
+  ],
+  "nen_ghim": [
+    { "khoa": "QEMIS_NAM_HOC", "hau_qua": "giữ mặc định của app; runtime có cảnh báo (opsLogin.ts:412) nên không âm thầm, nhưng ID_TRUONG đổi theo năm học" }
+  ],
+  "neo": ["OPS_USERNAME", "OPS_PASSWORD", "QEMIS_SO", "QEMIS_CAP_HOC", "QEMIS_TRUONG", "QEMIS_PHUONG_XA", "QEMIS_NAM_HOC"],
+  "dau_ngu_canh": {
+    "capHoc": ["QEMIS_CAP_HOC_LAM_VIEC", "QEMIS_CAP_HOC"],
+    "truong": ["QEMIS_TRUONG_LAM_VIEC", "QEMIS_TRUONG"],
+    "namHoc": ["QEMIS_NAM_HOC"]
+  },
+  "ma_ngan": {
+    "capHoc": [["mầm non", "MN"], ["thường xuyên", "GDTX"], ["gdtx", "GDTX"], ["trung học phổ thông", "THPT"], ["thpt", "THPT"], ["trung học cơ sở", "THCS"], ["thcs", "THCS"], ["tiểu học", "TH"]]
+  }
+}

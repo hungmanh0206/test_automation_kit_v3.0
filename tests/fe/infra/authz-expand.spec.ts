@@ -159,7 +159,7 @@ test.describe('@infra trục ⑥ authz — liệt kê biến thể phân quyền
 
     /*
      * CHỈ MỘT bằng chứng: EXPANSION_FINDING ẩn≠cấm. Ô `verified` KHÔNG tính (đổi 14/10/2026) — nó chỉ
-     * nói "vai trò này vào được route này", chưa so với kỳ vọng nào. Trên CSDL-9001 cách tính cũ cho
+     * nói "vai trò này vào được route này", chưa so với kỳ vọng nào. Trên TASK-9001 cách tính cũ cho
      * `proven=2880` cho một ma trận chưa ô nào được so — tức báo đã chứng minh 2880 thứ chưa ai so.
      */
     expect(proven, 'chỉ finding ẩn≠cấm là bằng chứng; ô verified là QUAN SÁT').toBe(1);

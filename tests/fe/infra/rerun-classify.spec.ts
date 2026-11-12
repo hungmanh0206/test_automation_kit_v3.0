@@ -76,7 +76,7 @@ test.describe('@infra rerun:classify — xếp loại theo BẰNG CHỨNG', () =
   });
 
   test('đã khai `lyDo` ⇒ không còn nằm trong phần chờ người khai', () => {
-    const d = cay([ban('D', { tu: 'FAILED', sang: 'PASSED', cungLuot: false, specDoi: false, lyDo: 'dev fix CSDL-4128, build mới' })]);
+    const d = cay([ban('D', { tu: 'FAILED', sang: 'PASSED', cungLuot: false, specDoi: false, lyDo: 'dev fix TASK-4128, build mới' })]);
     const j = doc(d);
     expect(j.da_khai_ly_do).toBe(1);
     expect(j.can_nguoi_khai).toBe(0);

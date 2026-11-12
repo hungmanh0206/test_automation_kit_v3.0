@@ -22,7 +22,7 @@ const MACHINE = path.join(REPO, 'scripts', 'qa', 'bug_claim.js');
 /*
  * `neo` ép MỨC của luật neo-artifact, vì mức thật nằm ở config dùng chung.
  *
- * ĐO TRÊN TASK THẬT 09/11/2026 (CSDL-4008, đã chạy xong): chỉ **32/116 = 28%** phép đo neo được vào
+ * ĐO TRÊN TASK THẬT 09/11/2026 (TASK-4008, đã chạy xong): chỉ **32/116 = 28%** phép đo neo được vào
  * artifact. Mức "block" sẽ đẩy gần như mọi phép đo vào lối thoát `khong-do-duoc:` — biến lối thoát
  * thành LỐI ĐI CHÍNH, đúng thứ chính luật đó tự cảnh báo. Nên mặc định lui về "warn", theo đúng tiền
  * lệ `requireBuild` trong cùng file config.
@@ -291,11 +291,11 @@ test.describe('@infra bug:claim — kiểm chứng phải đi trước lời nó
   /*
    * NGUỒN THỨ HAI — `requirements/*.md` CỦA CHÍNH TASK (10/11/2026).
    *
-   * Đo trên CSDL-4008: 4 claim trỏ `BR-EMIS-034`/`BR-EMIS-042`, cửa báo "không có bản ghi … trong
+   * Đo trên TASK-4008: 4 claim trỏ `BR-BCX-034`/`BR-BCX-042`, cửa báo "không có bản ghi … trong
    * knowledge/domain", và TÔI ĐÃ BÁO CÁO ĐIỀU ĐÓ CHO CHỦ DỰ ÁN NHƯ MỘT PHÁT HIỆN. Sai: cả hai rule
    * tồn tại, trạng thái `confirmed`, trong `requirements/spec_digest_TH.md`, trích NGUYÊN VĂN.
    *
-   * Dự án dùng HAI HỌ MÃ: `BR-EMISDN-*` (27 bản ghi ở `knowledge/domain`) và `BR-EMIS-*` (71 mã khai
+   * Dự án dùng HAI HỌ MÃ: `BR-BCDN-*` (27 bản ghi ở `knowledge/domain`) và `BR-BCX-*` (71 mã khai
    * trong bản tóm tắt đặc tả của task). Một cửa chỉ biết một nguồn sẽ gọi "không tồn tại" cho mọi
    * thứ nằm ở nguồn kia.
    */
@@ -318,7 +318,7 @@ test.describe('@infra bug:claim — kiểm chứng phải đi trước lời nó
 
   test('ORACLE: TRA HẾT file, không dừng ở file ĐẦU TIÊN chứa mã', () => {
     /*
-     * Bản đầu `return` ngay ở file đầu tiên nhắc mã. Đo trên CSDL-4008/TC_165: cả ba đoạn trích đều
+     * Bản đầu `return` ngay ở file đầu tiên nhắc mã. Đo trên TASK-4008/TC_165: cả ba đoạn trích đều
      * CÓ trong `spec_digest_TH.md`, nhưng một file khác cũng nhắc mã đó và được duyệt trước ⇒ cửa tố
      * oan. **Dừng ở bằng chứng đầu tiên tìm thấy là cách chắc chắn để kết luận sai.**
      */
@@ -334,7 +334,7 @@ test.describe('@infra bug:claim — kiểm chứng phải đi trước lời nó
 
   test('ORACLE: TRÍCH GHÉP hai nguồn trong một ô ⇒ MỘT đoạn khớp là đủ', () => {
     /*
-     * Dạng thật ở CSDL-4008: `BR-X: "…câu của rule…" — Ô kỳ vọng bước 5: "…câu của case…"`. Phép so
+     * Dạng thật ở TASK-4008: `BR-X: "…câu của rule…" — Ô kỳ vọng bước 5: "…câu của case…"`. Phép so
      * "cả chuỗi phải nằm trong nguồn" LUÔN trượt với dạng này ⇒ cửa gọi là "lệch", tức tố oan.
      * Đây KHÔNG phải nới: câu bịa vẫn không khớp đoạn nào — ca ĐỐI CHỨNG ngay dưới gác điều đó.
      */
@@ -396,7 +396,7 @@ test.describe('@infra bug:claim — kiểm chứng phải đi trước lời nó
      * CHẠY — mức mặc định — lại là nhánh không phép kiểm nào gác, và cửa có thể im lặng hỏng ở đúng
      * chế độ mọi người dùng.
      *
-     * Đo trên task thật CSDL-4008 (đã chạy xong): **32/116 = 28%** phép đo neo được. Mức "block" sẽ
+     * Đo trên task thật TASK-4008 (đã chạy xong): **32/116 = 28%** phép đo neo được. Mức "block" sẽ
      * đẩy gần như mọi phép đo vào lối thoát — nên mặc định phải là "warn", và con số phải HIỆN RA để
      * quyết định siết sau này dựa trên SỐ chứ không trên cảm giác.
      */
@@ -491,15 +491,15 @@ test.describe('@infra bug:claim — kiểm chứng phải đi trước lời nó
   test('đọc được CẢ HAI đời khuôn status: `id` và `tcId`', () => {
     /*
      * Chạy trên task thật mới lộ ra: bộ cũ ghi `id`, bộ mới ghi `tcId`. Đọc một khoá thì bộ kia in
-     * "case undefined" và thông báo thành vô dụng. Đã dính thật ở CSDL-28905.
+     * "case undefined" và thông báo thành vô dụng. Đã dính thật ở TASK-28905.
      */
     const t = mkTask();
     fs.writeFileSync(path.join(t.results, 'testcase-status.json'), JSON.stringify({
-      tests: [{ tcId: 'CSDL_CFMIG_TC_070', status: 'FAIL', failureLayer: 'product_bug' }],
+      tests: [{ tcId: 'APP_CFMIG_TC_070', status: 'FAIL', failureLayer: 'product_bug' }],
     }), 'utf8');
     const r = run(t.root);
     expect(r.code).toBe(1);
-    expect(r.out).toContain('CSDL_CFMIG_TC_070');
+    expect(r.out).toContain('APP_CFMIG_TC_070');
     expect(r.out).not.toContain('undefined');
   });
 
@@ -512,7 +512,7 @@ test.describe('@infra bug:claim — kiểm chứng phải đi trước lời nó
      */
     const t = mkTask();
     fs.writeFileSync(path.join(t.results, 'testcase-status.json'), JSON.stringify({
-      tests: [{ id: 'SAP_SYNC_TC_032', status: 'FAIL', failureLayer: 'product_bug', bug: 'CSDL-29161' }],
+      tests: [{ id: 'SAP_SYNC_TC_032', status: 'FAIL', failureLayer: 'product_bug', bug: 'TASK-29161' }],
     }), 'utf8');
     const r = run(t.root);
     expect(r.code, r.out).toBe(0);

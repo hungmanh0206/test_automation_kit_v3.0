@@ -64,7 +64,7 @@ const TT = {
   /*
    * KHÁC `needs_account`: vai trò đó KHÔNG TỒN TẠI và sẽ không có, nên không phải "chờ xin".
    *
-   * Vì sao phải tách (14/10/2026): chủ dự án xác nhận QEMIS chỉ có tài khoản admin, không có tài khoản
+   * Vì sao phải tách (14/10/2026): chủ dự án xác nhận app mẫu chỉ có tài khoản admin, không có tài khoản
    * trường. Để nguyên `needs_account` thì mỗi lượt chạy lại sinh một câu hỏi Critical "xin tài khoản
    * vai trò truong" cho thứ không bao giờ có — và một cửa kêu mãi về chuyện không sửa được là một cửa
    * người ta học cách bỏ qua. Nhưng nó cũng KHÔNG được thành PASS: phép đo vẫn chưa xảy ra.
@@ -261,7 +261,7 @@ function main() {
          * MỘT biến thể cho mỗi (case, vai trò) — KHÔNG phải mỗi (case, vai trò, route).
          *
          * Bản đầu đẩy một biến thể cho TỪNG ô ma trận của vai trò đó, và nó nằm trong vòng lặp case.
-         * Đo 14/10/2026 trên CSDL-9001 với ma trận thật: **3.035 biến thể** cho một task. Một danh
+         * Đo 14/10/2026 trên TASK-9001 với ma trận thật: **3.035 biến thể** cho một task. Một danh
          * sách cỡ đó thì không ai đọc, và nó cũng không đúng: planner KHÔNG biết case này đụng route
          * nào, nên nhân case với MỌI route là bịa ra một quan hệ không có.
          */
@@ -337,7 +337,7 @@ function main() {
   /*
    * Ô verified của ma trận KHÔNG tự thành bằng chứng của trục ⑥.
    *
-   * Bản đầu tính proven = verified + finding, và trên CSDL-9001 nó cho **proven=2880**. Nhưng những ô
+   * Bản đầu tính proven = verified + finding, và trên TASK-9001 nó cho **proven=2880**. Nhưng những ô
    * đó chỉ nói "vai trò masteradmin VÀO ĐƯỢC route này" — không ô nào được so với một kỳ vọng. Phân
    * quyền chỉ PASS/FAIL khi có neo nói vai trò nào ĐƯỢC hay KHÔNG ĐƯỢC vào đâu; không neo thì nó là
    * QUAN SÁT (CLAUDE.md §3). Báo proven=2880 là báo đã chứng minh 2880 thứ chưa ai so.

@@ -4,7 +4,7 @@
 /*
  * result_ledger.js — Chống MẤT KẾT QUẢ ÂM THẦM ở cột `Result` của bản xuất Excel.
  *
- * VÌ SAO CẦN. Ngày 08/10/2026, task CSDL-9001 mất **129 ô kết quả** trong `test-cases/*.xlsx`: cả cột
+ * VÌ SAO CẦN. Ngày 08/10/2026, task TASK-9001 mất **129 ô kết quả** trong `test-cases/*.xlsx`: cả cột
  * `Result THCS` của một cấp đã chạy đủ 184/184 tụt xuống còn 47 ô, cộng 4 ô đính chính và 1 ô của lượt
  * chạy sau. Dữ liệu gốc vẫn còn nguyên trong `testcase-status*.json`, nhưng **không máy nào biết Excel
  * đã lệch khỏi chúng**. Chuyện chỉ lộ ra vì chủ dự án tình cờ hỏi "test hết case chưa" — tức là nếu
@@ -24,10 +24,10 @@
  *      Đây là chiều bắt được cả trường hợp ledger chưa từng chụp (vd mất trước lần chụp đầu tiên).
  *
  * KHÔNG kiểm chiều "Excel có mà status không có": người vẫn được quyền điền tay sau khi rà soát, và
- * `capnhat-excel.js` của CSDL-9001 là ví dụ hợp lệ. Chặn chiều đó sẽ biến gate thành kẻ cản đường.
+ * `capnhat-excel.js` của TASK-9001 là ví dụ hợp lệ. Chặn chiều đó sẽ biến gate thành kẻ cản đường.
  *
  * VÌ SAO ĐỐI SOÁT THEO tcId CHỨ KHÔNG THEO CẤP: file status KHÔNG ghi cấp học. Một bộ testcase có thể
- * có một cột `Result` hoặc nhiều cột `Result <X>` (CSDL-9001 có 5 cột theo cấp). Gate vì thế hỏi câu
+ * có một cột `Result` hoặc nhiều cột `Result <X>` (TASK-9001 có 5 cột theo cấp). Gate vì thế hỏi câu
  * trả lời được chắc chắn — "case này còn ô nào mang verdict không" — thay vì đoán ô nào thuộc lượt nào.
  * Chiều A bù lại phần đó: nó so TỪNG Ô, nên mất cả một cột vẫn lộ ra.
  *
@@ -299,7 +299,7 @@ async function docExcel(file) {
   /*
    * ----- C. NHIỄM CHÉO CẤP: ô nằm ở cột `Result <X>` nhưng case chỉ có verdict mang dấu cấp KHÁC X.
    *
-   * Chiều A và B chỉ thấy ô MẤT. Cái đã xảy ra ở CSDL-9001 tệ hơn thế: cột `Result THCS` bị thay bằng
+   * Chiều A và B chỉ thấy ô MẤT. Cái đã xảy ra ở TASK-9001 tệ hơn thế: cột `Result THCS` bị thay bằng
    * 45 verdict của lượt chạy GDTX — cột vừa thiếu vừa BẨN, và ô vẫn "có giá trị" nên A/B đều im.
    *
    * Chỉ kết luận khi case CÓ dấu cấp và KHÔNG dấu nào khớp cột. Case chưa có dấu (ghi trước
@@ -379,7 +379,7 @@ async function docExcel(file) {
    *
    * Lý do: gate không phân biệt được hai thứ trông giống hệt nhau — (a) verdict của cấp khác bị merge
    * nhầm cột, và (b) ô do người điền tay từ một phép đo không sinh file status (vd lượt rà soát field
-   * coverage 05/10/2026 của CSDL-9001, hoặc một verdict được xét lại theo oracle mới). Cả hai đều cho
+   * coverage 05/10/2026 của TASK-9001, hoặc một verdict được xét lại theo oracle mới). Cả hai đều cho
    * "không verdict nào mang dấu cấp này". Chặn thì (b) bị oan và gate sẽ bị tắt — mà gate bị tắt thì
    * (a) cũng hết người gác.
    *

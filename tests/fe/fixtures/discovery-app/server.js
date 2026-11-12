@@ -70,7 +70,7 @@ const CHROME = (vaiTro, tieuDe, than) => `<!doctype html>
  [role=tabpanel]{border:1px solid #d3dce6;padding:12px}
 </style></head><body>
 <nav aria-label="Điều hướng chính">
-  <strong style="display:block;padding:4px 6px 10px">QEMIS Fixture</strong>
+  <strong style="display:block;padding:4px 6px 10px">app mẫu Fixture</strong>
   <a href="/">Tổng quan</a>
   <details class="nhom" open><summary>Danh mục</summary>
     <a href="/truong">Hồ sơ trường</a>
@@ -83,7 +83,7 @@ const CHROME = (vaiTro, tieuDe, than) => `<!doctype html>
          ve quyen, moi cai mot case. Dung aria-disabled de roles.js doc duoc bang cach chuan; app that con
          dung class disabled va pointer-events none, ca ba deu duoc doc. KHONG dung dau backtick trong khoi
          nay: no nam trong mot template literal cua JS, va backtick se dong chuoi som. -->
-    <a href="/bao-cao-emis" aria-disabled="true" style="opacity:.45">Báo cáo EMIS (chưa mở)</a>
+    <a href="/bao-cao-bcx" aria-disabled="true" style="opacity:.45">Báo cáo BCX (chưa mở)</a>
   </details>
   ${vaiTro === 'admin' ? '<details class="nhom" open><summary>Quản trị</summary><a href="/admin">Cấu hình hệ thống</a></details>' : '<!-- vai trò nhanvien: mục Quản trị KHÔNG render ở menu, nhưng /admin vẫn vào được -->'}
   <a href="/Logout.aspx">Đăng xuất</a>
@@ -703,7 +703,7 @@ function start() {
      * Link tới trang này KHÔNG đặt trong menu: chỉ test gọi thẳng.
      */
     /*
-     * `/Logout.aspx` HUY session roi day ve man dang nhap co captcha. Dung dung hinh dang cua QEMIS:
+     * `/Logout.aspx` HUY session roi day ve man dang nhap co captcha. Dung dung hinh dang cua app mẫu:
      * Dang xuat la mot the <a> trong menu, nen crawler di theo link se tu giet phien cua chinh no.
      */
     if (p === '/Logout.aspx') {
@@ -747,12 +747,12 @@ function start() {
       return html(CHROME(vaiTro, 'Trang cham', than));
     }
     /*
-     * `/bao-cao-emis`: menu KHOÁ mục này (aria-disabled) nhưng server VẪN trả 200. Đây là lỗ thứ hai,
+     * `/bao-cao-bcx`: menu KHOÁ mục này (aria-disabled) nhưng server VẪN trả 200. Đây là lỗ thứ hai,
      * khác đường vào với `/admin`: ở `/admin` việc chặn nằm ở chỗ ẩn menu, ở đây nằm ở chỗ khoá nút. Cả
      * hai đều là client-only, và `roles.js` phải bắt được cả hai.
      */
-    if (p === '/bao-cao-emis') {
-      return html(CHROME(vaiTro, 'Bao cao EMIS', '<p>Man nay le ra chua mo. Menu khoa muc nay, nhung server khong chan.</p>'));
+    if (p === '/bao-cao-bcx') {
+      return html(CHROME(vaiTro, 'Bao cao BCX', '<p>Man nay le ra chua mo. Menu khoa muc nay, nhung server khong chan.</p>'));
     }
 
     // ---- tệp tĩnh cạnh file này (openapi.json, fsd.md) ----

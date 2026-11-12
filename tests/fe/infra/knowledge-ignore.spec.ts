@@ -13,7 +13,7 @@ import { gateEnv } from './_gate_env';
  *
  *   - `knowledge/leak_machine_map.json` — chính `README.md` và `scripts/qa/leak_report.js` bảo người
  *     dùng tạo file này. Tạo xong là nó được track.
- *   - `knowledge/bugs/CSDL-99999.md` — luật cũ chỉ chặn `*.json`. Tên file bug là slug tiêu đề defect,
+ *   - `knowledge/bugs/TASK-99999.md` — luật cũ chỉ chặn `*.json`. Tên file bug là slug tiêu đề defect,
  *     nên riêng ĐƯỜNG DẪN đã mô tả lỗi sản phẩm.
  *   - một store mới bất kỳ, ví dụ `knowledge/store_moi/`.
  *
@@ -60,7 +60,7 @@ function biChan(duongDan: string): boolean {
 const PHAI_CHAN = [
   'knowledge/leak_machine_map.json',
   'knowledge/domain/ghi-chu.md',
-  'knowledge/bugs/CSDL-99999.md',
+  'knowledge/bugs/TASK-99999.md',
   'knowledge/store_moi/du_lieu.json',
   'knowledge/locators/app.yaml',
   'knowledge/index.json',

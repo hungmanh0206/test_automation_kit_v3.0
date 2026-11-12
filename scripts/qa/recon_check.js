@@ -19,7 +19,7 @@
  *   ① catalog phải khai mình là bản trích đặc tả và cấm lấy nhãn từ build đang chạy;
  *   ② dòng nào khai quan sát thì phải đi kèm dấu CHƯA KIỂM CHỨNG ở gần đó.
  *
- * CSDL-9001 là mẫu đúng: nó có một dòng quan sát, và ngay dưới là
+ * TASK-9001 là mẫu đúng: nó có một dòng quan sát, và ngay dưới là
  * "⚠️ `url` và `headingText` … chưa đo trên UAT". Luật dưới đây rút từ chính nó.
  * ─────────────────────────────────────────────────────────────────────────────────────────────────────
  *
@@ -42,11 +42,11 @@ const JSON_OUT = process.argv.includes('--json');
 /*
  * BA HÌNH DẠNG HỢP LỆ, rút từ cả 4 catalog có thật — không phải từ một cái rồi suy ra ba.
  *
- * Bản đầu của tôi chỉ bắt chữ "Nguồn duy nhất" và báo CSDL-9004 thiếu banner. Đó là DƯƠNG TÍNH GIẢ:
+ * Bản đầu của tôi chỉ bắt chữ "Nguồn duy nhất" và báo TASK-9004 thiếu banner. Đó là DƯƠNG TÍNH GIẢ:
  * 9004 khai nguồn bằng chữ khác ("Nguồn-sự-thật", "Trích **máy** từ … nguyên văn từng ô"). Mẫu dò bám
  * vào cách viết của MỘT file thì luôn báo oan các file anh em.
  *
- * Và CSDL-3544 lộ ra một hình dạng thứ ba, hợp lệ và rất trung thực: task KHÔNG có FS lẫn Figma, nên
+ * Và TASK-3544 lộ ra một hình dạng thứ ba, hợp lệ và rất trung thực: task KHÔNG có FS lẫn Figma, nên
  * nguồn của catalog là ẢNH CHỤP BUILD — và nó khai thẳng hệ quả: case Display dựa trên catalog này chỉ
  * chứng minh "build không trôi khỏi ảnh QA đã duyệt", KHÔNG chứng minh build đúng đặc tả.
  *

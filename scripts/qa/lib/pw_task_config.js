@@ -4,7 +4,7 @@
  *
  * VÌ SAO CẦN, và đây là một phép đo chứ không phải phỏng đoán: `playwright.config.js` ở gốc khai
  * `testDir: './tests'` và không project nào trỏ tới `outputs/**`. Gọi thẳng một spec ở đó trả **"No
- * tests found"** — đo được ngày 30/09/2026 ở task CSDL-9001, và đo lại ngày 12/10/2026 khi `smoke:gen`
+ * tests found"** — đo được ngày 30/09/2026 ở task TASK-9001, và đo lại ngày 12/10/2026 khi `smoke:gen`
  * sinh spec đầu tiên của nó.
  *
  * VÌ SAO LÀ MỘT NGUỒN. `compile:spec` và `smoke:gen` đều cần file này. Giữ hai bản là dựng sẵn hai thứ

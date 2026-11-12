@@ -23,7 +23,7 @@
  *      chỉ chặn được tên rõ ràng là máy; phần còn lại là trách nhiệm của người ký.
  *
  * Dùng:
- *   node scripts/qa/pass_audit.js --task <KEY> --chon 20 [--seed 12345] [--project-output outputs/CSDL]   ⇒ phiếu chấm
+ *   node scripts/qa/pass_audit.js --task <KEY> --chon 20 [--seed 12345] [--project-output outputs/DEMO]   ⇒ phiếu chấm
  *   node scripts/qa/pass_audit.js --ghi <phiếu đã chấm.md>                                              ⇒ vào sổ
  *   node scripts/qa/pass_audit.js [--task <KEY>] [--json]                                               ⇒ báo cáo
  * Sổ: knowledge/metrics/pass-audit.json · Exit: 0 · 1 khi nhập phiếu bị từ chối · 2 khi chưa có lượt chấm nào
@@ -113,7 +113,7 @@ function phieu({ maMau, task, seed, tongThe, chon, caseMd, tests, thuMucPhieu })
     if (c.duLieu) d.push(`- **Dữ liệu test:** ${motDong(c.duLieu)}`);
     d.push(`- **Kết quả mong đợi:** ${motDong(c.kyVong)}`, '- **Ảnh:**');
     /* KHÔNG kèm tên bước: tên do automation đặt cũng là lời khai ("Bước 2 — Đúng 3 lựa chọn, đúng từng ký tự" — đo
-     * trên phiếu thử đầu tiên, CSDL-9001 TC_092). Chỉ giữ thứ tự ảnh. Ảnh trùng giữa các bước chỉ liệt kê một lần. */
+     * trên phiếu thử đầu tiên, TASK-9001 TC_092). Chỉ giữ thứ tự ảnh. Ảnh trùng giữa các bước chỉ liệt kê một lần. */
     const anh = [...new Set([...(t.steps || []).flatMap((s) => s.evidence || []), ...(t.steps && t.steps.length ? [] : (t.evidence || []))].filter((e) => ANH.test(e)))];
     if (!anh.length) d.push('  - (không có ảnh — chỉ chấm được `khong_phan_duoc`)');
     for (const [k, e] of anh.entries()) {
@@ -196,7 +196,7 @@ const pct = (x) => (x == null ? '—' : `${(x * 100).toFixed(1)}%`);
 function main(argv = process.argv.slice(2)) {
   const lay = (k) => { const i = argv.indexOf(k); return i >= 0 && argv[i + 1] && !argv[i + 1].startsWith('--') ? argv[i + 1] : ''; };
   const so = lay('--so') ? path.resolve(lay('--so')) : SO_MAC_DINH;
-  const po = lay('--project-output') || process.env.PROJECT_OUTPUT_DIR || 'outputs/CSDL';
+  const po = lay('--project-output') || process.env.PROJECT_OUTPUT_DIR || 'outputs/DEMO';
   const task = lay('--task');
 
   if (lay('--chon')) {

@@ -99,7 +99,7 @@ Lúc đó bộ case không còn là một tập hợp mà là một **chuỗi**,
 Đường cuối là đường đắt nhất: nó đã sinh ra **2 `product_bug` bịa** trong một phiên.
 
 **Máy gác:** `npm run data:chain` · `npm run data:chain:check` (thêm `--status <testcase-status.json>`
-mới chạy được phép kiểm verdict — thiếu nó thì cửa nói rõ là chưa phán). Lượt chạy đầu trên bộ CSDL-9004
+mới chạy được phép kiểm verdict — thiếu nó thì cửa nói rõ là chưa phán). Lượt chạy đầu trên bộ TASK-9004
 bắt được một ca thật: `TC_063` khai `(dựng ở TC_075)` nhưng `TC_075` nằm SAU nó trong file.
 
 > **Viết tiền đề cho máy đọc được**: dùng động từ **dựng / tạo / khai / đã chạy xong** kèm mã TC. Trích

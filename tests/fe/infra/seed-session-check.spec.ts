@@ -2,7 +2,7 @@
  * seedSession — kiểm phiên ở trang ĐÒI ĐĂNG NHẬP, không ở gốc (11/11/2026).
  *
  * BỐI CẢNH. `loginOps` nạp phiên đã lưu vào context mới rồi hỏi `seedSession` "phiên còn sống không?". Bản
- * cũ trả lời bằng cách mở GỐC `/` và xem có bị đẩy về /Login.aspx không. Trên QEMIS gốc LUÔN đẩy về
+ * cũ trả lời bằng cách mở GỐC `/` và xem có bị đẩy về /Login.aspx không. Trên app mẫu gốc LUÔN đẩy về
  * /Login.aspx — kể cả khi phiên còn sống — nên câu trả lời luôn là "chết", và mỗi test lại đăng nhập + captcha.
  *
  * Đo bằng probe chỉ-GET trên UAT, cùng một phiên 10 phút tuổi:

@@ -34,7 +34,7 @@ test.describe('@infra spec CHƯA TRACK không được lọt vào lane mặc đ�
    * `npx playwright test` lúc 01:00 drive OPS UAT (`student_delete*`, `calendar_destructive`) hằng đêm
    * mà không ai xác nhận.
    *
-   * Lần hai: `qemis-phuongxa.chandoan.spec.ts` — spec khám phá CHƯA TRACK, có `page.goto(OPS_LOGIN_URL)`.
+   * Lần hai: `appmau-phuongxa.chandoan.spec.ts` — spec khám phá CHƯA TRACK, có `page.goto(OPS_LOGIN_URL)`.
    * Lưới chắn của kit là `testIgnore: '**\/*.probe.spec.*'`, tức nó lọc theo TÊN FILE. File này đặt tên
    * `.chandoan.spec.ts` nên đi thẳng qua lưới, và lane mặc định gom nó như một spec hạ tầng bình thường.
    * Trên máy đang chạy task (có creds trong env) nó sẽ chạm UAT trong một lượt `npm run test:fe` thường.

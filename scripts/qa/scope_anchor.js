@@ -4,7 +4,7 @@
 /*
  * scope_anchor.js — NEO MẪU SỐ của Phase 1.
  *
- * VÌ SAO CÓ FILE NÀY (đo trên task thật CSDL-3544, 25/09/2026): Phase 1 có ba con số quyết định "thế nào
+ * VÌ SAO CÓ FILE NÀY (đo trên task thật TASK-3544, 25/09/2026): Phase 1 có ba con số quyết định "thế nào
  * là đủ", và cả ba đều do CHÍNH AGENT viết ra, rồi gate lấy chính nó làm chuẩn để chấm:
  *   1. `dimension_manifest.json` — agent khai 10 chiều `required`, 10 chiều `n/a` ⇒ `dim:coverage --enforce`
  *      báo "10/10 đạt". `dimension_coverage.js` đã lường trước và ghi rõ "chỉ CHẶN theo manifest do NGƯỜI
@@ -193,7 +193,7 @@ function gateScopeAnchor(taskDir) {
    * ĐÂY LÀ TUYÊN BỐ CỐT LÕI CỦA v2.6.0. Trước Bước 0, danh mục phạm vi là thứ AGENT TỰ LIỆT KÊ từ tài
    * liệu, nên màn nào tài liệu không nhắc thì không vào mẫu số, không ai test, và không gate nào biết.
    *
-   * BẢN ĐẦU KHỚP THEO CHUỖI ROUTE TRONG DANH MỤC, VÀ NÓ SAI. Đo trên task thật `CSDL-9003` với lượt bò
+   * BẢN ĐẦU KHỚP THEO CHUỖI ROUTE TRONG DANH MỤC, VÀ NÓ SAI. Đo trên task thật `TASK-9003` với lượt bò
    * UAT 11/10: 40 màn quan sát được, danh mục 55 dòng `INV-` do người viết — **khớp được 1, trượt 39**.
    * Hai lý do, cả hai đều là lỗi thiết kế chứ không phải lỗi của danh mục:
    *

@@ -35,7 +35,7 @@ function stripEmoji(text) {
 }
 /**
  * Bóc Markdown nội dòng. Excel/Google Sheet không render Markdown nên `**x**` và `~~x~~` hiện
- * NGUYÊN dấu trong ô. Đo 30/09/2026 (CSDL-9004): backtick bóc 52/52 ô, `**` lọt 18/18 ô vào .xlsx.
+ * NGUYÊN dấu trong ô. Đo 30/09/2026 (TASK-9004): backtick bóc 52/52 ô, `**` lọt 18/18 ô vào .xlsx.
  */
 function stripMarkdownInline(text) {
   // `COUNT(*)` trong SQL phải sống sót. Cất tạm rồi trả lại, nếu không hai cái `(*)` trong cùng một ô
@@ -122,7 +122,7 @@ const COL = {
    */
   caseType: (n) => ['loai case', 'case type', 'loai kiem thu', 'loai test', 'type'].includes(n),
   /*
-   * `SCRIPT` — cột TUỲ CHỌN chứa câu SQL đối chiếu của case, theo bố cục bộ testcase EMIS của QA. Khớp
+   * `SCRIPT` — cột TUỲ CHỌN chứa câu SQL đối chiếu của case, theo bố cục bộ testcase BCX của QA. Khớp
    * CHÍNH XÁC tên cột: SQL trong ô này cũng phải qua luật chặn câu GHI và PII như SQL ở "Các bước".
    */
   script: (n) => n === 'script',
@@ -168,7 +168,7 @@ function splitNumbered(cell) {
  * VÌ SAO CẦN: prompt §6 bắt "mỗi bước một dòng kết quả" ĐỒNG THỜI "mỗi ý một dòng con `- …`". Hai luật đó
  * đúng cho người đọc, nhưng `splitNumbered` trả phẳng: dòng đánh số có `n = 1,2,3`, dòng con có `n = null`.
  * Consumer nào zip `steps[i] ↔ expected[i]` theo CHỈ SỐ là lệch ngay từ dòng con đầu tiên — và phần dôi ra
- * bị cắt mất. Đo thật trên bộ CSDL-26878 (101 case): 300/682 dòng kết quả (44%) bị vứt ở 83 case, và các
+ * bị cắt mất. Đo thật trên bộ TASK-26878 (101 case): 300/682 dòng kết quả (44%) bị vứt ở 83 case, và các
  * bước sau còn nhận nhầm kết quả của bước trước.
  *
  * HỢP ĐỒNG: khối của bước N = dòng đánh số N + MỌI dòng con đứng sau nó cho tới dòng đánh số kế tiếp.
@@ -362,7 +362,7 @@ function buildTestCase(headers, cells, story = '') {
    * RỖNG với MỌI task, không có đường nào điền. Trong khi đó `oracleRefs` — id rule/bản đồ mà chính case
    * trỏ tới (`BR-…`/`SM-…`, luật §0c của prompt gen) — đã được tính ngay ở đây. Đó đúng là thứ cột REQ ID
    * cần: từ một dòng Excel truy ngược được về rule trong `knowledge/`.
-   * Đo trên bộ CSDL-9001: 107/142 case có oracleRefs ⇒ cột REQ ID từ 0% lên 75% có giá trị.
+   * Đo trên bộ TASK-9001: 107/142 case có oracleRefs ⇒ cột REQ ID từ 0% lên 75% có giá trị.
    * Nhiều id thì nối bằng ', ' để một ô vẫn đọc được bằng mắt và lọc được bằng Ctrl+F.
    */
   const oracleRefs = oracleRefsOf(tagSrc);

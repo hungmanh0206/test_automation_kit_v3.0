@@ -44,7 +44,7 @@ const has = (c) => process.argv.includes(`--${c}`);
 const REPO = path.resolve(__dirname, '..', '..');
 const GOC = iGoc >= 0 && process.argv[iGoc + 1]
   ? path.resolve(process.argv[iGoc + 1])
-  : String(process.env.PROJECT_OUTPUT_DIR || path.join(REPO, 'outputs', 'CSDL'));
+  : String(process.env.PROJECT_OUTPUT_DIR || path.join(REPO, 'outputs', 'DEMO'));
 
 /*
  * NHÃN. `chua_biet` KHÔNG nằm trong danh sách: vắng nhãn là vắng nhãn, không phải một nhãn. Cho nó

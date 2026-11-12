@@ -64,7 +64,7 @@ const JSON_OUT = process.argv.includes('--json');
 /*
  * `--enforce` — CASE MỚI KHÔNG CÓ MỐC LÀ MỘT CHỖ HỞ, KHÔNG PHẢI MỘT DÒNG THÔNG BÁO.
  *
- * Đo 01/11/2026 trên CSDL-4008: bộ có 312 case, mốc chỉ chứa 273, tức 39 case KHÔNG có băm nào để so.
+ * Đo 01/11/2026 trên TASK-4008: bộ có 312 case, mốc chỉ chứa 273, tức 39 case KHÔNG có băm nào để so.
  * Cửa in `+ 39 case MỚI` rồi kết luận `✓ ĐẠT`. Câu đó đúng từng chữ — không case nào ĐỔI expected —
  * nhưng người đọc nhận được "cả bộ đã được gác", trong khi 39/312 case nằm ngoài tầm với của cửa. Đổi
  * expected ở đúng 39 case đó là vô hình.
@@ -89,7 +89,7 @@ const docAn = (p) => { try { return fs.readFileSync(p, 'utf8'); } catch (e) { re
  *
  * Hai lý do, và lý do thứ hai mới là lý do chính:
  *   · file mốc gọn, không phình theo bộ 200 case;
- *   · expected của case QEMIS mang tên đơn vị, tên trường, có lúc mang cả tên người — lưu nguyên văn là
+ *   · expected của case app mẫu mang tên đơn vị, tên trường, có lúc mang cả tên người — lưu nguyên văn là
  *     tạo thêm một bản sao PII trong `test-results/`. CLAUDE.md §1 cấm tạo file chứa dữ liệu cá nhân, và
  *     "file mốc nội bộ" không phải một ngoại lệ.
  *
@@ -298,7 +298,7 @@ async function main() {
 
   if (!kq.doi.length && !chanVietThem) {
     /*
-     * MẪU SỐ Ở CẢ HAI ĐƯỜNG `✓`. Đường này là đường thật sự nổ ở ca CSDL-4008 (0 case đổi, 39 case
+     * MẪU SỐ Ở CẢ HAI ĐƯỜNG `✓`. Đường này là đường thật sự nổ ở ca TASK-4008 (0 case đổi, 39 case
      * chưa có mốc) — vá mỗi đường dưới là vá rỗng đúng với ca sinh ra nó. Tôi đã vá hụt một lượt.
      */
     console.log(`[expected] ✓ ĐẠT — không case nào đổi \`Kết quả mong đợi\` so với mốc · gác được ${soCoMoc}/${cases.size} case (${tyLe}%).`);

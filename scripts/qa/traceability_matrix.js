@@ -81,9 +81,9 @@ async function loadPublished(taskOutputDir) {
  *
  * ĐẾM TRẦN MỘT CON SỐ LÀ VÔ DỤNG. Phần lớn ca "mồ côi" là ca MỞ RỘNG §7, vốn ĐÚNG THIẾT KẾ là không có
  * dòng canonical. Một cột "mồ côi: 8" sẽ chôn ca đáng lo dưới đống đúng-thiết-kế, nên phải PHÂN LOẠI
- * rồi mới đếm. Số đo 30/10/2026 trên CSDL-9004: 8/256 không có dòng canonical ⇒ **7 ca mở rộng KHÔNG có
+ * rồi mới đếm. Số đo 30/10/2026 trên TASK-9004: 8/256 không có dòng canonical ⇒ **7 ca mở rộng KHÔNG có
  * neo oracle (5 trong đó FAILED)** + 1 ca recon mang verdict; và **6 ca mở rộng CÓ neo** nên phép kiểm
- * neo không rỗng ở cả hai chiều. CSDL-9001: 1/205, là một PROBE mang `PASSED`.
+ * neo không rỗng ở cả hai chiều. TASK-9001: 1/205, là một PROBE mang `PASSED`.
  *
  * Ba loại, và chỉ hai loại đầu là lỗi:
  *   · MỞ RỘNG không có neo — CLAUDE.md §3: mở rộng chỉ được PASS/FAIL khi có `oracle_ref`; không neo thì
@@ -92,7 +92,7 @@ async function loadPublished(taskOutputDir) {
  *   · MẠO DANH — mã dạng `..._TC_<số>` mà không dòng nào nhận; verdict của nó rơi vào khoảng không.
  *
  * MẠO DANH đo được **0 ca**, và chỗ đó là một bài học riêng: phép đo nháp của tôi báo 2 ca
- * (`CSDL_HSTRUONG_TC_127B`, `TC_161B`) vì regex nháp đòi hậu tố CHỮ THƯỜNG nên trượt chữ `B` hoa — hai
+ * (`APP_HSTRUONG_TC_127B`, `TC_161B`) vì regex nháp đòi hậu tố CHỮ THƯỜNG nên trượt chữ `B` hoa — hai
  * mã ấy CÓ trong canonical. Bộ phân tích thật (`parseTestcases`) đọc đúng. Nên loại này ship kèm đối
  * chứng dương tổng hợp, và ghi rõ là **chưa gác dòng dữ liệu thật nào**.
  *
@@ -111,8 +111,8 @@ function loaiMoCoi(id) {
  * NEO CÓ THỂ NẰM TRONG BUG CLAIM — và bỏ sót chỗ này làm cửa báo oan 5/9 ca.
  *
  * Bản đầu chỉ soi sổ verdict. Nhưng kit có một cơ chế riêng cho đúng việc neo một phát hiện: bug claim
- * ở `reports/bug-claims/<tcId>.json`, mang `oracle: { type, ref, quote }`. Đo 30/10/2026: CSDL-9004 có
- * 22/22 claim CÓ `oracle.ref`, CSDL-9001 41/41, CSDL-4008 34/43. Và 5 trong 9 ca mà cửa này báo "mở rộng
+ * ở `reports/bug-claims/<tcId>.json`, mang `oracle: { type, ref, quote }`. Đo 30/10/2026: TASK-9004 có
+ * 22/22 claim CÓ `oracle.ref`, TASK-9001 41/41, TASK-4008 34/43. Và 5 trong 9 ca mà cửa này báo "mở rộng
  * không có neo" ĐÃ CÓ claim kèm neo — tức cửa đang đòi một thứ đã có, chỉ nằm chỗ khác.
  *
  * Nên neo được công nhận khi ở MỘT trong ba chỗ: trường riêng của record · chữ trong comment/step · hoặc
@@ -253,7 +253,7 @@ async function main() {
    *
    * Cờ `--pm` vẫn nhận để lệnh cũ không vỡ, nhưng nó không còn tác dụng gì.
    *
-   * Vì sao cần một view riêng: ma trận per-TC của một task thật dài 275 dòng (đo trên CSDL-9004). Không
+   * Vì sao cần một view riêng: ma trận per-TC của một task thật dài 275 dòng (đo trên TASK-9004). Không
    * ai ở vai quản lý đọc 275 dòng, nên trong thực tế người ta đọc dòng `>` tóm tắt — mà dòng đó chỉ có
    * TỔNG, không nói module nào đang hổng. Hệ quả: "80% đã execute" nghe như đều, trong khi 20% còn lại
    * có thể dồn hết vào một module.
@@ -325,7 +325,7 @@ async function main() {
       for (const x of moCoi.ds) P.push(`| \`${x.id}\` | ${x.status} | ${x.loai} | ${x.viec} |`);
       /*
        * HAI CON SỐ KHÁC NHAU, và bản đầu gắn nhãn sai: nó in `ds.length` (số ca LỖI) kèm chữ "không có
-       * dòng canonical" (số ca MỒ CÔI). Ở CSDL-9004 là 8 so với 27 — lệch hơn ba lần. Phát hiện ra vì
+       * dòng canonical" (số ca MỒ CÔI). Ở TASK-9004 là 8 so với 27 — lệch hơn ba lần. Phát hiện ra vì
        * `self:review` in 27 trong khi bản PM in 8; một con số đứng cạnh một con số khác thì mới lộ.
        */
       P.push('', `**${moCoi.soMoCoi}/${moCoi.soGhi} tcId trong sổ không có dòng canonical, ${moCoi.ds.length} trong đó là LỖI.**`

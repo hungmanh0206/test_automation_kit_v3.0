@@ -100,7 +100,7 @@ liệu rồi recon lại từ đầu. Cả hai đều tốn công và đều sai
 **Luật cứng:**
 
 - ❌ Không dùng tài liệu bán phần để suy ra vùng nó KHÔNG phủ. Spec form Thêm không nói gì về form Sửa,
-  dù hai form nhìn giống nhau — và kit đã trả giá đúng chỗ này: QEMIS chặn ở Thêm nhưng hở ở Sửa.
+  dù hai form nhìn giống nhau — và kit đã trả giá đúng chỗ này: app mẫu chặn ở Thêm nhưng hở ở Sửa.
 - ❌ Vùng ⬜ Trắng không được rút gọn với lý do "module này chắc giống module kia".
 - ✅ Bản đồ phủ phải nằm TRONG tài liệu đầu ra, ngay sau Tổng quan — người đọc cần biết phần nào tin được
   từ spec, phần nào do agent quan sát.

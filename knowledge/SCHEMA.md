@@ -65,8 +65,8 @@ Mỗi lần đổi một rule là **một dòng bảng**. Cố ý KHÔNG thêm h
 ```markdown
 | Ngày | Rule | Version | Loại đổi | Nguồn | TC cần xử lý |
 |---|---|---|---|---|---|
-| 2026-10-10 | BR-HOCSINH-002 | 1→2 | siết điều kiện | FSD v3 §4.2, BA xác nhận | CSDL_HS_TC_088, CSDL_HS_TC_092 |
-| 2026-10-10 | BR-HSLOP-017 | 1→2 | mở rộng phạm vi | Backlog CSDL-3544 | CSDL_LOP_TC_011 |
+| 2026-10-10 | BR-HOCSINH-002 | 1→2 | siết điều kiện | FSD v3 §4.2, BA xác nhận | APP_HS_TC_088, APP_HS_TC_092 |
+| 2026-10-10 | BR-HSLOP-017 | 1→2 | mở rộng phạm vi | Backlog TASK-3544 | APP_LOP_TC_011 |
 ```
 
 - **Version** ghi dạng `cũ→mới`. Máy khớp theo `id` + version ĐÍCH, nên mỗi dòng phải nói rõ nó ghi cho
@@ -115,7 +115,7 @@ Dựng khung: `npm run knowledge:bootstrap -- --task <K>` (dry-run in **danh sá
 `--top <n>` hoặc `--module "<tên>"`). Nó **không sinh nội dung rule** — sinh câu rule từ text Backlog hay
 từ app là chế oracle, đúng thứ `domain:check` đã chặn. Nó chỉ dựng khung rỗng kèm câu hỏi.
 
-> Vì sao `--apply` đòi chọn phạm vi: đo trên CSDL-9003 có **44 module chưa có rule**. Dồn hết vào tầng
+> Vì sao `--apply` đòi chọn phạm vi: đo trên TASK-9003 có **44 module chưa có rule**. Dồn hết vào tầng
 > oracle là tạo 44 file rỗng phải bảo trì và một `domain:index` đầy ô trắng — chưa chắc tốt hơn kho rỗng.
 > Phần giá trị của bộ này là **danh sách việc**, còn file khung chỉ nên dựng cho phần sắp làm.
 

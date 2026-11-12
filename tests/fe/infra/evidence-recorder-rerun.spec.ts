@@ -56,8 +56,8 @@ test.describe('EvidenceRecorder — rerun đếm được và tên bước giữ
 
   test('shard theo TC bị ARCHIVE đi thì reruns vẫn sống, đọc tiếp từ bản gộp', async ({ page }) => {
     /*
-     * CA THẬT, đã đo trên CSDL-9001. `archive-cap-THCS/testcase-status.json` ngày 02/10 ghi
-     * `CSDL_HSTRUONG_TC_123` có `reruns: 2`. Mọi bản từ 06/10 ghi **0**, vì shard theo TC nằm trong thư
+     * CA THẬT, đã đo trên TASK-9001. `archive-cap-THCS/testcase-status.json` ngày 02/10 ghi
+     * `APP_HSTRUONG_TC_123` có `reruns: 2`. Mọi bản từ 06/10 ghi **0**, vì shard theo TC nằm trong thư
      * mục của MỘT lượt chạy và nó đi theo lượt đó khi người ta archive.
      *
      * Verdict sống sót qua carry-over, nhưng BẰNG CHỨNG đã rerun thì reset. Hệ quả đo được: 7 verdict

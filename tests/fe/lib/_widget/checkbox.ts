@@ -4,7 +4,7 @@ import type { Locator, Page } from '@playwright/test';
  * L0.5 — WIDGET: checkbox của ASP.NET WebForms.
  *
  * VÌ SAO TẦNG NÀY TỒN TẠI, có số đo: 18/87 neo control của màn Hồ sơ trường là `input/checkbox` (21%),
- * đo trên catalog thật của CSDL-9001 ngày 12/10/2026.
+ * đo trên catalog thật của TASK-9001 ngày 12/10/2026.
  *
  * ╔═══════════════════════════════════════════════════════════════════════════════════════════════════╗
  * ║ BA BÀI HỌC, cả ba từ ca đã trả giá thật trong dự án này.                                          ║

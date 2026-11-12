@@ -16,7 +16,7 @@ import type { Locator, Page } from '@playwright/test';
  * catalog ghi ở `matchedLabel` và đó là một FINDING, không phải một lần sửa expected.
  *
  * ╔═══════════════════════════════════════════════════════════════════════════════════════════════════╗
- * ║ ĐO 12/10/2026 TRÊN CATALOG THẬT CỦA CSDL-9001 — và hai con số này định hình cả tầng:              ║
+ * ║ ĐO 12/10/2026 TRÊN CATALOG THẬT CỦA TASK-9001 — và hai con số này định hình cả tầng:              ║
  * ║                                                                                                   ║
  * ║   · Neo control chỉ có ở MỘT cấp: THCS 87/89 (98%). Mầm non, Tiểu học, THPT, GDTX đều **0**.      ║
  * ║     Tổng 87/433 = 20%. Nên `man()` phải TRẢ VỀ ĐƯỢC trạng thái "màn này chưa có neo" thay vì ném  ║
@@ -26,7 +26,7 @@ import type { Locator, Page } from '@playwright/test';
  * ║     đó TRƯỚC khi viết L2 tiết kiệm đúng một lượt viết sai.                                        ║
  * ╚═══════════════════════════════════════════════════════════════════════════════════════════════════╝
  *
- * HẠN DÙNG CỦA NEO. Catalog ghi rõ neo đo ngày 30/09/2026 trên `C2/HoSoTruongDetail.aspx`. Một artifact
+ * HẠN DÙNG CỦA NEO. Catalog ghi rõ neo đo ngày 30/09/2026 trên `C2/HoSoDetail.aspx`. Một artifact
  * khám phá cũ có hạn dùng: sổ tri thức của dự án có ca một probe 11 ngày làm người đọc tưởng 6 ô đang
  * sống là đã chết. Nên `man()` trả luôn `neo_do_ngay` và `tuoi_ngay`, và `canhBaoHanDung()` nói ra khi
  * neo quá hạn — KHÔNG tự chặn, vì "neo cũ" không có nghĩa "neo sai", nhưng nó phải hiện ra ở báo cáo.
@@ -71,7 +71,7 @@ export interface MoHinhMan {
   neo: Map<string, NeoControl>;
   so_expected: number;
   so_neo: number;
-  /** `true` khi màn CHƯA CÓ NEO NÀO — bốn trên năm màn của CSDL-9001 đang như thế. */
+  /** `true` khi màn CHƯA CÓ NEO NÀO — bốn trên năm màn của TASK-9001 đang như thế. */
   chua_co_neo: boolean;
   neo_do_ngay: string | null;
   tuoi_ngay: number | null;
@@ -123,7 +123,7 @@ export function man(catalog: Catalog, tenMan: string, homNay = new Date()): MoHi
     soExpected += (g.expectedFields || []).length;
     for (const [nhan, n] of Object.entries(g.controls || {})) {
       /*
-       * Nhãn TRÙNG giữa hai nhóm: giữ cái ĐẦU và không ghi đè im lặng. Catalog của CSDL-9001 không có
+       * Nhãn TRÙNG giữa hai nhóm: giữ cái ĐẦU và không ghi đè im lặng. Catalog của TASK-9001 không có
        * ca nào, nhưng ghi đè im lặng là cách một neo đúng bị thay bằng neo của nhóm khác mà không ai thấy.
        */
       if (!neo.has(nhan)) neo.set(nhan, n);
@@ -178,7 +178,7 @@ export function o(page: Page, mh: MoHinhMan, nhan: string): Locator {
  * ─────────────────────────────────────────────────────────────────────────────────────────────────────
  * VÌ SAO ĐƯỜNG NÀY CẦN, và vì sao nó KHÔNG được suy theo vị trí.
  *
- * Đo trên 1.079 mệnh đề của CSDL-9001: khung câu áp đảo trỏ field bằng `Stt #`, không bằng nhãn —
+ * Đo trên 1.079 mệnh đề của TASK-9001: khung câu áp đảo trỏ field bằng `Stt #`, không bằng nhãn —
  * `tải lại màn và đọc lại Stt #` 56 lượt, `ghi lại giá trị hiện tại của Stt #` 30 lượt, `Stt # = #` 19
  * lượt. Bỏ đường này là bỏ phần lớn câu bước của module.
  *
