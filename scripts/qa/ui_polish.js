@@ -32,7 +32,9 @@ function main() {
   const po = lay('--project-output') || process.env.PROJECT_OUTPUT_DIR || 'outputs/CSDL';
   const dir = lay('--thu-muc') ? path.resolve(lay('--thu-muc'))
     : (lay('--task') ? path.resolve(REPO, po, 'tasks', lay('--task'), 'test-results', 'ui-polish') : '');
-  const files = dir && fs.existsSync(dir) ? fs.readdirSync(dir).filter((f) => f.endsWith('.json')) : [];
+  /* ĐỆ QUY: mỗi cấp một thư mục con (`ui-polish/MN/`, `ui-polish/THCS/`…) để một lượt so được GIỮA các cấp. */
+  const lietKe = (d) => fs.readdirSync(d, { withFileTypes: true }).flatMap((e) => (e.isDirectory() ? lietKe(path.join(d, e.name)).map((x) => path.join(e.name, x)) : (e.name.endsWith('.json') ? [e.name] : [])));
+  const files = dir && fs.existsSync(dir) ? lietKe(dir) : [];
   if (!files.length) {
     console.log(`[ui-polish] KHÔNG PHÁN ĐƯỢC — không có dữ liệu thu thập${dir ? ` ở ${path.relative(REPO, dir)}` : ' (thiếu --task hoặc --thu-muc)'}. Đây KHÔNG đồng nghĩa với "UI chỉn chu".`);
     return 2;
