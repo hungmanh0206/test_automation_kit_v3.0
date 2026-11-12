@@ -235,24 +235,28 @@ test.describe('@infra bug:claim — kiểm chứng phải đi trước lời nó
    * Bộ ca dưới đây LẤY CÂU TRÍCH TỪ CHÍNH BẢN GHI THẬT trong `knowledge/domain`, không ghi cứng chuỗi:
    * ghi cứng thì ngày nào đó nội dung BR đổi là ca này đỏ oan, và người ta sẽ sửa ca thay vì sửa claim.
    */
-  const brThat = (): { id: string; trich: string } => {
-    const thu = path.join(REPO, 'knowledge', 'domain');
-    const ds = fs.readdirSync(thu).filter((f) => f.endsWith('.json'));
-    for (const f of ds) {
-      let b: Record<string, unknown>;
-      try { b = JSON.parse(fs.readFileSync(path.join(thu, f), 'utf8')); } catch { continue; }
-      const id = String(b.id || '');
-      const rule = String(b.rule || '');
-      if (/^BR-[A-Z0-9]+-\d+$/.test(id) && rule.length >= 80) {
-        return { id, trich: rule.slice(10, 70).trim() };
-      }
-    }
-    throw new Error('không bản ghi BR nào đủ dài để trích ⇒ cả nhóm ca này đo hư không');
+  /*
+   * v3.0.0 — NGUỒN của câu trích là FIXTURE đi kèm test, ghi vào `requirements/` của task tạm (nguồn thứ hai
+   * mà cửa tra). Bản trước đọc `knowledge/domain` của máy: trên runner sạch thư mục đó không có, cả nhóm ném
+   * lỗi — ba ca này chưa từng chạy trên một cây sạch cho tới lượt phát hành v3.0.0.
+   */
+  const brThat = (): { id: string; trich: string; rule: string } => {
+    const b = JSON.parse(fs.readFileSync(path.join(REPO, 'tests', 'fixtures', 'tc-examples', 'domain', 'br-bcdn-002.json'), 'utf8'));
+    const id = String(b.id || ''); const rule = String(b.rule || '');
+    if (!/^BR-[A-Z0-9]+-\d+$/.test(id) || rule.length < 80) throw new Error('fixture rule không đủ dài để trích ⇒ cả nhóm ca này đo hư không');
+    return { id, trich: rule.slice(10, 70).trim(), rule };
+  };
+  /** Ghi bản tóm tắt đặc tả chứa rule vào task tạm — chỗ `doiChieuNguon` tra trước `knowledge/domain`. */
+  const ghiNguon = (root: string, id: string, rule: string): void => {
+    const d = path.join(root, 'tasks', 'CLAIM-TEST', 'requirements');
+    fs.mkdirSync(d, { recursive: true });
+    fs.writeFileSync(path.join(d, 'spec_digest.md'), ['| Mã | Trạng thái | Rule |', '|---|---|---|', `| ${id} | confirmed | ${rule} |`, ''].join('\n'), 'utf8');
   };
 
   test('ORACLE: câu trích CÓ THẬT trong bản ghi nguồn ⇒ ĐẠT', () => {
-    const { id, trich } = brThat();
+    const { id, trich, rule } = brThat();
     const t = mkTask();
+    ghiNguon(t.root, id, rule);
     const c = validClaim();
     c.oracle = { type: 'BR', ref: `${id} §1`, quote: trich };
     writeClaim(t.claims, 'TC_001', c);
@@ -262,15 +266,16 @@ test.describe('@infra bug:claim — kiểm chứng phải đi trước lời nó
 
   test('ORACLE: câu BỊA, cùng `ref` đó ⇒ CHẶN và gọi tên bản ghi nguồn', () => {
     /* Khác ca trên ĐÚNG một thứ: nội dung câu trích. Nếu cả hai cùng đạt thì cửa không đo gì. */
-    const { id } = brThat();
+    const { id, rule } = brThat();
     const t = mkTask();
+    ghiNguon(t.root, id, rule);
     const c = validClaim();
     c.oracle = { type: 'BR', ref: `${id} §1`, quote: 'Hệ thống phải luôn hiển thị đủ mọi bản ghi trong mọi hoàn cảnh' };
     writeClaim(t.claims, 'TC_001', c);
     const r = run(t.root);
     expect(r.code, r.out).toBe(1);
     expect(r.out).toContain('KHÔNG có trong');
-    expect(r.out, 'phải gọi tên bản ghi nguồn đã tra').toMatch(/\.json/);
+    expect(r.out, 'phải gọi tên bản ghi nguồn đã tra').toMatch(/spec_digest\.md|\.json/);
   });
 
   test('ORACLE: khác DẤU, HOA-THƯỜNG và khoảng trắng vẫn ĐẠT — luật là "có thật", không phải "từng byte"', () => {
@@ -279,8 +284,9 @@ test.describe('@infra bug:claim — kiểm chứng phải đi trước lời nó
      * byte sẽ chặn oan claim trích đúng nhưng gõ khác dấu — và chặn oan một claim ĐÚNG là cách nhanh
      * nhất để người ta tắt cửa.
      */
-    const { id, trich } = brThat();
+    const { id, trich, rule } = brThat();
     const t = mkTask();
+    ghiNguon(t.root, id, rule);
     const c = validClaim();
     c.oracle = { type: 'BR', ref: id, quote: `  ${trich.toUpperCase().replace(/ +/g, '   ')}  ` };
     writeClaim(t.claims, 'TC_001', c);

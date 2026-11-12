@@ -221,7 +221,7 @@ function doiChieuNguon(o, gocTask) {
   if (tuYeuCau) return tuYeuCau;
 
   const thu = path.join(rc.REPO_ROOT, C.thuMuc);
-  if (!fs.existsSync(thu)) return { trangThai: 'chua-phan', viSao: `không có \`${C.thuMuc}\` trong cây này (gói phát hành chở knowledge/ rỗng)` };
+  if (!fs.existsSync(thu)) return { trangThai: 'chua-phan', viSao: `không tra được \`${ma[0]}\`: không có trong \`requirements/*.md\` của task, và cây này không có \`${C.thuMuc}\` (gói phát hành chở knowledge/ rỗng)` };
   let ds = [];
   try { ds = fs.readdirSync(thu).filter((f) => f.endsWith('.json')); } catch (e) { ds = []; }
   for (const f of ds) {
