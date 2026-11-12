@@ -86,6 +86,7 @@
     "bug:outcome:backlog": "node scripts/qa/bug_outcome_backlog.js",
     "bug:tac-gia": "node scripts/qa/bug_tac_gia.js",
     "pass:audit": "node scripts/qa/pass_audit.js",
+    "ab:doi-chung": "node scripts/qa/doi_chung_ab.js",
     "agent:scorecard": "node scripts/qa/agent_scorecard.js",
     "bug:claim:chot": "node scripts/qa/bug_claim.js --chot",
     "discover": "node scripts/qa/discover.js",
