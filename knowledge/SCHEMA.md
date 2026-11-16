@@ -36,7 +36,7 @@ Bảng trên chia knowledge làm hai loại **rất khác nhau về rủi ro**, 
 | | Store | Mất thì sao |
 |---|---|---|
 | **Nạp lại được** | `bugs/` · `historical_execution/` · `metrics/` · `index.json` | Chạy 1 lệnh là có lại (Backlog / test-results / test run) |
-| **KHÔNG nạp lại được** | `domain/` · `system/` · `decisions/` · `setup_recipes/` · `environment/` · `locators/` · `bug_tc_map.json` | **Làm lại công sức người.** Không nguồn máy nào trả lại |
+| **KHÔNG nạp lại được** | `domain/` · `system/` · `decisions/` · `setup_recipes/` · `environment/` · `locators/` · `risks/` · `bug_tc_map.json` | **Làm lại công sức người.** Không nguồn máy nào trả lại |
 
 Đo 14/08/2026: **15 file** thuộc loại thứ hai. Và vì toàn bộ `knowledge/**` bị gitignore (mirror GitHub là public), chúng tồn tại trên **ĐÚNG MỘT máy — không remote nào có bản nào**. Hôm nay 15 file; sau 6 tháng là hàng trăm business rule đã được BA xác nhận. **Chi phí của việc này chỉ tăng theo thời gian, và không sửa được sau khi mất.**
 
@@ -140,6 +140,7 @@ knowledge/
 ├── root_causes/          # root cause đã xác định, gắn module/file
 ├── setup_recipes/        # LÀM SAO dựng được state (SR-*) — công thức fixture đã chạy được, kèm pitfalls
 ├── environment/          # quirk hạ tầng/env/toolchain (ENV-*) — thứ chỉ biết sau khi vấp
+├── risks/                # SỔ RỦI RO DỰ ÁN (RISK-*) — người chịu · giảm thiểu · hạn; ID máy cấp, không tái sử dụng
 ├── locators/             # KỸ THUẬT thao tác UI (UI-*) + lịch sử locator từng bị heal
 ├── historical_execution/ # snapshot pass/fail theo module theo thời gian (input cho Dashboard)
 ├── metrics/              # số đo sinh khi chạy test (thời lượng, flaky rate…) — máy ghi, không ghi tay
@@ -480,6 +481,28 @@ khó hiểu và dễ bị kết luận nhầm thành bug.
 | `impact` | ✓ | Hậu quả nếu không biết — không nêu thì người đọc không rõ vì sao phải quan tâm. |
 | `workaround` | ⚠ | Cách né. Rỗng = cảnh báo (biết quirk mà không biết né thì giá trị còn một nửa). |
 | `detection` |  | Triệu chứng để nhận ra đang dính quirk này. |
+
+## `risks/RISK-<NNN>.json` — SỔ RỦI RO DỰ ÁN (id máy cấp, KHÔNG tái sử dụng)
+
+Rủi ro của dự án/lượt test — môi trường, phụ thuộc, dữ liệu, tiến độ — mỗi cái có người chịu, cách giảm
+thiểu và hạn. **Khác** `reports/risk-register` của `risk:score`: cái đó chấm rủi ro THEO MODULE để chia độ
+sâu test và sinh lại mỗi lần chạy. Kiểm và liệt kê: `npm run risks` (`risks:enforce` chặn).
+
+| Field | Bắt buộc | Ý nghĩa |
+|---|---|---|
+| `id` | ✓ | `RISK-<NNN>`, **chỉ cấp bằng `npm run risks:new -- --title "<tiêu đề>"`**. Tên file = `<id>.json` |
+| `title` · `description` | ✓ | rủi ro là gì |
+| `category` | ✓ | `moi_truong` · `phu_thuoc` · `du_lieu` · `tien_do` · `nhan_luc` · `ky_thuat` · `bao_mat` · `khac` |
+| `likelihood` · `impact` | ✓ | 1–5. Điểm và band **không lưu** — tính lúc đọc từ `risk_model.json#bands`, cùng ngưỡng với `risk:score` |
+| `owner` | ✓ | người/vai trò chịu rủi ro |
+| `mitigation` | ✓ | LÀM GÌ để giảm, ≥ 20 ký tự |
+| `due_date` | ✓ | hạn hoàn tất giảm thiểu (timeline). Quá hạn mà chưa đóng/chấp nhận ⇒ lên đầu danh sách |
+| `review_date` |  | ngày xem lại |
+| `status` | ✓ | `open` · `mitigating` · `accepted` (cần `accepted_by`) · `closed` (cần `closed_at` + `close_reason`) |
+| `tasks` |  | mã task bị ảnh hưởng — `npm run risks -- --task <K>` lọc theo đây |
+
+**Không xoá, chỉ đóng.** `_so_cap_phat.json` ghi số cuối đã cấp: số đã cấp mà mất file là CHẶN, và xoá file
+không làm số đó được cấp lại — một Risk ID đã nhắc trong biên bản hay Backlog phải chỉ đúng một rủi ro mãi mãi.
 
 ## `locators/<module>__<slug>.json` — KỸ THUẬT thao tác UI (id `UI-<SLUG>-<NNN>`)
 

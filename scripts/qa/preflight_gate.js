@@ -341,7 +341,7 @@ function checkHarnessHooks(root) {
  * 23/08/2026: 0 nơi). Nó bảo vệ đúng phần đắt nhất: store ghi tay từ FSD/BA/dev — mất là làm lại công
  * sức người, không phải chạy lại script. Và `knowledge/**` bị gitignore nên không remote nào giữ hộ.
  */
-const PRECIOUS_STORES = ['domain', 'system', 'decisions', 'setup_recipes', 'environment', 'locators', 'explorations'];
+const PRECIOUS_STORES = ['domain', 'system', 'decisions', 'setup_recipes', 'environment', 'locators', 'explorations', 'risks'];
 function checkKnowledgeBackup(root, env) {
   let count = 0;
   for (const s of PRECIOUS_STORES) {

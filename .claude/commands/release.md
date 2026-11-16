@@ -8,7 +8,7 @@ Thiếu mã task → `npm run task:which -- $ARGUMENTS`; thoát 2 = KHÔNG PHÁN
 
 ```bash
 npm run exit:gate -- --cua done --task $ARGUMENTS
-npm run release:summary -- --task $ARGUMENTS
+npm run release:summary -- --task $ARGUMENTS; npm run risks -- --task $ARGUMENTS
 npm run bug:outcome:backlog
 npm run bug:tac-gia -- --quet
 npm run agent:scorecard -- --task $ARGUMENTS
@@ -30,7 +30,7 @@ kèm lời DEV. `bug:tac-gia` tách tỉ lệ đó theo ai tạo bug: agent, ng�
 (agent không tự chấm), rồi `--ghi <phiếu>`. Chưa chấm mẫu nào thì in KHÔNG PHÁN ĐƯỢC, không phải "PASS đều đúng".
 
 **`release:summary`** là KHUYẾN NGHỊ: nó không chặn và không tự quyết. Nó chấm tiêu chí đo được rồi nói
-go hay no-go, kèm căn cứ. Tiêu chí nào không đo được thì nó ghi "không đo được" — **không** quy về đạt.
+go hay no-go, kèm căn cứ. Tiêu chí nào không đo được thì nó ghi "không đo được" — **không** quy về đạt. `risks` đặt rủi ro dự án còn mở (người chịu, hạn, quá hạn) ngay cạnh khuyến nghị đó.
 
 ## Đọc kết quả
 

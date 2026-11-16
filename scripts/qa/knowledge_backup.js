@@ -6,7 +6,7 @@
  *
  * VÌ SAO CẦN (đo 14/08/2026): bảng "nạp lại" trong knowledge/SCHEMA.md đặt hai thứ KHÁC LOẠI cạnh nhau.
  *   `bugs/` ← `learn:bugs:apply` là NGUỒN MÁY: mất file thì query Backlog lại là có.
- *   `domain/ system/ decisions/ setup_recipes/ environment/ locators/` ← "ghi tay từ FSD/BA/dev" thì KHÔNG
+ *   `domain/ system/ decisions/ setup_recipes/ environment/ locators/ risks/` ← "ghi tay từ FSD/BA/dev" thì KHÔNG
  *   phải nạp lại — là LÀM LẠI CÔNG SỨC NGƯỜI. Không nguồn máy nào trả lại được.
  * Và cả `knowledge/**` đều bị gitignore (mirror GitHub là public) ⇒ 15 file đắt nhất của kit hiện tồn tại
  * trên ĐÚNG MỘT máy, không remote nào có. Hôm nay 15 file; sau 6 tháng là hàng trăm business rule đã được BA
@@ -34,7 +34,7 @@ const arg = (n, d) => { const i = process.argv.indexOf(`--${n}`); return i >= 0 
 // CHỈ những store ghi tay. Cố ý BỎ `bugs/` (Backlog), `historical_execution/` (`learn --scan`), `metrics/` (sinh
 // khi chạy test), `index.json` (artifact sinh ra) — sao lưu thứ nạp lại được chỉ làm bundle phình và làm mờ
 // thông điệp "đây là những thứ mất là mất thật".
-const STORES = ['domain', 'system', 'decisions', 'setup_recipes', 'environment', 'locators'];
+const STORES = ['domain', 'system', 'decisions', 'setup_recipes', 'environment', 'locators', 'risks'];
 const SINGLE_FILES = ['bug_tc_map.json'];
 
 const sha = (s) => crypto.createHash('sha256').update(s).digest('hex').slice(0, 16);
