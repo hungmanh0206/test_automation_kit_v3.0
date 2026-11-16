@@ -402,12 +402,13 @@ Rejected**, **FAIL đỏ oan** case mà lần trước đã chốt là vướng 
 
 | Field | Ý nghĩa |
 |---|---|
-| `type` | `false_positive` · `by_design` · `risk_override` · `blocked_pass` · `wont_fix` · `test_approach` |
+| `type` | `false_positive` · `by_design` · `risk_override` · `blocked_pass` · `wont_fix` · `test_approach` · `release_exception` |
 | `subject` | **TRIỆU CHỨNG** như lần đầu gặp — đây là thứ dùng để tra cứu lần sau, viết đúng chữ mình sẽ tìm |
 | `decision` / `rationale` | chốt cái gì / **vì sao** (bằng chứng, ai xác nhận, code/spec nào). `rationale` < 20 ký tự = CHẶN |
 | `decided_by` | `BA`\|`Dev`\|`QA-Lead`\|`PO`\|`QA`. `false_positive` **không được** do QA/agent tự chốt |
 | `scope` | `{modules, tc_ids, bug_keys}` — phải có ≥1; không khoanh thì quyết định bị áp sai chỗ |
 | `expires_at` | tuỳ chọn, cho quyết định **tạm thời** (sandbox chết, chờ vendor). Quá hạn mà còn `active` → cảnh báo phải kiểm lại |
+| `release_exception` | PO chấp nhận một tiêu chí exit **KHÔNG ĐẠT** của một mốc ⇒ `release:summary` ra `CONCERNS` thay NO-GO cho đúng tiêu chí đó. Bắt buộc (thiếu = CHẶN): `decided_by: PO` · `task_key` · `exit_criterion_id` (số, trùng `id` trong `exit_criteria.json`) · `mitigation` ≥ 20 ký tự · `expires_at`. Không áp cho tiêu chí KHÔNG ĐO ĐƯỢC |
 
 **Tra trước khi log bug** (bắt buộc trong workflow `phase2_04`):
 

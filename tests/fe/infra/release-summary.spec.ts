@@ -256,3 +256,176 @@ test.describe('@infra release:summary — QA khuyến nghị, PM quyết', () =>
     expect(sk, 'và phải ghi số đo làm căn cứ cho nhãn KHÔNG ĐO ĐƯỢC').toMatch(/5 trong 7|5\/7/);
   });
 });
+
+/*
+ * CONCERNS — rủi ro CÒN, nhưng ĐÃ CÓ NGƯỜI CHỊU và có cách giảm thiểu.
+ *
+ * Trước đây đề xuất chỉ có GO hoặc NO-GO, nên một tiêu chí không đạt mà PO đã chấp nhận bị ép vào NO-GO.
+ * Phần dưới khoá ranh giới của nhãn thứ ba: nó chỉ thay NO-GO ở ĐÚNG tiêu chí đã được PO chấp nhận — không
+ * có đường nào để "không đo được" hay "chưa chạy" thành CONCERNS.
+ *
+ * Mọi bản ghi quyết định nằm ở thư mục TẠM qua `--decisions-dir`, không chạm `knowledge/` của repo.
+ */
+test.describe('@infra release:summary — CONCERNS: rủi ro đã có người chịu', () => {
+  const HOM_NAY = new Date().toISOString().slice(0, 10);
+  const SAU = new Date(Date.now() + 10 * 86400000).toISOString().slice(0, 10);
+  const TRUOC = new Date(Date.now() - 10 * 86400000).toISOString().slice(0, 10);
+
+  /** Bộ tiêu chí CHỈ gồm hai tiêu chí kit đo được (4, 5), đã xác nhận — để GO là đạt được. */
+  function chiTieuChiDoDuoc(d: string) {
+    const p = path.join(d, 'tasks/T1/reports/exit_criteria.json');
+    fs.writeFileSync(p, JSON.stringify({
+      laMacDinh: false, nguoiXacNhan: 'PM A', ngayXacNhan: HOM_NAY, manualRunIdPrefix: [],
+      tieuChi: [
+        { id: 4, ten: 'Pass rate toàn bộ TC đã chạy', nguong: '>= 90%', nguon: 'status' },
+        { id: 5, ten: 'Tỉ lệ BLOCKED', nguong: '<= 5%', nguon: 'status' },
+      ],
+    }), 'utf8');
+    chotTruoc(d);
+  }
+
+  /** 89/100 ⇒ tiêu chí 4 KHÔNG ĐẠT. */
+  const cay89 = () => cay({
+    tests: [
+      ...Array.from({ length: 89 }, (_, i) => ({ tcId: `TC_${i + 1}`, status: 'PASS' })),
+      ...Array.from({ length: 11 }, (_, i) => ({ tcId: `TC_${90 + i}`, status: 'FAIL' })),
+    ],
+  });
+
+  function ngoaiLe(dirDec: string, ghiDe: Record<string, unknown> = {}) {
+    fs.mkdirSync(dirDec, { recursive: true });
+    const b = {
+      id: 'DEC-T1REL-001', type: 'release_exception', task_key: 'T1', exit_criterion_id: 4,
+      subject: 'Pass rate 89% dưới ngưỡng 90% ở mốc T1',
+      decision: 'PO chấp nhận phát hành với pass rate 89%',
+      rationale: '11 case FAIL cùng thuộc màn báo cáo phụ, chưa bật cho người dùng ở mốc này',
+      mitigation: 'Tắt màn báo cáo phụ bằng feature flag; vá ở sprint sau, rerun trước khi bật',
+      decided_by: 'PO', decided_at: HOM_NAY, expires_at: SAU, status: 'active',
+      scope: { tc_ids: ['TC_90'], modules: [], bug_keys: [] }, evidence: 'BL-123',
+      ...ghiDe,
+    };
+    fs.writeFileSync(path.join(dirDec, `${b.id}.json`), JSON.stringify(b, null, 2), 'utf8');
+  }
+
+  const chayVoi = (d: string, dirDec: string) => chay(d, ['--enforce', '--decisions-dir', dirDec]);
+
+  test('đạt thật, không nhờ gì ⇒ GO', () => {
+    const d = cay();
+    chiTieuChiDoDuoc(d);
+    const r = chayVoi(d, path.join(d, 'dec'));
+    expect(r.out, r.out).toMatch(/ĐỀ XUẤT: GO — /);
+    fs.rmSync(d, { recursive: true, force: true });
+  });
+
+  test('tiêu chí KHÔNG ĐẠT + PO chấp nhận kèm giảm thiểu ⇒ CONCERNS, nêu người chịu và cách giảm thiểu', () => {
+    const d = cay89();
+    chiTieuChiDoDuoc(d);
+    const dec = path.join(d, 'dec');
+    expect(chayVoi(d, dec).out, 'chưa có ngoại lệ thì vẫn NO-GO').toMatch(/ĐỀ XUẤT: NO-GO — 1 tiêu chí KHÔNG ĐẠT/);
+
+    ngoaiLe(dec);
+    const r = chayVoi(d, dec);
+    expect(r.out, r.out).toMatch(/ĐỀ XUẤT: CONCERNS/);
+    expect(r.out).toMatch(/Đạt có ĐK\s+Pass rate toàn bộ TC đã chạy/);
+    expect(r.out, 'phải nêu người chịu').toMatch(/người chịu: PO \(DEC-T1REL-001\)/);
+    expect(r.out, 'phải nêu cách giảm thiểu').toMatch(/giảm thiểu: Tắt màn báo cáo phụ/);
+    expect(r.out, 'CONCERNS không được đọc thành GO').toMatch(/CONCERNS KHÔNG phải GO/);
+    expect(r.code, 'vẫn là khuyến nghị — exit 0').toBe(0);
+    fs.rmSync(d, { recursive: true, force: true });
+  });
+
+  test('ngoại lệ KHÔNG do PO ký, thiếu giảm thiểu, hay HẾT HẠN ⇒ BỊ BỎ QUA và nói ra, vẫn NO-GO', () => {
+    for (const [ghiDe, vi] of [
+      [{ decided_by: 'QA-Lead' }, /phải do PO ký/],
+      [{ mitigation: 'sẽ xem' }, /thiếu `mitigation`/],
+      [{ expires_at: TRUOC }, /HẾT HẠN/],
+      [{ status: 'superseded' }, /superseded/],
+    ] as const) {
+      const d = cay89();
+      chiTieuChiDoDuoc(d);
+      const dec = path.join(d, 'dec');
+      ngoaiLe(dec, ghiDe);
+      const r = chayVoi(d, dec);
+      expect(r.out, JSON.stringify(ghiDe)).toMatch(/ĐỀ XUẤT: NO-GO/);
+      expect(r.out, `phải nói vì sao bỏ qua: ${JSON.stringify(ghiDe)}`).toMatch(/BỊ BỎ QUA/);
+      expect(r.out).toMatch(vi);
+      fs.rmSync(d, { recursive: true, force: true });
+    }
+  });
+
+  test('ngoại lệ cho tiêu chí KHÔNG ĐO ĐƯỢC ⇒ KHÔNG áp — không chấp nhận được thứ chưa đo', () => {
+    const d = cay();
+    chay(d, ['--init']);
+    chotTruoc(d);
+    const dec = path.join(d, 'dec');
+    ngoaiLe(dec, { exit_criterion_id: 1 });
+    const r = chayVoi(d, dec);
+    expect(r.out).toMatch(/ngoại lệ DEC-T1REL-001 KHÔNG áp: không chấp nhận được thứ chưa đo/);
+    expect(r.out).toMatch(/ĐỀ XUẤT: NO-GO/);
+    expect(r.out).not.toMatch(/ĐỀ XUẤT: CONCERNS/);
+    fs.rmSync(d, { recursive: true, force: true });
+  });
+
+  test('ngoại lệ của task KHÁC không áp sang task này', () => {
+    const d = cay89();
+    chiTieuChiDoDuoc(d);
+    const dec = path.join(d, 'dec');
+    ngoaiLe(dec, { task_key: 'T2' });
+    expect(chayVoi(d, dec).out).toMatch(/ĐỀ XUẤT: NO-GO/);
+    fs.rmSync(d, { recursive: true, force: true });
+  });
+
+  test('miễn trừ gate còn hiệu lực: mục "Đã vượt qua" đọc được sổ, GO giữ nhãn nhưng nêu số miễn trừ', () => {
+    /*
+     * Mục "Đã vượt qua" trước đây tham chiếu `p.taskOut` (biến không tồn tại) nên LUÔN in "KHÔNG đọc được
+     * sổ miễn trừ". Test này khoá: đọc được; miễn trừ KHÔNG đổi nhãn (chốt 16/11/2026 — sổ miễn trừ gate
+     * không có ô giảm thiểu nên chưa đủ nghĩa CONCERNS, xem `override.spec.ts`); nhưng dòng GO phải nêu nó.
+     */
+    const d = cay();
+    chiTieuChiDoDuoc(d);
+    const dec = path.join(d, 'dec');
+    fs.mkdirSync(dec, { recursive: true });
+    fs.writeFileSync(path.join(dec, 'DEC-T1EVIDVIDEO-001.json'), JSON.stringify({
+      id: 'DEC-T1EVIDVIDEO-001', type: 'test_approach', subject: 'Miễn trừ gate EVID_VIDEO',
+      decision: 'vượt qua', rationale: 'video không quay được trên máy ảo CI, đã có ảnh thay thế',
+      decided_by: 'QA-Lead', decided_at: HOM_NAY, expires_at: SAU, status: 'active',
+      scope: { tc_ids: ['APP_X_TC_001'], modules: [], bug_keys: [] },
+      _ma: 'EVID_VIDEO', _tang: 'T1', _task: 'T1',
+    }), 'utf8');
+    const r = chayVoi(d, dec);
+    expect(r.out).not.toMatch(/KHÔNG đọc được sổ miễn trừ/);
+    expect(r.out).toMatch(/EVID_VIDEO · APP_X_TC_001 · QA-Lead/);
+    expect(r.out, r.out).toMatch(/ĐỀ XUẤT: GO — .*kèm 1 miễn trừ gate còn hiệu lực/);
+    expect(r.out).not.toMatch(/ĐỀ XUẤT: CONCERNS/);
+    fs.rmSync(d, { recursive: true, force: true });
+  });
+
+  test('CONCERNS không cứu được NO-GO ở tiêu chí KHÁC', () => {
+    /* 89% pass VÀ 50% BLOCKED: chấp nhận tiêu chí 4 không được làm tiêu chí 5 biến mất. */
+    const d = cay({
+      tests: [
+        ...Array.from({ length: 40 }, (_, i) => ({ tcId: `TC_${i + 1}`, status: 'PASS' })),
+        ...Array.from({ length: 10 }, (_, i) => ({ tcId: `TC_${41 + i}`, status: 'FAIL' })),
+        ...Array.from({ length: 50 }, (_, i) => ({ tcId: `TC_${51 + i}`, status: 'BLOCKED' })),
+      ],
+    });
+    chiTieuChiDoDuoc(d);
+    const dec = path.join(d, 'dec');
+    ngoaiLe(dec);
+    const r = chayVoi(d, dec);
+    expect(r.out).toMatch(/ĐỀ XUẤT: NO-GO — 1 tiêu chí KHÔNG ĐẠT/);
+    expect(r.out).toMatch(/1 tiêu chí đã được PO chấp nhận — chúng không phải lý do NO-GO/);
+    fs.rmSync(d, { recursive: true, force: true });
+  });
+
+  test('`decisions:check` gác cùng schema: release_exception thiếu ô bắt buộc ⇒ CHẶN', () => {
+    const dec = fs.mkdtempSync(path.join(os.tmpdir(), 'relexc-'));
+    ngoaiLe(dec, { decided_by: 'QA', mitigation: '', expires_at: undefined, exit_criterion_id: 'bốn' });
+    const r = spawnSync(process.execPath, [path.join(REPO, 'scripts/qa/decisions.js'), '--enforce', '--dir', dec],
+      { cwd: REPO, encoding: 'utf8', env: gateEnv() });
+    const out = `${r.stdout}${r.stderr}`;
+    expect(r.status, out).toBe(1);
+    for (const vi of [/phải do PO ký/, /thiếu `mitigation`/, /bắt buộc `expires_at`/, /exit_criterion_id/]) expect(out).toMatch(vi);
+    fs.rmSync(dec, { recursive: true, force: true });
+  });
+});

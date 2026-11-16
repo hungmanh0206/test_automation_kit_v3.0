@@ -1,6 +1,6 @@
 ---
 name: release_summary
-description: "Gộp nhiều lượt chạy của MỘT MỐC (release/sprint/UAT) thành khuyến nghị GO/NO-GO có căn cứ, đối chiếu tiêu chí exit đã chốt trước khi xem kết quả."
+description: "Gộp nhiều lượt chạy của MỘT MỐC (release/sprint/UAT) thành khuyến nghị GO/CONCERNS/NO-GO có căn cứ, đối chiếu tiêu chí exit đã chốt trước khi xem kết quả."
 ---
 
 # Release Summary — khuyến nghị, không phải quyết định
@@ -54,6 +54,9 @@ thể bị chấm bằng cảm nhận. Khai nguồn thì máy tự biết tiêu 
 - **"KHÔNG ĐO ĐƯỢC" không bao giờ thành "Đạt".** Đo 10/10/2026 trên repo: `testcase-status.json` không có
   `priority` và không có `module`, `knowledge/bugs` có 0 file ⇒ **5 trong 7** tiêu chí hiện không đo được.
   Báo cáo ghi đúng như vậy và tính chúng vào lý do NO-GO.
+- **Ba nhãn: GO · CONCERNS · NO-GO.** `CONCERNS` = đạt, nhưng có tiêu chí KHÔNG ĐẠT mà PO đã chấp nhận kèm
+  cách giảm thiểu (`release_exception` trong `knowledge/decisions/`, skill `decision_recorder`). Ngoại lệ không
+  áp cho tiêu chí KHÔNG ĐO ĐƯỢC hay TC chưa chạy. Miễn trừ gate còn hiệu lực KHÔNG đổi nhãn, chỉ được nêu số.
 - **Vùng chưa test in TRƯỚC mọi tỉ lệ.** Một tỉ lệ pass nghe khác hẳn khi biết 20 case chưa từng chạy.
 - **BLOCKED và SKIP không tính là PASS, và cũng không tính vào "đã chạy".** Mẫu số thật là `pass + fail`.
 - **Chấm "gần đạt" là không được.** 94.8% so với ngưỡng 95% là **không đạt**; chấp nhận được thì ghi

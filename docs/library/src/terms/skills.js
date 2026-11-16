@@ -106,7 +106,7 @@ const TERMS_SKILL = [
 /* ── Shared ── */
 { id:'sk-decision_recorder', t:'decision_recorder', cat:'skill', phase:'Dùng chung',
   def:'Ghi LÝ DO của quyết định QA đã chốt, và bắt buộc tra lại nó trước khi log bug.',
-  detail:'Sáu loại quyết định được lưu: false_positive, by_design, risk_override, blocked_pass, wont_fix, test_approach. Trường rationale để trống là bị chặn. Riêng false_positive thì phải do Dev, BA, QA Lead hoặc PO chốt chứ không tự nhận.',
+  detail:'Bảy loại quyết định được lưu: false_positive, by_design, risk_override, blocked_pass, wont_fix, test_approach, release_exception. Trường rationale để trống là bị chặn. Riêng false_positive thì phải do Dev, BA, QA Lead hoặc PO chốt chứ không tự nhận.',
   why:'Không có nó thì task sau log lại đúng bug đã bị Rejected, đánh FAIL đỏ oan case đã chốt là vướng môi trường, hoặc mò lại một cách test đã thử và thất bại. Đây là thứ khiến team không lặp lại chính mình.',
   cmd:'node scripts/qa/decisions.js --check "<triệu chứng>" --module <Module>',
   ex:'Callback IPN trả mã 00 từng bị nghi là bug; Dev xác nhận 00 chỉ là ack chứ không phải xác nhận thanh toán → ghi by_design, lần sau tra ra ngay.',
