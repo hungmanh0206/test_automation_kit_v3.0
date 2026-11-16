@@ -68,6 +68,35 @@ const MAC_DINH = [
   { id: 7, ten: 'Module trong phạm vi release đã có TC và đã chạy', nguong: '100%', nguon: 'module' },
 ];
 
+/*
+ * Sổ quyết định — nơi đọc CẢ miễn trừ gate (`override.js`) LẪN ngoại lệ phát hành (`release_exception`).
+ * `--decisions-dir` để spec chạy trên thư mục tạm, không đụng `knowledge/` thật của repo.
+ */
+const DIR_DECISIONS = path.resolve(arg('decisions-dir', path.join(REPO, 'knowledge', 'decisions')));
+
+/**
+ * Ngoại lệ phát hành CÒN HIỆU LỰC cho một task, đã qua ĐÚNG luật schema của `decisions.js`.
+ *
+ * Trả `{ hopLe: Map<id tiêu chí, bản ghi>, boQua: [{ id, vi_sao }] }`. Bản ghi sai schema, hết hạn hoặc
+ * `superseded` KHÔNG được hạ đề xuất — và cũng không được biến mất: nó vào `boQua` để báo cáo nói ra.
+ */
+function ngoaiLePhatHanh(taskKey, homNay = new Date().toISOString().slice(0, 10)) {
+  const dec = require(path.join(__dirname, 'decisions.js'));
+  const hopLe = new Map();
+  const boQua = [];
+  for (const r of dec.loadAll(DIR_DECISIONS)) {
+    const j = r.data || {};
+    if (j.type !== 'release_exception' || j.task_key !== taskKey) continue;
+    const ten = j.id || path.basename(r.file);
+    const v = dec.validate(r);
+    if (v.problems.length) { boQua.push({ id: ten, vi_sao: `sai schema — ${v.problems[0].replace(/^[^:]+:\s*/, '')}` }); continue; }
+    if (j.status !== 'active') { boQua.push({ id: ten, vi_sao: `status \`${j.status}\`` }); continue; }
+    if (String(j.expires_at) < homNay) { boQua.push({ id: ten, vi_sao: `HẾT HẠN ${j.expires_at}` }); continue; }
+    hopLe.set(j.exit_criterion_id, j);
+  }
+  return { hopLe, boQua };
+}
+
 function thuMuc() {
   let taskOut;
   try { taskOut = rc.getTaskOutputDir(); } catch (e) {
@@ -133,8 +162,9 @@ function main() {
     console.error('[release-summary] ✗ TỪ CHỐI — `exit_criteria.json` MỚI HƠN `testcase-status.json`.');
     console.error(`    tiêu chí: ${new Date(mTc).toISOString()}`);
     console.error(`    kết quả : ${new Date(mSt).toISOString()}`);
-    console.error('  Tiêu chí sửa SAU khi có kết quả là hợp thức hoá kết quả, không phải đánh giá. Muốn đổi ngưỡng thật');
-    console.error('  thì ghi `ngoaiLe` cho tiêu chí đó kèm người duyệt, đừng sửa ngưỡng.');
+    console.error('  Tiêu chí sửa SAU khi có kết quả là hợp thức hoá kết quả, không phải đánh giá — đừng sửa ngưỡng.');
+    console.error('  PO chấp nhận một tiêu chí không đạt thì ghi `release_exception` vào knowledge/decisions/ (skill');
+    console.error('  `decision_recorder`) — KHÔNG ghi vào file này: sửa file này sau kết quả thì chính luật này từ chối.');
     process.exit(ENFORCE ? 1 : 2);
   }
 
@@ -217,6 +247,14 @@ function main() {
   };
   let khongDo = 0;
   let khongDat = 0;
+  /*
+   * Mã task lấy từ ĐƯỜNG DẪN thư mục task: `getTaskOutputDir()` đã giải xong mọi nguồn (env, --task,
+   * TASK_ENV), nên tên thư mục cuối chính là mã task đã được giải.
+   */
+  const maTask = path.basename(d.taskOut);
+  const nl = ngoaiLePhatHanh(maTask);
+  /* Tiêu chí KHÔNG ĐẠT nhưng PO đã chấp nhận kèm giảm thiểu — nguồn của CONCERNS. */
+  const daChapNhan = [];
   for (const c of ds) {
     const co = nguonCo[c.nguon];
     let kq;
@@ -238,10 +276,24 @@ function main() {
       so = 'chưa có phép đo trong kit';
       khongDo += 1;
     }
+    /*
+     * NGOẠI LỆ CHỈ ÁP CHO "Không đạt" — tức rủi ro ĐÃ ĐO, đã biết lớn cỡ nào. Không áp cho "KHÔNG ĐO
+     * ĐƯỢC": chấp nhận một thứ chưa ai đo là biến "không phán được" thành đạt (CLAUDE.md §3).
+     */
+    const nx = nl.hopLe.get(c.id);
+    let ghiChuNx = '';
+    if (nx && kq === 'Không đạt') {
+      kq = 'Đạt có ĐK';
+      daChapNhan.push({ c, nx, so });
+      ghiChuNx = ` · CHẤP NHẬN bởi PO (${nx.id}), hết hạn ${nx.expires_at}`;
+    } else if (nx && kq === 'KHÔNG ĐO ĐƯỢC') {
+      ghiChuNx = ` · ngoại lệ ${nx.id} KHÔNG áp: không chấp nhận được thứ chưa đo`;
+    }
     if (kq === 'Không đạt') khongDat += 1;
-    const nl = String(c.ngoaiLe || '').trim();
-    console.log(`  ${String(c.id).padStart(2)} ${kq.padEnd(14)} ${c.ten} (ngưỡng ${c.nguong}) — ${so}${nl ? ` · NGOẠI LỆ: ${nl}` : ''}`);
+    const ghiTay = String(c.ngoaiLe || '').trim();
+    console.log(`  ${String(c.id).padStart(2)} ${kq.padEnd(14)} ${c.ten} (ngưỡng ${c.nguong}) — ${so}${ghiTay ? ` · NGOẠI LỆ: ${ghiTay}` : ''}${ghiChuNx}`);
   }
+  for (const b of nl.boQua) console.log(`  ⚠ ngoại lệ ${b.id} BỊ BỎ QUA — ${b.vi_sao}. Nó KHÔNG hạ đề xuất.`);
 
   /*
    * ĐÃ VƯỢT QUA (§A8) — mọi miễn trừ CÒN HIỆU LỰC ở mốc này.
@@ -251,21 +303,21 @@ function main() {
    * biệt được hai thứ đó.
    *
    * Nó KHÔNG đổi đề xuất go/no-go: miễn trừ là quyết định đã có người chịu trách nhiệm, nên hạ đề xuất
-   * vì nó là phủ quyết lại người đã quyết. Nhưng nó phải CÓ MẶT.
+   * vì nó là phủ quyết lại người đã quyết. Nhưng nó phải CÓ MẶT. Nó cũng KHÔNG thành CONCERNS (chốt
+   * 16/11/2026): CONCERNS đòi "có người chịu VÀ có cách giảm thiểu", mà sổ miễn trừ gate không có ô giảm
+   * thiểu. Dòng ĐỀ XUẤT GO vẫn nêu số miễn trừ, để "đạt nhờ miễn trừ" không đọc được thành "đạt thật".
+   *
+   * ĐO 16/11/2026: mục này CHƯA TỪNG chạy được. Nó tham chiếu `p.taskOut` trong khi biến của `main()` là
+   * `d`, nên luôn rơi vào nhánh `catch` và in "KHÔNG đọc được sổ miễn trừ (p is not defined)". Không spec
+   * nào phủ mục này — giờ có.
    */
   console.log('\n— Đã vượt qua (miễn trừ T1 còn hiệu lực) —');
   let soMienTru = 0;
+  const mienTru = [];
   try {
-    /* eslint-disable-next-line global-require */
-    const ov = require(require('path').join(__dirname, 'override.js'));
-    /*
-     * Mã task lấy từ ĐƯỜNG DẪN thư mục task, không từ một biến `TASK` — file này không có biến đó,
-     * và bản đầu của tôi tham chiếu một biến không tồn tại. `getTaskOutputDir()` đã giải xong mọi
-     * nguồn (env, --task, TASK_ENV), nên tên thư mục cuối chính là mã task đã được giải.
-     */
-    const maTask = require('path').basename(p.taskOut);
-    const ds = ov.dangHieuLuc(maTask);
-    soMienTru = ds.length;
+    const ov = require(path.join(__dirname, 'override.js'));
+    const ds = ov.dangHieuLuc(maTask, { dir: DIR_DECISIONS });
+    mienTru.push(...ds);
     if (!ds.length) {
       console.log('  không có miễn trừ nào còn hiệu lực.');
     } else {
@@ -284,17 +336,38 @@ function main() {
     soMienTru = null;
   }
 
-  /* ④ ĐỀ XUẤT, không quyết. */
+  /*
+   * ④ ĐỀ XUẤT, không quyết. BA nhãn:
+   *   NO-GO    — còn tiêu chí không đạt CHƯA ai chấp nhận, tiêu chí không đo được, TC chưa chạy, hoặc
+   *              không đọc được sổ miễn trừ (không đọc được thì không khẳng định được "không có gì bị che").
+   *   CONCERNS — không còn lý do NO-GO nào, nhưng có tiêu chí KHÔNG ĐẠT mà PO đã chấp nhận kèm cách giảm
+   *              thiểu (`release_exception`). Liệt kê từng cái kèm người chịu, giảm thiểu, hạn.
+   *   GO       — mọi tiêu chí đạt. Miễn trừ gate còn hiệu lực KHÔNG đổi nhãn này (xem mục "Đã vượt qua"),
+   *              nhưng dòng GO phải nêu số của chúng.
+   * CONCERNS chỉ thay NO-GO ở ĐÚNG tiêu chí đã được chấp nhận. Không có đường nào để "không đo được" hay
+   * "chưa chạy" thành CONCERNS.
+   */
   console.log('\n— ĐỀ XUẤT —');
   const ly = [];
   if (khongDat) ly.push(`${khongDat} tiêu chí KHÔNG ĐẠT`);
   if (khongDo) ly.push(`${khongDo} tiêu chí KHÔNG ĐO ĐƯỢC (và "không đo được" KHÔNG thành đạt)`);
   if (chuaChay.length) ly.push(`${chuaChay.length} TC chưa từng chạy`);
+  if (soMienTru === null) ly.push('KHÔNG đọc được sổ miễn trừ (không khẳng định được không có gì đang bị che)');
   if (ly.length) {
     console.log(`  ĐỀ XUẤT: NO-GO — ${ly.join(' · ')}.`);
+    if (daChapNhan.length) console.log(`  (${daChapNhan.length} tiêu chí đã được PO chấp nhận — chúng không phải lý do NO-GO, nhưng không cứu được các lý do trên.)`);
     console.log('  Đây là KHUYẾN NGHỊ. Quyết định release là của PM/PO: họ cân thêm áp lực thị trường, hợp đồng, chi phí trễ hạn mà QA không nắm.');
+  } else if (daChapNhan.length) {
+    console.log(`  ĐỀ XUẤT: CONCERNS — đạt, nhưng ${daChapNhan.length} tiêu chí đạt NHỜ PO chấp nhận rủi ro.`);
+    for (const x of daChapNhan) {
+      console.log(`    · tiêu chí ${x.c.id} ${x.c.ten}: ${x.so}`);
+      console.log(`      người chịu: PO (${x.nx.id}) · hết hạn ${x.nx.expires_at}`);
+      console.log(`      giảm thiểu: ${String(x.nx.mitigation).trim().slice(0, 160)}`);
+    }
+    if (mienTru.length) console.log(`  Kèm ${mienTru.length} miễn trừ gate còn hiệu lực (xem "Đã vượt qua").`);
+    console.log('  CONCERNS KHÔNG phải GO: phát hành được nếu PM/PO đồng ý mang theo đúng các rủi ro trên. Hết hạn thì chúng thôi che.');
   } else {
-    console.log('  ĐỀ XUẤT: GO — mọi tiêu chí đo được đều đạt, không có vùng chưa test.');
+    console.log(`  ĐỀ XUẤT: GO — mọi tiêu chí đo được đều đạt, không có vùng chưa test${mienTru.length ? ` · kèm ${mienTru.length} miễn trừ gate còn hiệu lực (xem "Đã vượt qua")` : ''}.`);
     console.log('  Vẫn là KHUYẾN NGHỊ, không phải quyết định.');
   }
 

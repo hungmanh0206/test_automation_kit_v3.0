@@ -46,6 +46,10 @@ trong bug, nếu không dev sẽ đóng lại y như lần trước.
    override này ở lần chạy sau (suggest-only — vẫn không tự đổi band).
 4. **Chốt cách test sau khi thử thất bại** → `type: test_approach` (vd sandbox không hỗ trợ, phải verify bằng API).
    Loại này thường **tạm thời** ⇒ đặt `expires_at` để buộc kiểm lại, thay vì thành sự thật vĩnh viễn.
+5. **PO chấp nhận phát hành dù một tiêu chí exit KHÔNG ĐẠT** → `type: release_exception`, kèm `task_key`,
+   `exit_criterion_id`, `mitigation` (cách giảm thiểu, ≥ 20 ký tự) và `expires_at`; chỉ `decided_by: PO`.
+   `release:summary` đọc nó và ra `CONCERNS`. Ghi ở đây, KHÔNG ghi vào `exit_criteria.json` — sửa file đó sau
+   khi có kết quả thì `release:summary` từ chối.
 
 ## Điều kiện ghi
 

@@ -34,7 +34,7 @@ const DIR = path.resolve(arg('dir', path.join(KNOW, 'decisions')));
 const BUGS_DIR = path.resolve(arg('bugs-dir', path.join(KNOW, 'bugs')));
 const MAX_ROWS = Math.max(1, Number(arg('max', 20)) || 20);
 
-const TYPES = ['false_positive', 'by_design', 'risk_override', 'blocked_pass', 'wont_fix', 'test_approach'];
+const TYPES = ['false_positive', 'by_design', 'risk_override', 'blocked_pass', 'wont_fix', 'test_approach', 'release_exception'];
 const ID_RE = /^DEC-[A-Z0-9]+-\d{3}$/;
 const DECIDERS = ['BA', 'Dev', 'QA-Lead', 'PO', 'QA'];
 const STATUSES = ['active', 'superseded'];
@@ -90,6 +90,22 @@ function validate(r) {
   }
   if (d.type === 'risk_override' && !(d.scope && (d.scope.modules || []).length)) problems.push(at('`risk_override` phải khoanh `scope.modules`'));
   if (d.type === 'blocked_pass' && !(d.scope && (d.scope.tc_ids || []).length)) problems.push(at('`blocked_pass` phải khoanh `scope.tc_ids`'));
+  /*
+   * `release_exception` — PO CHẤP NHẬN một tiêu chí exit KHÔNG ĐẠT cho một mốc, kèm cách giảm thiểu.
+   * `release:summary` đọc nó để hạ NO-GO xuống CONCERNS cho ĐÚNG tiêu chí đó. Vì nó đổi một đề xuất phát
+   * hành, mọi ô làm nên "có người chịu và có cách giảm thiểu" đều là CHẶN, không phải cảnh báo:
+   *   · chỉ PO ký — QA khuyến nghị, PM/PO quyết; QA tự chấp nhận rủi ro phát hành là tự chấm bài mình.
+   *   · `mitigation` thật (≥ 20 ký tự) — chấp nhận rủi ro mà không có cách giảm thiểu là chỉ chấp nhận.
+   *   · `expires_at` bắt buộc — ngoại lệ không hạn là một ngưỡng mới viết lén ngoài `exit_criteria.json`.
+   *   · `task_key` + `exit_criterion_id` — khoanh đúng một tiêu chí của một task, không áp tràn.
+   */
+  if (d.type === 'release_exception') {
+    if (String(d.decided_by) !== 'PO') problems.push(at('`release_exception` phải do PO ký — QA khuyến nghị, PO quyết; QA tự chấp nhận rủi ro phát hành là tự chấm bài mình'));
+    if (String(d.mitigation || '').trim().length < 20) problems.push(at('`release_exception` thiếu `mitigation` (≥ 20 ký tự) — chấp nhận rủi ro mà không có cách giảm thiểu thì chỉ là chấp nhận'));
+    if (!DATE_RE.test(String(d.expires_at || ''))) problems.push(at('`release_exception` bắt buộc `expires_at` (YYYY-MM-DD) — ngoại lệ không hạn là một ngưỡng mới viết lén ngoài exit_criteria.json'));
+    if (!String(d.task_key || '').trim()) problems.push(at('`release_exception` thiếu `task_key` — không khoanh task thì ngoại lệ áp tràn sang mốc khác'));
+    if (!Number.isInteger(d.exit_criterion_id)) problems.push(at('`release_exception` thiếu `exit_criterion_id` (số nguyên, trùng `id` trong exit_criteria.json)'));
+  }
   if (!String(d.evidence || '').trim()) warnings.push(at('thiếu `evidence` — nên trỏ ảnh/video/Backlog key/commit làm bằng'));
   if (d.expires_at && String(d.expires_at) < TODAY && d.status === 'active') warnings.push(at(`HẾT HẠN ${d.expires_at} mà vẫn \`active\` — phải kiểm lại rồi gia hạn hoặc chuyển \`superseded\``));
 
@@ -99,116 +115,126 @@ function validate(r) {
   return { problems, warnings };
 }
 
-const decisions = loadAll(DIR);
-const CHECK = arg('check');
+/*
+ * Export `validate` để `release:summary` dùng CHÍNH luật này khi đọc `release_exception` — một ngoại lệ
+ * sai schema không được phép hạ NO-GO, và chép luật sang file khác là hai bản sẽ trôi khỏi nhau.
+ * Phần CLI nằm trong `main()`: chỉ chạy khi gọi trực tiếp, không chạy khi bị `require`.
+ */
+function main() {
+  const decisions = loadAll(DIR);
+  const CHECK = arg('check');
 
-// --check: TRA CỨU trước khi log bug / trước khi kết luận FAIL.
-if (CHECK) {
-  const q = tokens(CHECK);
-  const modFilter = norm(arg('module', ''));
-  const scored = decisions.map((r) => {
-    const d = r.data || {};
-    const hay = tokens([d.subject, d.decision, d.rationale, (d.tags || []).join(' '), ((d.scope || {}).modules || []).join(' '), ((d.scope || {}).tc_ids || []).join(' '), ((d.scope || {}).bug_keys || []).join(' ')].join(' '));
-    const set = new Set(hay);
-    const hits = q.filter((w) => set.has(w));
-    const exact = norm([d.subject, ((d.scope || {}).tc_ids || []).join(' '), ((d.scope || {}).bug_keys || []).join(' ')].join(' ')).includes(norm(CHECK)) ? 5 : 0;
-    const modBoost = modFilter && norm(((d.scope || {}).modules || []).join(' ')).includes(modFilter) ? 2 : 0;
-    return { r, d, score: hits.length + exact + modBoost, hits };
-    // Ngưỡng ≥2 từ khớp (hoặc khớp nguyên văn subject/TC/bug key): khớp 1 từ chung chung ("chưa", "không")
-    // tạo nhiễu, mà bản tra cứu này phải đọc-là-hiểu trong 5 giây mới có người dùng.
-  }).filter((x) => x.d.status === 'active' && (x.hits.length >= 2 || x.score >= 5)).sort((a, b) => b.score - a.score);
+  // --check: TRA CỨU trước khi log bug / trước khi kết luận FAIL.
+  if (CHECK) {
+    const q = tokens(CHECK);
+    const modFilter = norm(arg('module', ''));
+    const scored = decisions.map((r) => {
+      const d = r.data || {};
+      const hay = tokens([d.subject, d.decision, d.rationale, (d.tags || []).join(' '), ((d.scope || {}).modules || []).join(' '), ((d.scope || {}).tc_ids || []).join(' '), ((d.scope || {}).bug_keys || []).join(' ')].join(' '));
+      const set = new Set(hay);
+      const hits = q.filter((w) => set.has(w));
+      const exact = norm([d.subject, ((d.scope || {}).tc_ids || []).join(' '), ((d.scope || {}).bug_keys || []).join(' ')].join(' ')).includes(norm(CHECK)) ? 5 : 0;
+      const modBoost = modFilter && norm(((d.scope || {}).modules || []).join(' ')).includes(modFilter) ? 2 : 0;
+      return { r, d, score: hits.length + exact + modBoost, hits };
+      // Ngưỡng ≥2 từ khớp (hoặc khớp nguyên văn subject/TC/bug key): khớp 1 từ chung chung ("chưa", "không")
+      // tạo nhiễu, mà bản tra cứu này phải đọc-là-hiểu trong 5 giây mới có người dùng.
+    }).filter((x) => x.d.status === 'active' && (x.hits.length >= 2 || x.score >= 5)).sort((a, b) => b.score - a.score);
 
-  console.log(`[decisions] Tra "${CHECK}"${modFilter ? ` (module ~ ${arg('module')})` : ''} trong ${decisions.length} quyết định → ${scored.length} khớp`);
-  if (!scored.length) {
-    console.log('  (không khớp — CHƯA từng kết luận về việc này, hoặc có mà chưa ai ghi lại. Không có nghĩa là được phép bỏ qua điều tra.)');
+    console.log(`[decisions] Tra "${CHECK}"${modFilter ? ` (module ~ ${arg('module')})` : ''} trong ${decisions.length} quyết định → ${scored.length} khớp`);
+    if (!scored.length) {
+      console.log('  (không khớp — CHƯA từng kết luận về việc này, hoặc có mà chưa ai ghi lại. Không có nghĩa là được phép bỏ qua điều tra.)');
+    }
+    for (const x of scored.slice(0, MAX_ROWS)) {
+      console.log(`\n  ▸ ${x.d.id} [${x.d.type}] ${x.d.decided_at} · ${x.d.decided_by} (khớp: ${x.hits.join(', ') || 'subject'})`);
+      console.log(`    Việc:  ${x.d.subject}`);
+      console.log(`    Chốt:  ${x.d.decision}`);
+      console.log(`    Vì:    ${x.d.rationale}`);
+      if (x.d.evidence) console.log(`    Bằng:  ${x.d.evidence}`);
+      if (x.d.expires_at) console.log(`    Hết hạn: ${x.d.expires_at}${x.d.expires_at < TODAY ? ' ⚠ ĐÃ QUÁ HẠN — phải kiểm lại' : ''}`);
+      if (x.d.type === 'false_positive' || x.d.type === 'by_design') console.log('    ⇒ KHÔNG log bug lại nếu triệu chứng y hệt; muốn log phải có bằng chứng MỚI khác lần trước.');
+    }
+    process.exit(0);
   }
-  for (const x of scored.slice(0, MAX_ROWS)) {
-    console.log(`\n  ▸ ${x.d.id} [${x.d.type}] ${x.d.decided_at} · ${x.d.decided_by} (khớp: ${x.hits.join(', ') || 'subject'})`);
-    console.log(`    Việc:  ${x.d.subject}`);
-    console.log(`    Chốt:  ${x.d.decision}`);
-    console.log(`    Vì:    ${x.d.rationale}`);
-    if (x.d.evidence) console.log(`    Bằng:  ${x.d.evidence}`);
-    if (x.d.expires_at) console.log(`    Hết hạn: ${x.d.expires_at}${x.d.expires_at < TODAY ? ' ⚠ ĐÃ QUÁ HẠN — phải kiểm lại' : ''}`);
-    if (x.d.type === 'false_positive' || x.d.type === 'by_design') console.log('    ⇒ KHÔNG log bug lại nếu triệu chứng y hệt; muốn log phải có bằng chứng MỚI khác lần trước.');
+
+  console.log(`[decisions] ${decisions.length} quyết định trong ${path.relative(REPO, DIR)}`);
+  if (!decisions.length) {
+    console.log('[decisions] Chưa ghi quyết định nào. Ghi khi: bug bị Rejected/by-design · case PASS-kèm-note vì vướng env ·');
+    console.log('            QA override risk band · chốt cách test sau khi thử thất bại. Skill `decision_recorder`, schema: knowledge/SCHEMA.md §decisions/.');
+  }
+
+  let problems = []; let warnings = [];
+  for (const r of decisions) { const v = validate(r); problems = problems.concat(v.problems); warnings = warnings.concat(v.warnings); }
+
+  const seen = new Map();
+  const activeById = {};
+  for (const r of decisions) {
+    const d = r.data || {};
+    const k = `${d.id}@${d.decided_at}`;
+    if (seen.has(k)) problems.push(`TRÙNG ${k}: ${path.basename(seen.get(k))} và ${path.basename(r.file)}`);
+    else seen.set(k, r.file);
+    if (d.status === 'active' && d.id) activeById[d.id] = (activeById[d.id] || 0) + 1;
+  }
+  Object.entries(activeById).filter(([, n]) => n > 1).forEach(([id, n]) => problems.push(`${id}: có ${n} bản \`active\` — chỉ được 1 (bản cũ đổi thành \`superseded\`)`));
+
+  // Bug đã Rejected/Won't Do mà KHÔNG có quyết định giải thích ⇒ lần sau gặp lại triệu chứng đó sẽ log lại.
+  if (!flag('index')) {
+    const bugs = loadAll(BUGS_DIR);
+    const explained = new Set();
+    for (const r of decisions) for (const k of ((r.data || {}).scope || {}).bug_keys || []) explained.add(String(k));
+    const orphans = bugs.map((b) => b.data || {}).filter((b) => /reject|won.?t do|cancel|duplicate/i.test(String(b.backlog_status || '')) && !explained.has(String(b.id)));
+    if (orphans.length) {
+      console.log(`\n[decisions] ${orphans.length} bug bị Rejected/Won't-Do mà CHƯA có lý do lưu lại:`);
+      orphans.slice(0, MAX_ROWS).forEach((b) => console.log(`  ‼ ${b.id} [${b.module}] "${String(b.bug || '').slice(0, 70)}" (${b.backlog_status})`));
+      console.log('    → Ghi 1 quyết định `false_positive`/`by_design` kèm lý do dev đưa ra, nếu không task sau sẽ log lại đúng bug này.');
+    } else if (bugs.length) {
+      console.log('[decisions] ✓ Không có bug Rejected nào bị bỏ trống lý do.');
+    }
+    const expired = decisions.map((r) => r.data || {}).filter((d) => d.status === 'active' && d.expires_at && String(d.expires_at) < TODAY);
+    if (expired.length) {
+      console.log(`\n[decisions] ${expired.length} quyết định ĐÃ QUÁ HẠN nhưng còn active (phải kiểm lại — điều kiện có thể đã thay đổi):`);
+      expired.slice(0, MAX_ROWS).forEach((d) => console.log(`  ~ ${d.id} hết hạn ${d.expires_at}: ${String(d.subject).slice(0, 70)}`));
+    }
+  }
+
+  if (flag('index')) {
+    const idxFile = path.join(KNOW, 'index.json');
+    const idx = readJson(idxFile);
+    const doc = idx && !idx.__err ? idx : { version: 1, updated_at: null, entries: [] };
+    doc.entries = doc.entries || [];
+    let n = 0;
+    for (const r of decisions) {
+      const d = r.data || {};
+      if (!d.id) continue;
+      const rec = {
+        type: 'decision', subtype: d.type, file: r.rel.replace(/^knowledge\//, ''),
+        modules: (d.scope || {}).modules || [], tags: d.tags || [], status: d.status,
+        summary: String(d.subject || '').slice(0, 120),
+      };
+      const i = doc.entries.findIndex((x) => x && x.file === rec.file);
+      if (i >= 0) doc.entries[i] = rec; else { doc.entries.push(rec); n += 1; }
+    }
+    // Dọn entry TRỎ FILE ĐÃ BỊ XOÁ (chỉ của type này) — indexer trước đây chỉ thêm/sửa nên xoá 1 record
+    // là index còn trỏ vào hư không, tra cứu ra kết quả ma.
+    const before = doc.entries.length;
+    doc.entries = doc.entries.filter((e) => !(e && e.type === 'decision') || fs.existsSync(path.join(KNOW, e.file)));
+    const pruned = before - doc.entries.length;
+    if (pruned) console.log(`[decisions] dọn ${pruned} entry trỏ file đã bị xoá.`);
+    doc.updated_at = TODAY;
+    fs.writeFileSync(idxFile, `${JSON.stringify(doc, null, 2)}\n`, 'utf8');
+    console.log(`\n[decisions] index.json: +${n} entry decision (tổng ${doc.entries.length}).`);
+  }
+
+  if (warnings.length) { console.log(`\n⚠ ${warnings.length} cảnh báo:`); warnings.forEach((w) => console.log(`  ~ ${w}`)); }
+  if (problems.length) {
+    console.log(`\n✗ ${problems.length} lỗi CHẶN:`);
+    problems.forEach((p) => console.log(`  - ${p}`));
+    console.log('\nSchema: knowledge/SCHEMA.md §decisions/. Quyết định không có `rationale` thì đừng ghi — lần sau vẫn phải điều tra lại.');
+    if (ENFORCE) process.exit(1);
+  } else if (decisions.length) {
+    console.log('\n✓ Mọi quyết định hợp schema (có lý do, có người chốt, khoanh phạm vi, không PII).');
   }
   process.exit(0);
 }
 
-console.log(`[decisions] ${decisions.length} quyết định trong ${path.relative(REPO, DIR)}`);
-if (!decisions.length) {
-  console.log('[decisions] Chưa ghi quyết định nào. Ghi khi: bug bị Rejected/by-design · case PASS-kèm-note vì vướng env ·');
-  console.log('            QA override risk band · chốt cách test sau khi thử thất bại. Skill `decision_recorder`, schema: knowledge/SCHEMA.md §decisions/.');
-}
-
-let problems = []; let warnings = [];
-for (const r of decisions) { const v = validate(r); problems = problems.concat(v.problems); warnings = warnings.concat(v.warnings); }
-
-const seen = new Map();
-const activeById = {};
-for (const r of decisions) {
-  const d = r.data || {};
-  const k = `${d.id}@${d.decided_at}`;
-  if (seen.has(k)) problems.push(`TRÙNG ${k}: ${path.basename(seen.get(k))} và ${path.basename(r.file)}`);
-  else seen.set(k, r.file);
-  if (d.status === 'active' && d.id) activeById[d.id] = (activeById[d.id] || 0) + 1;
-}
-Object.entries(activeById).filter(([, n]) => n > 1).forEach(([id, n]) => problems.push(`${id}: có ${n} bản \`active\` — chỉ được 1 (bản cũ đổi thành \`superseded\`)`));
-
-// Bug đã Rejected/Won't Do mà KHÔNG có quyết định giải thích ⇒ lần sau gặp lại triệu chứng đó sẽ log lại.
-if (!flag('index')) {
-  const bugs = loadAll(BUGS_DIR);
-  const explained = new Set();
-  for (const r of decisions) for (const k of ((r.data || {}).scope || {}).bug_keys || []) explained.add(String(k));
-  const orphans = bugs.map((b) => b.data || {}).filter((b) => /reject|won.?t do|cancel|duplicate/i.test(String(b.backlog_status || '')) && !explained.has(String(b.id)));
-  if (orphans.length) {
-    console.log(`\n[decisions] ${orphans.length} bug bị Rejected/Won't-Do mà CHƯA có lý do lưu lại:`);
-    orphans.slice(0, MAX_ROWS).forEach((b) => console.log(`  ‼ ${b.id} [${b.module}] "${String(b.bug || '').slice(0, 70)}" (${b.backlog_status})`));
-    console.log('    → Ghi 1 quyết định `false_positive`/`by_design` kèm lý do dev đưa ra, nếu không task sau sẽ log lại đúng bug này.');
-  } else if (bugs.length) {
-    console.log('[decisions] ✓ Không có bug Rejected nào bị bỏ trống lý do.');
-  }
-  const expired = decisions.map((r) => r.data || {}).filter((d) => d.status === 'active' && d.expires_at && String(d.expires_at) < TODAY);
-  if (expired.length) {
-    console.log(`\n[decisions] ${expired.length} quyết định ĐÃ QUÁ HẠN nhưng còn active (phải kiểm lại — điều kiện có thể đã thay đổi):`);
-    expired.slice(0, MAX_ROWS).forEach((d) => console.log(`  ~ ${d.id} hết hạn ${d.expires_at}: ${String(d.subject).slice(0, 70)}`));
-  }
-}
-
-if (flag('index')) {
-  const idxFile = path.join(KNOW, 'index.json');
-  const idx = readJson(idxFile);
-  const doc = idx && !idx.__err ? idx : { version: 1, updated_at: null, entries: [] };
-  doc.entries = doc.entries || [];
-  let n = 0;
-  for (const r of decisions) {
-    const d = r.data || {};
-    if (!d.id) continue;
-    const rec = {
-      type: 'decision', subtype: d.type, file: r.rel.replace(/^knowledge\//, ''),
-      modules: (d.scope || {}).modules || [], tags: d.tags || [], status: d.status,
-      summary: String(d.subject || '').slice(0, 120),
-    };
-    const i = doc.entries.findIndex((x) => x && x.file === rec.file);
-    if (i >= 0) doc.entries[i] = rec; else { doc.entries.push(rec); n += 1; }
-  }
-  // Dọn entry TRỎ FILE ĐÃ BỊ XOÁ (chỉ của type này) — indexer trước đây chỉ thêm/sửa nên xoá 1 record
-  // là index còn trỏ vào hư không, tra cứu ra kết quả ma.
-  const before = doc.entries.length;
-  doc.entries = doc.entries.filter((e) => !(e && e.type === 'decision') || fs.existsSync(path.join(KNOW, e.file)));
-  const pruned = before - doc.entries.length;
-  if (pruned) console.log(`[decisions] dọn ${pruned} entry trỏ file đã bị xoá.`);
-  doc.updated_at = TODAY;
-  fs.writeFileSync(idxFile, `${JSON.stringify(doc, null, 2)}\n`, 'utf8');
-  console.log(`\n[decisions] index.json: +${n} entry decision (tổng ${doc.entries.length}).`);
-}
-
-if (warnings.length) { console.log(`\n⚠ ${warnings.length} cảnh báo:`); warnings.forEach((w) => console.log(`  ~ ${w}`)); }
-if (problems.length) {
-  console.log(`\n✗ ${problems.length} lỗi CHẶN:`);
-  problems.forEach((p) => console.log(`  - ${p}`));
-  console.log('\nSchema: knowledge/SCHEMA.md §decisions/. Quyết định không có `rationale` thì đừng ghi — lần sau vẫn phải điều tra lại.');
-  if (ENFORCE) process.exit(1);
-} else if (decisions.length) {
-  console.log('\n✓ Mọi quyết định hợp schema (có lý do, có người chốt, khoanh phạm vi, không PII).');
-}
-process.exit(0);
+module.exports = { validate, loadAll, TYPES };
+if (require.main === module) main();

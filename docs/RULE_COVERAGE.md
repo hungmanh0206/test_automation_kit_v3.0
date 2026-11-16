@@ -45,10 +45,10 @@ Nguồn: `RULE_GLOBAL.md` (35 mục có nội dung) · 180 gate · 206 spec hạ
 | Phân tầng lỗi FE hay BE — bắt buộc kiểm API trước khi kết luận | `load` | `agent-routing.spec.ts` · `auth-session-lock.spec.ts` · `automation-review.spec.ts` +49 |
 | Evidence — Quy chuẩn bắt buộc | `load` · `gate:output` · `rule` · `report` | `agent-routing.spec.ts` · `auth-session-lock.spec.ts` · `automation-review.spec.ts` +125 |
 | Bug Claim Gate — kiểm chứng phải đi TRƯỚC lời nói | `bug:claim` · `check` · `spec:gap` · `report` | `bug-claim.spec.ts` · `bug-retest.spec.ts` · `trace-test-mocoi.spec.ts` +134 |
-| Retest một bug đã log (thêm 10/10/2026, v2.5.0 G1.8) | `bug:claim` · `check` | `bug-claim.spec.ts` · `bug-retest.spec.ts` · `trace-test-mocoi.spec.ts` +108 |
+| Retest một bug đã log (thêm 10/10/2026, v2.5.0 G1.8) | `bug:claim` · `check` | `bug-claim.spec.ts` · `bug-retest.spec.ts` · `trace-test-mocoi.spec.ts` +109 |
 | Backlog Bug Gate | `load` | `agent-routing.spec.ts` · `auth-session-lock.spec.ts` · `automation-review.spec.ts` +49 |
 | Executable QA capabilities (autonomy & safety) | `check` · `dashboard` · `learn` · `load` · `gate:output` · `perf` · `risk` · `rule` · `security` · `report` | `autofix.spec.ts` · `bug-claim.spec.ts` · `bug-outcome.spec.ts` +169 |
-| Automation quality | `auto:review` · `check` · `gate:friction` · `golden:check` · `judge` · `rule` | `automation-review.spec.ts` · `checks-l4.spec.ts` · `expected-ledger.spec.ts` +125 |
+| Automation quality | `auto:review` · `check` · `gate:friction` · `golden:check` · `judge` · `rule` | `automation-review.spec.ts` · `checks-l4.spec.ts` · `expected-ledger.spec.ts` +126 |
 | Push execution | `merge:execution-status` | `canonical-drift.spec.ts` · `expansion-gates.spec.ts` · `manual-run-gate.spec.ts` +2 |
 | Workflow | `report` | `agent-scorecard.spec.ts` · `ambiguity-gate.spec.ts` · `autofix.spec.ts` +56 |
 | Chi phí một lượt chạy — đếm SỐ LƯỢT, không đếm độ dài | `prompt:budget` · `rerun:failed` · `token:audit` | `agent-routing.spec.ts` · `discovery-cli.spec.ts` · `load-map.spec.ts` +9 |

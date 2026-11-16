@@ -1,6 +1,6 @@
 ---
 name: release_summary
-description: "Gộp nhiều lượt chạy của MỘT MỐC (release/sprint/UAT) thành khuyến nghị GO/NO-GO có căn cứ, đối chiếu tiêu chí exit đã chốt trước khi xem kết quả."
+description: "Gộp nhiều lượt chạy của MỘT MỐC (release/sprint/UAT) thành khuyến nghị GO/CONCERNS/NO-GO có căn cứ, đối chiếu tiêu chí exit đã chốt trước khi xem kết quả."
 ---
 
 <!-- SINH TỰ ĐỘNG bởi `node scripts/qa/skills_index.js --write` — ĐỪNG SỬA TAY. -->
