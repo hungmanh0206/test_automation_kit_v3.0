@@ -25,7 +25,7 @@
  * Spec sinh ra nói thẳng điều đó ở đầu file.
  * ─────────────────────────────────────────────────────────────────────────────────────────────────────
  *
- * Dùng: node scripts/qa/reuse/smoke_gen.js --catalog <ui_catalog.json> --out <dir> [--deep] [--man <tên>]
+ * Dùng: node scripts/qa/reuse/smoke_gen.js --catalog <ui_catalog.json> --out <dir> [--deep] [--man <tên>] [--dang-nhap ops]
  * Exit: 0 · 2 khi không đọc được catalog hoặc catalog không có màn nào có neo
  */
 const fs = require('fs');
@@ -60,7 +60,20 @@ function manCoNeo(cat) {
   return ra;
 }
 
-function sinh({ duongCatalog, outDir, deep, chiMan }) {
+/*
+ * NHÃN PHÂN LOẠI của một test smoke đỏ — `smoke:gate` đọc tiền tố `[smoke:<loại>]` trong thông báo lỗi.
+ *
+ * Vì sao phải phân loại ngay trong spec: "smoke đỏ" gộp hai thứ trái ngược nhau. Không mở được màn là
+ * môi trường hỏng, và chạy tiếp cả bộ chỉ sinh hàng trăm FAIL vô nghĩa. Neo không còn tìm thấy thì môi
+ * trường VẪN SỐNG, chỉ thư viện đã cũ — dừng cả lượt vì nó là chặn oan. Chỉ spec mới thấy được khác
+ * biệt đó (mã HTTP, URL cuối, lỗi mạng); tới lúc lên báo cáo thì mọi thứ chỉ còn là "đỏ".
+ *
+ * Danh sách này là hợp đồng với `smoke_gate.js` — thêm nhãn thì sửa cả hai.
+ */
+const NHAN_LOAI = ['moi-truong', 'dang-nhap', 'loi-may-chu', 'khong-thay-man', 'neo-troi'];
+
+function sinh({ duongCatalog, outDir, deep, chiMan, dangNhap = null }) {
+  if (dangNhap && dangNhap !== 'ops') return { loi: `\`--dang-nhap\` chỉ nhận \`ops\` (nhận được: ${dangNhap})` };
   let cat;
   try { cat = JSON.parse(fs.readFileSync(duongCatalog, 'utf8')); } catch (e) { return { loi: `không đọc được catalog: ${e.message}` }; }
 
@@ -82,14 +95,14 @@ function sinh({ duongCatalog, outDir, deep, chiMan }) {
     than.push(`    const mh = screens.man(CAT, ${q(m.ten)});`);
     than.push('    const canhBao = screens.canhBaoHanDung(mh);');
     than.push("    if (canhBao) console.log(`[smoke] ⚠ ${canhBao}`);");
-    than.push(`    await page.goto(\`\${GOC}${m.url}\`, { waitUntil: 'domcontentloaded' });`);
+    than.push(`    await moMan(page, \`\${GOC}${m.url}\`);`);
     than.push('');
     than.push('    /* Mỗi neo phải TÌM THẤY. Không phán giá trị — smoke chỉ hỏi "thư viện còn nói đúng về app không". */');
     than.push('    const mat: string[] = [];');
     than.push('    for (const nhan of mh.neo.keys()) {');
     than.push('      if (!(await screens.o(page, mh, nhan).count())) mat.push(nhan);');
     than.push('    }');
-    than.push('    expect(mat, `neo KHÔNG tìm thấy trên màn: ${mat.join(" · ")}`).toEqual([]);');
+    than.push('    expect(mat, `[smoke:neo-troi] neo KHÔNG tìm thấy trên màn: ${mat.join(" · ")}`).toEqual([]);');
     than.push('  });');
     than.push('');
 
@@ -100,7 +113,7 @@ function sinh({ duongCatalog, outDir, deep, chiMan }) {
     than.push('     * đó là hành vi đúng: báo ra còn hơn để lại dấu mà không ai biết.');
     than.push('     */');
     than.push(`    const mh = screens.man(CAT, ${q(m.ten)});`);
-    than.push(`    await page.goto(\`\${GOC}${m.url}\`, { waitUntil: 'domcontentloaded' });`);
+    than.push(`    await moMan(page, \`\${GOC}${m.url}\`);`);
     than.push('    const theoTrangThai: Record<string, string[]> = {};');
     than.push('    for (const nhan of mh.neo.keys()) {');
     than.push("      const n = screens.neoCua(mh, nhan);");
@@ -135,6 +148,7 @@ function sinh({ duongCatalog, outDir, deep, chiMan }) {
     "import { test, expect } from '@playwright/test';",
     `import * as screens from '${duongImport(outDir, 'tests/fe/lib/screens/index.ts')}';`,
     ...(deep ? [`import * as textbox from '${duongImport(outDir, 'tests/fe/lib/_widget/textbox.ts')}';`] : []),
+    ...(dangNhap === 'ops' ? [`import { loginOps } from '${duongImport(outDir, 'tests/fe/support/opsLogin.ts')}';`] : []),
     '',
     `/* eslint-disable @typescript-eslint/no-var-requires, global-require */`,
     `const CAT = require('${relCatalog}');`,
@@ -150,6 +164,44 @@ function sinh({ duongCatalog, outDir, deep, chiMan }) {
     '  if (!GOC) throw new Error("smoke: thiếu SMOKE_BASE_URL (hoặc OPS_BASE_URL). KHÔNG đoán host.");',
     '});',
     '',
+    '/*',
+    ' * MỞ MÀN và PHÂN LOẠI ngay tại chỗ — `smoke:gate` đọc tiền tố `[smoke:<loại>]` để quyết dừng hay chạy',
+    ' * tiếp. Không mở được màn (mạng, hết giờ, 5xx) là chuyện MÔI TRƯỜNG; bị đẩy về trang đăng nhập là',
+    ' * chuyện PHIÊN; 4xx là URL trong catalog đã cũ. Ba thứ đó cần ba cách xử lý khác nhau.',
+    ' * Thông báo KHÔNG chép URL đầy đủ: nó lên báo cáo, và host không thuộc về artifact.',
+    ' */',
+    "const TRANG_DANG_NHAP = new RegExp(process.env.SMOKE_LOGIN_PATTERN || '(login|dang-?nhap)', 'i');",
+    'async function moMan(page: import("@playwright/test").Page, url: string): Promise<void> {',
+    '  let resp: import("@playwright/test").Response | null = null;',
+    '  try {',
+    "    resp = await page.goto(url, { waitUntil: 'domcontentloaded' });",
+    '  } catch (e) {',
+    "    const dong = String((e as Error).message || e).split('\\n')[0].replace(/https?:\\/\\/[^\\s/]+/g, '<host>');",
+    '    throw new Error(`[smoke:moi-truong] không mở được màn — ${dong}`);',
+    '  }',
+    '  const st = resp ? resp.status() : 0;',
+    "  if (TRANG_DANG_NHAP.test(new URL(page.url()).pathname) || st === 401 || st === 403) {",
+    '    throw new Error(`[smoke:dang-nhap] bị đẩy về trang đăng nhập hoặc bị từ chối (HTTP ${st}) — phiên chưa có hoặc đã hết`);',
+    '  }',
+    '  if (st >= 500) throw new Error(`[smoke:loi-may-chu] màn trả HTTP ${st}`);',
+    '  if (st >= 400) throw new Error(`[smoke:khong-thay-man] màn trả HTTP ${st} — URL trong catalog có thể đã cũ`);',
+    '}',
+    '',
+    ...(dangNhap === 'ops' ? [
+      '/*',
+      ' * ĐĂNG NHẬP qua `loginOps` — cùng đường với mọi spec của task (tái dùng phiên, có captcha thì chờ',
+      ' * người/agent đọc). Đăng nhập trượt thì gắn nhãn `dang-nhap`: đó là chuyện phiên, không phải app chết.',
+      ' */',
+      'test.beforeEach(async ({ page }) => {',
+      '  try {',
+      '    await loginOps(page);',
+      '  } catch (e) {',
+      "    const dong = String((e as Error).message || e).split('\\n')[0].replace(/https?:\\/\\/[^\\s/]+/g, '<host>');",
+      '    throw new Error(`[smoke:dang-nhap] đăng nhập không thành công — ${dong}`);',
+      '  }',
+      '});',
+      '',
+    ] : []),
     `test.describe(${q(`@smoke hệ thống — ${path.basename(duongCatalog)}`)}, () => {`,
   ];
 
@@ -170,6 +222,7 @@ function sinh({ duongCatalog, outDir, deep, chiMan }) {
     so_man_sinh: chon.length,
     so_man_bo_qua: tatCa.length - chon.length,
     deep,
+    dang_nhap: dangNhap,
     man: chon,
     bo_qua: tatCa.filter((m) => !chon.includes(m)),
   };
@@ -193,6 +246,7 @@ function main() {
     outDir: path.resolve(REPO, out),
     deep: argv.includes('--deep'),
     chiMan: val('man'),
+    dangNhap: val('dang-nhap'),
   });
 
   if (argv.includes('--json')) { console.log(JSON.stringify(d, null, 2)); process.exit(d.loi ? 2 : 0); }
@@ -224,4 +278,4 @@ function main() {
 
 if (require.main === module) main();
 
-module.exports = { sinh, manCoNeo, duongImport };
+module.exports = { sinh, manCoNeo, duongImport, NHAN_LOAI };
