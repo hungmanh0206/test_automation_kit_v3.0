@@ -111,7 +111,7 @@ test-automation-kit/
 │   ├── mobile-web/          spec mobile-web (giả lập thiết bị)
 │   ├── load/                script k6 (opt-in)
 │   └── fixtures/            dữ liệu mẫu cho spec tự kiểm
-├── knowledge/               bộ nhớ học: bugs · domain · system · decisions · locators · metrics
+├── knowledge/               bộ nhớ học: bugs · domain · system · decisions · locators · metrics · risks
 │                            KHÔNG commit (dữ liệu công ty). Repo chỉ giữ SCHEMA.md
 ├── profiles/
 │   └── <TASK_KEY>/task.env  env động theo task. KHÔNG commit (creds); chỉ task.env.example
@@ -209,6 +209,10 @@ Sheet thật sau khi bạn duyệt. Chạy sau khi QA đã xác nhận bộ case
 Dựng automation, execute trên môi trường test, chấm verdict theo taxonomy chuẩn. Nó **xác nhận với
 bạn trước lượt chạm UAT đầu tiên**, vì UAT là môi trường dùng chung.
 
+Trước spec đầu tiên nó chạy `smoke:gate`: mở từng màn, chỉ đọc. Môi trường chết hoặc phiên đăng nhập
+hỏng thì **dừng**, không chạy cả bộ để sinh hàng trăm FAIL cùng một nguyên nhân. Màn chỉ lệch locator
+thì vẫn chạy tiếp, kèm danh sách màn cần soi.
+
 Fail ở bước dựng tiền điều kiện được tính là `setup_failure`, **không phải** lỗi sản phẩm, nên không
 log bug.
 
@@ -219,8 +223,10 @@ mới** — requirement đổi là việc của `/partial-rerun`.
 
 **10. `/release <TASK_KEY>`: cửa cuối**
 
-Chạy cửa ra `done` rồi đưa khuyến nghị go hoặc no-go **có căn cứ**, không phải cảm tính. Dùng khi đã
-execute xong và sổ nợ đã sạch; còn nợ thì nó không cho qua.
+Chạy cửa ra `done` rồi đưa khuyến nghị **có căn cứ**, không phải cảm tính: `GO`, `NO-GO`, hoặc
+`CONCERNS` khi một tiêu chí không đạt nhưng PO đã chấp nhận kèm cách giảm thiểu. Rủi ro dự án còn mở
+(`npm run risks`) được in ngay cạnh khuyến nghị. Dùng khi đã execute xong và sổ nợ đã sạch; còn nợ thì
+nó không cho qua.
 
 ### Bốn nhánh phụ, gọi khi gặp đúng tình huống
 
