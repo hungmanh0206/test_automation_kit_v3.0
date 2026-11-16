@@ -69,9 +69,9 @@ Sau đó theo **bốn phase**, đúng thứ tự số trong tên lệnh:
 ```text
 /phase1 <TASK_KEY>   chuẩn bị — gọi /start rồi /discover, dừng sau khi báo bản đồ hệ thống
 /phase2 <TASK_KEY>   sinh testcase, dừng lại để bạn review
-/phase3 <TASK_KEY>   execute, xác nhận trước lượt chạm môi trường đầu tiên
+/phase3 <TASK_KEY>   execute, xác nhận trước lượt chạm môi trường đầu tiên; smoke gate dừng nếu môi trường hỏng
 /phase4 <TASK_KEY>   chạy lại case của bug đã fix
-/release <TASK_KEY>  cửa cuối: chạy cửa ra `done` rồi khuyến nghị go/no-go
+/release <TASK_KEY>  cửa cuối: chạy cửa ra `done` rồi khuyến nghị GO / CONCERNS / NO-GO
 ```
 
 Vừa chạy `/start` ở trên rồi thì `/phase1` chỉ còn phần `/discover`. Giữa hai số là hai lệnh chen
@@ -94,7 +94,7 @@ Chi tiết từng bước: [`USER_GUIDE.md`](USER_GUIDE.md) mục 3.
 
 `knowledge/` bị gitignore có chủ ý, vì mirror GitHub là public. Nhưng theo `knowledge/SCHEMA.md`, mấy
 phần trong đó **không nạp lại được từ nguồn máy**: `domain/`, `system/`, `decisions/`,
-`setup_recipes/`, `environment/`, `locators/` và `bug_tc_map.json` là công sức người ghi tay.
+`setup_recipes/`, `environment/`, `locators/`, `risks/` và `bug_tc_map.json` là công sức người ghi tay.
 
 Máy mới cần dùng tiếp bộ nhớ đó thì máy cũ chạy `npm run knowledge:backup` (đích **ngoài** repo), bê
 bundle sang rồi khôi phục. Phần nạp lại được thì `npm run learn:bugs:apply` (từ Backlog) và

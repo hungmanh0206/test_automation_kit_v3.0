@@ -214,7 +214,8 @@ Vì sao có trục thứ hai: [`docs/rationale/chieu-coverage.md`](docs/rational
 |---|---|
 | Requirement artifact | `TASK_DIR/requirements/` |
 | Testcase canonical | `TASK_DIR/test-cases/*.md` (bản xuất `*.xlsx`) |
-| Báo cáo sinh case | `TASK_DIR/reports/phase1-summary.md` |
+| Báo cáo sinh case (mở đầu bằng mục `Test Plan`) | `TASK_DIR/reports/phase1-summary.md` |
+| Tiêu chí exit, chờ PM xác nhận | `TASK_DIR/reports/exit_criteria.json` |
 | Yêu cầu hook cho Dev | `TASK_DIR/reports/capability-request.md` |
 | Nhật ký task | `TASK_DIR/task.md` |
 
@@ -224,6 +225,14 @@ chức năng.
 
 Mỗi ô `Tiền điều kiện` phải mang tag `[<method>]` — `api`, `factory`, `test_hook`, `ui`,
 `pre_existing`, `manual`. **Không có `db`**: dựng state bằng DB là bỏ qua business logic.
+
+**Mục `Test Plan` ở đầu `phase1-summary.md`** gom năm câu người review hỏi trước tiên: không test gì
+(Not in Scope), đang giả định gì (Assumptions), khi nào được execute (Entry), khi nào là xong (Exit), và
+rủi ro dự án nào đang mở. Mỗi dòng trỏ về nguồn, không chép lại.
+
+**Tiêu chí exit chốt ngay ở phase này**, không đợi tới lúc release: `npm run release:summary:init -- --task <TASK_KEY>`,
+sửa ngưỡng theo dự án, rồi để **PM xác nhận trước lượt execute đầu tiên**. Sửa file tiêu chí sau khi đã
+có kết quả thì `release:summary` từ chối, vì nhìn số rồi mới đặt ngưỡng là hợp thức hoá kết quả.
 
 `/phase2` **không execute**. Nó dừng ở `Pending QA confirmation`.
 
@@ -270,10 +279,22 @@ Coverage cao mà còn gap Critical/High thì **không PASS**.
 
 Agent **xác nhận với bạn** trước lượt chạm môi trường test đầu tiên.
 
+**Smoke gate chạy trước spec đầu tiên** (`npm run smoke:gate -- --task <TASK_KEY>`). Nó mở từng màn trong
+`requirements/ui_catalog.json`, chỉ đọc, và phân biệt hai kiểu "đỏ" trái ngược nhau:
+
+| Smoke thấy | Kết luận | Làm gì |
+|---|---|---|
+| Mọi màn mở được, đủ control | `SACH` | chạy bộ case |
+| Một số màn lệch locator, URL cũ, hoặc 5xx riêng một màn | `CHAY_TIEP_CO_CANH_BAO` | chạy tiếp; soi màn đó bằng `/ui-debug` trước khi tin FAIL của nó |
+| **Mọi** màn không mở được | `DUNG` · tầng `infra` | không chạy bộ case, không log bug, báo người phụ trách môi trường |
+| Bị đẩy về trang đăng nhập | `DUNG` · tầng `setup_failure` | sửa phiên đăng nhập rồi chạy lại |
+| Thiếu catalog hoặc URL gốc | `KHONG_KIEM_DUOC` | **không phải xanh** — ghi vào báo cáo rằng lượt này chạy không có smoke gate |
+
 **Ra gì:**
 
 | Output | Nằm ở |
 |---|---|
+| Kết quả smoke gate | `TASK_DIR/reports/smoke-gate.md` |
 | Kết quả Playwright | `TASK_DIR/test-results/` |
 | Evidence | `TASK_DIR/test-results/artifacts/` |
 | Báo cáo execute | `TASK_DIR/reports/execution-summary.md` |
@@ -342,6 +363,38 @@ mới — việc đó là Partial Rerun (mục 5).
 PASS thật thì: đính evidence, comment Backlog kèm TC ID, chuyển bug sang `Done`, cập nhật report.
 Vẫn FAIL thì giữ bug mở và ghi lý do.
 
+### 3.8 `/release` — cửa cuối
+
+```text
+/release <TASK_KEY>
+```
+
+Chạy cửa ra `done` (chặn khi sổ nợ gate còn món), rồi `release:summary` đối chiếu kết quả với
+`reports/exit_criteria.json` và đưa **khuyến nghị** — quyết định phát hành là của PM/PO:
+
+| Khuyến nghị | Khi nào |
+|---|---|
+| `GO` | mọi tiêu chí đo được đều đạt, không có case chưa chạy |
+| `CONCERNS` | có tiêu chí **không đạt** nhưng PO đã chấp nhận kèm cách giảm thiểu và hạn; báo cáo nêu từng cái |
+| `NO-GO` | còn tiêu chí không đạt chưa ai chấp nhận, tiêu chí **không đo được**, hoặc case chưa từng chạy |
+
+**PO chấp nhận một tiêu chí không đạt** thì ghi quyết định `release_exception` vào `knowledge/decisions/`
+(skill `decision_recorder`): bắt buộc `decided_by: PO`, `task_key`, `exit_criterion_id`, `mitigation` và
+`expires_at`. Thiếu ô nào là bị chặn. Không ghi vào `exit_criteria.json`. Ngoại lệ không áp cho tiêu chí
+không đo được: chấp nhận một thứ chưa ai đo là biến "không phán được" thành đạt.
+
+**Rủi ro dự án** (môi trường, phụ thuộc, dữ liệu, tiến độ) nằm ở sổ `knowledge/risks/`, in ra cạnh khuyến
+nghị. Mỗi rủi ro có người chịu, cách giảm thiểu và hạn; quá hạn thì lên đầu danh sách.
+
+```bash
+npm run risks:new -- --title "<tiêu đề>"   # máy cấp RISK-<NNN>, rồi điền mọi ô <ĐIỀN>
+npm run risks -- --task <TASK_KEY>         # rủi ro đang mở của task
+```
+
+Risk ID không bao giờ được cấp lại. Rủi ro chỉ được **đóng** (`status: closed` kèm lý do), không được
+xoá; xoá file là bị chặn. Sổ này khác `risk-register` của `npm run risk`, vốn chấm rủi ro theo module để
+chia độ sâu test.
+
 ---
 
 ## 4. Output nằm ở đâu
@@ -357,7 +410,7 @@ Mọi artifact của một task nằm dưới `<PROJECT_OUTPUT_DIR>/tasks/<TASK_
 requirements/      tài liệu đã fetch + dimension_manifest.json
 test-cases/        *.md canonical · *.xlsx bản xuất · from-sheet/ (chỉ cho gate)
 test-results/      execution-results.md · testcase-status.json · artifacts/ (evidence)
-reports/           phase1-summary.md · execution-summary.md · rerun/
+reports/           phase1-summary.md · exit_criteria.json · smoke-gate.md · execution-summary.md · rerun/
 change/            bản regen của Partial Rerun
 task.md            nhật ký trạng thái task
 ```
@@ -412,6 +465,7 @@ bước cleanup riêng**.
 
 | Xem mục | Hỏi |
 |---|---|
+| Test Plan | Not in Scope có hợp lý không? Assumptions nào cần BA xác nhận? Exit đã có PM xác nhận chưa? |
 | Coverage Summary | Tính theo requirement hay chỉ đếm case? |
 | Risk-based Gate | Core flow đã cover chưa? |
 | High/Critical Gaps | Có gap nào chặn PASS không? |
@@ -475,7 +529,7 @@ gì, ra gì, gọi khi nào và dừng ở đâu. Mục này chỉ nối lệnh 
 | 4 | `/publish` | 3.3 — đẩy Sheet, sau khi QA duyệt |
 | 5 | `/phase3` | 3.4 — execute |
 | 6 | `/phase4` | 3.7 — rerun sau khi Dev fix |
-| 7 | `/release` | kết thúc task |
+| 7 | `/release` | 3.8 — cửa cuối, khuyến nghị GO / CONCERNS / NO-GO |
 
 **Bảy lệnh công cụ — gọi khi gặp đúng tình huống:**
 
