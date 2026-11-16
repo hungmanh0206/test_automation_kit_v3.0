@@ -7,7 +7,7 @@
 > **T1** chỉ chặn ở cửa ra, lúc đang làm thì cảnh báo và ghi `reports/gate-debt.json` · **T2** không
 > bao giờ chặn. T0 khai tay trong `.agent/config/gate_tiers.json`; không khai thì mặc định T1.
 
-Tổng **179** máy — **122 CHẶN** · 35 SINH (ghi artifact) · 22 BÁO CÁO (chỉ in).
+Tổng **180** máy — **123 CHẶN** · 35 SINH (ghi artifact) · 22 BÁO CÁO (chỉ in).
 
 SINH/BÁO CÁO **không phải gate bị nới** — chúng không kiểm vi phạm. Ví dụ `bugs:checklist` in brief bug
 lịch sử, còn việc CHẶN nằm ở `dim:coverage` (chiều `bug_history` §20).
@@ -59,6 +59,7 @@ lịch sử, còn việc CHẶN nằm ở `dim:coverage` (chiều `bug_history` 
 | T1 | CHẶN | `recon:passive` | recon chỉ được QUAN SÁT, không được DÒ. | `scripts/qa/recon_passive.js` | .github/workflows · .agent/skills · tests/fe/infra |
 | T1 | CHẶN | `compile:check` | CANH LUẬT "CASE CHƯA ĐỦ KHÔNG ĐƯỢC PASS" (v2.8.0 §D). | `scripts/qa/reuse/compile_check.js` | tests/fe/infra |
 | T1 | CHẶN | `compile:spec` | BIÊN DỊCH TESTCASE THÀNH SPEC (v2.8.0 §D). KHÔNG GỌI MODEL, 0 token AI. | `scripts/qa/reuse/compile_spec.js` | .agent/skills · tests/fe/infra |
+| T1 | CHẶN | `smoke:gate` | CỬA CHẶN ĐẦU /phase3: chạy smoke nông trước, rồi mới cho chạy cả bộ. | `scripts/qa/reuse/smoke_gate.js` | prompt_templates · .claude/commands · tests/fe/infra |
 | T1 | CHẶN | `smoke:gen` | SINH SMOKE HỆ THỐNG TỪ MÔ HÌNH MÀN (v2.8.0 §L). 0 token AI. | `scripts/qa/reuse/smoke_gen.js` | tests/fe/infra |
 | T1 | CHẶN | `steps:catalog` | GÁC DANH MỤC BƯỚC (v2.8.0 §C1 + §C3). | `scripts/qa/reuse/steps_catalog_check.js` | **KHÔNG BỀ MẶT NÀO** |
 | T1 | CHẶN | `steps:impact` | AI PHỤ THUỘC BƯỚC NÀO, VÀ CỬA CHẶN ĐỔI HỢP ĐỒNG (v2.8.0 §E). | `scripts/qa/reuse/steps_impact.js` | **KHÔNG BỀ MẶT NÀO** |

@@ -21,6 +21,7 @@ Gate bắt buộc:
 
 ```bash
 node scripts/qa/preflight_gate.js --mode phase3 --task $ARGUMENTS
+npm run smoke:gate -- --task $ARGUMENTS   # sau xác nhận chạm UAT
 npm run expansion:plan
 npm run gate:output
 npm run self-review -- --task $ARGUMENTS
@@ -29,5 +30,6 @@ npm run bugs:checklist
 
 **Dừng khi:**
 - Chưa **xác nhận với user** trước lượt chạm UAT đầu tiên.
+- `smoke:gate` exit 1 (môi trường hỏng) hoặc exit 2 (chưa kiểm được) — báo user.
 - Có FAIL mà chưa rerun 2–3 lần để loại flaky/setup.
 - `self-review` còn CHẶN — sửa nguyên nhân, không nới ngưỡng.
