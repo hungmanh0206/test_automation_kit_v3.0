@@ -7,7 +7,7 @@
 > **T1** chỉ chặn ở cửa ra, lúc đang làm thì cảnh báo và ghi `reports/gate-debt.json` · **T2** không
 > bao giờ chặn. T0 khai tay trong `.agent/config/gate_tiers.json`; không khai thì mặc định T1.
 
-Tổng **180** máy — **123 CHẶN** · 35 SINH (ghi artifact) · 22 BÁO CÁO (chỉ in).
+Tổng **181** máy — **124 CHẶN** · 35 SINH (ghi artifact) · 22 BÁO CÁO (chỉ in).
 
 SINH/BÁO CÁO **không phải gate bị nới** — chúng không kiểm vi phạm. Ví dụ `bugs:checklist` in brief bug
 lịch sử, còn việc CHẶN nằm ở `dim:coverage` (chiều `bug_history` §20).
@@ -126,6 +126,7 @@ lịch sử, còn việc CHẶN nằm ở `dim:coverage` (chiều `bug_history` 
 | T0 | CHẶN (có cờ --enforce) | `ledger:check`, `ledger:check:enforce`, `ledger:snapshot` | Chống MẤT KẾT QUẢ ÂM THẦM ở cột `Result` của bản xuất Excel. | `scripts/qa/result_ledger.js` | RULE_GLOBAL.md · .agent/workflows · .agent/skills · prompt_templates |
 | T1 | CHẶN (có cờ --enforce) | `replay:check`, `replay:check:enforce` | ĐO SỐ LẦN PHẢI GỌI AI ĐỂ CHẠY LẠI MỘT TASK KHÔNG ĐỔI (v2.8.0 §F). | `scripts/qa/reuse/replay_check.js` | tests/fe/infra |
 | T1 | CHẶN (có cờ --enforce) | `risk:gate`, `risk:gate:enforce` | ép Risk-Based Testing: đối chiếu testcase với depthPolicy theo band trong risk-register. | `scripts/qa/risk_gate.js` | docs/kit-map.md · .github/workflows · .agent/workflows · .agent/skills · prompt_templates · .claude/commands · tests/fe/infra |
+| T1 | CHẶN (có cờ --enforce) | `risks`, `risks:enforce`, `risks:new` | SỔ RỦI RO DỰ ÁN (`knowledge/risks/`). KHÁC `risk-register` của `risk:score`. | `scripts/qa/risk_log.js` | prompt_templates · .claude/commands · tests/fe/infra |
 | T1 | CHẶN (có cờ --enforce) | `rule:parity`, `rule:parity:enforce` | RÚT GỌN `core_rules.md` MÀ KHÔNG MẤT LUẬT NÀO. | `scripts/qa/rule_parity.js` | .github/workflows · tests/fe/infra |
 | T0 | CHẶN (có cờ --enforce) | `run:analysis`, `run:analysis:enforce` | LƯỢT CHẠY NÀY CÓ ĐƯỢC DÙNG ĐỂ KẾT LUẬN CHẤT LƯỢNG KHÔNG? | `scripts/qa/run_analysis.js` | .agent/workflows · .agent/rules · .agent/skills · .claude/commands · tests/fe/infra |
 | T1 | CHẶN (có cờ --enforce) | `scope:anchor`, `scope:anchor:enforce`, `scope:anchor:init` | NEO MẪU SỐ của Phase 1. | `scripts/qa/scope_anchor.js` | .agent/workflows · .agent/skills · prompt_templates · .claude/commands · tests/fe/infra |

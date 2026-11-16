@@ -16,7 +16,7 @@ Report phải đủ chi tiết để review chất lượng bộ testcase mà kh
 
 0. **`## Test Plan` — mục ĐẦU TIÊN của report**
 
-   Gom bốn câu mà người review hỏi trước tiên vào một chỗ. Mỗi dòng **TRỎ về nguồn** và tóm tắt tối đa
+   Gom năm câu mà người review hỏi trước tiên vào một chỗ. Mỗi dòng **TRỎ về nguồn** và tóm tắt tối đa
    2–3 ý; **KHÔNG chép nguyên** nội dung nguồn sang đây, vì chép là có hai bản và hai bản sẽ lệch.
 
    | Mục | Tóm tắt | Nguồn |
@@ -25,6 +25,7 @@ Report phải đủ chi tiết để review chất lượng bộ testcase mà kh
    | Assumptions | các `ASSUMPTION Qn` đang được áp (chỉ điểm mờ Medium/Low) | `reports/phase1-clarifications.md` |
    | Entry (trước execute) | `ambiguity:gate` qua · capability-request không còn mục chưa `Resolved`/`Accepted` · Exit đã có PM xác nhận · `preflight_gate --mode phase3` · `smoke:gate` | các lệnh đó, chạy ở đầu `/phase3` |
    | Exit | ngưỡng của từng tiêu chí, và người xác nhận | `reports/exit_criteria.json` |
+   | Rủi ro dự án | rủi ro đang mở gắn task này: người chịu · hạn · quá hạn chưa | `npm run risks -- --task <TASK_KEY>` (`knowledge/risks/`) |
 
    - Nguồn chưa có thì ghi `CHƯA CÓ`, không bỏ dòng. Một Test Plan không có dòng Not in Scope đọc như "không loại gì".
    - **Exit chốt NGAY Ở PHASE NÀY, không đợi tới lúc release:** chưa có file thì chạy

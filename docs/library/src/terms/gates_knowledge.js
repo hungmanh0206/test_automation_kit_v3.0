@@ -28,6 +28,15 @@ const TERMS_GATE4 = [
   cmd:'npm run decisions:check   ·   npm run decisions:index',
   src:'scripts/qa/decisions.js', rel:['sk-decision_recorder','c-false-positive','f-knowledge','sk-backlog_bug_reporter'] },
 
+{ id:'g-risks', t:'risks / risks:new / risks:enforce', cat:'gate',
+  def:'Sổ rủi ro DỰ ÁN ở knowledge/risks/ — mỗi rủi ro có người chịu, cách giảm thiểu và hạn; Risk ID do máy cấp và không bao giờ cấp lại.',
+  detail:'Bắt buộc: owner · mitigation (≥ 20 ký tự) · due_date · category · likelihood và impact 1–5 · status (open, mitigating, accepted cần accepted_by, closed cần closed_at và close_reason). Điểm và band không lưu mà tính lúc đọc từ risk_model.json, cùng ngưỡng với risk:score. Sổ cấp phát _so_cap_phat.json ghi số cuối đã cấp: số đã cấp mà mất file là CHẶN, và xoá file không làm số đó được cấp lại.',
+  why:'risk-register của risk:score chấm rủi ro THEO MODULE để chia độ sâu test và sinh lại mỗi lần chạy, nên không giữ được owner hay hạn. Rủi ro của dự án (môi trường sập, phụ thuộc chưa sẵn, dữ liệu thiếu) cần một sổ ghi tay sống qua nhiều task, và một Risk ID đã nhắc trong biên bản phải chỉ đúng một rủi ro mãi mãi.',
+  how:['Cấp ID: npm run risks:new -- --title "<tiêu đề>", rồi điền mọi ô <ĐIỀN>','Không xoá rủi ro — đóng bằng status closed kèm close_reason'],
+  cmd:'npm run risks   ·   npm run risks -- --task <K>   ·   npm run risks:enforce',
+  ex:'Rủi ro quá hạn mà chưa đóng hay chấp nhận được xếp lên đầu danh sách.',
+  src:'scripts/qa/risk_log.js', rel:['f-knowledge','g-decisions'] },
+
 { id:'g-howto_store', t:'howto:check / howto:find', cat:'gate',
   def:'Quản lý hai store trả lời câu "LÀM SAO tới được trạng thái đó".',
   detail:'setup_recipes/ ghi các bước để có state X kèm CẠM BẪY đã vấp và cách verify. environment/ ghi quirk hạ tầng, auth hoặc env khiến test thất bại một cách khó hiểu. Có --enforce.',
