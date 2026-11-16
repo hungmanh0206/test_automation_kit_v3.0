@@ -262,10 +262,10 @@
   },
   "dependencies": {
     "axe-core": "^4.12.1",
-    "axios": "^1.21.0",
+    "axios": "^1.21.1",
     "exceljs": "^4.4.0",
     "googleapis": "^189.0.0",
-    "tedious": "^20.3.8"
+    "tedious": "^20.3.9"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
