@@ -14,6 +14,25 @@ Sau khi lưu Markdown testcase và export Excel, bắt buộc tạo/cập nhật
 
 Report phải đủ chi tiết để review chất lượng bộ testcase mà không cần đọc toàn bộ file testcase:
 
+0. **`## Test Plan` — mục ĐẦU TIÊN của report**
+
+   Gom bốn câu mà người review hỏi trước tiên vào một chỗ. Mỗi dòng **TRỎ về nguồn** và tóm tắt tối đa
+   2–3 ý; **KHÔNG chép nguyên** nội dung nguồn sang đây, vì chép là có hai bản và hai bản sẽ lệch.
+
+   | Mục | Tóm tắt | Nguồn |
+   |---|---|---|
+   | Not in Scope | những gì đã cân nhắc và loại, kèm lý do ngắn | `requirements/scope_inventory.md` § Đã cân nhắc và loại khỏi phạm vi |
+   | Assumptions | các `ASSUMPTION Qn` đang được áp (chỉ điểm mờ Medium/Low) | `reports/phase1-clarifications.md` |
+   | Entry (trước execute) | `ambiguity:gate` qua · capability-request không còn mục chưa `Resolved`/`Accepted` · Exit đã có PM xác nhận · `preflight_gate --mode phase3` · `smoke:gate` | các lệnh đó, chạy ở đầu `/phase3` |
+   | Exit | ngưỡng của từng tiêu chí, và người xác nhận | `reports/exit_criteria.json` |
+
+   - Nguồn chưa có thì ghi `CHƯA CÓ`, không bỏ dòng. Một Test Plan không có dòng Not in Scope đọc như "không loại gì".
+   - **Exit chốt NGAY Ở PHASE NÀY, không đợi tới lúc release:** chưa có file thì chạy
+     `npm run release:summary:init -- --task <TASK_KEY>`, sửa ngưỡng theo dự án, và ghi
+     `Exit: chờ PM xác nhận` cho tới khi `laMacDinh: false`. PM phải xác nhận **trước lượt execute đầu
+     tiên**: sửa file này sau khi đã có `testcase-status.json` thì `release:summary` từ chối, vì nhìn kết
+     quả rồi mới chốt ngưỡng là hợp thức hoá kết quả. Dựng nó lúc release là đã muộn.
+
 1. **Tổng quan Phase 1**
    - Task key / module / scope.
    - Nguồn requirement đã đọc: Backlog, tài liệu nguồn, Figma, Swagger, file local.
@@ -183,7 +202,7 @@ Sau khi lưu file Markdown testcase:
      không render Markdown. Converter có bóc, nhưng viết sạch từ đầu vẫn hơn — cần nhấn mạnh thì VIẾT HOA.
 12. Khi chạy trong repo này, phải xuất thêm file Excel `.xlsx` từ testcase Markdown trước khi kết thúc Phase 1
 13. Mỗi testcase phải có nhóm chức năng rõ ràng trong cột `Module`; Excel export phải thể hiện được nhóm đó để lọc/review
-14. Không coi Phase 1 hoàn tất nếu thiếu `reports/phase1-summary.md` hoặc report không có tổng testcase, breakdown theo loại, `Coverage Summary`, `Risk-based Gate`, `High/Critical Gaps`, `Testcase Quality Issues` và `Final Decision`
+14. Không coi Phase 1 hoàn tất nếu thiếu `reports/phase1-summary.md`, thiếu `## Test Plan` ở đầu report, hoặc report không có tổng testcase, breakdown theo loại, `Coverage Summary`, `Risk-based Gate`, `High/Critical Gaps`, `Testcase Quality Issues` và `Final Decision`
 15. Không coi Phase 1 hoàn tất nếu testcase/report/task log dùng tiếng Việt không dấu hoặc bị lỗi encoding/mojibake
 16. Không coi Phase 1 hoàn tất nếu còn cell `Tiền điều kiện` thiếu tag `[<method>]`, hoặc `Setup Source` chung chung không đủ để Phase 2 setup/manual rõ
 17. `Setup Source` cho strategy `api` phải dựa trên Swagger đã fetch ở `requirements/swagger/`; nếu không có cách setup thì đánh dấu `Needs hook` hoặc `Manual-only` thay vì bịa endpoint

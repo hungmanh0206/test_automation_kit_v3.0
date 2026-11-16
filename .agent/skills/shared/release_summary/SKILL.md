@@ -33,8 +33,9 @@ phải đánh giá.
 `reports/exit_criteria.json` thiếu, **và** khi file đó có `mtime` **mới hơn** `testcase-status.json`. Chỉ
 cần mở file tiêu chí ra hạ một ngưỡng là báo cáo "đạt" — so mtime bắt được đúng việc đó.
 
-Dựng bộ mặc định: `npm run release:summary:init -- --task <K>`. Bộ đó là **mặc định của agent** và báo cáo
-sẽ ghi rõ như vậy cho tới khi có `nguoiXacNhan`.
+Dựng bộ mặc định: `npm run release:summary:init -- --task <K>` — ở **cuối /phase2**, cùng mục `## Test Plan`
+của `phase1-summary.md`, không đợi tới lúc release. Bộ đó là **mặc định của agent** và báo cáo sẽ ghi rõ như
+vậy cho tới khi có `nguoiXacNhan`; PM xác nhận trước lượt execute đầu tiên.
 
 | # | Tiêu chí mặc định | Ngưỡng | Nguồn số |
 |---|---|---|---|
